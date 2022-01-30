@@ -27,5 +27,10 @@ dependencies {
 application {
     // Define the main class for the application
     mainClassName = "compiler.App"
-    executableDir = "."
+}
+
+tasks.withType<Jar> {
+    manifest {
+        attributes["Main-Class"] = "compiler.App"
+    }
 }
