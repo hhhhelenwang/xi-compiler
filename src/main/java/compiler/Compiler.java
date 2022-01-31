@@ -3,7 +3,8 @@
  */
 package compiler;
 import org.apache.commons.cli.*;
-public class App {
+
+public class Compiler {
     CommandLine cmd;
 
     public void init_cli(String[] args) throws ParseException {
@@ -23,13 +24,13 @@ public class App {
     }
 
     public static void main(String[] args) {
-        App app = new App();
+        Compiler compiler = new Compiler();
         try {
-            app.init_cli(args);
+            compiler.init_cli(args);
         } catch (ParseException e){
             System.out.println(e.getMessage());
         }
-        app.help();
-        app.lex();
+        compiler.help();
+        compiler.lex();
     }
 }
