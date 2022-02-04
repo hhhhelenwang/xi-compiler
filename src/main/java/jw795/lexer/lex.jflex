@@ -89,6 +89,11 @@
         }
     }
 
+    char parseHex (String hexTex) {
+        Integer code = Integer.parseInt(String.substring(3, hexTex.length() - 1), 16);
+        return Character.toChars(code)[0];
+    }
+
     Boolean charRead = false;
 
     StringBuffer sb = new StringBuffer();
@@ -98,6 +103,7 @@ Letter = [a-zA-Z]
 Digit = [0-9]
 Char = [U+000000-U+10FFFF]
 
+Hex =  "\"x"{"({Digit} | [a-fA-F])({Digit} | [a-fA-F])"}"
 Integer = 0 | [1-9]{Digit}*
 Boolean = "true" | "false"
 CharData = {Char}'
@@ -172,15 +178,17 @@ Identifier = Letter(Letter | Digit | _ | ')*
 }
 
 <CHARACTER> {
-    [{Char}^\n\\\'] {return new Token(TokenType.CHARLIT, yytext()); charRead = true;}
+    [{Char}^\n\\\'] {charRead = true; return new Token(TokenType.CHARLIT, yytext());}
 
-    \\n {return new Token(TokenType.CHARLIT, '\n'); charRead = true;}
+    \\n {charRead = true; return new Token(TokenType.CHARLIT, '\n');}
 
-    \\\\ {return new Token(TokenType.CHARLIT, '\\'); charRead = true;}
+    \\\\ {charRead = true; return new Token(TokenType.CHARLIT, '\\');}
 
-    \\\' {return new Token(TokenType.CHARLIT, '\''); charRead = true;}
+    \\\' {charRead = true; return new Token(TokenType.CHARLIT, '\'');}
 
     {Char}{Char}{Char}* {throw new Error("Illegal character <"+ yytext() +">");}
+
+    {Hex} {charRead = true; return new Token(TokenType.CHARLIT, sb.append(parseHex(yytext())));}
 
     "'" {
         if (charRead) {
@@ -204,6 +212,8 @@ Identifier = Letter(Letter | Digit | _ | ')*
     \\\\ {sb.append('\\');}
 
     \\\" {sb.append('\"');}
+
+    {Hex} {sb.append(parseHex(yytext()));}
 
     """ {
         return new Token(TokenType.STRINGLIT, sb.toString());
