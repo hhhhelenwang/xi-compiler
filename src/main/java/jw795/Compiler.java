@@ -21,6 +21,7 @@ public class Compiler {
     }
 
     public void lex(){
+
     }
 
     public static void main(String[] args) {

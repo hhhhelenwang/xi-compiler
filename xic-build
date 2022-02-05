@@ -1,7 +1,5 @@
 #!/bin/bash
-
 # build lexer from specification
-#jflex <path to .flex> -d <write to this dir>
-
+jflex ./src/main/java/jw795/lexer/lex.jflex -d ./src/main/java/jw795/lexer
 # build project
 ./gradlew build

@@ -1,3 +1,4 @@
+%%
 %class Lexer
 %unicode
 %line
@@ -103,10 +104,12 @@ Letter = [a-zA-Z]
 Digit = [0-9]
 Char = [U+000000-U+10FFFF]
 
-Hex =  "\"x"{"({Digit} | [a-fA-F])({Digit} | [a-fA-F])"}"
+Hex =  "\\x{"({Digit} | [a-fA-F])({Digit} | [a-fA-F])"}"
 Integer = 0 | [1-9]{Digit}*
 Boolean = "true" | "false"
 CharData = {Char}'
+
+WhiteSpace = " "|\t|\r|\v|\f
 
 Identifier = Letter(Letter | Digit | _ | ')*
 
@@ -167,9 +170,10 @@ Identifier = Letter(Letter | Digit | _ | ')*
     "_" {return new Token(TokenType.UNDERSCORE);}
 
     "/""/" { yybegin(COMMENT); System.out.println("Starting comment");}
-    "'" { yybegin(CHARACTER); System.out.println("Starting character");
-    """ { yybegin(STRING); System.out.println("Starting string");}
+    "'" { yybegin(CHARACTER); System.out.println("Starting character");}
+    "\"" { yybegin(STRING); System.out.println("Starting string");}
 
+    {WhiteSpace} { /* ignore */}
 }
 
 <COMMENT> {
@@ -178,7 +182,7 @@ Identifier = Letter(Letter | Digit | _ | ')*
 }
 
 <CHARACTER> {
-    [{Char}^\n\\\'] {charRead = true; return new Token(TokenType.CHARLIT, yytext());}
+    [^\n\\\'] {charRead = true; return new Token(TokenType.CHARLIT, yytext());}
 
     \\n {charRead = true; return new Token(TokenType.CHARLIT, '\n');}
 
@@ -205,7 +209,7 @@ Identifier = Letter(Letter | Digit | _ | ')*
 }
 
 <STRING> {
-    [{Char}^\n\\\"] {sb.append(yytext());}
+    [^\n\\\"] {sb.append(yytext());}
 
     \\n {sb.append('\n');}
 
@@ -215,7 +219,7 @@ Identifier = Letter(Letter | Digit | _ | ')*
 
     {Hex} {sb.append(parseHex(yytext()));}
 
-    """ {
+    "\"" {
         return new Token(TokenType.STRINGLIT, sb.toString());
         sb = new StringBuffer();
         yybegin(YYINITIAL);
