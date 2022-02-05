@@ -64,7 +64,7 @@ package jw795.lexer;
         UNDERSCORE
     }
 
-    private class Token {
+    public class Token {
         TokenType type;
         Object value;
         int line;
@@ -82,6 +82,8 @@ package jw795.lexer;
             line = yyline;
             column = yycolumn;
         }
+
+
 
     }
 
