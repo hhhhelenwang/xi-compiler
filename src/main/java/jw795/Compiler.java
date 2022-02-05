@@ -29,12 +29,12 @@ public class Compiler {
     public void lex(){
         if(cmd.hasOption("lex")){
             // Initialize a reader given file name
-            String inputFilePath = cmd.getOptionValue("lex");
+            String fileName = "../../../../../"+cmd.getOptionValue("lex");
 
             try {
                 // Generate token file
-                Reader reader = new FileReader(inputFilePath);
-                LexerAdapter lexerAdapt = new LexerAdapter(reader);
+                Reader reader = new FileReader(fileName);
+                LexerAdapter lexerAdapt = new LexerAdapter(reader, fileName);
                 lexerAdapt.generateTokens();
             } catch (FileNotFoundException e) {
                 System.out.println("File not found.");

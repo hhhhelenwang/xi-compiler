@@ -15,8 +15,9 @@ public class LexerAdapter {
     String PATH = "../../../../../";
     String fileName = "";
 
-    public LexerAdapter (Reader reader) {
+    public LexerAdapter (Reader reader, String filename) {
         lexer = new Lexer(reader);
+        fileName = filename;
     }
 
     public void generateTokens () {
@@ -39,7 +40,7 @@ public class LexerAdapter {
         // output tokens into a file
         File targetFile = new File(PATH + fileName +".lexed");
         try{
-            FileWriter targetWriter = new FileWriter(fileName);
+            FileWriter targetWriter = new FileWriter(targetFile);
             for (Token t : tokens){
                 StringBuilder line = new StringBuilder();
                 line.append(t.line);
@@ -88,14 +89,10 @@ public class LexerAdapter {
                 res = "bool";
                 break;
 
-
             default: res = "Invalid Token Type";
                 break;
         }
-
         return res;
     }
-
-
 
 }
