@@ -3,6 +3,7 @@
  */
 package jw795;
 import org.apache.commons.cli.*;
+import java.io.Reader;
 
 public class Compiler {
     CommandLine cmd;
@@ -10,6 +11,7 @@ public class Compiler {
     public void init_cli(String[] args) throws ParseException {
         Options options = new Options();
         options.addOption("h", "help", false, "display the help page");
+        options.addOption("lex", "lex", true, "perform lexical analysis on the input file");
         CommandLineParser parser = new DefaultParser();
         cmd = parser.parse(options, args);
     }
@@ -21,7 +23,12 @@ public class Compiler {
     }
 
     public void lex(){
-
+        if(cmd.hasOption("lex")){
+            // initialize a reader given file name
+            String inputFilePath = cmd.getOptionValue("lex");
+            Reader reader = new FileReader(inputFilePath);
+            LexerAdapt lexerAdapt = new LexerAdapt(reader);
+        }
     }
 
     public static void main(String[] args) {

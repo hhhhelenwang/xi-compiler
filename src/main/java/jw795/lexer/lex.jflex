@@ -134,8 +134,8 @@ Identifier = Letter(Letter | Digit | _ | ')*
     "bool" {return new Token(TokenType.BOOLTYPE);}
 
     /* Data */
-    {Integer} {return new Token(TokenType.INT, Integer.parseInt(yytext());}
-    {Boolean} {return new Token(TokenType.BOOL, Token.parseBool(yytext());}
+    {Integer} {return new Token(TokenType.INT, Integer.parseInt(yytext()));}
+    {Boolean} {return new Token(TokenType.BOOL, Token.parseBool(yytext()));}
 
     /* Identifier */
     {Identifier} {return new Token(TokenType.ID, yytext());}
