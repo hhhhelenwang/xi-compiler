@@ -1,8 +1,13 @@
+package jw795.lexer;
 %%
+%public
 %class Lexer
+%type Token
+%function nextToken
 %unicode
 %line
 %column
+
 
 %{
 
@@ -59,7 +64,7 @@
         UNDERSCORE
     }
 
-    class Token {
+    private class Token {
         TokenType type;
         Object value;
         int line;
@@ -71,7 +76,7 @@
             column = yycolumn;
         }
 
-        Token(int t, Object val) {
+        Token(TokenType t, Object val) {
             type = t;
             value = val;
             line = yyline;
@@ -80,7 +85,7 @@
 
     }
 
-    Boolean parseBool (String boolTex) {
+    private Boolean parseBool (String boolText) {
         if (boolText.equals("true")) {
             return true;
         } else if (boolText.equals("false")) {
@@ -90,8 +95,8 @@
         }
     }
 
-    char parseHex (String hexTex) {
-        Integer code = Integer.parseInt(String.substring(3, hexTex.length() - 1), 16);
+    private char parseHex (String hexTex) {
+        Integer code = Integer.parseInt(hexTex.substring(3, hexTex.length() - 1), 16);
         return Character.toChars(code)[0];
     }
 
@@ -135,7 +140,7 @@ Identifier = Letter(Letter | Digit | _ | ')*
 
     /* Data */
     {Integer} {return new Token(TokenType.INT, Integer.parseInt(yytext()));}
-    {Boolean} {return new Token(TokenType.BOOL, Token.parseBool(yytext()));}
+    {Boolean} {return new Token(TokenType.BOOL, parseBool(yytext()));}
 
     /* Identifier */
     {Identifier} {return new Token(TokenType.ID, yytext());}
@@ -201,7 +206,7 @@ Identifier = Letter(Letter | Digit | _ | ')*
             System.out.println("Ended character");
         }
         else {
-            throw Error("Invalid character constant");
+            throw new Error("Invalid character constant");
         }
     }
 
@@ -220,10 +225,10 @@ Identifier = Letter(Letter | Digit | _ | ')*
     {Hex} {sb.append(parseHex(yytext()));}
 
     "\"" {
-        return new Token(TokenType.STRINGLIT, sb.toString());
         sb = new StringBuffer();
         yybegin(YYINITIAL);
         System.out.println("Ended string");
+        return new Token(TokenType.STRINGLIT, sb.toString());
     }
 
     [^] {throw new Error("Invalid character constant");}
