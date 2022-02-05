@@ -1,10 +1,11 @@
 package jw795.lexer;
 import java.io.Reader;
+import jw795.lexer.Lexer;
 
 public class LexerAdapt {
     Lexer lexer;
 
-    LexerAdapt (Reader reader) {
+    public LexerAdapt (Reader reader) {
         lexer = new Lexer(reader);
     }
 
