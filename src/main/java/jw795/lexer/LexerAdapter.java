@@ -89,6 +89,103 @@ public class LexerAdapter {
                 res = "bool";
                 break;
 
+            case INT:
+                res = "int";
+                break;
+            case BOOL:
+                res = "bool";
+                break;
+            case CHARLIT:
+                res = "character";
+                break;
+            case STRINGLIT:
+                res = "string";
+                break;
+            case ID:
+                res = "id";
+                break;
+            case NOT:
+                res = "!";
+                break;
+            case MULT:
+                res = "*";
+                break;
+            case HIGHMULT:
+                res = "*>>";
+                break;
+
+            case DIV:
+                res = "/";
+                break;
+            case MOD:
+                res = "%";
+                break;
+            case ADD:
+                res = "+";
+                break;
+            case SUB:
+                res = "-";
+                break;
+            case LT:
+                res = "<";
+                break;
+            case LEQ:
+                res = "<=";
+                break;
+            case GEQ:
+                res = ">=";
+                break;
+            case GT:
+                res = ">";
+                break;
+
+            case EQ:
+                res = "==";
+                break;
+            case NEQ:
+                res = "!=";
+                break;
+            case AND:
+                res = "&";
+                break;
+            case OR:
+                res = "|";
+                break;
+            case COLON:
+                res = ":";
+                break;
+            case ASSIGN:
+                res = "";
+                break;
+            case LPAREN:
+                res = "(";
+                break;
+            case RPAREN:
+                res = ")";
+                break;
+
+            case LBRACK:
+                res = "[";
+                break;
+            case RBRACK:
+                res = "]";
+                break;
+            case LBRACE:
+                res = "{";
+                break;
+            case RBRACE:
+                res = "}";
+                break;
+            case COMMA:
+                res = ",";
+                break;
+            case SEMICOLON:
+                res = ";";
+                break;
+            case UNDERSCORE:
+                res = "_";
+                break;
+
             default: res = "Invalid Token Type";
                 break;
         }
