@@ -40,7 +40,7 @@ public class LexerAdapter {
         }
 
         // output tokens into a file
-        File targetFile = new File(fileName +".lexed");
+        File targetFile = new File(fileName.substring(0, fileName.length()-3) +".lexed");
         try{
             FileWriter targetWriter = new FileWriter(targetFile);
             for (Token t : tokens){

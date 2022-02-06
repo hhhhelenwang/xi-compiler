@@ -8,3 +8,4 @@ build
 Lexer.java
 Lexer.java~
 xthScript.results
+*.lexed

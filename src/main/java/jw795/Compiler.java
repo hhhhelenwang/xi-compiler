@@ -37,7 +37,7 @@ public class Compiler {
                 LexerAdapter lexerAdapt = new LexerAdapter(reader, fileName);
                 lexerAdapt.generateTokens();
             } catch (FileNotFoundException e) {
-                System.out.println("File not found.????????");
+                System.out.println("File not found.");
             }
         }
     }
