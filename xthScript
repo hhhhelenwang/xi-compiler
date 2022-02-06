@@ -1,0 +1,10 @@
+# build compiler first
+build
+
+xic ("Test --help") "--help" {
+    ;
+}
+
+xic ("Test --lex") "--lex" {
+    test1.xi;
+}
