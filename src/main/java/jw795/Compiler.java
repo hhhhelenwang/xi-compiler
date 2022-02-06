@@ -8,36 +8,59 @@ import org.apache.commons.cli.*;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.Reader;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Compiler {
     CommandLine cmd;
+    String path = ".";
+    List<String> files = new ArrayList<>();
 
     public void init_cli(String[] args) throws ParseException {
         Options options = new Options();
         options.addOption("h", "help", false, "display the help page");
-        options.addOption("lex", "lex", true, "perform lexical analysis on the input file");
+        options.addOption("lex", "lex", false, "perform lexical analysis on the input file");
+        options.addOption("D", "destination", true, "set path for diagnostic files");
         CommandLineParser parser = new DefaultParser();
         cmd = parser.parse(options, args);
+
     }
 
+    /** Display help page */
     public void help(){
-        if(cmd.hasOption("h")){
+        if (cmd.hasOption("h")){
             System.out.println("this is the help page");
         }
     }
 
-    public void lex(){
-        if(cmd.hasOption("lex")){
-            // Initialize a reader given file name
-            String fileName = cmd.getOptionValue("lex");
+    public void setDestPath() {
+        if (cmd.hasOption("D")) {
+            this.path = cmd.getOptionValue("D");
+        }
+    }
 
-            try {
-                // Generate token file
-                Reader reader = new FileReader(fileName);
-                LexerAdapter lexerAdapt = new LexerAdapter(reader, fileName);
-                lexerAdapt.generateTokens();
-            } catch (FileNotFoundException e) {
-                System.out.println("File not found.");
+    /** Produce lexical analysis for one source file. */
+    public void lexFile(String fileName) {
+        try {
+            // Generate token file
+            Reader reader = new FileReader(fileName);
+            String[] dirs = fileName.split("/");
+            fileName = path + "/" + dirs[dirs.length-1];
+            LexerAdapter lexerAdapt = new LexerAdapter(reader, fileName);
+            lexerAdapt.generateTokens();
+        } catch (FileNotFoundException e) {
+            System.out.println(fileName + ": " + " " + "File not found.");
+        }
+    }
+
+    /** Produce lexical analysis for all source files requested. */
+    public void lex(){
+        System.out.println("Lexing");
+        files = cmd.getArgList();
+        if (cmd.hasOption("lex")) {
+            for (String file : files) {
+                System.out.println(file);
+                lexFile(file);
             }
         }
     }
@@ -49,7 +72,9 @@ public class Compiler {
         } catch (ParseException e){
             System.out.println(e.getMessage());
         }
+        System.out.println("Started");
         compiler.help();
+        compiler.setDestPath();
         compiler.lex();
     }
 }

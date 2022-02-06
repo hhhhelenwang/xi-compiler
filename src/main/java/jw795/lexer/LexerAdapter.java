@@ -11,9 +11,9 @@ import jw795.lexer.Lexer.Token;
 
 
 public class LexerAdapter {
+
     Lexer lexer;
-    String PATH = "../../../../../";
-    String fileName = "";
+    String fileName;
 
     public LexerAdapter (Reader reader, String filename) {
         lexer = new Lexer(reader);
