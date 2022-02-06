@@ -23,10 +23,12 @@ public class LexerAdapter {
     public void generateTokens () {
         List<Token> tokens = new ArrayList();
         boolean isEndofTokens = false;
-
+        System.out.println(" =============================================get in the branch");
         while (!isEndofTokens) {
             try{
+                System.out.println(" =============================================get to try");
                 Token token = lexer.nextToken();
+                System.out.println(" =============================================token");
                 if (token == null){
                     isEndofTokens = true;
                 }else {
@@ -38,17 +40,18 @@ public class LexerAdapter {
         }
 
         // output tokens into a file
-        File targetFile = new File(PATH + fileName +".lexed");
+        File targetFile = new File(fileName +".lexed");
         try{
             FileWriter targetWriter = new FileWriter(targetFile);
             for (Token t : tokens){
                 StringBuilder line = new StringBuilder();
-                line.append(t.line);
+                line.append(t.line+1);
                 line.append(":");
-                line.append(t.column);
+                line.append(t.column+1);
                 line.append(" ");
                 line.append(tokenTypeToString(t.type));
                 if (t.value != null){
+                    line.append(" ");
                     line.append(t.value);
                 }
                 line.append("\n");
@@ -90,10 +93,10 @@ public class LexerAdapter {
                 break;
 
             case INT:
-                res = "int";
+                res = "integer";
                 break;
             case BOOL:
-                res = "bool";
+                res = "boolean";
                 break;
             case CHARLIT:
                 res = "character";

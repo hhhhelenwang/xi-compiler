@@ -29,7 +29,7 @@ public class Compiler {
     public void lex(){
         if(cmd.hasOption("lex")){
             // Initialize a reader given file name
-            String fileName = "../../../../../"+cmd.getOptionValue("lex");
+            String fileName = cmd.getOptionValue("lex");
 
             try {
                 // Generate token file

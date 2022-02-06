@@ -184,7 +184,9 @@ Identifier = Letter(Letter | Digit | _ | ')*
 }
 
 <COMMENT> {
-    "/""n" {yybegin(YYINITIAL); System.out.println("Ended comment");}
+    {WhiteSpace}   { /* ignore */}
+    "\n"|"\r"    {System.out.println("Ended comment");yybegin(YYINITIAL); }
+    [^]            { /* ignore */}
 
 }
 
