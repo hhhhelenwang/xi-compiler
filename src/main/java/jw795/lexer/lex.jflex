@@ -118,7 +118,7 @@ CharData = {Char}'
 
 WhiteSpace = " "|\t|\r|\v|\f
 
-Identifier = Letter(Letter | Digit | _ | ')*
+Identifier = {Letter}({Letter} | {Digit} | _ | ')*
 
 %state YYINITIAL
 %state COMMENT
@@ -187,7 +187,6 @@ Identifier = Letter(Letter | Digit | _ | ')*
     {WhiteSpace}   { /* ignore */}
     "\n"|"\r"    {System.out.println("Ended comment");yybegin(YYINITIAL); }
     [^]            { /* ignore */}
-
 }
 
 <CHARACTER> {
