@@ -26,11 +26,11 @@ dependencies {
 
 application {
     // Define the main class for the application
-    mainClassName = "compiler.App"
+    mainClassName = "jw795.Compiler"
 }
 
 tasks.withType<Jar> {
     manifest {
-        attributes["Main-Class"] = "compiler.App"
+        attributes["Main-Class"] = "jw795.Compiler"
     }
 }
