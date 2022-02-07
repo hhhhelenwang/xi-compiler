@@ -193,6 +193,8 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
             stringstartcol = yycolumn;}
 
     {WhiteSpace}|"\n" { /* ignore */}
+
+    [^]  { return new Token(TokenType.ERROR, "Invalid input");}
 }
 
 <COMMENT> {
