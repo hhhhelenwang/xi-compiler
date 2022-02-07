@@ -249,7 +249,7 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
         return new Token(TokenType.STRINGLIT, result, stringstartcol);
     }
 
-    [^] {return new Token(TokenType.ERROR, "Invalid String");}
+    [^] {return new Token(TokenType.ERROR, "Invalid String", stringstartcol);}
 }
 
 
