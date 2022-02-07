@@ -83,6 +83,14 @@ package jw795.lexer;
             column = yycolumn;
         }
 
+        Token(TokenType t, Object val, int col){
+            type = t;
+            value = val;
+            line = yyline;
+            column = col;
+        }
+
+
 
 
     }
@@ -105,6 +113,7 @@ package jw795.lexer;
     Boolean charRead = false;
 
     StringBuffer sb = new StringBuffer();
+    int stringstartcol = 0;
 %}
 
 Letter = [a-zA-Z]
@@ -178,9 +187,12 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
 
     "/""/" { yybegin(COMMENT); System.out.println("Starting comment");}
     "'" { yybegin(CHARACTER); System.out.println("Starting character");}
-    "\"" { yybegin(STRING); System.out.println("Starting string");}
+    "\"" {  yybegin(STRING);
+            System.out.println("Starting string");
+            sb = new StringBuffer();
+            stringstartcol = yycolumn;}
 
-    {WhiteSpace} { /* ignore */}
+    {WhiteSpace}|"\n" { /* ignore */}
 }
 
 <COMMENT> {
@@ -192,7 +204,7 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
 <CHARACTER> {
     [^\n\\\'] {charRead = true; return new Token(TokenType.CHARLIT, yytext());}
 
-    \\n {charRead = true; return new Token(TokenType.CHARLIT, '\n');}
+    \\n {charRead = true; return new Token(TokenType.CHARLIT, "\\n");}
 
     \\\\ {charRead = true; return new Token(TokenType.CHARLIT, '\\');}
 
@@ -219,19 +231,20 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
 <STRING> {
     [^\n\\\"] {sb.append(yytext());}
 
-    \\n {sb.append('\n');}
+    \\n {sb.append("\\n");}
 
-    \\\\ {sb.append('\\');}
+    \\\\ {sb.append("\\\\");}
 
-    \\\" {sb.append('\"');}
+    \\\" {sb.append("\"");}
 
     {Hex} {sb.append(parseHex(yytext()));}
 
     "\"" {
-        sb = new StringBuffer();
         yybegin(YYINITIAL);
         System.out.println("Ended string");
-        return new Token(TokenType.STRINGLIT, sb.toString());
+        String result = sb.toString();
+        sb = new StringBuffer();
+        return new Token(TokenType.STRINGLIT, result, stringstartcol );
     }
 
     [^] {throw new Error("Invalid character constant");}

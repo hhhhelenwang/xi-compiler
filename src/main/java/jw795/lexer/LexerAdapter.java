@@ -28,12 +28,11 @@ public class LexerAdapter {
         System.out.println(" =============================================get in the branch");
         while (!isEndofTokens) {
             try{
-                System.out.println(" =============================================get to try");
                 Token token = lexer.nextToken();
-                System.out.println(" =============================================token");
                 if (token == null){
                     isEndofTokens = true;
                 }else {
+                    System.out.println(token.type.toString());
                     tokens.add(token);
                 }
             } catch (IOException ex){
@@ -65,7 +64,11 @@ public class LexerAdapter {
                 StringBuilder line = new StringBuilder();
                 line.append(t.line+1);
                 line.append(":");
-                line.append(t.column+1);
+                if(t.type == TokenType.CHARLIT){
+                    line.append(t.column);
+                }else{
+                    line.append(t.column+1);
+                }
                 line.append(" ");
                 line.append(tokenTypeToString(t.type));
                 if (t.value != null){
@@ -176,7 +179,7 @@ public class LexerAdapter {
                 res = ":";
                 break;
             case ASSIGN:
-                res = "";
+                res = "=";
                 break;
             case LPAREN:
                 res = "(";
