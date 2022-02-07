@@ -25,15 +25,20 @@ public class LexerAdapter {
     public void generateTokens () {
         List<Token> tokens = new ArrayList();
         boolean isEndofTokens = false;
+
         System.out.println(" =============================================get in the branch");
         while (!isEndofTokens) {
-            try{
+                try{
                 Token token = lexer.nextToken();
                 if (token == null){
                     isEndofTokens = true;
-                }else {
+                } else {
                     System.out.println(token.type.toString());
                     tokens.add(token);
+                    //Exit reading tokens because an error occurred
+                    if (token.type.toString().equals("ERROR")){
+                        break;
+                    }
                 }
             } catch (IOException ex){
                 System.out.println("IO Error with generating tokens: " + ex.getMessage());
@@ -64,7 +69,7 @@ public class LexerAdapter {
                 StringBuilder line = new StringBuilder();
                 line.append(t.line+1);
                 line.append(":");
-                if(t.type == TokenType.CHARLIT){
+                if(t.type == TokenType.CHARLIT || t.type == TokenType.ERROR){
                     line.append(t.column);
                 }else{
                     line.append(t.column+1);
@@ -72,7 +77,12 @@ public class LexerAdapter {
                 line.append(" ");
                 line.append(tokenTypeToString(t.type));
                 if (t.value != null){
-                    line.append(" ");
+                    if (t.type.toString().equals("ERROR")){
+                        //follow the specification of error output
+                        line.append(":");
+                    } else {
+                        line.append(" ");
+                    }
                     line.append(t.value);
                 }
                 line.append("\n");
@@ -210,6 +220,9 @@ public class LexerAdapter {
                 res = "_";
                 break;
 
+            case ERROR:
+                res = "error";
+                break;
             default: res = "Invalid Token Type";
                 break;
         }

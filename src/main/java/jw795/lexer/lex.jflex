@@ -61,7 +61,10 @@ package jw795.lexer;
         RBRACE,
         COMMA,
         SEMICOLON,
-        UNDERSCORE
+        UNDERSCORE,
+
+        //error
+        ERROR
     }
 
     public class Token {
@@ -89,9 +92,6 @@ package jw795.lexer;
             line = yyline;
             column = col;
         }
-
-
-
 
     }
 
@@ -210,7 +210,7 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
 
     \\\' {charRead = true; return new Token(TokenType.CHARLIT, '\'');}
 
-    {Char}{Char}{Char}* {throw new Error("Illegal character <"+ yytext() +">");}
+    {Char}{Char}{Char}* {return new Token(TokenType.ERROR, "Illegal character <"+ yytext() +">");}
 
     {Hex} {charRead = true; return new Token(TokenType.CHARLIT, sb.append(parseHex(yytext())));}
 
@@ -221,11 +221,11 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
             System.out.println("Ended character");
         }
         else {
-            throw new Error("Invalid character constant");
+            return new Token(TokenType.ERROR, "Invalid character constant");
         }
     }
 
-    [^] {throw new Error("Invalid character constant");}
+    [^] {return new Token(TokenType.ERROR, "Invalid character constant");}
 }
 
 <STRING> {
@@ -244,10 +244,10 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
         System.out.println("Ended string");
         String result = sb.toString();
         sb = new StringBuffer();
-        return new Token(TokenType.STRINGLIT, result, stringstartcol );
+        return new Token(TokenType.STRINGLIT, result, stringstartcol);
     }
 
-    [^] {throw new Error("Invalid character constant");}
+    [^] {return new Token(TokenType.ERROR, "Invalid String");}
 }
 
 
