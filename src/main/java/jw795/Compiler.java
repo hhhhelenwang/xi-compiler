@@ -15,9 +15,10 @@ public class Compiler {
     CommandLine cmd;
     String path = ".";
     List<String> files = new ArrayList<>();
+    Options options;
 
     public void init_cli(String[] args) throws ParseException {
-        Options options = new Options();
+        options = new Options();
         options.addOption("h", "help", false, "display the help page");
         options.addOption("lex", "lex", false, "perform lexical analysis on the input file");
         options.addOption("D", "destination", true, "set path for diagnostic files");
@@ -29,7 +30,12 @@ public class Compiler {
     /** Display help page */
     public void help(){
         if (cmd.hasOption("h")){
-            System.out.println("this is the help page");
+            String syntax = "./xic [options] <source-files>";
+            String header = "Available options to use the compiler with:";
+            String footer = "Have fun!";
+            HelpFormatter helpFormatter = new HelpFormatter();
+            helpFormatter.printHelp(syntax, header, options, footer);
+
         }
     }
 
@@ -44,8 +50,8 @@ public class Compiler {
         try {
             // Generate token file
             Reader reader = new FileReader(fileName);
-            fileName = path + "/" + fileName;
-            LexerAdapter lexerAdapt = new LexerAdapter(reader, fileName);
+//            fileName = path + "/" + fileName;
+            LexerAdapter lexerAdapt = new LexerAdapter(reader, fileName, path);
             lexerAdapt.generateTokens();
         } catch (FileNotFoundException e) {
             System.out.println(fileName + ": " + " " + "File not found.");

@@ -14,10 +14,12 @@ public class LexerAdapter {
 
     Lexer lexer;
     String fileName;
+    String lexedPath; // the path to store the lexed result file, indicated by user
 
-    public LexerAdapter (Reader reader, String filename) {
+    public LexerAdapter (Reader reader, String filename, String path) {
         lexer = new Lexer(reader);
         fileName = filename;
+        lexedPath = path;
     }
 
     public void generateTokens () {
@@ -35,12 +37,28 @@ public class LexerAdapter {
                     tokens.add(token);
                 }
             } catch (IOException ex){
-                System.out.println("An I/O-Error in lex adapter"); //throw new error?
+                System.out.println("IO Error with generating tokens: " + ex.getMessage());
             }
         }
 
-        // output tokens into a file
-        File targetFile = new File(fileName.substring(0, fileName.length()-3) +".lexed");
+        // build the full directory to put the lexed file in
+        String[] dirs = fileName.split("/");
+        String fullPath = lexedPath + "/";
+        for (int i = 0; i < dirs.length - 1; i ++) {
+            fullPath += dirs[i] + "/";
+        }
+        // build the name of the lexed file
+        String file = dirs[dirs.length - 1];
+        String lexedFile = file.substring(0, file.length()-3) + ".lexed";
+
+        // check if directory to put the lexed file in exists, create a new dir if doesn't
+        File directory = new File(fullPath);
+        if (!directory.exists()) {
+            directory.mkdir();
+        }
+
+        // output tokens into the target file
+        File targetFile = new File(fullPath + lexedFile);
         try{
             FileWriter targetWriter = new FileWriter(targetFile);
             for (Token t : tokens){
@@ -60,7 +78,7 @@ public class LexerAdapter {
             targetWriter.close();
         }
         catch (IOException ex){
-            System.out.println("An I/O-Error in lex adapter: output file"); //throw new error?
+            System.out.println("IO Error in LexerAdapter: " + ex.getMessage());
         }
     }
 
