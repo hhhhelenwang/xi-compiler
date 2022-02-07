@@ -64,7 +64,7 @@ public class Compiler {
         files = cmd.getArgList();
         if (cmd.hasOption("lex")) {
             for (String file : files) {
-                if (file.substring(file.length() - 2).equals("xi")) {
+                if (file.endsWith("xi")) {
                     System.out.println(file);
                     lexFile(file);
                 }
