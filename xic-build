@@ -1,4 +1,5 @@
 #!/bin/bash
+chmod chmod +rwx
 # build lexer from specification
 jflex ./src/main/java/jw795/lexer/lex.jflex -d ./src/main/java/jw795/lexer
 # build project
