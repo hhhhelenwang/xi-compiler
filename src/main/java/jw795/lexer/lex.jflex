@@ -180,7 +180,7 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
     "'" { yybegin(CHARACTER); System.out.println("Starting character");}
     "\"" { yybegin(STRING); System.out.println("Starting string");}
 
-    {WhiteSpace} { /* ignore */}
+    {WhiteSpace}|"\n" { /* ignore */}
 }
 
 <COMMENT> {
