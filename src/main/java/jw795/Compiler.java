@@ -44,8 +44,7 @@ public class Compiler {
         try {
             // Generate token file
             Reader reader = new FileReader(fileName);
-            String[] dirs = fileName.split("/");
-            fileName = path + "/" + dirs[dirs.length-1];
+            fileName = path + "/" + fileName;
             LexerAdapter lexerAdapt = new LexerAdapter(reader, fileName);
             lexerAdapt.generateTokens();
         } catch (FileNotFoundException e) {
