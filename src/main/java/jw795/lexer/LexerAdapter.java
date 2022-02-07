@@ -81,7 +81,7 @@ public class LexerAdapter {
             targetWriter.close();
         }
         catch (IOException ex){
-            System.out.println("IO Error in LexerAdapter: " + ex.getMessage());
+            System.out.println("IO Error when writing lexed file: " + ex.getMessage());
         }
     }
 
