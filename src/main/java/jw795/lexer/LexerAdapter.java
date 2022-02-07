@@ -65,7 +65,11 @@ public class LexerAdapter {
                 StringBuilder line = new StringBuilder();
                 line.append(t.line+1);
                 line.append(":");
-                line.append(t.column+1);
+                if(t.type == TokenType.CHARLIT | t.type == TokenType.STRINGLIT){
+                    line.append(t.column);
+                }else{
+                    line.append(t.column+1);
+                }
                 line.append(" ");
                 line.append(tokenTypeToString(t.type));
                 if (t.value != null){

@@ -192,7 +192,7 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
 <CHARACTER> {
     [^\n\\\'] {charRead = true; return new Token(TokenType.CHARLIT, yytext());}
 
-    \\n {charRead = true; return new Token(TokenType.CHARLIT, '\n');}
+    \\n {charRead = true; return new Token(TokenType.CHARLIT, "\\n");}
 
     \\\\ {charRead = true; return new Token(TokenType.CHARLIT, '\\');}
 
@@ -219,11 +219,11 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
 <STRING> {
     [^\n\\\"] {sb.append(yytext());}
 
-    \\n {sb.append('\n');}
+    \\n {sb.append("\\n");}
 
-    \\\\ {sb.append('\\');}
+    \\\\ {sb.append("\\\\");}
 
-    \\\" {sb.append('\"');}
+    \\\" {sb.append("\"");}
 
     {Hex} {sb.append(parseHex(yytext()));}
 
