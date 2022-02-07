@@ -1,4 +1,3 @@
 // Archer is the greatest.
-"Archer \ \\is the greatest.
-" 'a'
+"Archer \ \\is the greatest."
 
