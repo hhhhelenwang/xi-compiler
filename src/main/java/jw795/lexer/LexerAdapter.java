@@ -179,7 +179,7 @@ public class LexerAdapter {
                 res = ":";
                 break;
             case ASSIGN:
-                res = "";
+                res = "=";
                 break;
             case LPAREN:
                 res = "(";
