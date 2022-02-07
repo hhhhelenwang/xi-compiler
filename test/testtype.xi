@@ -7,12 +7,9 @@ length
 int
 bool
 
-int
-bool
-
 145
-// and a invalid number
-//045
+// and two integer together
+045
 'a'
 "accc"
 
