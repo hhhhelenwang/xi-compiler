@@ -28,12 +28,11 @@ public class LexerAdapter {
         System.out.println(" =============================================get in the branch");
         while (!isEndofTokens) {
             try{
-                System.out.println(" =============================================get to try");
                 Token token = lexer.nextToken();
-                System.out.println(" =============================================token");
                 if (token == null){
                     isEndofTokens = true;
                 }else {
+                    System.out.println(token.type.toString());
                     tokens.add(token);
                 }
             } catch (IOException ex){
