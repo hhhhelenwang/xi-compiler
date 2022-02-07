@@ -29,8 +29,8 @@ application {
     mainClassName = "jw795.Compiler"
 }
 
-tasks.withType<Jar> {
-    manifest {
-        attributes["Main-Class"] = "jw795.Compiler"
-    }
-}
+//tasks.withType<Jar> {
+//    manifest {
+//        attributes["Main-Class"] = "jw795.Compiler"
+//    }
+//}
