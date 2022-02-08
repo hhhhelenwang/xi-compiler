@@ -26,7 +26,6 @@ public class LexerAdapter {
         List<Token> tokens = new ArrayList();
         boolean isEndofTokens = false;
 
-        System.out.println(" =============================================get in the branch");
         while (!isEndofTokens) {
                 try{
                 Token token = lexer.nextToken();
@@ -69,11 +68,7 @@ public class LexerAdapter {
                 StringBuilder line = new StringBuilder();
                 line.append(t.line+1);
                 line.append(":");
-                if(t.type == TokenType.CHARLIT){
-                    line.append(t.column);
-                }else{
-                    line.append(t.column+1);
-                }
+                line.append(t.column+1);
                 line.append(" ");
                 line.append(tokenTypeToString(t.type));
                 if (t.value != null){

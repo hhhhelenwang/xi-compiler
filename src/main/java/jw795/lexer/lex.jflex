@@ -10,7 +10,7 @@ package jw795.lexer;
 
 %eofval{
     if(yystate() == CHARACTER){
-        return new Token(TokenType.ERROR, "Incomplete char");
+        return new Token(TokenType.ERROR, "Incomplete char", charstartcol);
     } else if (yystate() == STRING){
         return new Token(TokenType.ERROR, "Invalid String", stringstartcol);
     } else {
@@ -115,25 +115,32 @@ package jw795.lexer;
         }
     }
 
-    private char parseHex (String hexTex) {
-        Integer code = Integer.parseInt(hexTex.substring(3, hexTex.length() - 1), 16);
-        return Character.toChars(code)[0];
+    private String parseHex (String hexTex) {
+        Integer intTex = Integer.parseInt(hexTex.substring(3, hexTex.length() - 1), 16);
+        String strTex =  Character.toChars(intTex)[0] + "";
+
+        // handle special character
+        if (strTex.equals("\n")){
+            strTex = "\\n";
+        }
+        return strTex;
     }
 
     Boolean charRead = false;
 
     StringBuffer sb = new StringBuffer();
     int stringstartcol = 0;
+    int charstartcol = 0;
 %}
 
 Letter = [a-zA-Z]
 Digit = [0-9]
 Char = [U+000000-U+10FFFF]
 
-Hex =  "\\x{"({Digit} | [a-fA-F])({Digit} | [a-fA-F])"}"
+HexNum = (({Digit} | [a-fA-F]){1, 6})
+Hex =  "\\x{"{HexNum}"}"
 Integer = 0 | [1-9]{Digit}*
 Boolean = "true" | "false"
-CharData = {Char}'
 
 WhiteSpace = " "|\t|\r|\v|\f
 
@@ -195,10 +202,10 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
     ";" {return new Token(TokenType.SEMICOLON);}
     "_" {return new Token(TokenType.UNDERSCORE);}
 
-    "/""/" { yybegin(COMMENT); System.out.println("Starting comment");}
-    "'" { yybegin(CHARACTER); System.out.println("Starting character");}
+    "/""/" { yybegin(COMMENT);}
+    "'" {   yybegin(CHARACTER);
+            charstartcol = yycolumn;}
     "\"" {  yybegin(STRING);
-            System.out.println("Starting string");
             sb = new StringBuffer();
             stringstartcol = yycolumn;}
 
@@ -209,35 +216,39 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
 
 <COMMENT> {
     {WhiteSpace}   { /* ignore */}
-    "\n"|"\r"    {System.out.println("Ended comment");yybegin(YYINITIAL); }
+    "\n"|"\r"      {yybegin(YYINITIAL);}
     [^]            { /* ignore */}
 }
 
 <CHARACTER> {
-    [^\n\\\'] {charRead = true; return new Token(TokenType.CHARLIT, yytext());}
+    [^\n\\\'] {charRead = true; return new Token(TokenType.CHARLIT, yytext(), charstartcol);}
 
-    \\n {charRead = true; return new Token(TokenType.CHARLIT, "\\n");}
+    \\n {charRead = true; return new Token(TokenType.CHARLIT, "\\n",  charstartcol);}
 
-    \\\\ {charRead = true; return new Token(TokenType.CHARLIT, '\\');}
+    \\\\ {charRead = true; return new Token(TokenType.CHARLIT, '\\', charstartcol);}
 
-    \\\' {charRead = true; return new Token(TokenType.CHARLIT, '\'');}
+    \\\' {charRead = true; return new Token(TokenType.CHARLIT, '\'', charstartcol);}
 
     {Char}{Char}{Char}* {return new Token(TokenType.ERROR, "Illegal character <"+ yytext() +">");}
 
-    {Hex} {charRead = true; return new Token(TokenType.CHARLIT, sb.append(parseHex(yytext())));}
+    {Hex} { sb = new StringBuffer();
+            charRead = true;
+            sb.append(parseHex(yytext()));
+            String result = sb.toString();
+            return new Token(TokenType.CHARLIT, result, charstartcol);
+           }
 
     "'" {
         if (charRead) {
             charRead = false;
             yybegin(YYINITIAL);
-            System.out.println("Ended character");
         }
         else {
-            return new Token(TokenType.ERROR, "Invalid character constant");
+            return new Token(TokenType.ERROR, "Invalid character constant", charstartcol);
         }
     }
 
-    [^] {return new Token(TokenType.ERROR, "Invalid character constant");}
+    [^] {return new Token(TokenType.ERROR, "Invalid character constant", charstartcol);}
 }
 
 <STRING> {
@@ -245,7 +256,7 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
 
     \\n {sb.append("\\n");}
 
-    \\\\ {sb.append("\\\\");}
+    \\\\ {sb.append("\\");}
 
     \\\" {sb.append("\"");}
 
@@ -253,7 +264,6 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
 
     "\"" {
         yybegin(YYINITIAL);
-        System.out.println("Ended string");
         String result = sb.toString();
         sb = new StringBuffer();
         return new Token(TokenType.STRINGLIT, result, stringstartcol);
