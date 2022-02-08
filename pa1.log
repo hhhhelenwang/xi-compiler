@@ -1,0 +1,536 @@
+commit 2bec00c0860106f46eb65a7127aa88df886d04b0
+Merge: 6e40365 7d2ff79
+Author: bz239 <bz239@cornell.edu>
+Date:   Mon Feb 7 23:41:01 2022 -0500
+
+    Merge branch 'main' of github.coecis.cornell.edu:jw795/xi-compiler
+
+commit 6e40365d8c771441a73afae0e7a1a0877d6c3e02
+Author: bz239 <bz239@cornell.edu>
+Date:   Mon Feb 7 23:40:54 2022 -0500
+
+    update char
+
+commit 7d2ff7906c969e285c819abe0d990012eb6fe29a
+Merge: 8c1a64d 8209c5b
+Author: jw795 <jw795@cornel.edu>
+Date:   Mon Feb 7 23:33:19 2022 -0500
+
+    Merge branch 'main' of https://github.coecis.cornell.edu/jw795/xi-compiler into main
+
+commit 8c1a64d7ecde6afd16f755b0d5b556e2ca89059c
+Author: jw795 <jw795@cornel.edu>
+Date:   Mon Feb 7 23:33:06 2022 -0500
+
+    docstring
+
+commit 8209c5b9a8f9241e44fafa3af02fe0fdd26f336f
+Author: bz239 <bz239@cornell.edu>
+Date:   Mon Feb 7 23:11:06 2022 -0500
+
+    eof char
+
+commit acfd98f260b45cdf0ce54c90fbfc66bed893ecc5
+Merge: 22cd426 f4a00b9
+Author: jw795 <jw795@cornel.edu>
+Date:   Mon Feb 7 22:50:21 2022 -0500
+
+    Merge branch 'main' of https://github.coecis.cornell.edu/jw795/xi-compiler into main
+
+commit 22cd42677447c171e3ce15bb091d74b2ce342732
+Author: jw795 <jw795@cornel.edu>
+Date:   Mon Feb 7 22:50:17 2022 -0500
+
+    battling with autograder
+
+commit f4a00b91e4ea77df0ece36e00994a41c4b550db5
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Mon Feb 7 22:41:24 2022 -0500
+
+    char hexnum fix and char test
+
+commit dfbfe0942ed365030773fa1071db02c26c14fc49
+Merge: e9a248e 71da9f3
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Mon Feb 7 22:34:06 2022 -0500
+
+    Merge branch 'main' of https://github.coecis.cornell.edu/jw795/xi-compiler into main
+
+commit e9a248ec42a17e2a45e016e772aaeba1636cd4cf
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Mon Feb 7 22:34:02 2022 -0500
+
+    char fix
+
+commit 71da9f31266f129cd8f74f5212bcd0cc260fd065
+Author: archerluo <luogaochen@gmail.com>
+Date:   Mon Feb 7 22:31:32 2022 -0500
+
+    changed hex RE
+
+commit 772d39eb10204e2a56df046a2d6107f3d313a387
+Author: archerluo <luogaochen@gmail.com>
+Date:   Mon Feb 7 22:10:28 2022 -0500
+
+    deleted unused chardata
+
+commit 570852a0c6c36ff0743d70f0030327da2d7e9e11
+Author: archerluo <luogaochen@gmail.com>
+Date:   Mon Feb 7 22:08:35 2022 -0500
+
+    fixed some tests and their sol. Now all tests should pass.
+
+commit 9b6404d579745d922e6abbb48ef074c1eddbea77
+Merge: 51018f1 0d42c65
+Author: archerluo <luogaochen@gmail.com>
+Date:   Mon Feb 7 22:06:33 2022 -0500
+
+    Merge branch 'main' of github.coecis.cornell.edu:jw795/xi-compiler
+
+commit 51018f1640139af766c63818e54a7c54457b01a6
+Author: archerluo <luogaochen@gmail.com>
+Date:   Mon Feb 7 22:05:05 2022 -0500
+
+    changed mistakes in lexedsol. Now all tests should be passed.
+
+commit 0d42c658f45f667ec4cd5dd6a6126909b7f1bd1d
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Mon Feb 7 21:50:32 2022 -0500
+
+    pa all passed
+
+commit 36eb54edc14dcfda1ae34cf2395335a4129082f3
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Mon Feb 7 21:25:53 2022 -0500
+
+    continue
+
+commit 3aec039ab74914657a26a85ff4b118e4bf45bc59
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Mon Feb 7 21:12:54 2022 -0500
+
+     char col fix
+
+commit 71e1e278ed0c4f33b8c244a6b9437751bc6a415d
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Mon Feb 7 20:55:10 2022 -0500
+
+     \\ fix
+
+commit c00cc640ea42b748f1b6e8d4453e1145694307da
+Author: bz239 <bz239@cornell.edu>
+Date:   Mon Feb 7 20:09:41 2022 -0500
+
+    update testescape_string
+
+commit 43bf40203ad51e6dcbf3f760924be335f9b4b8ec
+Author: bz239 <bz239@cornell.edu>
+Date:   Mon Feb 7 19:42:56 2022 -0500
+
+    handle when hex code is a special char
+
+commit 24bb7087e58476fd8f1927a51ab0b3f29ec9348c
+Merge: 3f757ad fbcb039
+Author: bz239 <bz239@cornell.edu>
+Date:   Mon Feb 7 19:11:20 2022 -0500
+
+    Merge branch 'main' of github.coecis.cornell.edu:jw795/xi-compiler
+
+commit 3f757ad962a24ba963b3833024d582b3f482528f
+Author: bz239 <bz239@cornell.edu>
+Date:   Mon Feb 7 19:11:14 2022 -0500
+
+    add eofval for other states
+
+commit fbcb039dc8212af49483b2bb827af2c61443f760
+Author: archerluo <luogaochen@gmail.com>
+Date:   Mon Feb 7 19:09:15 2022 -0500
+
+    fix a test sol and changed sthscript
+
+commit da04cc32bd76af192fa62eda33fd85d076acd42b
+Author: archerluo <luogaochen@gmail.com>
+Date:   Mon Feb 7 18:14:45 2022 -0500
+
+    add and change some tests
+
+commit 72a2ad57cc7d8565d5367b164fe3336d113a272c
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Mon Feb 7 17:04:37 2022 -0500
+
+    eof fix
+
+commit 5bd77293aa7f1ae95ed5f4ed74796769f511a8e1
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Mon Feb 7 16:27:51 2022 -0500
+
+    modified type test and sol
+
+commit 6d64d8a8c63eb7d51476590f71d892b7409787ba
+Merge: 10306a5 405788d
+Author: bz239 <bz239@cornell.edu>
+Date:   Mon Feb 7 15:50:43 2022 -0500
+
+    Merge branch 'main' of github.coecis.cornell.edu:jw795/xi-compiler
+
+commit 10306a587ba7aa000479f008b91ce92f4e689a51
+Author: bz239 <bz239@cornell.edu>
+Date:   Mon Feb 7 15:50:38 2022 -0500
+
+    sample test
+
+commit 405788db0a6f8a8ec33bd1595270a42ce29b2988
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Mon Feb 7 15:49:01 2022 -0500
+
+     stringxi fix
+
+commit 1be3d056fcdd788017ed07ec33b2bce959a72baf
+Author: bz239 <bz239@cornell.edu>
+Date:   Mon Feb 7 14:01:05 2022 -0500
+
+    fix string token's col number
+
+commit 21182083a2839580e27fbe8aab6f7d05c7d64126
+Author: bz239 <bz239@cornell.edu>
+Date:   Mon Feb 7 13:48:04 2022 -0500
+
+    error handling in yyinitial
+
+commit 22372366b623e01fa9ba1467e7ee8c61db37cc58
+Author: jw795 <jw795@cornel.edu>
+Date:   Mon Feb 7 12:15:21 2022 -0500
+
+    wut is goin on gradle
+
+commit bf493db655ca2b687dd928b7630e556e03c60851
+Author: archerluo <luogaochen@gmail.com>
+Date:   Mon Feb 7 11:39:18 2022 -0500
+
+    remove chmod, add a test and its sol
+
+commit 4d2d25132ddfa2e35b90379be5049f089e3137b7
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Mon Feb 7 11:09:32 2022 -0500
+
+    wrapper try
+
+commit 4b0b531064dd5f0bf1224186e38f83890c851718
+Merge: 4b53aa7 58fd107
+Author: bz239 <bz239@cornell.edu>
+Date:   Mon Feb 7 02:45:00 2022 -0500
+
+    Merge branch 'main' of github.coecis.cornell.edu:jw795/xi-compiler
+
+commit 4b53aa791ac90f9f306da043538c6e42ce9e9266
+Author: bz239 <bz239@cornell.edu>
+Date:   Mon Feb 7 02:44:15 2022 -0500
+
+    correct error output
+
+commit 58fd107e9819442ed787ddd994d1e94256a1ba75
+Merge: fb8e2d7 1b4d4bd
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Mon Feb 7 02:17:15 2022 -0500
+
+    Merge branch 'main' of https://github.coecis.cornell.edu/jw795/xi-compiler into main
+
+commit fb8e2d739f4c02c7ee12942010269170e8b84569
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Mon Feb 7 02:10:41 2022 -0500
+
+    id and type test
+
+commit 1b4d4bd00687c98ff329ca176ca39d0a1e737c49
+Merge: 6a0f51f 748e4ec
+Author: jw795 <jw795@cornel.edu>
+Date:   Mon Feb 7 01:32:52 2022 -0500
+
+    Merge branch 'main' of https://github.coecis.cornell.edu/jw795/xi-compiler into main
+
+commit 6a0f51f83d4196685ba1861bfa9be5d24fe5caba
+Author: jw795 <jw795@cornel.edu>
+Date:   Mon Feb 7 01:32:49 2022 -0500
+
+    remove remote packages
+
+commit 748e4ec22e3494d4719ab99e49142e1b86b213e5
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Mon Feb 7 01:29:44 2022 -0500
+
+    fix for Assign 14 cases passed
+
+commit 3028ff07e714b48f5a5652aa03dd6d7b06087c2c
+Merge: bc41f0c f92e8b9
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Mon Feb 7 01:19:00 2022 -0500
+
+    Merge branch 'main' of https://github.coecis.cornell.edu/jw795/xi-compiler into main
+
+commit bc41f0c7721eccbdbbb795f8760b44556a542063
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Mon Feb 7 01:18:49 2022 -0500
+
+    string fix
+
+commit f92e8b94d6e9a0e88da337665fd6b104719b3488
+Author: archerluo <luogaochen@gmail.com>
+Date:   Mon Feb 7 01:03:43 2022 -0500
+
+    remove the redundant substring call
+
+commit d411a0d2fda06bf48fc752431c501f408cadbf0f
+Author: archerluo <luogaochen@gmail.com>
+Date:   Mon Feb 7 01:02:30 2022 -0500
+
+    fix the lex command to only lex files with .xi suffix
+
+commit f0ac4adaf8b41a3f0c8987e52ae1dbc988217af0
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Mon Feb 7 00:44:28 2022 -0500
+
+    string and char column number fix
+
+commit 5c56ca9fc65497c29fa828c784c0d3eb3e747922
+Merge: 86d5fa6 139f9c0
+Author: bz239 <bz239@cornell.edu>
+Date:   Mon Feb 7 00:15:30 2022 -0500
+
+    Merge branch 'main' of github.coecis.cornell.edu:jw795/xi-compiler
+
+commit 86d5fa6d256d192b0b6a7ac09c43574d6d989cd4
+Author: bz239 <bz239@cornell.edu>
+Date:   Mon Feb 7 00:15:09 2022 -0500
+
+    ignore new line character in yyinitial
+
+commit 139f9c0734520b90679223fd78fb293491b558d9
+Author: archerluo <luogaochen@gmail.com>
+Date:   Mon Feb 7 00:04:36 2022 -0500
+
+    added all the public test folder to local
+
+commit 1ebff0bda7c60f484148c037bd2727cea829362a
+Author: jw795 <jw795@cornel.edu>
+Date:   Sun Feb 6 23:04:23 2022 -0500
+
+    added a help page and changed file path as specified
+
+commit c7fbdc883040b9f69363023d1bb6bde85c980df8
+Author: jw795 <jw795@cornel.edu>
+Date:   Sun Feb 6 22:12:28 2022 -0500
+
+    change file path
+
+commit f77c06ad731faf7b0ad17e157b67bbef244cce67
+Merge: eae7889 fae4f69
+Author: jw795 <jw795@cornel.edu>
+Date:   Sun Feb 6 14:42:14 2022 -0500
+
+    Merge branch 'main' of https://github.coecis.cornell.edu/jw795/xi-compiler into main
+
+commit eae78893da1709314c15677d2d60ab68b06a01f9
+Author: jw795 <jw795@cornel.edu>
+Date:   Sun Feb 6 14:41:56 2022 -0500
+
+    disable gradle cmdline log
+
+commit fae4f692207db10bbe4329f1a1343e3bd9c79a59
+Author: bz239 <bz239@cornell.edu>
+Date:   Sun Feb 6 10:33:03 2022 -0500
+
+    update identifier
+
+commit d55664cbe8c032a1cb8fc4b4311121cdba5b1392
+Author: jw795 <jw795@cornel.edu>
+Date:   Sun Feb 6 02:25:26 2022 -0500
+
+    modified cli input
+
+commit fa0ff051426eef072779d00186a007de5eea45d6
+Author: jw795 <jw795@cornel.edu>
+Date:   Sun Feb 6 00:40:13 2022 -0500
+
+    first test passed
+
+commit 38dfa9a03b9d1e8d9bbdc86ad2485e49024a4bde
+Merge: 11c1a51 ede9a38
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Sun Feb 6 00:27:28 2022 -0500
+
+    Merge branch 'main' of https://github.coecis.cornell.edu/jw795/xi-compiler into main
+
+commit 11c1a51f4e2f0119d2667fe3d0ac24d643990ed3
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Sun Feb 6 00:27:14 2022 -0500
+
+    first test
+
+commit ede9a38120091c152e589edb7a960ed4936eaf61
+Author: jw795 <jw795@cornel.edu>
+Date:   Sat Feb 5 23:43:14 2022 -0500
+
+    this project is killing me
+
+commit d23e467dc8f6e366c73ed6614a4e38576f11c4db
+Author: jw795 <jw795@cornel.edu>
+Date:   Sat Feb 5 23:14:11 2022 -0500
+
+    gralde build script issue
+
+commit aa082a02525616c0ada892b5578ff23afe68d17e
+Author: jw795 <jw795@cornel.edu>
+Date:   Sat Feb 5 22:48:41 2022 -0500
+
+    attempt to test
+
+commit a5f910504d1914882098aef80401a0806be263ce
+Author: jw795 <jw795@cornel.edu>
+Date:   Sat Feb 5 00:38:38 2022 -0500
+
+    merge conflict again
+
+commit 7c92b8c4bdb41252c68d6d555eabba74f0f343b3
+Author: jw795 <jw795@cornel.edu>
+Date:   Sat Feb 5 00:36:59 2022 -0500
+
+    merge conflict
+
+commit 14b49649724cb031ed6b9498bdaf1b3d05a57f3f
+Merge: f24abcd e8454d4
+Author: jw795 <jw795@cornel.edu>
+Date:   Sat Feb 5 00:33:17 2022 -0500
+
+    merge conflict
+
+commit e8454d41d4e45d960ee4d39db50666342b481e2c
+Author: bz239 <bz239@cornell.edu>
+Date:   Sat Feb 5 00:26:15 2022 -0500
+
+    add tokenTypeToString
+
+commit 4c80c9d9d57f9b7ef17235c6ce42f59589a4d90d
+Author: bz239 <bz239@cornell.edu>
+Date:   Sat Feb 5 00:16:29 2022 -0500
+
+    add file name
+
+commit 2ce16c8395e6fbf651d1bf686935ca15cce83be4
+Author: bz239 <bz239@cornell.edu>
+Date:   Sat Feb 5 00:05:26 2022 -0500
+
+    lexer connected
+
+commit f24abcddccce0a60f42af06f40a9206239cc0b1f
+Author: vagrant <vagrant@cs4120>
+Date:   Sat Feb 5 03:42:45 2022 +0000
+
+    debug
+
+commit eb89ee8660b9650837add805f5c2e826d900a069
+Author: vagrant <vagrant@cs4120>
+Date:   Sat Feb 5 03:39:32 2022 +0000
+
+    debug
+
+commit eceaa56e03eed41dbfa88c224e9984cf1ccc2e48
+Author: bz239 <bz239@cornell.edu>
+Date:   Fri Feb 4 22:03:41 2022 -0500
+
+    lexer progress
+
+commit 0fb4cb3477d57411e3f4a60f0ef89efb9b39cdb3
+Author: bz239 <bz239@cornell.edu>
+Date:   Fri Feb 4 21:05:00 2022 -0500
+
+    generate Lexer.java
+
+commit 179f9d359c81da82a5ed232593b3444686ad0180
+Author: archerluo <luogaochen@gmail.com>
+Date:   Thu Feb 3 23:02:57 2022 -0500
+
+    Character and String states mostly completed. Some changes to previous work.
+
+commit 0410291a5f8fa2b2d8568257536b61b2cb49064f
+Author: archerluo <luogaochen@gmail.com>
+Date:   Thu Feb 3 22:42:29 2022 -0500
+
+    Character and String states mostly completed. Some changes to previous work.
+
+commit 3efe94c6cf5481669c6962327a37af24ecbe2e69
+Author: jw795 <jw795@cornel.edu>
+Date:   Wed Feb 2 20:52:18 2022 -0500
+
+    lexer spec half done
+
+commit fd0d9b10cd87c2eeaff3d7189487dbf71d988892
+Author: jw795 <jw795@cornel.edu>
+Date:   Wed Feb 2 02:18:20 2022 -0500
+
+    added test directory
+
+commit b7a2788d797d096344a8b4b02a2695923c28965f
+Author: jw795 <jw795@cornel.edu>
+Date:   Wed Feb 2 01:50:56 2022 -0500
+
+    add xic build
+
+commit efa6994a20b9313dce2912236f2fa4f1e36c62f9
+Author: jw795 <jw795@cornel.edu>
+Date:   Mon Jan 31 02:47:51 2022 -0500
+
+    set to ignore ide files
+
+commit 7c3bb423da73b920a19a83c7a81a92ccecb32b59
+Author: jw795 <jw795@cornel.edu>
+Date:   Mon Jan 31 02:38:48 2022 -0500
+
+    cleanup
+
+commit be6a842381f46ae372cb603b17fab3c46cac8bc0
+Author: jw795 <jw795@cornel.edu>
+Date:   Mon Jan 31 02:36:06 2022 -0500
+
+    rename to use netid
+
+commit c9295c08e840a47612fd5adf16e0721a48b135e8
+Author: jw795 <jw795@cornel.edu>
+Date:   Mon Jan 31 02:05:05 2022 -0500
+
+    lexer pkg
+
+commit 2b09f421c70b8b1f9126d95b64cc506967f60284
+Author: jw795 <jw795@cornel.edu>
+Date:   Mon Jan 31 01:33:44 2022 -0500
+
+    rename
+
+commit c2b433cae71598995951b0fff1456592c3129c9f
+Author: jw795 <jw795@cornel.edu>
+Date:   Sun Jan 30 00:33:00 2022 -0500
+
+    xic script
+
+commit c4e881c2390f08c44456551afab5b91962f44a83
+Author: jw795 <jw795@cornel.edu>
+Date:   Sat Jan 29 23:31:24 2022 -0500
+
+    update dependency
+
+commit 4cac82723eda63db49ab8d2608a8de5a8b235b52
+Author: jw795 <jw795@cornel.edu>
+Date:   Sat Jan 29 22:53:53 2022 -0500
+
+    cli
+
+commit 3c208ecde0d90fdbca73fdf0da2b3592b5025b93
+Author: jw795 <jw795@cornel.edu>
+Date:   Sat Jan 29 21:31:35 2022 -0500
+
+    buildfiles
+
+commit 861d4617a2cfc6344ee0497a290e420edafc6ac8
+Author: Jian Wang <jw795@cornell.edu>
+Date:   Sat Jan 29 21:16:09 2022 -0500
+
+    Initial commit
