@@ -115,9 +115,15 @@ package jw795.lexer;
         }
     }
 
-    private char parseHex (String hexTex) {
-        Integer code = Integer.parseInt(hexTex.substring(3, hexTex.length() - 1), 16);
-        return Character.toChars(code)[0];
+    private String parseHex (String hexTex) {
+        Integer intTex = Integer.parseInt(hexTex.substring(3, hexTex.length() - 1), 16);
+        String strTex =  Character.toChars(intTex)[0] + "";
+
+        // handle special character
+        if (strTex.equals("\n")){
+            strTex = "\\n";
+        }
+        return strTex;
     }
 
     Boolean charRead = false;
@@ -256,6 +262,7 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
         System.out.println("Ended string");
         String result = sb.toString();
         sb = new StringBuffer();
+        System.out.println(result);
         return new Token(TokenType.STRINGLIT, result, stringstartcol);
     }
 
