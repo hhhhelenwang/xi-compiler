@@ -9,6 +9,8 @@ xic ("Test --lex") "--lex" {
     test1.xi;
     test2.xi;
     testcomment.xi;
+    testchar.xi;
+    teststring.xi;
     testearly_stop.xi;
     testeofstring.xi;
     testeofchar.xi;

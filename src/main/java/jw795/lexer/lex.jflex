@@ -126,8 +126,7 @@ package jw795.lexer;
         return strTex;
     }
 
-    Boolean charRead = false;
-
+    int charRead = 0;
     StringBuffer sb = new StringBuffer();
     int stringstartcol = 0;
     int charstartcol = 0;
@@ -135,7 +134,7 @@ package jw795.lexer;
 
 Letter = [a-zA-Z]
 Digit = [0-9]
-Char = [U+000000-U+10FFFF]
+//Char = [U+000000-U+10FFFF]
 
 HexNum = (({Digit} | [a-fA-F]){1, 6})
 Hex =  "\\x{"{HexNum}"}"
@@ -204,6 +203,7 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
 
     "/""/" { yybegin(COMMENT);}
     "'" {   yybegin(CHARACTER);
+            charRead = 0;
             sb = new StringBuffer();
             charstartcol = yycolumn;}
     "\"" {  yybegin(STRING);
@@ -222,21 +222,19 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
 }
 
 <CHARACTER> {
-    [^\n\\\'] {charRead = true; sb.append(yytext());}
+    [^\n\\\'] {charRead += 1; sb.append(yytext());}
 
-    \\n {charRead = true; sb.append("\\n");}
+    \\n {charRead += 1; sb.append("\\n");}
 
-    \\\\ {charRead = true; sb.append('\\');}
+    \\\\ {charRead += 1; sb.append('\\');}
 
-    \\\' {charRead = true; sb.append('\'');}
+    \\\' {charRead += 1; sb.append('\'');}
 
-    {Char}{Char}{Char}* {yybegin(YYINITIAL); return new Token(TokenType.ERROR, "Illegal character <"+ yytext() +">");}
-
-    {Hex} {charRead = true; sb.append(parseHex(yytext()));}
+    {Hex} {charRead += 1; sb.append(parseHex(yytext()));}
 
     "'" {
-        if (charRead) {
-            charRead = false;
+        if (charRead == 1) {
+            charRead = 0;
             yybegin(YYINITIAL);
             return new Token(TokenType.CHARLIT, sb.toString(), charstartcol);
         } else {
