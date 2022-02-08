@@ -1,2 +1,3 @@
 #!/bin/bash
-./gradlew -q run --args="$*"
+DIR=`dirname $0`
+$DIR/gradlew -q run --args="$*"

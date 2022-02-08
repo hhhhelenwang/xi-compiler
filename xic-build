@@ -2,4 +2,5 @@
 # build lexer from specification
 jflex ./src/main/java/jw795/lexer/lex.jflex -d ./src/main/java/jw795/lexer
 # build project
-./gradlew -q build
+DIR=`dirname $0`
+$DIR/gradlew -q build

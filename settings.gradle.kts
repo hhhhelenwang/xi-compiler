@@ -8,3 +8,4 @@
  */
 
 rootProject.name = "xi-compiler"
+include("xi-compiler")
