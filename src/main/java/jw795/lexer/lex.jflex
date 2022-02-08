@@ -10,7 +10,7 @@ package jw795.lexer;
 
 %eofval{
     if(yystate() == CHARACTER){
-        return new Token(TokenType.ERROR, "Incomplete char");
+        return new Token(TokenType.ERROR, "Incomplete char", charstartcol);
     } else if (yystate() == STRING){
         return new Token(TokenType.ERROR, "Invalid String", stringstartcol);
     } else {
@@ -130,6 +130,7 @@ package jw795.lexer;
 
     StringBuffer sb = new StringBuffer();
     int stringstartcol = 0;
+    int charstartcol = 0;
 %}
 
 Letter = [a-zA-Z]
@@ -202,7 +203,9 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
     "_" {return new Token(TokenType.UNDERSCORE);}
 
     "/""/" { yybegin(COMMENT); System.out.println("Starting comment");}
-    "'" { yybegin(CHARACTER); System.out.println("Starting character");}
+    "'" {   yybegin(CHARACTER);
+            System.out.println("Starting character");
+            charstartcol = yycolumn;}
     "\"" {  yybegin(STRING);
             System.out.println("Starting string");
             sb = new StringBuffer();
@@ -239,7 +242,7 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
             System.out.println("Ended character");
         }
         else {
-            return new Token(TokenType.ERROR, "Invalid character constant");
+            return new Token(TokenType.ERROR, "Invalid character constant", charstartcol);
         }
     }
 
