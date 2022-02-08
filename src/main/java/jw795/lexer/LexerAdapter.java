@@ -9,19 +9,32 @@ import java.io.FileWriter;
 import jw795.lexer.Lexer.TokenType;
 import jw795.lexer.Lexer.Token;
 
-
+/**
+ * An adapter class that connects the main class Compiler.class the Lexer.class generated using JFlex. Takes
+ * in a reader that reads user-provided source file, the filename for the file, and the path to put the lexed
+ * file in specified by user.
+ */
 public class LexerAdapter {
 
     Lexer lexer;
     String fileName;
     String lexedPath; // the path to store the lexed result file, indicated by user
 
+    /**
+     * Create an instance of LexerAdapter
+     * @param reader a reader to read the source file
+     * @param filename filename to the source file
+     * @param path path to put the diagnostice file in
+     */
     public LexerAdapter (Reader reader, String filename, String path) {
         lexer = new Lexer(reader);
         fileName = filename;
         lexedPath = path;
     }
 
+    /**
+     * Calls nextToken() method in Lexer.class to generate a list of tokens, and output a diagnostic file.
+     */
     public void generateTokens () {
         List<Token> tokens = new ArrayList();
         boolean isEndofTokens = false;
@@ -90,6 +103,11 @@ public class LexerAdapter {
         }
     }
 
+    /**
+     * Convert a TokenType to appropriate string to be displayed in the diagnostic file.
+     * @param tokenType the type of token as defined in Lexer.class
+     * @return the appropriate string representation for a tokenType
+     */
     private String tokenTypeToString(TokenType tokenType){
         String res;
         switch(tokenType) {
