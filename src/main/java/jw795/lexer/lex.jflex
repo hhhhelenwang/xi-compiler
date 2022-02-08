@@ -251,7 +251,7 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
 
     \\n {sb.append("\\n");}
 
-    \\\\ {sb.append("\\\\");}
+    \\\\ {sb.append("\\");}
 
     \\\" {sb.append("\"");}
 

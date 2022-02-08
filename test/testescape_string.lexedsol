@@ -1,8 +1,13 @@
 2:1 string a try on \n
-3:1 string "
-4:1 string \n
+3:1 string \
+4:1 string \\
 5:1 string "
-6:1 character '
-7:1 string 
-8:1 string '
-9:1 string a try on d
+6:1 string \n
+7:1 string "
+8:1 character '
+9:1 string 
+10:1 string '
+11:1 string a try on d
+12:1 string //
+13:1 string /
+14:1 error:Invalid String
