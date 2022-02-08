@@ -11,12 +11,20 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Main class of xi-compiler.
+ */
 public class Compiler {
     CommandLine cmd;
     String path = ".";
     List<String> files = new ArrayList<>();
     Options options;
 
+    /**
+     * Initialize the CommandLine Interface
+     * @param args the arguments passed in with CLI command.
+     * @throws ParseException if
+     */
     public void init_cli(String[] args) throws ParseException {
         options = new Options();
         options.addOption("h", "help", false, "display the help page");
@@ -27,7 +35,9 @@ public class Compiler {
 
     }
 
-    /** Display help page */
+    /**
+     * Display the help page.
+     */
     public void help(){
         if (cmd.hasOption("h")){
             String syntax = "./xic [options] <source-files>";
@@ -39,13 +49,19 @@ public class Compiler {
         }
     }
 
+    /**
+     * Set the path to place the diagnostic files
+     */
     public void setDestPath() {
         if (cmd.hasOption("D")) {
             this.path = cmd.getOptionValue("D");
         }
     }
 
-    /** Produce lexical analysis for one source file. */
+    /**
+     * Produce lexical analysis for one file
+     * @param fileName the name of the file
+     */
     public void lexFile(String fileName) {
         try {
             // Generate token file
@@ -58,7 +74,9 @@ public class Compiler {
         }
     }
 
-    /** Produce lexical analysis for all source files requested. */
+    /**
+     * Produce lexical analysis on all input source files.
+     */
     public void lex(){
         System.out.println("Lexing");
         files = cmd.getArgList();
