@@ -6,5 +6,5 @@ xic ("Test --help") "--help" {
 }
 
 xic ("Test --lex") "--lex" {
-    testearly_stop.xi;
+    testtype.xi;
 }
