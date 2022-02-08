@@ -204,7 +204,7 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
 
     "/""/" { yybegin(COMMENT); System.out.println("Starting comment");}
     "'" {   yybegin(CHARACTER);
-            System.out.println("Starting character");
+            System.out.println("Starting character at " + yycolumn);
             charstartcol = yycolumn;}
     "\"" {  yybegin(STRING);
             System.out.println("Starting string");
@@ -223,17 +223,17 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
 }
 
 <CHARACTER> {
-    [^\n\\\'] {charRead = true; return new Token(TokenType.CHARLIT, yytext());}
+    [^\n\\\'] {charRead = true; return new Token(TokenType.CHARLIT, yytext(), charstartcol);}
 
-    \\n {charRead = true; return new Token(TokenType.CHARLIT, "\\n");}
+    \\n {charRead = true; return new Token(TokenType.CHARLIT, "\\n",  charstartcol);}
 
-    \\\\ {charRead = true; return new Token(TokenType.CHARLIT, '\\');}
+    \\\\ {charRead = true; return new Token(TokenType.CHARLIT, '\\', charstartcol);}
 
-    \\\' {charRead = true; return new Token(TokenType.CHARLIT, '\'');}
+    \\\' {charRead = true; return new Token(TokenType.CHARLIT, '\'', charstartcol);}
 
     {Char}{Char}{Char}* {return new Token(TokenType.ERROR, "Illegal character <"+ yytext() +">");}
 
-    {Hex} {charRead = true; return new Token(TokenType.CHARLIT, sb.append(parseHex(yytext())));}
+    {Hex} {charRead = true; return new Token(TokenType.CHARLIT, sb.append(parseHex(yytext())), charstartcol);}
 
     "'" {
         if (charRead) {
@@ -246,7 +246,7 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
         }
     }
 
-    [^] {return new Token(TokenType.ERROR, "Invalid character constant");}
+    [^] {return new Token(TokenType.ERROR, "Invalid character constant", charstartcol);}
 }
 
 <STRING> {
