@@ -11,6 +11,7 @@ xic ("Test --lex") "--lex" {
     testcomment.xi;
     testearly_stop.xi;
     testeofstring.xi;
+    testeofchar.xi;
     testescape_char.xi;
     testescape_string.xi;
     testid.xi;
