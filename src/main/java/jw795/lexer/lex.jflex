@@ -140,7 +140,6 @@ Char = [U+000000-U+10FFFF]
 Hex =  "\\x{"({Digit} | [a-fA-F])({Digit} | [a-fA-F])"}"
 Integer = 0 | [1-9]{Digit}*
 Boolean = "true" | "false"
-CharData = {Char}'
 
 WhiteSpace = " "|\t|\r|\v|\f
 
