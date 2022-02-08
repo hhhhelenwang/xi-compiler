@@ -231,7 +231,12 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
 
     {Char}{Char}{Char}* {return new Token(TokenType.ERROR, "Illegal character <"+ yytext() +">");}
 
-    {Hex} {charRead = true; return new Token(TokenType.CHARLIT, sb.append(parseHex(yytext())), charstartcol);}
+    {Hex} { sb = new StringBuffer();
+            charRead = true;
+            sb.append(parseHex(yytext()));
+            String result = sb.toString();
+            return new Token(TokenType.CHARLIT, result, charstartcol);
+           }
 
     "'" {
         if (charRead) {
