@@ -202,12 +202,10 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
     ";" {return new Token(TokenType.SEMICOLON);}
     "_" {return new Token(TokenType.UNDERSCORE);}
 
-    "/""/" { yybegin(COMMENT); System.out.println("Starting comment");}
+    "/""/" { yybegin(COMMENT);}
     "'" {   yybegin(CHARACTER);
-            System.out.println("Starting character at " + yycolumn);
             charstartcol = yycolumn;}
     "\"" {  yybegin(STRING);
-            System.out.println("Starting string");
             sb = new StringBuffer();
             stringstartcol = yycolumn;}
 
@@ -218,7 +216,7 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
 
 <COMMENT> {
     {WhiteSpace}   { /* ignore */}
-    "\n"|"\r"    {System.out.println("Ended comment");yybegin(YYINITIAL); }
+    "\n"|"\r"      {yybegin(YYINITIAL);}
     [^]            { /* ignore */}
 }
 
@@ -239,7 +237,6 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
         if (charRead) {
             charRead = false;
             yybegin(YYINITIAL);
-            System.out.println("Ended character");
         }
         else {
             return new Token(TokenType.ERROR, "Invalid character constant", charstartcol);
@@ -262,10 +259,8 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
 
     "\"" {
         yybegin(YYINITIAL);
-        System.out.println("Ended string");
         String result = sb.toString();
         sb = new StringBuffer();
-        System.out.println(result);
         return new Token(TokenType.STRINGLIT, result, stringstartcol);
     }
 

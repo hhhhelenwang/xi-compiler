@@ -26,7 +26,6 @@ public class LexerAdapter {
         List<Token> tokens = new ArrayList();
         boolean isEndofTokens = false;
 
-        System.out.println(" =============================================get in the branch");
         while (!isEndofTokens) {
                 try{
                 Token token = lexer.nextToken();
