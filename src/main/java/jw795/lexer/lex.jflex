@@ -8,12 +8,13 @@ package jw795.lexer;
 %line
 %column
 
-
 %eofval{
     if(yystate() == CHARACTER){
         return new Token(TokenType.ERROR, "Incomplete char");
-    }else if(yystate() == STRING){
+    } else if (yystate() == STRING){
         return new Token(TokenType.ERROR, "Invalid String", stringstartcol);
+    } else {
+        return null;
     }
 %eofval}
 
