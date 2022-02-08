@@ -12,3 +12,7 @@
 7:1 id ifwhileelse
 8:1 return
 9:1 length
+10:1 integer 123
+10:4 use
+11:1 id use_''
+12:1 id use'_'
