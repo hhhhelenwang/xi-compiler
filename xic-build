@@ -1,6 +1,7 @@
 #!/bin/bash
-# build lexer from specification
-jflex ./src/main/java/jw795/lexer/lex.jflex -d ./src/main/java/jw795/lexer
-# build project
 DIR=`dirname $0`
-$DIR/gradlew -q build
+cd $DIR
+# build lexer from specification
+jflex src/main/java/jw795/lexer/lex.jflex -d src/main/java/jw795/lexer
+# build project
+./gradlew build
