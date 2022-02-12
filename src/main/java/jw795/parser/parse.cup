@@ -1,0 +1,27 @@
+import java_cup.runtime.*;
+
+//TODO: connect to lexer
+
+/* Terminals */
+terminal    Token     USE, IF, WHILE, ELSE, RETURN, LENGTH, NOT, MULT, HIGHMULT, DIV, MOD, ADD,
+                        SUB, LT, LEQ, GEQ, GT, EQ, NEQ, AND, OR, ASSIGN, LPAREN, RBRACK, LBRACE,
+                        RBRACE, COMMA, SEMICOLON, UNDERSCORE;
+
+terminal    Token     INT, BOOL, INTTYPE, BOOLTYPE, ID, CHARLIT, STRINGLIT;
+
+/* Non terminals */
+//non terminal
+/* Precedences */
+precedence nonassoc IF;
+precedence nonassoc ELSE;
+
+precedence left MULT, HIGHMULT, DIV, MOD;
+precedence left ADD, SUB;
+precedence left LT, LEQ, GEQ, GT;
+precedence left EQ, NEQ;
+precedence left AND;
+precedence left OR;
+
+/* The grammar rules */
+
+

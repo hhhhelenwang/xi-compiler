@@ -30,6 +30,8 @@ public class Compiler {
         options.addOption("h", "help", false, "display the help page");
         options.addOption("lex", "lex", false, "perform lexical analysis on the input file");
         options.addOption("D", "destination", true, "set path for diagnostic files");
+        options.addOption("parse", "parse", false, "generate output from syntactic analysis");
+
         CommandLineParser parser = new DefaultParser();
         cmd = parser.parse(options, args);
 
@@ -88,6 +90,16 @@ public class Compiler {
                 }
             }
         }
+    }
+
+    /**
+     * Produce syntactic analysis on all input source files.
+     */
+    public void parse(){
+        System.out.println("Parsing");
+//        files = cmd.getArgList();
+//        if (cmd.hasOption("parse")) {
+//        }
     }
 
     public static void main(String[] args) {
