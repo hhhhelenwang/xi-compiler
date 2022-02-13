@@ -3,14 +3,20 @@ import java_cup.runtime.*;
 //TODO: connect to lexer
 
 /* Terminals */
-terminal    Token     USE, IF, WHILE, ELSE, RETURN, LENGTH, NOT, MULT, HIGHMULT, DIV, MOD, ADD,
+terminal    Token   USE, IF, WHILE, ELSE, RETURN, LENGTH, NOT, MULT, HIGHMULT, DIV, MOD, ADD,
                         SUB, LT, LEQ, GEQ, GT, EQ, NEQ, AND, OR, ASSIGN, LPAREN, RBRACK, LBRACE,
                         RBRACE, COMMA, SEMICOLON, UNDERSCORE;
 
-terminal    Token     INT, BOOL, INTTYPE, BOOLTYPE, ID, CHARLIT, STRINGLIT;
+terminal    Token   INT, BOOL, INTTYPE, BOOLTYPE, ID, CHARLIT, STRINGLIT;
+
+terminal    Token   PROGRAM, INTERFACE;
 
 /* Non terminals */
 //non terminal
+
+nonterminal function_lst;
+
+
 /* Precedences */
 precedence nonassoc IF;
 precedence nonassoc ELSE;
@@ -24,4 +30,18 @@ precedence left OR;
 
 /* The grammar rules */
 
+// The Xi source file may be either a program file (extension .xi)
+//or an interface file (extension .ixi)  parser should require the appropriate
+//syntax for the kind of file it is parsing.
+start with file;
 
+file ::= PROGRAM_FILE program:p
+        {: RESULT = p; :}
+    | INTERFACE_FILE interface:i
+        {: RESULT = i; :};
+
+//A program contains a sequence of function definitions, including the definitions of the function main.
+
+
+//A function definition starts with the name of the function, followed by its argument(s), its return type(s),
+  //and the definition of its code.
