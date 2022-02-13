@@ -7,7 +7,7 @@ import java.io.File;
 import java.io.FileWriter;
 
 import jw795.lexer.Lexer.TokenType;
-import jw795.lexer.Lexer.Token;
+import java_cup.runtime.Symbol;
 
 /**
  * An adapter class that connects the main class Compiler.class the Lexer.class generated using JFlex. Takes
@@ -33,22 +33,21 @@ public class LexerAdapter {
     }
 
     /**
-     * Calls nextToken() method in Lexer.class to generate a list of tokens, and output a diagnostic file.
+     * Calls next_token() method in Lexer.class to generate a list of tokens, and output a diagnostic file.
      */
     public void generateTokens () {
-        List<Token> tokens = new ArrayList();
+        List<Symbol> tokens = new ArrayList();
         boolean isEndofTokens = false;
 
         while (!isEndofTokens) {
                 try{
-                Token token = lexer.nextToken();
+                Symbol token = lexer.next_token();
                 if (token == null){
                     isEndofTokens = true;
                 } else {
-                    System.out.println(token.type.toString());
                     tokens.add(token);
                     //Exit reading tokens because an error occurred
-                    if (token.type.toString().equals("ERROR")){
+                    if (TokenType.values()[token.sym].toString().equals("ERROR")){
                         break;
                     }
                 }
@@ -77,15 +76,15 @@ public class LexerAdapter {
         File targetFile = new File(fullPath + lexedFile);
         try{
             FileWriter targetWriter = new FileWriter(targetFile);
-            for (Token t : tokens){
+            for (Symbol t : tokens){
                 StringBuilder line = new StringBuilder();
-                line.append(t.line+1);
+                line.append(t.left+1);
                 line.append(":");
-                line.append(t.column+1);
+                line.append(t.right+1);
                 line.append(" ");
-                line.append(tokenTypeToString(t.type));
+                line.append(tokenTypeToString(TokenType.values()[t.sym]));
                 if (t.value != null){
-                    if (t.type.toString().equals("ERROR")){
+                    if (TokenType.values()[t.sym].toString().equals("ERROR")){
                         //follow the specification of error output
                         line.append(":");
                     } else {
