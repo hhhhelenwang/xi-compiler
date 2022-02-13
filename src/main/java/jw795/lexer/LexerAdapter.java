@@ -64,7 +64,13 @@ public class LexerAdapter {
         }
         // build the name of the lexed file
         String file = dirs[dirs.length - 1];
-        String lexedFile = file.substring(0, file.length()-3) + ".lexed";
+        String lexedFile;
+        String end = file.substring(file.length()-3,file.length());
+        if(end.equals(".xi")) {
+            lexedFile =file.substring(0,file.length()-3)  + ".lexed";
+        }else{
+            lexedFile =file.substring(0,file.length()-4)  + ".lexed";
+        }
 
         // check if directory to put the lexed file in exists, create a new dir if doesn't
         File directory = new File(fullPath);
