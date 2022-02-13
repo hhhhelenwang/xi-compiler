@@ -1,6 +1,6 @@
 # xi-compiler
 
-A compiler of the Xi language built with Java. Uses JFlex as generating lexer and CUP for generating parser.
+A compiler of Xi language built with Java. Uses JFlex for generating lexer and CUP for generating parser.
 
 To build the compiler:
 ```
