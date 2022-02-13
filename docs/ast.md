@@ -12,6 +12,8 @@ ASTNode (interface)
 
 - Function (implements ASTNode)
 
+- FunctionDeclare (impl. ASTNode, represent function/procedure definitions in an interface file)
+
 - Expr (extends ASTNode, interface, all below implements Expr)
     - UnOpExpr
     - BinOpExpr

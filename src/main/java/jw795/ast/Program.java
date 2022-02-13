@@ -7,9 +7,9 @@ import java.util.List;
  * Contains a list of functions/procedures.
  */
 public class Program implements ASTNode{
-    List<Function> functions;
+    List<FunctionDefine> functions;
 
-    Program(List<Function> fs) {
+    Program(List<FunctionDefine> fs) {
         functions = fs;
     }
 }

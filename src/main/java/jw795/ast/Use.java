@@ -1,8 +1,12 @@
 package jw795.ast;
 
 /**
- * Representation of use command.
+ * Representation of a use command.
  */
 public class Use implements ASTNode{
-    //todo: what to contain?
+    String interfaceName;
+
+    Use(String name) {
+        interfaceName = name;
+    }
 }
