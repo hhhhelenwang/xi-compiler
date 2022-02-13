@@ -14,9 +14,11 @@ terminal    Token   PROGRAM, INTERFACE;
 /* Non terminals */
 //non terminal
 
-nonterminal function_lst;
-nonterminal expr;
-nonterminal block;
+non terminal function_lst;
+non terminal expr;
+non terminal block;
+non terminal Interface interface;
+nonterminal Program program;
 
 
 /* Precedences */
