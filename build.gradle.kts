@@ -22,6 +22,7 @@ repositories {
 
 dependencies {
     implementation(files("deps/commons-cli-1.5.0.jar"))
+    implementation(files("deps/java_cup.jar"))
 }
 
 application {
