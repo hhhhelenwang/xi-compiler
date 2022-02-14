@@ -7,6 +7,11 @@ import java.util.List;
  * and may contain end-of-line comments.
  */
 public class Interface implements ASTNode{
+    List<FunctionDeclare> functions;
+
+    Interface(List<FunctionDeclare> fs) {
+        functions = fs;
+    }
 
 }
 

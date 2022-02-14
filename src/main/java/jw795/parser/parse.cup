@@ -14,9 +14,11 @@ terminal    Token   PROGRAM, INTERFACE;
 /* Non terminals */
 //non terminal
 
-non terminal function_lst;
+non terminal ArrayList<Use> useLst;
+non terminal ArrayList<FunctionDefine> funcDefineLst;
+non terminal ArrayList<FunctionDeclare> funcDeclareLst;
 non terminal expr;
-non terminal block;
+non terminal BlockStmt blockStmt;
 non terminal Interface interface;
 nonterminal Program program;
 
@@ -25,18 +27,15 @@ nonterminal Program program;
 precedence nonassoc IF;
 precedence nonassoc ELSE;
 
-precedence left MULT, HIGHMULT, DIV, MOD;
-precedence left ADD, SUB;
-precedence left LT, LEQ, GEQ, GT;
-precedence left EQ, NEQ;
-precedence left AND;
 precedence left OR;
+precedence left AND;
+precedence left EQ, NEQ;
+precedence left LT, LEQ, GEQ, GT;
+precedence left ADD, SUB;
+precedence left MULT, HIGHMULT, DIV, MOD;
 
 /* The grammar rules */
 
-// The Xi source file may be either a program file (extension .xi)
-//or an interface file (extension .ixi)  parser should require the appropriate
-//syntax for the kind of file it is parsing.
 start with file;
 
 file ::= PROGRAM_FILE program:p
@@ -44,10 +43,17 @@ file ::= PROGRAM_FILE program:p
     | INTERFACE_FILE interface:i
         {: RESULT = i; :};
 
-//============PROGRAM SESSION================
+//A program contains use* followed by function*
+program ::= useLst use:u funcDefineLst func:f
+    {: RESULT = new Program(f);:};
+
+//An interface contains a nonempty set of procedure and function declaration
+//without implementation and may contain end-of-line comments
+interface ::= funcDeclareLst func:f
+    {:RESULT = new Interface(f);:}
+
 // ------------function------------
 
-//A program contains a sequence of function definitions, including the definitions of the function main.
 
 
 //A function definition starts with the name of the function, followed by its argument(s), its return type(s),
@@ -97,12 +103,12 @@ block ::= statement:s
 use_statuement ::= USE:u ID:i
     {: RESULT = null; :};
 
-while_statement ::= WHILE:w expr:e block:b
+while_statement ::= WHILE:w expr:e blockStmt:b
     {: RESULT = null;:};
 
-if_statement ::= IF expre:e block:b
+if_statement ::= IF expre:e blockStmt:b
     {: RESULT = null;:}
-    | IF expr:e block:b ELSE block:b
+    | IF expr:e blockStmt:b ELSE blockStmt:b
     {: RESULT = null;:};
 
 //variable declaration
