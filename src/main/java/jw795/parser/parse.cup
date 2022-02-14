@@ -9,11 +9,10 @@ terminal    Token   USE, IF, WHILE, ELSE, RETURN, LENGTH, NOT, MULT, HIGHMULT, D
 
 terminal    Token   INT, BOOL, INTTYPE, BOOLTYPE, ID, CHARLIT, STRINGLIT;
 
-terminal    Token   PROGRAM, INTERFACE;
+terminal    Token   PROGRAM_FILE, INTERFACE_FILE;
 
 /* Non terminals */
-//non terminal
-
+non terminal file;
 non terminal ArrayList<Use> useLst;
 non terminal ArrayList<FunctionDefine> funcDefineLst;
 non terminal ArrayList<FunctionDeclare> funcDeclareLst;
@@ -35,33 +34,37 @@ precedence left ADD, SUB;
 precedence left MULT, HIGHMULT, DIV, MOD;
 
 /* The grammar rules */
-
+//This indicates which non-terminal is the start or goal non-terminal for parsing
 start with file;
 
-file ::= PROGRAM_FILE program:p
-        {: RESULT = p; :}
-    | INTERFACE_FILE interface:i
-        {: RESULT = i; :};
+file ::= INTERFACE_FILE interface:i
+        {: RESULT = i; :}
+        | PROGRAM_FILE program:p
+        {: RESULT = p; :} ;
+
+//An interface contains a nonempty set of procedure and function declaration
+//without implementation and may contain end-of-line comments
+interface ::= funcDeclareLst func:f
+    {:RESULT = new Interface(f);:};
 
 //A program contains use* followed by function*
 program ::= useLst use:u funcDefineLst func:f
     {: RESULT = new Program(f);:};
 
-//An interface contains a nonempty set of procedure and function declaration
-//without implementation and may contain end-of-line comments
-interface ::= funcDeclareLst func:f
-    {:RESULT = new Interface(f);:}
+
+// ------------use------------
+// multiple use declaractions must precede all procedure and function definitions
+// use statements are optionally terminated by semicolon
+//TODO: how to handle multiple uses
+useLst ::= USE ID:interfaceName
+    {:RESULT= new USE(interfaceName);:};
 
 // ------------function------------
-
-
-
 //A function definition starts with the name of the function, followed by its argument(s), its return type(s),
   //and the definition of its code.
 
 
 // ------------expressions------------
-// NOT, MULT, HIGHMULT, DIV, MOD, ADD, SUB, LT, LEQ, GEQ, GT, EQ, NEQ, AND, OR
 expr ::=
     |NOT expre:e
     {: RESULT = null;:}
@@ -96,13 +99,23 @@ expr ::=
 
 
 // ------------statements------------
-//A block may be empty or may contain a sequence of statements.
+//A variable declaration
+
+//OR An assignment to a variable or to an array element
+
+
+//OR A return statment
+
+//OR A call to procedure
+
+//OR A block may be empty or may contain a sequence of statements.
 block ::= statement:s
     {: RESULT = null;:};
 
 use_statuement ::= USE:u ID:i
     {: RESULT = null; :};
 
+//OR if and while statements
 while_statement ::= WHILE:w expr:e blockStmt:b
     {: RESULT = null;:};
 
