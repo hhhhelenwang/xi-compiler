@@ -3,5 +3,7 @@ DIR=`dirname $0`
 cd $DIR
 # build lexer from specification
 jflex src/main/java/jw795/lexer/lex.jflex -d src/main/java/jw795/lexer
+# build parser from parser specification
+java java_cup.Main < src/main/java/jw795/parser/parse.cup
 # build project
 ./gradlew build
