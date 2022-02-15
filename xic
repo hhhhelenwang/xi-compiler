@@ -1,8 +1,9 @@
 #!/bin/bash
 DIR=`dirname $0`
 cd $DIR
-if [[ $# == 0 ]]; then
-  ./gradlew run -q
-else
-  ./gradlew run -q --args="$*"
-fi
+#if [[ $# == 0 ]]; then
+#  ./gradlew run
+#else
+#  ./gradlew run --args="$*"
+#fi
+java -classpath "build/libs/xi-compiler.jar" jw795.Compiler $*
