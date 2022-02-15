@@ -5,11 +5,10 @@ package jw795.ast;
  */
 public class AssignStmt implements Statement{
     LValue leftVal;
-    RValue rightVal;
+    Expr expr;
 
-    AssignStmt(LValue left, RValue right) {
+    AssignStmt(LValue left, Expr e) {
         leftVal = left;
-        rightVal = right;
+        expr = e;
     }
-
 }
