@@ -149,11 +149,18 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
     "length" {return newsymbol(TokenType.LENGTH);}
 
     /* type names */
-    "int" {return newsymbol(TokenType.INTTYPE);}
+    "int" { return newsymbol(TokenType.INTTYPE);}
     "bool" {return newsymbol(TokenType.BOOLTYPE);}
 
     /* Data */
-    {Integer} {return newsymbol(TokenType.INT, Integer.parseInt(yytext()));}
+    {Integer} {
+    //since negative sign is still seperate token right now, we only check the face value
+        long readint = Long.parseLong(yytext());
+        long range = Integer.MAX_VALUE;
+        range = range +1;
+        if(readint <= range){return newsymbol(TokenType.INT, readint);}
+        else{return newsymbol(TokenType.ERROR, "Int value out of range");}
+    }
     {Boolean} {return newsymbol(TokenType.BOOL, parseBool(yytext()));}
 
     /* Identifier */
