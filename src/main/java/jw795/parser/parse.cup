@@ -3,25 +3,39 @@ import java_cup.runtime.*;
 //TODO: connect to lexer
 
 /* Terminals */
-terminal    Symbol   USE, IF, WHILE, ELSE, RETURN, LENGTH, NOT, MULT, HIGHMULT, DIV, MOD, ADD,
-                        SUB, LT, LEQ, GEQ, GT, EQ, NEQ, AND, OR, COLON, ASSIGN, LPAREN, RBRACK, LBRACE,
-                        RBRACE, COMMA, SEMICOLON, UNDERSCORE;
+terminal    Symbol   USE, IF, WHILE, ELSE, RETURN, LENGTH, NOT, MULT, HIGHMULT, DIV, MOD, ADD, SUB, LT, LEQ, GEQ, GT,
+                     EQ, NEQ, AND, OR, COLON, ASSIGN, LPAREN, RPAREN, LBRACK, RBRACK, LBRACE, RBRACE, COMMA, SEMICOLON,
+                     UNDERSCORE;
 
 terminal    Symbol   INT, BOOL, INTTYPE, BOOLTYPE, ID, CHARLIT, STRINGLIT;
 terminal    Symbol   PROGRAM_FILE, INTERFACE_FILE;
-terminal    Symbol   UMINUS;
+terminal    Symbol   USUB;
 
 /* Non terminals */
 non terminal file;
-non terminal ArrayList<Use> useLst;
+
+non terminal Interface interface;
+non terminal ArrayList<FunctionDeclare> funcDeclLst;
+non terminal FunctionDecl funcDecl;
+
+non terminal Program program;
 non terminal ArrayList<FunctionDefine> funcDefLst;
 non terminal FunctionDefine funcDef;
-non terminal ArrayList<FunctionDeclare> funcDeclLst;
-non terminal expr;
-non terminal BlockStmt blockStmt;
-non terminal ReturnStmt return;
-non terminal Interface interface;
-non terminal Program program;
+non terminal ArrayList<Use> useLst;
+
+non terminal function;
+non terminal procedure;
+non terminal ArrayList<FunProcArgs> optArgLst;
+non terminal ArrayList<FunProcArgs> argLst;
+non terminal BlockStmt retBlockStmt;
+non terminal BlockStmt noRetBlockStmt;
+non terminal ArrayList<Statement> optStmtLst;
+non terminal ArrayList<Statement> stmtLst;
+non terminal Statement stmt;
+non terminal ReturnStmt returnStmt;
+non terminal Type type;
+
+non terminal Expr expr;
 
 /* Precedences */
 precedence nonassoc IF;
@@ -42,41 +56,125 @@ start with file;
 file ::= INTERFACE_FILE interface:i
         {: RESULT = i; :}
         | PROGRAM_FILE program:p
-        {: RESULT = p; :} ;
+        {: RESULT = p; :}
+        ;
 
 //An interface contains a nonempty set of procedure and function declaration
 //without implementation and may contain end-of-line comments
-interface ::= funcDeclLst func:f
-    {:RESULT = new Interface(f);:};
+interface ::= funcDeclLst:f
+    {:RESULT = new Interface(f); :}
+    ;
+
+funcDeclLst ::= funcDecl:f funcDeclLst:d
+    {: RESULT = d.add(0, f); :}
+    | funcDecl:f
+    {: ArrayList<FunctionDeclare> list = new ArrayList<FunctionDeclare>(); list.add(f); Result = list; :} ;
+
+funcDecl ::= function:f
+    {: RESULT = f; :}
+    | procedure:p
+    {: RESULT = p; :}
+    ;
+
+function ::= ID:i LPAREN optArgLst:a RPAREN COLON type:t LBRACE retBlockStmt:b RBRACE
+    {: RESULT = new FunctionDefine(i.value, t, a, b); :}
+    ;
+
+procedure ::= ID LPAREN optArgLst:a RPAREN LBRACE noRetBlockStmt:b RBRACE
+    {: RESULT = new FunctionDefine(i.value, t, a, b); :}
+    ;
+
+optArgLst ::= argLst:a
+    {: RESULT = a; :}
+    |
+    {: RESULT = new ArrayList<FunProcArgs>(); :}
+    ;
+
+argLst ::= argument:a COMMA argLst:l
+    {: RESULT = l.add(0, a); :}
+    | argument:a
+    {: ArrayList<FunProcArgs> list = new ArrayList<FunProcArgs>(); list.add(a); RESULT = list; :}
+    ;
+
+argument ::= ID:i COLON type:t
+    {: RESULT = new FunProcArgs (i.value, t); :}
+    ;
+
+type ::= INTTYPE
+    {: RESULT = new IntType(); :}
+    | BOOLTYPE
+    {: RESULT = new BoolType(); :}
+    | type:t LBRACK RBRACK
+    {: RESULT = new ArrayType(t); :}
+    ;
+
+retBlockStmt ::= optStmtLst:o returnStmt:r
+    {: RESULT = new BlockStmt(o.add(r)); :}
+    ;
+
+noRetBlockStmt ::= optStmtLst:o
+    {: RESULT = new BlockStmt(o); :}
+    ;
+
+optStmtLst ::= stmtLst:s
+    {: RESULT = s; :}
+    |
+    {: RESULT = new ArrayList<Statement>(); :}
+    ;
+
+stmtLst ::= stmt:s stmtLst:l
+    {: l.add(0, s); :}
+    | stmt:s
+    {: ArrayList<Statement> list = new ArrayList<Statement>(); list.add(s); RESULT = list; :}
+    ;
+
+stmt ::= assign:s
+    {: RESULT = s; :}
+    | ifStmt:s
+    {: RESULT = s; :}
+    | whileStmt:s
+    {: RESULT = s; :}
+    | procCall:s
+    {: RESULT = s; :}
+    | varDecl:s
+    {: RESULT = s; :}
+    ;
+
+assign ::= lftValue:v ASSIGN expr:e
+    {: RESULT = new AssignStmt(v, e); :}
+    ;
+
+ifStmt ::= IF expre:e blockStmt:b
+    {: RESULT = null;:}
+    | IF expr:e blockStmt:b ELSE blockStmt:b
+    {: RESULT = null;:};
+
+//OR if and while statements
+whileStmt ::= WHILE:w expr:e blockStmt:b
+    {: RESULT = null;:};
+
+procCall ::=
+
+//variable declaration
+varDecl::= ID:i COLON type:t
+    {: RESULT = null;:};
 
 //A program contains use* followed by function*
-program ::= useLst use:u funcDefLst func:f
-    {: RESULT = new Program(f);:};
-
+program ::= useLst:u funcDefLst:f
+    {: RESULT = new Program(u, f); :}
+    ;
 
 // ------------use------------
 // multiple use declaractions must precede all procedure and function definitions
 // use statements are optionally terminated by semicolon
-//TODO: how to handle the case with no USE statement
 useLst ::= useLst:ul USE ID:interfaceName
     {:
         ul.add(new Use(interfaceName));
-        RESULT= ul;
+        RESULT = ul;
     :}
-    | USE ID:interfaceName
-    {: RESULT= ul; :};
-
-//useLst ::= useLstl:ul USE:u
-//    {:
-//        ul.add(u);
-//        RESULT = ul;
-//    :}
-//    | USE:u
-//    {:
-//        ArrayList<USE> useLst = new ArrayList<USE>();
-//        useLst.add(u);
-//        RESULT = useLst;
-//    :}
+    |
+    {: ArrayList<Use> useList = new ArrayList<Use>(); RESULT = useList; :}
+    ;
 
 // ------------function------------
 //A function definition starts with the name of the function, followed by its argument(s), its return type(s),
@@ -133,22 +231,13 @@ expr ::=
 //OR A call to procedure
 
 //OR A block may be empty or may contain a sequence of statements.
-block ::= statement:s
-    {: RESULT = null;:};
 
 use_statuement ::= USE:u ID:i
     {: RESULT = null; :};
 
-//OR if and while statements
-while_statement ::= WHILE:w expr:e blockStmt:b
-    {: RESULT = null;:};
 
-if_statement ::= IF expre:e blockStmt:b
-    {: RESULT = null;:}
-    | IF expr:e blockStmt:b ELSE blockStmt:b
-    {: RESULT = null;:};
 
-//variable declaration
-var_declaration ::= ID:i COLON type:t
-    {: RESULT = null;:};
+
+
+
 
