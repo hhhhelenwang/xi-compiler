@@ -6,6 +6,8 @@ package jw795.ast;
 public class Use implements ASTNode{
     String interfaceName;
 
+    Use() { }
+
     Use(String name) {
         interfaceName = name;
     }

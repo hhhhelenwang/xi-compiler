@@ -3,24 +3,25 @@ import java_cup.runtime.*;
 //TODO: connect to lexer
 
 /* Terminals */
-terminal    Token   USE, IF, WHILE, ELSE, RETURN, LENGTH, NOT, MULT, HIGHMULT, DIV, MOD, ADD,
+terminal    Symbol   USE, IF, WHILE, ELSE, RETURN, LENGTH, NOT, MULT, HIGHMULT, DIV, MOD, ADD,
                         SUB, LT, LEQ, GEQ, GT, EQ, NEQ, AND, OR, COLON, ASSIGN, LPAREN, RBRACK, LBRACE,
                         RBRACE, COMMA, SEMICOLON, UNDERSCORE;
 
-terminal    Token   INT, BOOL, INTTYPE, BOOLTYPE, ID, CHARLIT, STRINGLIT;
-
-terminal    Token   PROGRAM_FILE, INTERFACE_FILE;
+terminal    Symbol   INT, BOOL, INTTYPE, BOOLTYPE, ID, CHARLIT, STRINGLIT;
+terminal    Symbol   PROGRAM_FILE, INTERFACE_FILE;
+terminal    Symbol   UMINUS;
 
 /* Non terminals */
 non terminal file;
 non terminal ArrayList<Use> useLst;
-non terminal ArrayList<FunctionDefine> funcDefineLst;
-non terminal ArrayList<FunctionDeclare> funcDeclareLst;
+non terminal ArrayList<FunctionDefine> funcDefLst;
+non terminal FunctionDefine funcDef;
+non terminal ArrayList<FunctionDeclare> funcDeclLst;
 non terminal expr;
 non terminal BlockStmt blockStmt;
+non terminal ReturnStmt return;
 non terminal Interface interface;
-nonterminal Program program;
-
+non terminal Program program;
 
 /* Precedences */
 precedence nonassoc IF;
@@ -32,6 +33,7 @@ precedence left EQ, NEQ;
 precedence left LT, LEQ, GEQ, GT;
 precedence left ADD, SUB;
 precedence left MULT, HIGHMULT, DIV, MOD;
+precedence right USUB;
 
 /* The grammar rules */
 //This indicates which non-terminal is the start or goal non-terminal for parsing
@@ -44,26 +46,46 @@ file ::= INTERFACE_FILE interface:i
 
 //An interface contains a nonempty set of procedure and function declaration
 //without implementation and may contain end-of-line comments
-interface ::= funcDeclareLst func:f
+interface ::= funcDeclLst func:f
     {:RESULT = new Interface(f);:};
 
 //A program contains use* followed by function*
-program ::= useLst use:u funcDefineLst func:f
+program ::= useLst use:u funcDefLst func:f
     {: RESULT = new Program(f);:};
 
 
 // ------------use------------
 // multiple use declaractions must precede all procedure and function definitions
 // use statements are optionally terminated by semicolon
-//TODO: how to handle multiple uses
-useLst ::= USE ID:interfaceName
-    {:RESULT= new USE(interfaceName);:};
+//TODO: how to handle the case with no USE statement
+useLst ::= useLst:ul USE ID:interfaceName
+    {:
+        ul.add(new Use(interfaceName));
+        RESULT= ul;
+    :}
+    | USE ID:interfaceName
+    {: RESULT= ul; :};
+
+//useLst ::= useLstl:ul USE:u
+//    {:
+//        ul.add(u);
+//        RESULT = ul;
+//    :}
+//    | USE:u
+//    {:
+//        ArrayList<USE> useLst = new ArrayList<USE>();
+//        useLst.add(u);
+//        RESULT = useLst;
+//    :}
 
 // ------------function------------
 //A function definition starts with the name of the function, followed by its argument(s), its return type(s),
   //and the definition of its code.
 
-
+funcDefLst ::= funcDefLst:fl ID
+    {:
+//        fl.add(new funcDef);
+    :};
 // ------------expressions------------
 expr ::=
     |NOT expre:e
@@ -80,6 +102,8 @@ expr ::=
     {: RESULT = null;:}
     | expre:e1 SUB expre:e2
     {: RESULT = null;:}
+    | sub expre:e
+    {: RESULT = null;:} %prec USUB
     |expre:e1 LT expre:e2
     {: RESULT = null;:}
     | expre:e1 LEQ expre:e2
