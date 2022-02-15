@@ -4,9 +4,9 @@ package jw795.ast;
  * Representation of an integer in AST.
  */
 public class IntLiteral implements Expr{
-    int value;
+    long value;
 
-    IntLiteral(int val) {
+    IntLiteral(long val) {
         value = val;
     }
 }
