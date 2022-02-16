@@ -6,9 +6,9 @@ import java.util.List;
  * A representation of a list of variable declaration used when assigning multiple return results to variables.
  */
 public class VarDeclareList implements Expr, LValue {
-    List<VarDeclareStmt> declares;
+    List<LValue> declares;
 
-    VarDeclareList(List<VarDeclareStmt> variables) {
+    VarDeclareList(List<LValue> variables) {
         declares = variables;
     }
 }

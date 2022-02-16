@@ -5,7 +5,7 @@ import java.util.Optional;
 /**
  * Representation of a variable declaration.
  */
-public class VarDeclareStmt implements Statement {
+public class VarDeclareStmt implements Statement, LValue {
     String identifier;
     Type type;
     Optional<Expr> value;
