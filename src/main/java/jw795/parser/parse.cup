@@ -56,7 +56,7 @@ non terminal FunCallExpr funCall;
 
 non terminal Expr expr;
 non terminal ArrayList<Expr> exprLst;
-non terminal ASTNode indexable;
+//non terminal ASTNode indexable;
 
 non terminal optSemi;
 
@@ -87,7 +87,8 @@ file ::= INTERFACE_FILE interface:i
         {: RESULT = p; :}
         ;
 
-//A program contains (use*) (function*)
+//A program contains (use*) (global variable) (function*)
+// int and bool can be declared and initialized + arr cannot be initialized but can be declared
 program ::= useLst:u funcDefLst:f
     {: RESULT = new Program(u, f); :}
     ;
@@ -183,9 +184,9 @@ blockStmt ::= LBRACE stmtLst:s RBRACE
     {: ArrayList<Statement> lst = new ArrayList<Statement>(); Result = new BlockStmt(lst); :}
     ;
 
-stmtLst ::= stmt:s stmtLst:l optSemi
+stmtLst ::= stmt:s stmtLst:l
     {: l.add(0, s); :}
-    | stmt:s
+    | stmt:s optSemi
     {: ArrayList<Statement> lst = new ArrayList<Statement>(); lst.add(s); RESULT = lst; :}
     ;
 
@@ -255,11 +256,11 @@ whileStmt ::= WHILE expr:e stmt:s
     {: RESULT = new WhileStmt(e, s);:}
     ;
 
-procCall ::= ID:i LPAREN optArgLst:a RPAREN
+procCall ::= ID:i LPAREN exprLst:a RPAREN
     {: RESULT = new ProcCallStmt(i, a); :}
     ;
 
-//variable declaration TODO: multiple declaraton
+//variable declaration
 varDeclLst ::= varDecl:v COMMA varDeclLst:l
     {: l.add(0, v); :}
     | varDecl:v
@@ -280,6 +281,8 @@ expr ::=
     {: RESULT = new BoolLiteral(b); :}
     | CHARLIT: c
     {: RESULT = new CharLiteral(c); :}
+    | STRINGLIT: s
+    {: ArrayList<String> lst = new ArrayList<>(); lst.add(s.value); RESULT = new ArrayExpr(lst, s.left, s.right); :}
     | NOT expr:e
     {: RESULT = new Not(e);:} %prec UNARY
     | expr:e1 MULT expr:e2
@@ -312,14 +315,4 @@ expr ::=
     {: RESULT = new And(e1, e2);:}
     | expr:e1 OR expr:e2
     {: RESULT = new Or(e1, e2);:}
-    | indexable:i
-    {: RESULT = i; :}
-    ;
-
-indexable ::= ID:i
-    {: RESULT = new VarExpr(i.value); :}
-    | STRINGLIT:s
-    {: ArrayList<String> lst = new ArrayList<>(); lst.add(s.value); RESULT = new ArrayExpr(lst, s.left, s.right); :}
-    | funCall:f
-    {: RESULT = null; :}
     ;
