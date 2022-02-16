@@ -45,8 +45,14 @@ non terminal ArrayList<Statement> stmtLst;
 non terminal Statement stmt;
 non terminal AssignStmt assign;
 non terminal ReturnStmt returnStmt;
+non terminal IfStmt ifStmt;
+non terminal WhileStmt whileStmt;
+non terminal ProcCallStmt procCall;
+non terminal VarDeclareStmt varDecl;
 
 non terminal LValue lftValue;
+non terminal ArrIndexExpr arrIndexExpr;
+non terminal FunCallExpr funCall;
 
 non terminal Expr expr;
 non terminal ASTNode indexable;
@@ -290,7 +296,6 @@ expr ::=
     {: RESULT = i; :}
     ;
 
-//indexable ::= ID:i
-//    {: RESULT =  :}
-//    |
-//    ;
+indexable ::= ID:i
+    {: RESULT = new VarExpr(i.value); :}
+    ;
