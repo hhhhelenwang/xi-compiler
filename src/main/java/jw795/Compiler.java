@@ -3,6 +3,7 @@
  */
 package jw795;
 import jw795.lexer.LexerAdapter;
+import jw795.parser.ParserAdapter;
 import org.apache.commons.cli.*;
 
 import java.io.FileNotFoundException;
@@ -97,9 +98,26 @@ public class Compiler {
      */
     public void parse(){
         System.out.println("Parsing");
-//        files = cmd.getArgList();
-//        if (cmd.hasOption("parse")) {
-//        }
+        files = cmd.getArgList();
+        if (cmd.hasOption("parse")) {
+            for (String file : files) {
+                if (file.endsWith("xi")) {
+                    System.out.println(file);
+                    parseFile(file);
+                }
+            }
+        }
+    }
+    public void parseFile(String fileName) {
+        try {
+            // Generate token file
+            Reader reader = new FileReader(fileName);
+//            fileName = path + "/" + fileName;
+            ParserAdapter parserAdapt = new ParserAdapter(reader, fileName, path);
+            parserAdapt.generatesyntree();
+        } catch (FileNotFoundException e) {
+            System.out.println(fileName + ": " + " " + "File not found.");
+        }
     }
 
     public static void main(String[] args) {

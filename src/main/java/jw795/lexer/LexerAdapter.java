@@ -26,9 +26,9 @@ public class LexerAdapter {
      * @param filename filename to the source file
      * @param path path to put the diagnostice file in
      */
-    public LexerAdapter (Reader reader, String filename, String path) {
+    public LexerAdapter (Reader reader, String name , String path) {
         lexer = new Lexer(reader);
-        fileName = filename;
+        fileName = name;
         lexedPath = path;
     }
 
