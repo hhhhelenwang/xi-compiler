@@ -263,7 +263,7 @@ procCall ::= ID:i LPAREN optArgLst:a RPAREN
 varDecl ::= ID:i COLON type:t
     {: RESULT = null;:};
 
-returnStmt ::= RETURN expr_list:l optSemi
+returnStmt ::= RETURN exprLst:l optSemi
     {: RESULT = new ReturnStmt(l); :}
     ;
 
