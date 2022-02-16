@@ -1,5 +1,4 @@
 import java_cup.runtime.*;
-
 //TODO: connect to lexer
 
 /* Terminals */
@@ -9,7 +8,7 @@ terminal    Symbol   USE, IF, WHILE, ELSE, RETURN, LENGTH, NOT, MULT, HIGHMULT, 
 
 terminal    Symbol   INT, BOOL, INTTYPE, BOOLTYPE, ID, CHARLIT, STRINGLIT;
 terminal    Symbol   PROGRAM_FILE, INTERFACE_FILE;
-terminal    Symbol   USUB;
+terminal    Symbol   UNARY;
 
 /* Non terminals */
 non terminal file;
@@ -25,15 +24,24 @@ non terminal ArrayList<Use> useLst;
 
 non terminal function;
 non terminal procedure;
+non terminal functionInterface;
+non terminal procedureInterface;
+
 non terminal ArrayList<FunProcArgs> optArgLst;
 non terminal ArrayList<FunProcArgs> argLst;
+non terminal ArrayList<Type> optTypeLst;
+non terminal ArrayList<Type> typeLst;
+non terminal Type type;
+
+non terminal BlockStmt blockStmt;
 non terminal BlockStmt retBlockStmt;
 non terminal BlockStmt noRetBlockStmt;
 non terminal ArrayList<Statement> optStmtLst;
 non terminal ArrayList<Statement> stmtLst;
 non terminal Statement stmt;
 non terminal ReturnStmt returnStmt;
-non terminal Type type;
+
+non terminal LValue lftValue;
 
 non terminal Expr expr;
 
@@ -47,7 +55,7 @@ precedence left EQ, NEQ;
 precedence left LT, LEQ, GEQ, GT;
 precedence left ADD, SUB;
 precedence left MULT, HIGHMULT, DIV, MOD;
-precedence right USUB;
+precedence right UNARY;
 
 /* The grammar rules */
 //This indicates which non-terminal is the start or goal non-terminal for parsing
@@ -59,8 +67,40 @@ file ::= INTERFACE_FILE interface:i
         {: RESULT = p; :}
         ;
 
-//An interface contains a nonempty set of procedure and function declaration
-//without implementation and may contain end-of-line comments
+//A program contains (use*) (function*)
+program ::= useLst:u funcDefLst:f
+    {: RESULT = new Program(u, f); :}
+    ;
+
+useLst ::= useLst:ul USE ID:interfaceName
+    {:
+        ul.add(new Use(interfaceName));
+        RESULT = ul;
+    :}
+    |
+    {: ArrayList<Use> useList = new ArrayList<Use>(); RESULT = useList; :}
+    ;
+
+funcDefLst ::= funcDef:f funcDefLst:dl
+    {: dl.add(f); RESULT = dl; :}
+    | funcDef:f
+    {: ArrayList<FunctionDefine> lst = new ArrayList<>(FunctionDefine); lst.add(f); RESULT = lst;:}
+    ;
+
+funcDef ::= function:f
+    {: RESULT = f; :}
+    | procedure:p
+    {: RESULT = p; :}
+    ;
+
+function ::= ID:i LPAREN optArgLst:a RPAREN COLON optTypeLst:t LBRACE retBlockStmt:b RBRACE
+    {: RESULT = new FunctionDefine(i.value, t, a, b); :}
+    ;
+
+procedure ::= ID LPAREN optArgLst:a RPAREN LBRACE noRetBlockStmt:b RBRACE
+    {: RESULT = new FunctionDefine(i.value, t, a, b); :}
+    ;
+//An interface contains a nonempty set of procedure and function declaration without implementation
 interface ::= funcDeclLst:f
     {:RESULT = new Interface(f); :}
     ;
@@ -70,34 +110,46 @@ funcDeclLst ::= funcDecl:f funcDeclLst:d
     | funcDecl:f
     {: ArrayList<FunctionDeclare> list = new ArrayList<FunctionDeclare>(); list.add(f); Result = list; :} ;
 
-funcDecl ::= function:f
+funcDecl ::= functionInterface:f
     {: RESULT = f; :}
-    | procedure:p
+    | procedureInterface:p
     {: RESULT = p; :}
     ;
 
-function ::= ID:i LPAREN optArgLst:a RPAREN COLON type:t LBRACE retBlockStmt:b RBRACE
-    {: RESULT = new FunctionDefine(i.value, t, a, b); :}
+functionInterface ::= ID:i LPAREN optArgLst:a RPAREN COLON optTypeLst:t LBRACE RBRACE
+    {: RESULT = new FunctionDeclare(i.value, a, t); :}
     ;
 
-procedure ::= ID LPAREN optArgLst:a RPAREN LBRACE noRetBlockStmt:b RBRACE
-    {: RESULT = new FunctionDefine(i.value, t, a, b); :}
+procedureInterface ::= ID LPAREN optArgLst:a RPAREN LBRACE RBRACE
+    {: RESULT = new FunctionDeclare(i.value, a, t); :}
     ;
 
 optArgLst ::= argLst:a
     {: RESULT = a; :}
     |
-    {: RESULT = new ArrayList<FunProcArgs>(); :}
+    {: RESULT = Optional.empty(); :}
     ;
 
 argLst ::= argument:a COMMA argLst:l
     {: RESULT = l.add(0, a); :}
     | argument:a
-    {: ArrayList<FunProcArgs> list = new ArrayList<FunProcArgs>(); list.add(a); RESULT = list; :}
+    {: ArrayList<FunProcArgs> list = new ArrayList<FunProcArgs>(); list.add(a); RESULT = Optional.of(list); :}
     ;
 
 argument ::= ID:i COLON type:t
     {: RESULT = new FunProcArgs (i.value, t); :}
+    ;
+
+optTypeLst ::= typeLst:t
+    {: RESULT = t; :}
+    |
+    {: RESULT = Optional.empty(); :}
+    ;
+
+typeLst ::= type:t COMMA typeLst:l
+    {: RESULT = l.add(0, t); :}
+    | type:t
+    {: ArrayList<Type> list = new ArrayList<Type>(); list.add(t); RESULT = Optional.of(list); :}
     ;
 
 type ::= INTTYPE
@@ -138,86 +190,81 @@ stmt ::= assign:s
     {: RESULT = s; :}
     | varDecl:s
     {: RESULT = s; :}
+    | blockStmt:s
+    {: RESULT = s;:}
     ;
 
 assign ::= lftValue:v ASSIGN expr:e
     {: RESULT = new AssignStmt(v, e); :}
     ;
 
-ifStmt ::= IF expre:e blockStmt:b
+lftValue ::= varDecl:v
+    {: RESULT = v; :}
+    | UNDERSCORE
     {: RESULT = null;:}
-    | IF expr:e blockStmt:b ELSE blockStmt:b
-    {: RESULT = null;:};
+    ;
+
+ifStmt ::= IF expre:e stmt:s
+    {: RESULT = new ifStmt(e, s);:}
+    | IF expr:e stmt:s1 ELSE stmt:s2
+    {: RESULT = new ifStmt(e, s1, s2);:}
+    ; /// ifStmt constructer
 
 //OR if and while statements
-whileStmt ::= WHILE:w expr:e blockStmt:b
-    {: RESULT = null;:};
+whileStmt ::= WHILE expr:e stmt:s
+    {: RESULT = new WhileStmt(e, s);:}
+    ;
 
-procCall ::=
+procCall ::= ID:i LPAREN optArgLst:a RPAREN
+    {: RESULT = new ProcCallStmt(i, a); :}
+    ;
 
-//variable declaration
+//variable declaration TODO: multiple declaraton
 varDecl::= ID:i COLON type:t
     {: RESULT = null;:};
 
-//A program contains use* followed by function*
-program ::= useLst:u funcDefLst:f
-    {: RESULT = new Program(u, f); :}
+/* block ::= (statement*) */
+blockStmt ::= retBlockStmt:r
+    {: RESULT = r; :}
+    |noRetBlockStmt:n
+    {: RESULT = n; :}
     ;
 
-// ------------use------------
-// multiple use declaractions must precede all procedure and function definitions
-// use statements are optionally terminated by semicolon
-useLst ::= useLst:ul USE ID:interfaceName
-    {:
-        ul.add(new Use(interfaceName));
-        RESULT = ul;
-    :}
-    |
-    {: ArrayList<Use> useList = new ArrayList<Use>(); RESULT = useList; :}
-    ;
 
-// ------------function------------
-//A function definition starts with the name of the function, followed by its argument(s), its return type(s),
-  //and the definition of its code.
-
-funcDefLst ::= funcDefLst:fl ID
-    {:
-//        fl.add(new funcDef);
-    :};
 // ------------expressions------------
 expr ::=
     |NOT expre:e
-    {: RESULT = null;:}
+    {: RESULT = new Not(e);:} %prec UNARY
     | expre:e1 MULT expre:e2
-    {: RESULT = null;:}
+    {: RESULT = new Mult(e1, e2);:}
     |expre:e1 HIGHMULT expre:e2
-    {: RESULT = null;:}
+    {: RESULT = new HighMult(e1, e2);:}
     | expre:e1 DIV expre:e2
-    {: RESULT = null;:}
+    {: RESULT = new Div(e1, e2);:}
     |expre:e1 MOD expre:e2
-    {: RESULT = null;:}
+    {: RESULT = new Mod(e1, e2);:}
     |expre:e1 ADD expre:e2
-    {: RESULT = null;:}
+    {: RESULT = new Add(e1, e2);:}
     | expre:e1 SUB expre:e2
-    {: RESULT = null;:}
+    {: RESULT = new Sub(e1, e2);:}
     | sub expre:e
-    {: RESULT = null;:} %prec USUB
+    {: RESULT = new IntNeg(e);:} %prec UNARY
     |expre:e1 LT expre:e2
-    {: RESULT = null;:}
+    {: RESULT = new LessThan(e1, e2);:}
     | expre:e1 LEQ expre:e2
-    {: RESULT = null;:}
+    {: RESULT = new LessEq(e1, e2);:}
     |expre:e1 GEQ expre:e2
-    {: RESULT = null;:}
+    {: RESULT = new GreaterEq(e1, e2);:}
     | expre:e1 GT expre:e2
-    {: RESULT = null;:}
+    {: RESULT = new GreaterThan(e1, e2);:}
     | expre:e1 EQ expre:e2
-    {: RESULT = null;:}
+    {: RESULT = new Equal(e1, e2);:}
     |expre:e1 NEQ expre:e2
-    {: RESULT = null;:}
+    {: RESULT = new NotEqual(e1, e2);:}
     | expre:e1 AND expre:e2
-    {: RESULT = null;:}
+    {: RESULT = new And(e1, e2);:}
     | expre:e1 OR expre:e2
-    {: RESULT = null;:};
+    {: RESULT = new Or(e1, e2);:};
 
 
 // ------------statements------------
@@ -232,8 +279,6 @@ expr ::=
 
 //OR A block may be empty or may contain a sequence of statements.
 
-use_statuement ::= USE:u ID:i
-    {: RESULT = null; :};
 
 
 
