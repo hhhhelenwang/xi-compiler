@@ -43,11 +43,13 @@ non terminal BlockStmt blockStmt;
 non terminal ArrayList<Statement> optStmtLst;
 non terminal ArrayList<Statement> stmtLst;
 non terminal Statement stmt;
+non terminal AssignStmt assign;
 non terminal ReturnStmt returnStmt;
 
 non terminal LValue lftValue;
 
 non terminal Expr expr;
+non terminal ASTNode indexable;
 
 non terminal optSemi;
 
@@ -283,4 +285,12 @@ expr ::=
     | expre:e1 AND expre:e2
     {: RESULT = new And(e1, e2);:}
     | expre:e1 OR expre:e2
-    {: RESULT = new Or(e1, e2);:};
+    {: RESULT = new Or(e1, e2);:}
+    | indexable:i
+    {: RESULT = i; :}
+    ;
+
+//indexable ::= ID:i
+//    {: RESULT =  :}
+//    |
+//    ;
