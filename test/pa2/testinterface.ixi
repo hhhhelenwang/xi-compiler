@@ -1,0 +1,8 @@
+//as a i/0
+
+print(str: int[])
+println(str: int[])
+readln() :int[]
+getchar() : int
+
+eof() : bool
