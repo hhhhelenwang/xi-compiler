@@ -56,7 +56,7 @@ non terminal FunCallExpr funCall;
 
 non terminal Expr expr;
 non terminal ArrayList<Expr> exprLst;
-non terminal ASTNode indexable;
+//non terminal ASTNode indexable;
 
 non terminal optSemi;
 
@@ -87,7 +87,8 @@ file ::= INTERFACE_FILE interface:i
         {: RESULT = p; :}
         ;
 
-//A program contains (use*) (function*)
+//A program contains (use*) (global variable) (function*)
+// int and bool can be declared and initialized + arr cannot be initialized but can be declared
 program ::= useLst:u funcDefLst:f
     {: RESULT = new Program(u, f); :}
     ;
@@ -259,7 +260,7 @@ procCall ::= ID:i LPAREN optArgLst:a RPAREN
     {: RESULT = new ProcCallStmt(i, a); :}
     ;
 
-//variable declaration TODO: multiple declaraton
+//variable declaration
 varDeclLst ::= varDecl:v COMMA varDeclLst:l
     {: l.add(0, v); :}
     | varDecl:v
@@ -312,14 +313,4 @@ expr ::=
     {: RESULT = new And(e1, e2);:}
     | expr:e1 OR expr:e2
     {: RESULT = new Or(e1, e2);:}
-    | indexable:i
-    {: RESULT = i; :}
-    ;
-
-indexable ::= ID:i
-    {: RESULT = new VarExpr(i.value); :}
-    | STRINGLIT:s
-    {: ArrayList<String> lst = new ArrayList<>(); lst.add(s.value); RESULT = new ArrayExpr(lst, s.left, s.right); :}
-    | funCall:f
-    {: RESULT = null; :}
     ;
