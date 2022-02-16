@@ -1,0 +1,17 @@
+(()
+ ((rightfunction ((a (int))(b (bool)))(int)
+   ((return a)
+   )
+  )
+
+  (noReturnType ((a (int)))()
+   ((return a)
+   )
+  )
+
+  (proc ((a (int)))()
+   ((print "hello")
+   )
+  )
+ )
+)
