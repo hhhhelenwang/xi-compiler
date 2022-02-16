@@ -7,7 +7,7 @@ import java.util.Optional;
  */
 public class ArrayType extends Type {
     Type elemType;
-    Optional<Integer> length;
+    Optional<Expr> length;
 
     ArrayType(Type type, int line, int col) {
         super(line, col);
@@ -15,7 +15,7 @@ public class ArrayType extends Type {
         length = Optional.empty();
     }
 
-    ArrayType(Type type, int len, int line, int col) {
+    ArrayType(Type type, Expr len, int line, int col) {
         super(line, col);
         elemType = type;
         length = Optional.of(len);
