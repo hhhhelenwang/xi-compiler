@@ -5,11 +5,12 @@ import java.util.List;
 /**
  * Representation of function calls in AST.
  */
-public class FunCallExpr implements Expr{
+public class FunCallExpr extends Expr{
     String name;
     List<Expr> arguments;
 
-    FunCallExpr(String n, List<Expr> args) {
+    FunCallExpr(String n, List<Expr> args, int line, int col) {
+        super(line, col);
         name = n;
         arguments = args;
     }

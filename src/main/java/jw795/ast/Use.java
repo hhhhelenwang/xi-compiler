@@ -3,12 +3,11 @@ package jw795.ast;
 /**
  * Representation of a use command.
  */
-public class Use implements ASTNode{
+public class Use extends ASTNode {
     String interfaceName;
 
-    Use() { }
-
-    Use(String name) {
+    Use(String name, int line, int col) {
+        super(line, col);
         interfaceName = name;
     }
 }
