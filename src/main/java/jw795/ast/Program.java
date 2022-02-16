@@ -9,10 +9,16 @@ import java.util.List;
 public class Program extends ASTNode {
     List<Use> uses;
     List<FunctionDefine> functions;
+    List<VarDeclareStmt> globals;
 
-    Program(List<Use> us, List<FunctionDefine> fs, int line, int col) {
+    Program(List<Use> us,
+            List<FunctionDefine> fs,
+            List<VarDeclareStmt> gvs,
+            int line,
+            int col) {
         super(line, col);
         uses = us;
         functions = fs;
+        globals = gvs;
     }
 }
