@@ -3,10 +3,11 @@ package jw795.ast;
 /**
  * Representation of character literal in AST.
  */
-public class CharLiteral implements Expr{
+public class CharLiteral extends Expr{
     char value;
 
-    CharLiteral(char val) {
+    CharLiteral(char val, int line, int col) {
+        super(line, col);
         value = val;
     }
 }
