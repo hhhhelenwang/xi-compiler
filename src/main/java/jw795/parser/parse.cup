@@ -1,4 +1,9 @@
 import java_cup.runtime.*;
+import jw795.ast.*;
+import jw795.util.ArrayList;
+import jw795.util.Optional;
+import jw795.lexer.lexer;
+
 //TODO: connect to lexer
 
 /* Terminals */
@@ -29,6 +34,7 @@ non terminal procedureInterface;
 
 non terminal ArrayList<FunProcArgs> optArgLst;
 non terminal ArrayList<FunProcArgs> argLst;
+non terminal funProcArgs argument;
 non terminal ArrayList<Type> optTypeLst;
 non terminal ArrayList<Type> typeLst;
 non terminal Type type;
@@ -56,6 +62,7 @@ precedence left LT, LEQ, GEQ, GT;
 precedence left ADD, SUB;
 precedence left MULT, HIGHMULT, DIV, MOD;
 precedence right UNARY;
+//precedence left LBRACK;
 
 /* The grammar rules */
 //This indicates which non-terminal is the start or goal non-terminal for parsing
@@ -102,7 +109,7 @@ function ::= ID:i LPAREN optArgLst:a RPAREN COLON optTypeLst:t blockStmt:b
     ;
 
 procedure ::= ID LPAREN optArgLst:a RPAREN blockStmt:b
-    {: RESULT = new FunctionDefine(i.value, t, a, b); :}
+    {: RESULT = new FunctionDefine(i.value, Optional.empty(), a, b); :}
     ;
 
 //An interface contains a nonempty set of procedure and function declaration without implementation
@@ -217,12 +224,18 @@ funCall ::= ID:i LPAREN exprLst:e RPAREN
 
 ifStmt ::= IF expr:e stmt:s
     {: RESULT = new ifStmt(e, s);:}
+    | IF LPAREN expr:e RPAREN stmt:s
+    {: RESULT = new ifStmt(e, s);:}
     | IF expr:e stmt:s1 ELSE stmt:s2
+    {: RESULT = new ifStmt(e, s1, s2);:}
+    | IF LPAREN expr:e RPAREN stmt:s1 ELSE stmt:s2
     {: RESULT = new ifStmt(e, s1, s2);:}
     ; /// ifStmt constructer
 
 //OR if and while statements
 whileStmt ::= WHILE expr:e stmt:s
+    {: RESULT = new WhileStmt(e, s);:}
+    |WHILE LPAREN expr:e RPAREN stmt:s
     {: RESULT = new WhileStmt(e, s);:}
     ;
 
@@ -238,7 +251,6 @@ returnStmt ::= RETURN expr_list:l optSemi
     {: RESULT = new ReturnStmt(l); :}
     ;
 
-// ------------expressions------------
 expr ::=
     |NOT expre:e
     {: RESULT = new Not(e);:} %prec UNARY
@@ -272,24 +284,3 @@ expr ::=
     {: RESULT = new And(e1, e2);:}
     | expre:e1 OR expre:e2
     {: RESULT = new Or(e1, e2);:};
-
-
-// ------------statements------------
-//A variable declaration
-
-//OR An assignment to a variable or to an array element
-
-
-//OR A return statment
-
-//OR A call to procedure
-
-//OR A block may be empty or may contain a sequence of statements.
-
-
-
-
-
-
-
-
