@@ -158,8 +158,16 @@ argLst ::= argument:a COMMA argLst:l
     {: ArrayList<FunProcArgs> lst = new ArrayList<FunProcArgs>(); lst.add(a); RESULT = Optional.of(lst); :}
     ;
 
-argument ::= ID:i COLON type:t
+argument ::= ID:i COLON argType:t
     {: RESULT = new FunProcArgs (i.value, t); :}
+    ;
+
+argType ::= INTTYPE
+    {: RESULT = new IntType(); :}
+    | BOOLTYPE
+    {: RESULT = new BoolType(); :}
+    | type:t LBRACK RBRACK
+    {: RESULT = new ArrayType(t); :}
     ;
 
 typeLst ::= type:t COMMA typeLst:l
@@ -168,14 +176,38 @@ typeLst ::= type:t COMMA typeLst:l
     {: ArrayList<Type> lst = new ArrayList<Type>(); lst.add(t); RESULT = Optional.of(lst); :}
     ;
 
-type ::= INTTYPE
+primitiveType ::= INT:i
     {: RESULT = new IntType(); :}
-    | BOOLTYPE
+    | BOOL:b
     {: RESULT = new BoolType(); :}
-    | type:t LBRACK RBRACK
-    {: RESULT = new ArrayType(t); :}
-    | type:t LBRACK INT:i RBRACK
-    {: RESULT = new ArrayType(t, i); :}
+    ;
+
+type ::= primitiveType:p
+    {: RESULT = p; :}
+    | arr_none:a LBRACK RBRACK
+    {: RESULT = new ArrayType(a, Optional.empty()); :}
+    | arr_some:a LBRACK RBRACK
+    {: RESULT = new ArrayType(a, Optional.empty()); :}
+    | arr_all:a
+    {: RESULT = a; :}
+    ;
+
+arr_none ::= arr_none:a LBRACK RBRACK
+    {: RESULT = new ArrayType(a, Optional.empty()); :}
+    | primitiveType:p
+    {: RESULT = p; :}
+    ;
+
+arr_some ::= arr_some:a LBRACK RBRACK
+    {: RESULT = new ArrayType(a, Optional.empty()); :}
+    | arr_all:a
+    {: RESULT = a; :}
+    ;
+
+arr_all ::= arr_all:a LBRACK expr:e RBRACK
+    {: RESULT = new ArrayType(a, Optional.of(e)); :}
+    | primitiveType:p
+    {: RESULT = p; :}
     ;
 
 blockStmt ::= LBRACE stmtLst:s RBRACE
