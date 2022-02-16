@@ -77,7 +77,11 @@ import java_cup.runtime.*;
         UNDERSCORE,
 
         //error
-        ERROR
+        ERROR,
+
+        //filetype
+        PROGRAM_FILE,
+        INTERFACE_FILE
     }
 
 
