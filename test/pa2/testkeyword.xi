@@ -17,5 +17,10 @@ foo(){
     ab:int, _ = foo2()
     foo3()
 }
-foo():{
+foo1():int{
+}
+foo2():int int int int int{
+    //valid function
+
+    return 3,5,7,9,10
 }
