@@ -29,8 +29,6 @@ non terminal ArrayList<Use> useLst;
 
 non terminal function;
 non terminal procedure;
-non terminal functionInterface;
-non terminal procedureInterface;
 
 non terminal ArrayList<FunProcArgs> optArgLst;
 non terminal ArrayList<FunProcArgs> argLst;
@@ -132,17 +130,9 @@ funcDeclLst ::= funcDecl:f funcDeclLst:d
     | funcDecl:f
     {: ArrayList<FunctionDeclare> lst = new ArrayList<FunctionDeclare>(); lst.add(f); Result = lst; :} ;
 
-funcDecl ::= functionInterface:f
-    {: RESULT = f; :}
-    | procedureInterface:p
-    {: RESULT = p; :}
-    ;
-
-functionInterface ::= ID:i LPAREN optArgLst:a RPAREN COLON typeLst:t LBRACE RBRACE
+funcDecl ::= ID:i LPAREN optArgLst:a RPAREN COLON typeLst:t
     {: RESULT = new FunctionDeclare(i.value, a, t); :}
-    ;
-
-procedureInterface ::= ID:i LPAREN optArgLst:a RPAREN
+    | ID:i LPAREN optArgLst:a RPAREN
     {: RESULT = new FunctionDeclare(i.value, a, Optional.empty()); :}
     ;
 
@@ -182,9 +172,7 @@ primitiveType ::= INT:i
     {: RESULT = new BoolType(); :}
     ;
 
-type ::= primitiveType:p
-    {: RESULT = p; :}
-    | arr_none:a LBRACK RBRACK
+type ::= arr_none:a LBRACK RBRACK
     {: RESULT = new ArrayType(a, Optional.empty()); :}
     | arr_some:a LBRACK RBRACK
     {: RESULT = new ArrayType(a, Optional.empty()); :}
@@ -212,11 +200,12 @@ arr_all ::= arr_all:a LBRACK expr:e RBRACK
 
 blockStmt ::= LBRACE stmtLst:s RBRACE
     {: RESULT = new BlockStmt(s); :}
+    | LBRACE stmtLst:s
     | // empty block
     {: ArrayList<Statement> lst = new ArrayList<Statement>(); Result = new BlockStmt(lst); :}
     ;
 
-stmtLst ::= stmt:s stmtLst:l
+stmtLst ::= stmt:s optSemi stmtLst:l
     {: l.add(0, s); :}
     | stmt:s optSemi
     {: ArrayList<Statement> lst = new ArrayList<Statement>(); lst.add(s); RESULT = lst; :}
@@ -230,7 +219,7 @@ stmt ::= assign:s
     {: RESULT = s; :}
     | procCall:s
     {: RESULT = s; :}
-    | LBRACE blockStmt:s RBRACE
+    | blockStmt:s
     {: RESULT = s;:}
     | varDecl:s
     {: RESULT = s; :}
