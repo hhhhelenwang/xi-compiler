@@ -184,9 +184,9 @@ blockStmt ::= LBRACE stmtLst:s RBRACE
     {: ArrayList<Statement> lst = new ArrayList<Statement>(); Result = new BlockStmt(lst); :}
     ;
 
-stmtLst ::= stmt:s stmtLst:l optSemi
+stmtLst ::= stmt:s stmtLst:l
     {: l.add(0, s); :}
-    | stmt:s
+    | stmt:s optSemi
     {: ArrayList<Statement> lst = new ArrayList<Statement>(); lst.add(s); RESULT = lst; :}
     ;
 
@@ -256,7 +256,7 @@ whileStmt ::= WHILE expr:e stmt:s
     {: RESULT = new WhileStmt(e, s);:}
     ;
 
-procCall ::= ID:i LPAREN optArgLst:a RPAREN
+procCall ::= ID:i LPAREN exprLst:a RPAREN
     {: RESULT = new ProcCallStmt(i, a); :}
     ;
 
@@ -281,6 +281,8 @@ expr ::=
     {: RESULT = new BoolLiteral(b); :}
     | CHARLIT: c
     {: RESULT = new CharLiteral(c); :}
+    | STRINGLIT: s
+    {: ArrayList<String> lst = new ArrayList<>(); lst.add(s.value); RESULT = new ArrayExpr(lst, s.left, s.right); :}
     | NOT expr:e
     {: RESULT = new Not(e);:} %prec UNARY
     | expr:e1 MULT expr:e2
