@@ -4,9 +4,16 @@ import java_cup.runtime.*;
 import jw795.ast.*;
 import java.util.ArrayList;
 import java.util.Optional;
-import jw795.lexer.lexer;
+import jw795.lexer.Lexer;
+import jw795.lexer.LexerAdapter;
 
-//TODO: connect to lexer
+parser code
+    {: public void syntax_error(java_cup.runtime.Symbol cur) {
+        throw new RuntimeException(String.format( "%d:%d error: unexpected `%s`", cur.left, cur.right,
+              lexer.LexerAdapter.tokenTypeToString(Lexer.TokenType.values()[cur.sym])));
+        }
+    :}
+    ;
 
 /* Terminals */
 terminal    Symbol   USE, IF, WHILE, ELSE, RETURN, LENGTH, NOT, MULT, HIGHMULT, DIV, MOD, ADD, SUB, LT, LEQ, GEQ, GT,
@@ -28,6 +35,7 @@ non terminal Program program;
 //non terminal ArrayList<FunctionDefine> funcDefLst;
 non terminal ArrayList<Definition> definitionLst;
 non terminal ArrayList<Definition> optGlobalLst;
+non terminal ArrayList<Definition> globalLst;
 non terminal ArrayList<Definition> optDefinitionLst;
 non terminal Definition global;
 non terminal FunctionDefine funcDef;
@@ -109,15 +117,17 @@ program ::= useLst:u definitionLst:d
 
 
 //definition ::= method | globdecl
-definitionLst ::= optGlobalLst:gl funcDef:f optDefinitionLst:dl
-    {: gl.add(f); gl.addAll(dl); RESULT = gl; :}
+definitionLst ::= optGlobalLst:gl optDefinitionLst:dl
+    {: gl.addAll(dl); RESULT = gl; :}
     ;
 
-optGlobalLst ::= global:g optGlobalLst:lst
-    {: lst.add(0, g); RESULT = lst; :}
-    | // no more global variables before the first function definition in the program
-    {: RESULT = new ArrayList<Definition>(); :}
+
+optGlobalLst ::= global:g optGlobalLst:l
+    {: l.add(0, g); RESULT = l; :}
+    | funcDef:f
+    {: ArrayList<Definition> lst = new ArrayList<Definition>(); lst.add(f); RESULT = lst; :}
     ;
+
 
 optDefinitionLst ::= global:g optDefinitionLst:lst
     {: lst.add(0, g); RESULT = lst; :}
@@ -129,7 +139,7 @@ optDefinitionLst ::= global:g optDefinitionLst:lst
 
 
 global ::= ID:i COLON primitiveType:t optSemi
-    {: RESULT = new GlobaDeclare(i.value, t) :}
+    {: RESULT = new GlobaDeclare(i.value, t); :}
     | ID:i COLON INTTYPE ASSIGN INT:n optSemi
     {: RESULT = new AssignStmt (new GlobaDeclare(i.value, new IntType()), new IntLiteral(n.value)); :}
     | ID:i COLON BOOLTYPE ASSIGN BOOL:b optSemi
@@ -323,18 +333,12 @@ exprLst ::= expr:e COMMA exprLst:l
 
 ifStmt ::= IF expr:e stmt:s
     {: RESULT = new ifStmt(e, s);:}
-    | IF LPAREN expr:e RPAREN stmt:s
-    {: RESULT = new ifStmt(e, s);:}
     | IF expr:e stmt:s1 ELSE stmt:s2
-    {: RESULT = new ifStmt(e, s1, s2); :}
-    | IF LPAREN expr:e RPAREN stmt:s1 ELSE stmt:s2
     {: RESULT = new ifStmt(e, s1, s2); :}
     ; /// ifStmt constructer
 
 //OR if and while statements
 whileStmt ::= WHILE expr:e stmt:s
-    {: RESULT = new WhileStmt(e, s); :}
-    |WHILE LPAREN expr:e RPAREN stmt:s
     {: RESULT = new WhileStmt(e, s); :}
     ;
 
@@ -390,6 +394,6 @@ expr ::= INT: i
     {: RESULT = new NotEqual(e1, e2);:}
     | expr:e1 AND expr:e2
     {: RESULT = new And(e1, e2);:}
-    | expr:e1 OR expr:e2
-    {: RESULT = new Or(e1, e2);:}
+    | expr:e1 OR:o expr:e2
+    {: RESULT = new Or(e1, e2, o.line);:}
     ;

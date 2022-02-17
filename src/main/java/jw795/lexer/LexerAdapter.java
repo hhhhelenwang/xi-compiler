@@ -36,7 +36,7 @@ public class LexerAdapter {
      * Calls next_token() method in Lexer.class to generate a list of tokens, and output a diagnostic file.
      */
     public void generateTokens () {
-        List<Symbol> tokens = new ArrayList();
+        List<Symbol> tokens = new ArrayList<>();
         boolean isEndofTokens = false;
 
         while (!isEndofTokens) {
@@ -65,7 +65,7 @@ public class LexerAdapter {
         // build the name of the lexed file
         String file = dirs[dirs.length - 1];
         String lexedFile;
-        String end = file.substring(file.length()-3,file.length());
+        String end = file.substring(file.length()-3);
         if(end.equals(".xi")) {
             lexedFile =file.substring(0,file.length()-3)  + ".lexed";
         }else{
@@ -113,7 +113,7 @@ public class LexerAdapter {
      * @param tokenType the type of token as defined in Lexer.class
      * @return the appropriate string representation for a tokenType
      */
-    private String tokenTypeToString(TokenType tokenType){
+    public static String tokenTypeToString(TokenType tokenType){
         String res;
         switch(tokenType) {
             case USE:
