@@ -1,3 +1,5 @@
+package jw795.parser;
+
 import java_cup.runtime.*;
 import jw795.ast.*;
 import java.util.ArrayList;
@@ -95,15 +97,44 @@ file ::= INTERFACE_FILE interface:i
 
 //A program contains (use*) (global variable) (function*)
 // int and bool can be declared and initialized + arr cannot be initialized but can be declared
-program ::= useLst:u funcDefLst:f
-    {: RESULT = new Program(u, f); :}
+
+//program ::= ((use∗) (definition∗))
+program ::= useLst:u definitionLst:d
+    {: RESULT = new Program(u, d); :}
     ;
 
+
+//definition ::= method | globdecl
+definitionLst ::= optGlobalLst:gl funcDef:f optDefinitionLst:dl
+    {: :}
+    ;
+
+optGlobalLst ::= globalDef:g optGlobalLst:lst
+    {:  :}
+    |
+    {::}
+    ;
+
+optDefinitionLst ::= globalDef:g optDefinitionLst:lst
+    {:  :}
+    | funcDef:f optDefinitionLst:lst
+    {:  :}
+    |
+    {::}
+;
+
+
+globDeclLst ::= globDeclLst:lst  globDecl:g
+    {: lst.add(g); RESULT = lst; :}
+    | globDecl:g
+    {: ArrayLst<GlobDeclare> lst = new ArrayList<GlobDeclare>(); lst.add(g); RESULT = g; :}
+    ;
+
+//globdecl ::= (:global hidi type) | (:global hidi type hvaluei)
+//globDecl ::=
+
 useLst ::= useLst:ul USE ID:i optSemi
-    {:
-        ul.add(new Use(i));
-        RESULT = ul;
-    :}
+    {: ul.add(new Use(i)); RESULT = ul; :}
     | // empty or end of useLst
     {: RESULT = new ArrayList<Use>(); :}
     ;
