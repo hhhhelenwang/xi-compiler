@@ -8,7 +8,7 @@ import java.util.Optional;
 /**
  * Representation of a function or procedure definition in AST.
  */
-public class FunctionDefine extends ASTNode {
+public class FunctionDefine extends ASTNode implements Definition{
     String name;
     Optional<List<Type>> returnTypes; // procedure does not have return values
     List<FunProcArgs> arguments;

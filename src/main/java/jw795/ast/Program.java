@@ -10,18 +10,15 @@ import java.util.List;
  */
 public class Program extends ASTNode {
     List<Use> uses;
-    List<FunctionDefine> functions;
-    List<VarDeclareStmt> globals;
+    List<Definition> definitions;
 
     public Program(List<Use> us,
-            List<FunctionDefine> fs,
-            List<VarDeclareStmt> gvs,
+            List<Definition> defs,
             int line,
             int col) {
         super(line, col);
         uses = us;
-        functions = fs;
-        globals = gvs;
+        definitions = defs;
     }
 
     @Override
@@ -32,11 +29,8 @@ public class Program extends ASTNode {
         }
         printer.endList();
         printer.startList();
-        for (VarDeclareStmt glob : globals) {
-            glob.prettyPrint(printer);
-        }
-        for (FunctionDefine fun : functions) {
-            fun.prettyPrint(printer);
+        for (Definition def : definitions) {
+            def.prettyPrint(printer);
         }
         printer.endList();
     }

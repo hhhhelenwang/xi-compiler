@@ -10,5 +10,5 @@ public interface Node {
     /**
      * Pretty Print method for node.
      */
-    public abstract void prettyPrint(CodeWriterSExpPrinter printer);
+    void prettyPrint(CodeWriterSExpPrinter printer);
 }
