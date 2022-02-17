@@ -251,10 +251,10 @@ typeLst ::= type:t COMMA typeLst:l
     {: ArrayList<Type> lst = new ArrayList<Type>(); lst.add(t); RESULT = Optional.of(lst); :}
     ;
 
-blockStmt ::= LBRACE stmtLst:s RBRACE
-    {: RESULT = new BlockStmt(s); :}
-    | LBRACE stmtLst:s returnStmt:r RBRACE
-    {: s.add(r); RESULT = new BlockStmt(s); :}
+blockStmt ::= LBRACE:l stmtLst:s RBRACE
+    {: RESULT = new BlockStmt(s, l.left, l.right); :}
+    | LBRACE:l stmtLst:s returnStmt:r RBRACE
+    {: s.add(r); RESULT = new BlockStmt(s, l.left, l.right); :}
     ;
 
 stmtLst ::= stmt:s optSemi stmtLst:l
@@ -280,11 +280,11 @@ stmt ::= assign:s
     ;
 
 assign ::= lftValue:v ASSIGN expr:e
-    {: RESULT = new AssignStmt(v, e); :}
+    {: RESULT = new AssignStmt(v, e, v.line, v.col); :}
     ;
 
 lftValue ::= ID:i
-    {: RESULT = new VarExpr(i.value); :}
+    {: RESULT = new VarExpr(i.value, i.left, i.right); :}
     | varDecl:v
     {: RESULT = v; :}
     | arrIndexExpr:a
@@ -292,36 +292,40 @@ lftValue ::= ID:i
     ;
 
 varDecl ::= ID:i COLON type:t
-    {: RESULT = new VarDeclareStmt(i, t);:}
-    | UNDERSCORE
-    {: RESULT = new WildCard(); :}
+    {: RESULT = new VarDeclareStmt(i, t, i.left, i.right);:}
+    | UNDERSCORE:u
+    {: RESULT = new WildCard(u.left, u.right); :}
     ;
 
 arrIndexExpr ::= ID:i LBRACK expr:e RBRACK
-    {: RESULT = new ArrIndexExpr(i.value, e); :}
+    {: RESULT = new ArrIndexExpr(i.value, e, i.left, i.right); :}
     | funCall:f LBRACK expr:e RBRACK
-    {: RESULT = new ArrIndexExpr(f, e); :}
+    {: RESULT = new ArrIndexExpr(f, e, f.left, f.right); :}
     | arrIndexExpr:a LBRACK expr:e RBRACK
-    {: RESULT = new ArrIndexExpr(a, e); :}
+    {: RESULT = new ArrIndexExpr(a, e, a.line, a.col); :}
     ;
 
 multAssign ::= varDeclLst:l ASSIGN funCall:f
-    {: RESULT = new AssignStmt(new LeftValueList(l), f); :}
+    {: int line = l.get(0).line;
+       int col = l.get(0).col;
+       RESULT = new AssignStmt(new LeftValueList(l, line, col), f, line, col); :}
     ;
 
 //variable declaration
 varDeclLst ::= varDecl:v COMMA varDeclLst:l
     {: l.add(0, v); RESULT = l; :}
     | varDecl:v1 COMMA varDecl:v2
-    {: ArrayList<LValue> lst = new ArrayList<LValue>(); lst.add(v1); lst.add(v2); RESULT = lst; :}
+    {: ArrayList<LValue> lst = new ArrayList<LValue>(); lst.addAll(v1); lst.addAll(v2); RESULT = lst; :}
     ;
 
 funCall ::= ID:i LPAREN exprLst:e RPAREN
-    {: RESULT = new FunCallExpr(i.value, e); :}
+    {: RESULT = new FunCallExpr(i.value, e, i.left, i.right); :}
     | ID:i LPAREN RPAREN
-    {: RESULT = new FunCallExpr(i.value, new ArrayList<Expr>()); :}
-    | LENGTH LPAREN expr:e RPAREN
-    {: ArrayList<Expr> lst = new ArrayList<Expr>(); lst.add(e); RESULT = new FunCallExpr("length", lst); :}
+    {: RESULT = new FunCallExpr(i.value, new ArrayList<Expr>(), i.left, i.right); :}
+    | LENGTH:len LPAREN expr:e RPAREN
+    {: ArrayList<Expr> lst = new ArrayList<Expr>();
+       lst.add(e);
+       RESULT = new FunCallExpr("length", lst, len.left, len.right); :}
     ;
 
 // function can take in 0 or more arguments (/expression)
@@ -331,25 +335,25 @@ exprLst ::= expr:e COMMA exprLst:l
     {: ArrayList<Type> lst = new ArrayList<Type>(); lst.add(e); RESULT = lst; :}
     ;
 
-ifStmt ::= IF expr:e stmt:s
-    {: RESULT = new ifStmt(e, s);:}
-    | IF expr:e stmt:s1 ELSE stmt:s2
-    {: RESULT = new ifStmt(e, s1, s2); :}
+ifStmt ::= IF:i expr:e stmt:s
+    {: RESULT = new ifStmt(e, s, i.left, i.right);:}
+    | IF:i expr:e stmt:s1 ELSE stmt:s2
+    {: RESULT = new ifStmt(e, s1, s2, i.left, i.right); :}
     ; /// ifStmt constructer
 
 //OR if and while statements
-whileStmt ::= WHILE expr:e stmt:s
-    {: RESULT = new WhileStmt(e, s); :}
+whileStmt ::= WHILE:w expr:e stmt:s
+    {: RESULT = new WhileStmt(e, s, w.left, w.right); :}
     ;
 
 procCall ::= ID:i LPAREN exprLst:a RPAREN
-    {: RESULT = new ProcCallStmt(i, a); :}
+    {: RESULT = new ProcCallStmt(i.value, a, i.left, i.right); :}
     | ID:i LPAREN RPAREN
-    {: RESULT = new ProcCallStmt(i, new ArrayList<Expr>()); :}
+    {: RESULT = new ProcCallStmt(i.value, new ArrayList<Expr>(), i.left, i.right); :}
     ;
 
-returnStmt ::= RETURN exprLst:l optSemi
-    {: RESULT = new ReturnStmt(l); :}
+returnStmt ::= RETURN:r exprLst:l optSemi
+    {: RESULT = new ReturnStmt(l, r.left, r.right); :}
     ;
 
 expr ::= INT: i
@@ -394,6 +398,6 @@ expr ::= INT: i
     {: RESULT = new NotEqual(e1, e2, e1.left, e1.right);:}
     | expr:e1 AND expr:e2
     {: RESULT = new And(e1, e2, e1.left, e1.right);:}
-    | expr:e1 OR:o expr:e2
+    | expr:e1 OR expr:e2
     {: RESULT = new Or(e1, e2, e1.left, e1.right);:}
     ;

@@ -3,21 +3,15 @@ package jw795.ast;
 import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 
 import java.util.List;
-import java.util.Optional;
 
-/**
- * Representation of a function/procedure declaration in an interface file.
- */
-public class FunctionDeclare extends ASTNode {
+public class ProcedureDeclare extends ASTNode {
     String name;
     List<FunProcArgs> arguments;
-    List<Type> returnTypes;
 
-    public FunctionDeclare(String n, List<FunProcArgs> args, List<Type> types, int line, int col) {
-        super(line, col);
+    public ProcedureDeclare(String n, List<FunProcArgs> args, int li, int co) {
+        super(li, co);
         name = n;
         arguments = args;
-        returnTypes = types;
     }
 
     @Override
@@ -28,12 +22,6 @@ public class FunctionDeclare extends ASTNode {
         for (FunProcArgs arg : arguments) {
             arg.prettyPrint(printer);
         }
-        printer.endList();
-        printer.startList();
-        for (Type returnType : returnTypes) {
-            returnType.prettyPrint(printer);
-        }
-
         printer.endList();
     }
 }

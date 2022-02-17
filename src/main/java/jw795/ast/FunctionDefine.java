@@ -10,11 +10,11 @@ import java.util.Optional;
  */
 public class FunctionDefine extends ASTNode implements Definition{
     String name;
-    Optional<List<Type>> returnTypes; // procedure does not have return values
+    List<Type> returnTypes; // procedure does not have return values
     List<FunProcArgs> arguments;
     BlockStmt functionBody;
 
-    public FunctionDefine(String n, Optional<List<Type>> types, List<FunProcArgs> args, BlockStmt body, int line, int col) {
+    public FunctionDefine(String n, List<Type> types, List<FunProcArgs> args, BlockStmt body, int line, int col) {
         super(line, col);
         name = n;
         returnTypes = types;
@@ -34,10 +34,8 @@ public class FunctionDefine extends ASTNode implements Definition{
         printer.endList();
 
         printer.startList();
-        if (returnTypes.isPresent()){
-            for (Type returnType : returnTypes.get()) {
-                returnType.prettyPrint(printer);
-            }
+        for (Type returnType : returnTypes) {
+            returnType.prettyPrint(printer);
         }
         printer.endList();
 
