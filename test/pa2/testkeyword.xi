@@ -15,6 +15,7 @@ foo(){
     while (a == b){}
     if a>b {} else b=true
     ab:int, _ = foo2()
+    _, _ = foo4()
     foo3()
 }
 foo1():int{
