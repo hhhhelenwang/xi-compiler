@@ -1,4 +1,4 @@
-//package jw795.parser;
+package jw795.parser;
 
 import java_cup.runtime.*;
 import java.util.ArrayList;
@@ -79,7 +79,7 @@ non terminal WildCard wildcard;
 //non terminal LValue varDecl;
 non terminal VarDeclareStmt varDecl;
 non terminal LValue lftValueMulti;
-non terminal ArrayList<LValue> lftValueMultiList;
+non terminal ArrayList<LValue> lftValueMultiLst;
 
 // expressions
 non terminal Expr expr;
@@ -462,7 +462,7 @@ multAssign ::= lftValueMultiLst:l ASSIGN funCall:f
     :}
     ;
 
-lftValueMultiLst ::= lftValueMulti:v COMMA lftValueMulti:lst
+lftValueMultiLst ::= lftValueMulti:v COMMA lftValueMultiLst:l
     {: l.add(0, v); RESULT = l; :}
     | lftValueMulti:v1 COMMA lftValueMulti:v2
     {: ArrayList<LValue> lst = new ArrayList<LValue>(); lst.add(v1); lst.add(v2); RESULT = lst; :}
