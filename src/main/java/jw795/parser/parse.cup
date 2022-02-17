@@ -7,6 +7,7 @@ import jw795.ast.*;
 import jw795.lexer.Lexer;
 import jw795.lexer.LexerAdapter;
 
+
 /**
  * syntax_error(java_cup.runtime.Symbol cur) overrides the default function in the generated parser class
  * to throw an RuntimeException with an error message reporting the Symbol location and type.

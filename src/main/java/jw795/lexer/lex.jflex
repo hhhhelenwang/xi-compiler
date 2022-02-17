@@ -1,6 +1,7 @@
 package jw795.lexer;
 
 import java_cup.runtime.*;
+import jw795.parser.sym;
 
 %%
 %public
@@ -14,9 +15,9 @@ import java_cup.runtime.*;
 
 %eofval{
     if(yystate() == CHARACTER){
-        return newsymbol(TokenType.ERROR, "Incomplete char", charstartcol);
+        return newsymbol(sym.error, "Incomplete char", charstartcol);
     } else if (yystate() == STRING){
-        return newsymbol(TokenType.ERROR, "Invalid String", stringstartcol);
+        return newsymbol(sym.error, "Invalid String", stringstartcol);
     } else {
         return null;
     }
@@ -85,14 +86,14 @@ import java_cup.runtime.*;
     }
 
 
-    private Symbol newsymbol(TokenType t){
-        return new Symbol(t.ordinal(), yyline, yycolumn);
+    private Symbol newsymbol(int t){
+        return new Symbol(t, yyline, yycolumn);
     }
-    private Symbol newsymbol(TokenType t, Object value){
-        return new Symbol(t.ordinal(), yyline, yycolumn, value);
+    private Symbol newsymbol(int t, Object value){
+        return new Symbol(t, yyline, yycolumn, value);
     }
-    private Symbol newsymbol(TokenType t, Object value, int col){
-        return new Symbol(t.ordinal(), yyline, col, value);
+    private Symbol newsymbol(int t, Object value, int col){
+        return new Symbol(t, yyline, col, value);
     }
 
 
@@ -145,16 +146,16 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
 
 <YYINITIAL> {
     /* keywords */
-    "use" {return newsymbol(TokenType.USE);}
-    "if" {return newsymbol(TokenType.IF);}
-    "while" {return newsymbol(TokenType.WHILE);}
-    "else" {return newsymbol(TokenType.ELSE);}
-    "return" {return newsymbol(TokenType.RETURN);}
-    "length" {return newsymbol(TokenType.LENGTH);}
+    "use" {return newsymbol(sym.USE);}
+    "if" {return newsymbol(sym.IF);}
+    "while" {return newsymbol(sym.WHILE);}
+    "else" {return newsymbol(sym.ELSE);}
+    "return" {return newsymbol(sym.RETURN);}
+    "length" {return newsymbol(sym.LENGTH);}
 
     /* type names */
-    "int" { return newsymbol(TokenType.INTTYPE);}
-    "bool" {return newsymbol(TokenType.BOOLTYPE);}
+    "int" { return newsymbol(sym.INTTYPE);}
+    "bool" {return newsymbol(sym.BOOLTYPE);}
 
     /* Data */
     {Integer} {
@@ -162,42 +163,42 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
         Long readint = Long.parseLong(yytext());
         long range = Integer.MAX_VALUE;
         range = range +1;
-        if(readint <= range){return newsymbol(TokenType.INT, readint);}
-        else{return newsymbol(TokenType.ERROR, "Int value out of range");}
+        if(readint <= range){return newsymbol(sym.INT, readint);}
+        else{return newsymbol(sym.error, "Int value out of range");}
     }
-    {Boolean} {return newsymbol(TokenType.BOOL, parseBool(yytext()));}
+    {Boolean} {return newsymbol(sym.BOOL, parseBool(yytext()));}
 
     /* Identifier */
-    {Identifier} {return newsymbol(TokenType.ID, yytext());}
+    {Identifier} {return newsymbol(sym.ID, yytext());}
 
     /* Operator */
-    "!" {return newsymbol(TokenType.NOT);}
-    "*" {return newsymbol(TokenType.MULT);}
-    "*>>" {return newsymbol(TokenType.HIGHMULT);}
-    "/" {return newsymbol(TokenType.DIV);}
-    "%" {return newsymbol(TokenType.MOD);}
-    "+" {return newsymbol(TokenType.ADD);}
-    "-" {return newsymbol(TokenType.SUB);}
-    "<" {return newsymbol(TokenType.LT);}
-    "<=" {return newsymbol(TokenType.LEQ);}
-    ">=" {return newsymbol(TokenType.GEQ);}
-    ">" {return newsymbol(TokenType.GT);}
-    "==" {return newsymbol(TokenType.EQ);}
-    "!=" {return newsymbol(TokenType.NEQ);}
-    "&" {return newsymbol(TokenType.AND);}
-    "|" {return newsymbol(TokenType.OR);}
+    "!" {return newsymbol(sym.NOT);}
+    "*" {return newsymbol(sym.MULT);}
+    "*>>" {return newsymbol(sym.HIGHMULT);}
+    "/" {return newsymbol(sym.DIV);}
+    "%" {return newsymbol(sym.MOD);}
+    "+" {return newsymbol(sym.ADD);}
+    "-" {return newsymbol(sym.SUB);}
+    "<" {return newsymbol(sym.LT);}
+    "<=" {return newsymbol(sym.LEQ);}
+    ">=" {return newsymbol(sym.GEQ);}
+    ">" {return newsymbol(sym.GT);}
+    "==" {return newsymbol(sym.EQ);}
+    "!=" {return newsymbol(sym.NEQ);}
+    "&" {return newsymbol(sym.AND);}
+    "|" {return newsymbol(sym.OR);}
 
-    ":" {return newsymbol(TokenType.COLON);}
-    "=" {return newsymbol(TokenType.ASSIGN);}
-    "(" {return newsymbol(TokenType.LPAREN);}
-    ")" {return newsymbol(TokenType.RPAREN);}
-    "[" {return newsymbol(TokenType.LBRACK);}
-    "]" {return newsymbol(TokenType.RBRACK);}
-    "{" {return newsymbol(TokenType.LBRACE);}
-    "}" {return newsymbol(TokenType.RBRACE);}
-    "," {return newsymbol(TokenType.COMMA);}
-    ";" {return newsymbol(TokenType.SEMICOLON);}
-    "_" {return newsymbol(TokenType.UNDERSCORE);}
+    ":" {return newsymbol(sym.COLON);}
+    "=" {return newsymbol(sym.ASSIGN);}
+    "(" {return newsymbol(sym.LPAREN);}
+    ")" {return newsymbol(sym.RPAREN);}
+    "[" {return newsymbol(sym.LBRACK);}
+    "]" {return newsymbol(sym.RBRACK);}
+    "{" {return newsymbol(sym.LBRACE);}
+    "}" {return newsymbol(sym.RBRACE);}
+    "," {return newsymbol(sym.COMMA);}
+    ";" {return newsymbol(sym.SEMICOLON);}
+    "_" {return newsymbol(sym.UNDERSCORE);}
 
     "/""/" { yybegin(COMMENT);}
     "'" {   yybegin(CHARACTER);
@@ -210,7 +211,7 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
 
     {WhiteSpace}|"\n" { /* ignore */}
 
-    [^]  { return newsymbol(TokenType.ERROR, "Invalid input");}
+    [^]  { return newsymbol(sym.error, "Invalid input");}
 }
 
 <COMMENT> {
@@ -234,13 +235,13 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
         if (charRead == 1) {
             charRead = 0;
             yybegin(YYINITIAL);
-            return newsymbol(TokenType.CHARLIT, sb.toString(), charstartcol);
+            return newsymbol(sym.CHARLIT, sb.toString(), charstartcol);
         } else {
-            return newsymbol(TokenType.ERROR, "Invalid character constant", charstartcol);
+            return newsymbol(sym.error, "Invalid character constant", charstartcol);
         }
     }
 
-    [^] {return newsymbol(TokenType.ERROR, "Invalid character constant", charstartcol);}
+    [^] {return newsymbol(sym.error, "Invalid character constant", charstartcol);}
 }
 
 <STRING> {
@@ -258,10 +259,10 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
         yybegin(YYINITIAL);
         String result = sb.toString();
         sb = new StringBuffer();
-        return newsymbol(TokenType.STRINGLIT, result, stringstartcol);
+        return newsymbol(sym.STRINGLIT, result, stringstartcol);
     }
 
-    [^]  {return newsymbol(TokenType.ERROR, "Invalid String", stringstartcol);}
+    [^]  {return newsymbol(sym.error, "Invalid String", stringstartcol);}
 }
 
 
