@@ -34,6 +34,7 @@ non terminal file;
 
 // interface
 non terminal Interface interface;
+// might need to change because procFuncDeclLst
 non terminal ArrayList<ProcFuncDecl> procFuncDeclLst;
 non terminal ProcFuncDecl procFuncDecl;
 
@@ -70,13 +71,16 @@ non terminal ReturnStmt returnStmt;
 non terminal Statement ifStmt;
 non terminal WhileStmt whileStmt;
 non terminal ProcCallStmt procCall;
-non terminal VarDeclareStmt varDecl;
-non terminal ArrayList<VarDeclareStmt> varDeclLst;
+//non terminal VarDeclareStmt varDecl;
+//non terminal ArrayList<VarDeclareStmt> varDeclLst;
+// because wildcard and VarDeclareStmt are different types
+non terminal LValue varDecl;
+non terminal ArrayList<LValue> varDeclLst;
 
 // expressions
 non terminal Expr expr;
 non terminal ArrayList<Expr> exprLst;
-non terminal LValue lftValue;
+non terminal lftValue;
 non terminal ArrIndexExpr arrIndexExpr;
 non terminal FunCallExpr funCall;
 
@@ -437,7 +441,7 @@ multAssign ::= varDeclLst:l ASSIGN funCall:f
 varDeclLst ::= varDecl:v COMMA varDeclLst:l
     {: l.add(0, v); RESULT = l; :}
     | varDecl:v1 COMMA varDecl:v2
-    {: ArrayList<VarDeclareStmt> lst = new ArrayList<VarDeclareStmt>(); lst.add(v1); lst.add(v2); RESULT = lst; :}
+    {: ArrayList<LValue> lst = new ArrayList<LValue>(); lst.add(v1); lst.add(v2); RESULT = lst; :}
     ;
 
 varDecl ::= ID:i COLON type:t
