@@ -1,4 +1,4 @@
-package jw795.parser;
+//package jw795.parser;
 
 import java_cup.runtime.*;
 import java.util.ArrayList;
@@ -74,8 +74,12 @@ non terminal ProcCallStmt procCall;
 //non terminal VarDeclareStmt varDecl;
 //non terminal ArrayList<VarDeclareStmt> varDeclLst;
 // because wildcard and VarDeclareStmt are different types
-non terminal LValue varDecl;
-non terminal ArrayList<LValue> varDeclLst;
+// TODO
+non terminal WildCard wildcard;
+//non terminal LValue varDecl;
+non terminal VarDeclareStmt varDecl;
+non terminal LValue lftValueMulti;
+non terminal ArrayList<LValue> lftValueMultiList;
 
 // expressions
 non terminal Expr expr;
@@ -430,7 +434,26 @@ exprLst ::= expr:e COMMA exprLst:l
 
 // multAssign ::= (varDecl*) ASSIGN funcCall
 // Note that only varDecl can be on the left of ASSIGN in multiple assignment.
-multAssign ::= varDeclLst:l ASSIGN funCall:f
+//multAssign ::= varDeclLst:l ASSIGN funCall:f
+//    {:
+//        int line = l.get(0).getLine();
+//        int col = l.get(0).getCol();
+//        LeftValueList lst = new LeftValueList(l, line, col);
+//        RESULT = new AssignStmt(lst, f, line, col);
+//    :}
+//    ;
+//varDeclLst ::= varDecl:v COMMA varDeclLst:l
+//    {: l.add(0, v); RESULT = l; :}
+//    | varDecl:v1 COMMA varDecl:v2
+//    {: ArrayList<LValue> lst = new ArrayList<LValue>(); lst.add(v1); lst.add(v2); RESULT = lst; :}
+//    ;
+//varDecl ::= ID:i COLON type:t
+//    {: RESULT = new VarDeclareStmt(String.valueOf(i.value), t, i.left, i.right);:}
+//    | UNDERSCORE:u
+//    {: RESULT = new WildCard(u.left, u.right); :}
+//    ;
+
+multAssign ::= lftValueMultiLst:l ASSIGN funCall:f
     {:
         int line = l.get(0).getLine();
         int col = l.get(0).getCol();
@@ -438,13 +461,19 @@ multAssign ::= varDeclLst:l ASSIGN funCall:f
         RESULT = new AssignStmt(lst, f, line, col);
     :}
     ;
-varDeclLst ::= varDecl:v COMMA varDeclLst:l
+
+lftValueMultiLst ::= lftValueMulti:v COMMA lftValueMulti:lst
     {: l.add(0, v); RESULT = l; :}
-    | varDecl:v1 COMMA varDecl:v2
+    | lftValueMulti:v1 COMMA lftValueMulti:v2
     {: ArrayList<LValue> lst = new ArrayList<LValue>(); lst.add(v1); lst.add(v2); RESULT = lst; :}
     ;
+
+lftValueMulti ::= varDecl | wildcard;
+
 varDecl ::= ID:i COLON type:t
     {: RESULT = new VarDeclareStmt(String.valueOf(i.value), t, i.left, i.right);:}
-    | UNDERSCORE:u
+    ;
+
+wildcard ::= UNDERSCORE:u
     {: RESULT = new WildCard(u.left, u.right); :}
     ;
