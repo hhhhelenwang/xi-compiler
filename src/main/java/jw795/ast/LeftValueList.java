@@ -1,5 +1,7 @@
 package jw795.ast;
 
+import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
+
 import java.util.List;
 
 /**
@@ -14,5 +16,14 @@ public class LeftValueList extends ASTNode{
     LeftValueList(List<LValue> variables, int line, int col) {
         super(line, col);
         declares = variables;
+    }
+
+    @Override
+    public void prettyPrint(CodeWriterSExpPrinter printer) {
+        printer.startList();
+        for (LValue lv: declares) {
+            lv.prettyPrint(printer);
+        }
+        printer.endList();
     }
 }

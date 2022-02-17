@@ -1,5 +1,7 @@
 package jw795.ast;
 
+import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
+
 import java.util.List;
 
 /**
@@ -8,8 +10,17 @@ import java.util.List;
 public class BlockStmt extends Statement {
     List<Statement> statements;
 
-    BlockStmt(List<Statement> stmts, int line, int col) {
+    public BlockStmt(List<Statement> stmts, int line, int col) {
         super(line, col);
         statements = stmts;
+    }
+
+    @Override
+    public void prettyPrint(CodeWriterSExpPrinter printer) {
+        printer.startList();
+        for (Statement statement : statements) {
+            statement.prettyPrint(printer);
+        }
+        printer.endList();
     }
 }

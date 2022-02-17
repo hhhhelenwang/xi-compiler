@@ -1,4 +1,4 @@
-package edu.cornell.cs.cs4120.util;
+package util.edu.cornell.cs.cs4120.util;
 
 /** A pretty-printer for S-expressions. */
 public interface SExpPrinter extends AutoCloseable {

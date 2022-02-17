@@ -4,10 +4,10 @@ package jw795.ast;
  * Representation of unary operations in AST.
  */
 public abstract class UnOpExpr extends Expr{
-    Expr value;
+    Expr expr;
 
-    UnOpExpr(Expr val, int line, int col) {
+    UnOpExpr(Expr e, int line, int col) {
         super(line, col);
-        value = val;
+        expr = e;
     }
 }

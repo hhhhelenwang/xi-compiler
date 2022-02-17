@@ -1,4 +1,6 @@
 package jw795.ast;
+import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
+
 import java.util.List;
 
 /**
@@ -9,10 +11,18 @@ import java.util.List;
 public class Interface extends ASTNode {
     List<FunctionDeclare> functions;
 
-    Interface(List<FunctionDeclare> fs, int line, int col) {
+    public Interface(List<FunctionDeclare> fs, int line, int col) {
         super(line, col);
         functions = fs;
     }
 
+    @Override
+    public void prettyPrint(CodeWriterSExpPrinter printer) {
+        printer.startList();
+        for (FunctionDeclare decl : functions) {
+            decl.prettyPrint(printer);
+        }
+         printer.endList();
+    }
 }
 

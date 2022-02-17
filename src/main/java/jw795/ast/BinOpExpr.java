@@ -3,7 +3,7 @@ package jw795.ast;
 /**
  * Representation of a binary operation in AST.
  */
-public class BinOpExpr extends Expr{
+public abstract class BinOpExpr extends Expr{
     Expr expr1;
     Expr expr2;
 

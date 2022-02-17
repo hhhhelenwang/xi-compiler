@@ -1,14 +1,18 @@
 package jw795.ast;
 
+import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
+
 /**
- * Interface definition for an AST node. All nodes extends this interface.
+ * Representation of an AST node. Stores node content.
  */
-public abstract class ASTNode {
+public abstract class ASTNode implements Node{
     int line;
     int column;
 
-    ASTNode (int li, int co) {
+    public ASTNode (int li, int co) {
         line = li;
         column = co;
     }
+
+
 }

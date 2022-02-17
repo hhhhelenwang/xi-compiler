@@ -1,5 +1,7 @@
 package jw795.ast;
 
+import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
+
 import java.util.List;
 
 /**
@@ -11,7 +13,7 @@ public class Program extends ASTNode {
     List<FunctionDefine> functions;
     List<VarDeclareStmt> globals;
 
-    Program(List<Use> us,
+    public Program(List<Use> us,
             List<FunctionDefine> fs,
             List<VarDeclareStmt> gvs,
             int line,
@@ -20,5 +22,22 @@ public class Program extends ASTNode {
         uses = us;
         functions = fs;
         globals = gvs;
+    }
+
+    @Override
+    public void prettyPrint(CodeWriterSExpPrinter printer) {
+        printer.startList();
+        for (Use use : uses) {
+            use.prettyPrint(printer);
+        }
+        printer.endList();
+        printer.startList();
+        for (VarDeclareStmt glob : globals) {
+            glob.prettyPrint(printer);
+        }
+        for (FunctionDefine fun : functions) {
+            fun.prettyPrint(printer);
+        }
+        printer.endList();
     }
 }

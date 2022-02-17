@@ -24,7 +24,7 @@
  * See README for contributors.
  ******************************************************************************/
 
-package polyglot.util;
+package util.polyglot.util;
 
 /** A two-element tuple. */
 public class Pair<T, U> {

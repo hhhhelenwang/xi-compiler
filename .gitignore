@@ -9,3 +9,6 @@ Lexer.java
 Lexer.java~
 xthScript.results
 *.lexed
+parser.java
+parser.java~
+sym.java

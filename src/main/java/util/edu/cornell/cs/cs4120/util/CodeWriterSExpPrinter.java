@@ -1,7 +1,7 @@
-package edu.cornell.cs.cs4120.util;
+package util.edu.cornell.cs.cs4120.util;
 
-import polyglot.util.CodeWriter;
-import polyglot.util.OptimalCodeWriter;
+import util.polyglot.util.CodeWriter;
+import util.polyglot.util.OptimalCodeWriter;
 
 import java.io.IOException;
 import java.io.OutputStream;

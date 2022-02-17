@@ -1,5 +1,7 @@
 package jw795.ast;
 
+import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
+
 import java.util.Optional;
 
 /**
@@ -15,5 +17,10 @@ public class VarDeclareStmt extends Statement implements LValue {
         identifier = id;
         type = t;
         value = val;
+    }
+
+    @Override
+    public void prettyPrint(CodeWriterSExpPrinter printer) {
+
     }
 }

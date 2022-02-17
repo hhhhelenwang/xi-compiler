@@ -1,4 +1,4 @@
-package polyglot.util;
+package util.polyglot.util;
 
 /** Exception thrown when the compiler is confused. */
 public class InternalCompilerError extends RuntimeException {
