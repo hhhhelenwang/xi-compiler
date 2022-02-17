@@ -5,7 +5,7 @@ import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 /**
  * Representation of an assignment statement.
  */
-public class AssignStmt extends Statement {
+public class AssignStmt extends Statement implements Definition {
     LValue leftVal;
     Expr expr;
 
