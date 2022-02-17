@@ -17,18 +17,16 @@ public class Lexwrapper implements java_cup.runtime.Scanner {
         started = false;
     }
 
-    public Symbol next_token()throws java.io.IOException {
-        if (started){
-            System.out.println("get to the third token");
+    public Symbol next_token() throws java.io.IOException {
+        if (started) {
             return thelexer.next_token();
-        }else{
-            System.out.println("get to the second token");
+        } else {
             started = true;
             String end = filename.substring(filename.length()-3, filename.length());
-            if (end.equals("ixi")){
-                return new Symbol(sym.INTERFACE_FILE,1,1);
-            }else{
-                return new Symbol(sym.PROGRAM_FILE,1,1);
+            if (end.equals("ixi")) {
+                return new Symbol(TokenType.INTERFACE_FILE.ordinal(),1,1);
+            } else {
+                return new Symbol(TokenType.PROGRAM_FILE.ordinal(),1,1);
             }
         }
     }
