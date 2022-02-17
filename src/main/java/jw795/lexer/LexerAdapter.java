@@ -49,7 +49,7 @@ public class LexerAdapter {
                 } else {
                     tokens.add(token);
                     //Exit reading tokens because an error occurred
-                    if (TokenType.values()[token.sym].toString().equals("ERROR")){
+                    if (tokenTypeToString(token.sym).equals("error")){
                         break;
                     }
                 }
