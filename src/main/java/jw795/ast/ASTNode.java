@@ -7,11 +7,11 @@ import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
  */
 public abstract class ASTNode implements Node{
     public int line;
-    public int column;
+    public int col;
 
     public ASTNode (int li, int co) {
         line = li;
-        column = co;
+        col = co;
     }
 
 

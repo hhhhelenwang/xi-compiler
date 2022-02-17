@@ -29,8 +29,10 @@ terminal    Symbol   UNARY;
 non terminal file;
 
 non terminal Interface interface;
-non terminal ArrayList<FunctionDeclare> funcDeclLst;
+non terminal ArrayList<ProcFuncDecl> procFuncDeclLst;
+non terminal ProcFuncDecl procFuncDecl;
 non terminal FunctionDecl funcDecl;
+non terminal ArrayList<Type> argRetTypeLst;
 
 non terminal Program program;
 //non terminal ArrayList<FunctionDefine> funcDefLst;
@@ -39,6 +41,8 @@ non terminal ArrayList<Definition> optGlobalLst;
 non terminal ArrayList<Definition> globalLst;
 non terminal ArrayList<Definition> optDefinitionLst;
 non terminal Definition global;
+non terminal Definition procFuncDef;
+non terminal ProcedureDefine procDef;
 non terminal FunctionDefine funcDef;
 non terminal ArrayList<Use> useLst;
 
@@ -48,11 +52,15 @@ non terminal procedure;
 non terminal ArrayList<FunProcArgs> optArgLst;
 non terminal ArrayList<FunProcArgs> argLst;
 non terminal funProcArgs argument;
-non terminal Type argType;
+non terminal Type argRetType;
+
+
+
+
+
 non terminal Type arrNone;
 non terminal Type arrSome;
 non terminal Type arrAll;
-non terminal ArrayList<Type> typeLst;
 non terminal Type primitiveType;
 non terminal Type type;
 
@@ -97,7 +105,6 @@ precedence left LBRACK;
 //This indicates which non-terminal is the start or goal non-terminal for parsing
 start with file;
 
-
 file ::= INTERFACE_FILE interface:i
         {: RESULT = i; :}
         | PROGRAM_FILE program:p
@@ -111,16 +118,16 @@ interface ::= procFuncDeclLst:f
        RESULT = new Interface(f, line, col); :}
     ;
 
-procFuncDeclLst ::= procFuncDecl:f procFuncDeclLst:d
+procFuncDeclLst ::= procFuncDecl:f optSemi procFuncDeclLst:d
     {: RESULT = d.add(0, f); :}
     | procFuncDecl:f
-    {: ArrayList<FunctionDeclare> lst = new ArrayList<FunctionDeclare>(); lst.add(f); Result = lst; :}
+    {: ArrayList<ProcFuncDecl> lst = new ArrayList<ProcFuncDecl>(); lst.add(f); Result = lst; :}
     ;
 
-procFuncDecl ::= ID:i LPAREN optArgLst:a RPAREN COLON funRetTypeLst:t
+procFuncDecl ::= ID:i LPAREN optArgLst:a RPAREN
+    {: RESULT = new ProcedureDeclare(i.value, a, i.left, i.right); :}
+    | ID:i LPAREN optArgLst:a RPAREN COLON argRetTypeLst:t
     {: RESULT = new FunctionDeclare(i.value, a, t, i.left, i.right); :}
-    | ID:i LPAREN optArgLst:a RPAREN
-    {: RESULT = new FunctionDeclare(i.value, a, i.left, i.right); :}
     ;
 
 optArgLst ::= argLst:a
@@ -135,16 +142,152 @@ argLst ::= argument:a COMMA argLst:l
     {: ArrayList<FunProcArgs> lst = new ArrayList<FunProcArgs>(); lst.add(a); RESULT = lst; :}
     ;
 
-argument ::= ID:i COLON argType:t
+argument ::= ID:i COLON argRetType:t
     {: RESULT = new FunProcArgs (i.value, t, i.left, i.right); :}
     ;
 
-argType ::= INTTYPE:t
+argRetType ::= INTTYPE:t
     {: RESULT = new IntType(t.left, t.right); :}
     | BOOLTYPE: t
     {: RESULT = new BoolType(t.left, t.right); :}
-    | type:t LBRACK RBRACK
+    | argRetType:t LBRACK RBRACK
     {: RESULT = new ArrayType(t, t.left, t.right); :}
+    ;
+
+argRetTypeLst ::= argRetType:a COMMA argRetTypeLst:l
+    {: l.add(0, a); RESULT = a; :}
+    | argRetType:a
+    {: ArrayList<Type> lst = new ArrayList<Type>(); lst.add(a); RESULT = lst; :}
+    ;
+
+optSemi ::= SEMICOLON
+    | // no semicolon
+    ;
+
+//A program contains (use*) (global variable) (function*)
+// int and bool can be declared and initialized + arr cannot be initialized but can be declared
+
+//program ::= ((use∗) (definition∗))
+program ::= useLst:u definitionLst:d
+    {:
+        int l;
+        int c;
+        if (u.isEmpty()) {
+            l = d.get(0).line;
+            c = d.get(0).column;
+        } else {
+            l = u.get(0).line;
+            c = u.get(0).column;
+        }
+        RESULT = new Program(u, d, l, c);
+    :}
+    ;
+
+useLst ::= useLst:ul USE:u ID:i optSemi
+    {: ul.add(new Use(i, u.left, u.right)); RESULT = ul; :}
+    | // empty or end of useLst
+    {: RESULT = new ArrayList<Use>(); :}
+    ;
+
+//definition ::= method | globdecl
+definitionLst ::= optGlobalLst:gl optDefinitionLst:dl
+    {: gl.addAll(dl); RESULT = gl; :}
+    ;
+
+optGlobalLst ::= global:g optGlobalLst:l
+    {: l.add(0, g); RESULT = l; :}
+    | procFuncDef:f
+    {: ArrayList<Definition> lst = new ArrayList<Definition>(); lst.add(f); RESULT = lst; :}
+    ;
+
+global ::= ID:i COLON argRetType:t optSemi
+    {: RESULT = new GlobaDeclare(i.value, t, i.left, i.right); :}
+    | ID:i COLON INTTYPE:t ASSIGN INT:n optSemi
+    {:
+        RESULT = new AssignStmt (
+            new GlobaDeclare(i.value, new IntType(t.left, t.right), i.left, i.right),
+            new IntLiteral(n.value, n.left, n.right),
+            i.left,
+            i.right
+        );
+    :}
+    | ID:i COLON BOOLTYPE:t ASSIGN BOOL:b optSemi
+    {:
+        RESULT = new AssignStmt (
+            new GlobaDeclare(i.value, new BoolType(t.left, t.right), i.left, i.right),
+            new BoolLiteral(b.value, b.left, b.right),
+            i.left,
+            i.right
+        );
+    :}
+    ;
+
+optDefinitionLst ::= global:g optDefinitionLst:lst
+    {: lst.add(0, g); RESULT = lst; :}
+    | procFuncDef:f optDefinitionLst:lst
+    {: lst.add(0, f); RESULT = lst; :}
+    | //no more definition in the program
+    {: RESULT = new ArrayList<Definition>(); :}
+    ;
+
+procFuncDef ::= procDef:d
+    {: RESULT = d; :}
+    | funcDef:d
+    {: RESULT = d; :}
+    ;
+
+procDef ::= ID:i LPAREN optArgLst:a RPAREN blockStmt:b
+    {: RESULT = new ProcedureDefine(i.value, a, b, i.left, i.right); :}
+    ;
+
+funcDef ::= ID:i LPAREN optArgLst:a RPAREN COLON argRetTypeLst:t blockStmt:b
+    {: RESULT = new FunctionDefine(i.value, t, a, b, i.left, i.right); :}
+    ;
+
+blockStmt ::= LBRACE:l stmtLst:s RBRACE
+    {: RESULT = new BlockStmt(s, l.left, l.right); :}
+    | LBRACE:l stmtLst:s returnStmt:r RBRACE
+    {: s.add(r); RESULT = new BlockStmt(s, l.left, l.right); :}
+    ;
+
+stmtLst ::= stmt:s optSemi stmtLst:l
+    {: l.add(0, s); :}
+    | // empty block or end of block
+    {: RESULT = new ArrayList<Statement>(); :}
+    ;
+
+stmt ::= assign:s
+    {: RESULT = s; :}
+    | multAssign:s
+    {: RESULT = s; :}
+    | ifStmt:s
+    {: RESULT = s; :}
+    | whileStmt:s
+    {: RESULT = s; :}
+    | procCall:s
+    {: RESULT = s; :}
+    | blockStmt:s
+    {: RESULT = s;:}
+    | varDecl:s
+    {: RESULT = s; :}
+    ;
+
+assign ::= lftValue:v ASSIGN expr:e
+    {: RESULT = new AssignStmt(v, e, v.line, v.col); :}
+    ;
+
+lftValue ::= ID:i
+    {: RESULT = new VarExpr(i.value, i.left, i.right); :}
+    | varDecl:v
+    {: RESULT = v; :}
+    | arrIndexExpr:a
+    {: RESULT = a; :}
+    ;
+
+varDecl ::= ID:i COLON type:t
+    {: RESULT = new VarDeclareStmt(i, t, i.left, i.right);:}
+    | UNDERSCORE:u
+    {: RESULT = new WildCard(u.left, u.right); :}
     ;
 
 type ::= arrNone:a
@@ -177,215 +320,6 @@ arrAll ::= arrAll:a LBRACK expr:e RBRACK
     {: RESULT = new ArrayType(a, Optional.of(e), a.line, a.col); :}
     | primitiveType:p
     {: RESULT = p; :}
-    ;
-
-funRetTypeLst ::= argType COMMA funRetTypeLst
-    {::}
-    | argType
-    {::}
-    ;
-//A program contains (use*) (global variable) (function*)
-// int and bool can be declared and initialized + arr cannot be initialized but can be declared
-
-//program ::= ((use∗) (definition∗))
-program ::= useLst:u definitionLst:d
-    {:
-        int l;
-        int c;
-        if (u.isEmpty()) {
-            l = d[0].line;
-            c = d[0].column;
-        } else {
-            l = u[0].line;
-            c = u[0].column;
-        }
-        RESULT = new Program(u, d, l, c);
-    :}
-    ;
-
-useLst ::= useLst:ul USE:u ID:i optSemi
-    {: ul.add(new Use(i, u.left, u.right)); RESULT = ul; :}
-    | // empty or end of useLst
-    {: RESULT = new ArrayList<Use>(); :}
-    ;
-
-optSemi ::= SEMICOLON
-    | // no semicolon
-    ;
-
-//definition ::= method | globdecl
-definitionLst ::= optGlobalLst:gl optDefinitionLst:dl
-    {: gl.addAll(dl); RESULT = gl; :}
-    ;
-
-
-optGlobalLst ::= global:g optGlobalLst:l
-    {: l.add(0, g); RESULT = l; :}
-    | funcDef:f
-    {: ArrayList<Definition> lst = new ArrayList<Definition>(); lst.add(f); RESULT = lst; :}
-    ;
-
-
-optDefinitionLst ::= global:g optDefinitionLst:lst
-    {: lst.add(0, g); RESULT = lst; :}
-    | funcDef:f optDefinitionLst:lst
-    {: lst.add(0, f); RESULT = lst; :}
-    | //no more definition in the program
-    {: RESULT = new ArrayList<Definition>(); :}
-    ;
-
-
-global ::= ID:i COLON primitiveType:t optSemi
-    {: RESULT = new GlobaDeclare(i.value, t, i.left, i.right); :}
-    | ID:i COLON INTTYPE:t ASSIGN INT:n optSemi
-    {:
-        RESULT = new AssignStmt (
-            new GlobaDeclare(i.value, new IntType(t.left, t.right), i.left, i.right),
-            new IntLiteral(n.value, t.left, t.right),
-            i.left,
-            i.right
-        );
-    :}
-    | ID:i COLON BOOLTYPE:t ASSIGN BOOL:b optSemi
-    {:
-        RESULT = new AssignStmt (
-            new GlobaDeclare(i.value, new BoolType(t.left, t.right), i.left, i.right),
-            new BoolLiteral(b.value, b.left, b.right),
-            i.left,
-            i.right
-        );
-    :}
-    ;
-
-//funcDefLst ::= funcDef:f funcDefLst:dl
-//    {: dl.add(f); RESULT = dl; :}
-//    | funcDef:f
-//    {: ArrayList<FunctionDefine> lst = new ArrayList<>(FunctionDefine); lst.add(f); RESULT = lst;:}
-//    ;
-
-funcDef ::= function:f
-    {: RESULT = f; :}
-    | procedure:p
-    {: RESULT = p; :}
-    ;
-
-function ::= ID:i LPAREN optArgLst:a RPAREN COLON funRetTypeLst:t blockStmt:b
-    {: RESULT = new FunctionDefine(i.value, t, a, b, i.left, i.right); :}
-    ;
-
-procedure ::= ID:i LPAREN optArgLst:a RPAREN blockStmt:b
-    {: RESULT = new FunctionDefine(i.value, a, b, i.left, i.right); :}
-    ;
-
-typeLst ::= type:t COMMA typeLst:l
-    {: RESULT = l.add(0, t); :}
-    | type:t
-    {: ArrayList<Type> lst = new ArrayList<Type>(); lst.add(t); RESULT = lst; :}
-    ;
-
-blockStmt ::= LBRACE:l stmtLst:s RBRACE
-    {: RESULT = new BlockStmt(s, l.left, l.right); :}
-    | LBRACE:l stmtLst:s returnStmt:r RBRACE
-    {: s.add(r); RESULT = new BlockStmt(s, l.left, l.right); :}
-    ;
-
-stmtLst ::= stmt:s optSemi stmtLst:l
-    {: l.add(0, s); :}
-    | // empty block or end of block
-    {: RESULT = new ArrayList<Statement>(); :}
-    ;
-
-stmt ::= assign:s
-    {: RESULT = s; :}
-    |multAssign:s
-    {: RESULT = s; :}
-    | ifStmt:s
-    {: RESULT = s; :}
-    | whileStmt:s
-    {: RESULT = s; :}
-    | procCall:s
-    {: RESULT = s; :}
-    | blockStmt:s
-    {: RESULT = s;:}
-    | varDecl:s
-    {: RESULT = s; :}
-    ;
-
-assign ::= lftValue:v ASSIGN expr:e
-    {: RESULT = new AssignStmt(v, e, v.line, v.col); :}
-    ;
-
-lftValue ::= ID:i
-    {: RESULT = new VarExpr(i.value, i.left, i.right); :}
-    | varDecl:v
-    {: RESULT = v; :}
-    | arrIndexExpr:a
-    {: RESULT = a; :}
-    ;
-
-varDecl ::= ID:i COLON type:t
-    {: RESULT = new VarDeclareStmt(i, t, i.left, i.right);:}
-    | UNDERSCORE:u
-    {: RESULT = new WildCard(u.left, u.right); :}
-    ;
-
-arrIndexExpr ::= ID:i LBRACK expr:e RBRACK
-    {: RESULT = new ArrIndexExpr(i.value, e, i.left, i.right); :}
-    | funCall:f LBRACK expr:e RBRACK
-    {: RESULT = new ArrIndexExpr(f, e, f.left, f.right); :}
-    | arrIndexExpr:a LBRACK expr:e RBRACK
-    {: RESULT = new ArrIndexExpr(a, e, a.line, a.col); :}
-    ;
-
-multAssign ::= varDeclLst:l ASSIGN funCall:f
-    {: int line = l.get(0).line;
-       int col = l.get(0).col;
-       RESULT = new AssignStmt(new LeftValueList(l, line, col), f, line, col); :}
-    ;
-
-//variable declaration
-varDeclLst ::= varDecl:v COMMA varDeclLst:l
-    {: l.add(0, v); RESULT = l; :}
-    | varDecl:v1 COMMA varDecl:v2
-    {: ArrayList<LValue> lst = new ArrayList<LValue>(); lst.addAll(v1); lst.addAll(v2); RESULT = lst; :}
-    ;
-
-funCall ::= ID:i LPAREN exprLst:e RPAREN
-    {: RESULT = new FunCallExpr(i.value, e, i.left, i.right); :}
-    | ID:i LPAREN RPAREN
-    {: RESULT = new FunCallExpr(i.value, new ArrayList<Expr>(), i.left, i.right); :}
-    | LENGTH:len LPAREN expr:e RPAREN
-    {: ArrayList<Expr> lst = new ArrayList<Expr>();
-       lst.add(e);
-       RESULT = new FunCallExpr("length", lst, len.left, len.right); :}
-    ;
-
-// function can take in 0 or more arguments (/expression)
-exprLst ::= expr:e COMMA exprLst:l
-    {: RESULT = l.add(0, e); :}
-    | expr:e
-    {: ArrayList<Type> lst = new ArrayList<Type>(); lst.add(e); RESULT = lst; :}
-    ;
-
-ifStmt ::= IF:i expr:e stmt:s
-    {: RESULT = new ifStmt(e, s, i.left, i.right);:}
-    | IF:i expr:e stmt:s1 ELSE stmt:s2
-    {: RESULT = new ifStmt(e, s1, s2, i.left, i.right); :}
-    ; /// ifStmt constructer
-
-//OR if and while statements
-whileStmt ::= WHILE:w expr:e stmt:s
-    {: RESULT = new WhileStmt(e, s, w.left, w.right); :}
-    ;
-
-procCall ::= ID:i LPAREN exprLst:a RPAREN
-    {: RESULT = new ProcCallStmt(i.value, a, i.left, i.right); :}
-    | ID:i LPAREN RPAREN
-    {: RESULT = new ProcCallStmt(i.value, new ArrayList<Expr>(), i.left, i.right); :}
-    ;
-
-returnStmt ::= RETURN:r exprLst:l optSemi
-    {: RESULT = new ReturnStmt(l, r.left, r.right); :}
     ;
 
 expr ::= INT: i
@@ -433,3 +367,63 @@ expr ::= INT: i
     | expr:e1 OR expr:e2
     {: RESULT = new Or(e1, e2, e1.left, e1.right);:}
     ;
+
+arrIndexExpr ::= ID:i LBRACK expr:e RBRACK
+    {: RESULT = new ArrIndexExpr(i.value, e, i.left, i.right); :}
+    | funCall:f LBRACK expr:e RBRACK
+    {: RESULT = new ArrIndexExpr(f, e, f.left, f.right); :}
+    | arrIndexExpr:a LBRACK expr:e RBRACK
+    {: RESULT = new ArrIndexExpr(a, e, a.line, a.col); :}
+    ;
+
+funCall ::= ID:i LPAREN exprLst:e RPAREN
+    {: RESULT = new FunCallExpr(i.value, e, i.left, i.right); :}
+    | ID:i LPAREN RPAREN
+    {: RESULT = new FunCallExpr(i.value, new ArrayList<Expr>(), i.left, i.right); :}
+    | LENGTH:len LPAREN expr:e RPAREN
+    {: ArrayList<Expr> lst = new ArrayList<Expr>();
+       lst.add(e);
+       RESULT = new FunCallExpr("length", lst, len.left, len.right); :}
+    ;
+
+// function can take in 0 or more arguments (/expression)
+exprLst ::= expr:e COMMA exprLst:l
+    {: RESULT = l.add(0, e); :}
+    | expr:e
+    {: ArrayList<Type> lst = new ArrayList<Type>(); lst.add(e); RESULT = lst; :}
+    ;
+
+multAssign ::= varDeclLst:l ASSIGN funCall:f
+    {: int line = l.get(0).line;
+       int col = l.get(0).col;
+       RESULT = new AssignStmt(new LeftValueList(l, line, col), f, line, col); :}
+    ;
+
+//variable declaration
+varDeclLst ::= varDecl:v COMMA varDeclLst:l
+    {: l.add(0, v); RESULT = l; :}
+    | varDecl:v1 COMMA varDecl:v2
+    {: ArrayList<LValue> lst = new ArrayList<LValue>(); lst.addAll(v1); lst.addAll(v2); RESULT = lst; :}
+    ;
+
+ifStmt ::= IF:i expr:e stmt:s
+    {: RESULT = new ifStmt(e, s, i.left, i.right);:}
+    | IF:i expr:e stmt:s1 ELSE stmt:s2
+    {: RESULT = new ifStmt(e, s1, s2, i.left, i.right); :}
+    ; /// ifStmt constructer
+
+//OR if and while statements
+whileStmt ::= WHILE:w expr:e stmt:s
+    {: RESULT = new WhileStmt(e, s, w.left, w.right); :}
+    ;
+
+procCall ::= ID:i LPAREN exprLst:a RPAREN
+    {: RESULT = new ProcCallStmt(i.value, a, i.left, i.right); :}
+    | ID:i LPAREN RPAREN
+    {: RESULT = new ProcCallStmt(i.value, new ArrayList<Expr>(), i.left, i.right); :}
+    ;
+
+returnStmt ::= RETURN:r exprLst:l optSemi
+    {: RESULT = new ReturnStmt(l, r.left, r.right); :}
+    ;
+
