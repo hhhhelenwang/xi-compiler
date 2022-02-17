@@ -106,7 +106,9 @@ file ::= INTERFACE_FILE interface:i
 
 //An interface contains a nonempty set of procedure and function declaration without implementation
 interface ::= procFuncDeclLst:f
-    {: RESULT = new Interface(f); :}
+    {: int line = f.get(0).line;
+       int col = f.get(0).col;
+       RESULT = new Interface(f, line, col); :}
     ;
 
 procFuncDeclLst ::= procFuncDecl:f procFuncDeclLst:d
@@ -116,63 +118,63 @@ procFuncDeclLst ::= procFuncDecl:f procFuncDeclLst:d
     ;
 
 procFuncDecl ::= ID:i LPAREN optArgLst:a RPAREN COLON funRetTypeLst:t
-    {: RESULT = new FunctionDeclare(i.value, a, t); :}
+    {: RESULT = new FunctionDeclare(i.value, a, t, i.left, i.right); :}
     | ID:i LPAREN optArgLst:a RPAREN
-    {: RESULT = new FunctionDeclare(i.value, a, Optional.empty()); :}
+    {: RESULT = new FunctionDeclare(i.value, a, i.left, i.right); :}
     ;
 
 optArgLst ::= argLst:a
     {: RESULT = a; :}
     | // no argument
-    {: RESULT = Optional.empty(); :}
+    {: RESULT = new ArrayList<FunProcArgs>(); :}
     ;
 
 argLst ::= argument:a COMMA argLst:l
     {: RESULT = l.add(0, a); :}
     | argument:a
-    {: ArrayList<FunProcArgs> lst = new ArrayList<FunProcArgs>(); lst.add(a); RESULT = Optional.of(lst); :}
+    {: ArrayList<FunProcArgs> lst = new ArrayList<FunProcArgs>(); lst.add(a); RESULT = lst; :}
     ;
 
 argument ::= ID:i COLON argType:t
-    {: RESULT = new FunProcArgs (i.value, t); :}
+    {: RESULT = new FunProcArgs (i.value, t, i.left, i.right); :}
     ;
 
-argType ::= INTTYPE
-    {: RESULT = new IntType(); :}
-    | BOOLTYPE
-    {: RESULT = new BoolType(); :}
+argType ::= INTTYPE:t
+    {: RESULT = new IntType(t.left, t.right); :}
+    | BOOLTYPE: t
+    {: RESULT = new BoolType(t.left, t.right); :}
     | type:t LBRACK RBRACK
-    {: RESULT = new ArrayType(t); :}
+    {: RESULT = new ArrayType(t, t.left, t.right); :}
     ;
 
 type ::= arrNone:a
-    {: RESULT = new ArrayType(a, Optional.empty()); :}
+    {: RESULT = new ArrayType(a, Optional.empty(), a.line, a.col); :}
     | arrSome:a
-    {: RESULT = new ArrayType(a, Optional.empty()); :}
+    {: RESULT = new ArrayType(a, Optional.empty(), a.line, a.col); :}
     | arrAll:a
     {: RESULT = a; :}
     ;
 
 arrNone ::= arrNone:a LBRACK RBRACK
-    {: RESULT = new ArrayType(a, Optional.empty()); :}
+    {: RESULT = new ArrayType(a, Optional.empty(), a.line, a.col); :}
     | primitiveType:p LBRACK RBRACK
     {: RESULT = p; :}
     ;
 
 primitiveType ::= INTTYPE:i
-    {: RESULT = new IntType(); :}
+    {: RESULT = new IntType(i.left, i.col); :}
     | BOOLTYPE:b
-    {: RESULT = new BoolType(); :}
+    {: RESULT = new BoolType(i.left, i.col); :}
     ;
 
 arrSome ::= arrSome:a LBRACK RBRACK
-    {: RESULT = new ArrayType(a, Optional.empty()); :}
+    {: RESULT = new ArrayType(a, Optional.empty(), a.line, a.col); :}
     | arrAll:a LBRACK RBRACK
     {: RESULT = a; :}
     ;
 
 arrAll ::= arrAll:a LBRACK expr:e RBRACK
-    {: RESULT = new ArrayType(a, Optional.of(e)); :}
+    {: RESULT = new ArrayType(a, Optional.of(e), a.line, a.col); :}
     | primitiveType:p
     {: RESULT = p; :}
     ;
@@ -268,17 +270,17 @@ funcDef ::= function:f
     ;
 
 function ::= ID:i LPAREN optArgLst:a RPAREN COLON funRetTypeLst:t blockStmt:b
-    {: RESULT = new FunctionDefine(i.value, t, a, b); :}
+    {: RESULT = new FunctionDefine(i.value, t, a, b, i.left, i.right); :}
     ;
 
-procedure ::= ID LPAREN optArgLst:a RPAREN blockStmt:b
-    {: RESULT = new FunctionDefine(i.value, Optional.empty(), a, b); :}
+procedure ::= ID:i LPAREN optArgLst:a RPAREN blockStmt:b
+    {: RESULT = new FunctionDefine(i.value, a, b, i.left, i.right); :}
     ;
 
 typeLst ::= type:t COMMA typeLst:l
     {: RESULT = l.add(0, t); :}
     | type:t
-    {: ArrayList<Type> lst = new ArrayList<Type>(); lst.add(t); RESULT = Optional.of(lst); :}
+    {: ArrayList<Type> lst = new ArrayList<Type>(); lst.add(t); RESULT = lst; :}
     ;
 
 blockStmt ::= LBRACE:l stmtLst:s RBRACE
