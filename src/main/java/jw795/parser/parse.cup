@@ -1,4 +1,3 @@
-package jw795.parser;
 import java_cup.runtime.*;
 import jw795.ast.*;
 import java.util.ArrayList;
@@ -211,14 +210,12 @@ blockStmt ::= LBRACE stmtLst:s RBRACE
     {: RESULT = new BlockStmt(s); :}
     | LBRACE stmtLst:s returnStmt:r RBRACE
     {: s.add(r); RESULT = new BlockStmt(s); :}
-    | LBRACE RBRACE
-    {: ArrayList<Statement> lst = new ArrayList<Statement>(); Result = new BlockStmt(lst); :}
     ;
 
 stmtLst ::= stmt:s optSemi stmtLst:l
     {: l.add(0, s); :}
-    | stmt:s optSemi
-    {: ArrayList<Statement> lst = new ArrayList<Statement>(); lst.add(s); RESULT = lst; :}
+    | // empty block or end of block
+    {: RESULT = new ArrayList<Statement>(); :}
     ;
 
 stmt ::= assign:s
@@ -255,6 +252,14 @@ varDecl ::= ID:i COLON type:t
     {: RESULT = new WildCard(); :}
     ;
 
+arrIndexExpr ::= ID:i LBRACK expr:e RBRACK
+    {: RESULT = new ArrIndexExpr(i.value, e); :}
+    | funCall:f LBRACK expr:e RBRACK
+    {: RESULT = new ArrIndexExpr(f, e); :}
+    | arrIndexExpr:a LBRACK expr:e RBRACK
+    {: RESULT = new ArrIndexExpr(a, e); :}
+    ;
+
 multAssign ::= varDeclLst:l ASSIGN funCall:f
     {: RESULT = new AssignStmt(new LeftValueList(l), f); :}
     ;
@@ -266,16 +271,10 @@ varDeclLst ::= varDecl:v COMMA varDeclLst:l
     {: ArrayList<LValue> lst = new ArrayList<LValue>(); lst.add(v1); lst.add(v2); RESULT = lst; :}
     ;
 
-arrIndexExpr ::= ID:i LBRACK expr:e RBRACK
-    {: RESULT = new ArrIndexExpr(i.value, e); :}
-    | funCall:f LBRACK expr:e RBRACK
-    {: RESULT = new ArrIndexExpr(f, e); :}
-    | arrIndexExpr:a LBRACK expr:e RBRACK
-    {: RESULT = new ArrIndexExpr(a, e); :}
-    ;
-
 funCall ::= ID:i LPAREN exprLst:e RPAREN
     {: RESULT = new FunCallExpr(i.value, e); :}
+    | ID:i LPAREN RPAREN
+    {: RESULT = new FunCallExpr(i.value, new ArrayList<Expr>()); :}
     | LENGTH LPAREN expr:e RPAREN
     {: ArrayList<Expr> lst = new ArrayList<Expr>(); lst.add(e); RESULT = new FunCallExpr("length", lst); :}
     ;
@@ -306,6 +305,8 @@ whileStmt ::= WHILE expr:e stmt:s
 
 procCall ::= ID:i LPAREN exprLst:a RPAREN
     {: RESULT = new ProcCallStmt(i, a); :}
+    | ID:i LPAREN RPAREN
+    {: RESULT = new ProcCallStmt(i, new ArrayList<Expr>()); :}
     ;
 
 returnStmt ::= RETURN exprLst:l optSemi
