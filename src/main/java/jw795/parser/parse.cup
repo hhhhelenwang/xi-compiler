@@ -7,13 +7,14 @@ import java.util.Optional;
 import jw795.lexer.Lexer;
 import jw795.lexer.LexerAdapter;
 
-parser code
-    {: public void syntax_error(java_cup.runtime.Symbol cur) {
-        throw new RuntimeException(String.format( "%d:%d error: unexpected `%s`", cur.left, cur.right,
-              lexer.LexerAdapter.tokenTypeToString(Lexer.TokenType.values()[cur.sym])));
-        }
-    :}
-    ;
+//parser code
+//    {:
+//        public void syntax_error(java_cup.runtime.Symbol cur) {
+//            throw new RuntimeException(String.format( "%d:%d error: unexpected `%s`", cur.left, cur.right,
+//                  lexer.LexerAdapter.tokenTypeToString(Lexer.TokenType.values()[cur.sym])));
+//        }
+//    :}
+//    ;
 
 /* Terminals */
 terminal    Symbol   USE, IF, WHILE, ELSE, RETURN, LENGTH, NOT, MULT, HIGHMULT, DIV, MOD, ADD, SUB, LT, LEQ, GEQ, GT,
@@ -51,7 +52,6 @@ non terminal Type argType;
 non terminal Type arrNone;
 non terminal Type arrSome;
 non terminal Type arrAll;
-non terminal ArrayList<Type> optTypeLst;
 non terminal ArrayList<Type> typeLst;
 non terminal Type primitiveType;
 non terminal Type type;
@@ -97,9 +97,6 @@ precedence left LBRACK;
 //This indicates which non-terminal is the start or goal non-terminal for parsing
 start with file;
 
-optSemi ::= SEMICOLON
-    | // no semicolon
-    ;
 
 file ::= INTERFACE_FILE interface:i
         {: RESULT = i; :}
@@ -107,83 +104,18 @@ file ::= INTERFACE_FILE interface:i
         {: RESULT = p; :}
         ;
 
-//A program contains (use*) (global variable) (function*)
-// int and bool can be declared and initialized + arr cannot be initialized but can be declared
-
-//program ::= ((use∗) (definition∗))
-program ::= useLst:u definitionLst:d
-    {: RESULT = new Program(u, d); :}
-    ;
-
-
-//definition ::= method | globdecl
-definitionLst ::= optGlobalLst:gl optDefinitionLst:dl
-    {: gl.addAll(dl); RESULT = gl; :}
-    ;
-
-
-optGlobalLst ::= global:g optGlobalLst:l
-    {: l.add(0, g); RESULT = l; :}
-    | funcDef:f
-    {: ArrayList<Definition> lst = new ArrayList<Definition>(); lst.add(f); RESULT = lst; :}
-    ;
-
-
-optDefinitionLst ::= global:g optDefinitionLst:lst
-    {: lst.add(0, g); RESULT = lst; :}
-    | funcDef:f optDefinitionLst:lst
-    {: lst.add(0, f); RESULT = lst; :}
-    | //no more definition in the program
-    {: RESULT = new ArrayList<Definition>(); :}
-    ;
-
-
-global ::= ID:i COLON primitiveType:t optSemi
-    {: RESULT = new GlobaDeclare(i.value, t); :}
-    | ID:i COLON INTTYPE ASSIGN INT:n optSemi
-    {: RESULT = new AssignStmt (new GlobaDeclare(i.value, new IntType()), new IntLiteral(n.value)); :}
-    | ID:i COLON BOOLTYPE ASSIGN BOOL:b optSemi
-    {: RESULT = new AssignStmt (new GlobaDeclare(i.value, new BoolType()), new BoolLiteral(b.value)); :}
-    ;
-
-useLst ::= useLst:ul USE ID:i optSemi
-    {: ul.add(new Use(i)); RESULT = ul; :}
-    | // empty or end of useLst
-    {: RESULT = new ArrayList<Use>(); :}
-    ;
-
-//funcDefLst ::= funcDef:f funcDefLst:dl
-//    {: dl.add(f); RESULT = dl; :}
-//    | funcDef:f
-//    {: ArrayList<FunctionDefine> lst = new ArrayList<>(FunctionDefine); lst.add(f); RESULT = lst;:}
-//    ;
-
-funcDef ::= function:f
-    {: RESULT = f; :}
-    | procedure:p
-    {: RESULT = p; :}
-    ;
-
-function ::= ID:i LPAREN optArgLst:a RPAREN COLON optTypeLst:t blockStmt:b
-    {: RESULT = new FunctionDefine(i.value, t, a, b); :}
-    ;
-
-procedure ::= ID LPAREN optArgLst:a RPAREN blockStmt:b
-    {: RESULT = new FunctionDefine(i.value, Optional.empty(), a, b); :}
-    ;
-
 //An interface contains a nonempty set of procedure and function declaration without implementation
-interface ::= funcDeclLst:f
+interface ::= procFuncDeclLst:f
     {: RESULT = new Interface(f); :}
     ;
 
-funcDeclLst ::= funcDecl:f funcDeclLst:d
+procFuncDeclLst ::= procFuncDecl:f procFuncDeclLst:d
     {: RESULT = d.add(0, f); :}
-    | funcDecl:f
+    | procFuncDecl:f
     {: ArrayList<FunctionDeclare> lst = new ArrayList<FunctionDeclare>(); lst.add(f); Result = lst; :}
     ;
 
-funcDecl ::= ID:i LPAREN optArgLst:a RPAREN COLON typeLst:t
+procFuncDecl ::= ID:i LPAREN optArgLst:a RPAREN COLON funRetTypeLst:t
     {: RESULT = new FunctionDeclare(i.value, a, t); :}
     | ID:i LPAREN optArgLst:a RPAREN
     {: RESULT = new FunctionDeclare(i.value, a, Optional.empty()); :}
@@ -213,12 +145,6 @@ argType ::= INTTYPE
     {: RESULT = new ArrayType(t); :}
     ;
 
-primitiveType ::= INTTYPE:i
-    {: RESULT = new IntType(); :}
-    | BOOLTYPE:b
-    {: RESULT = new BoolType(); :}
-    ;
-
 type ::= arrNone:a
     {: RESULT = new ArrayType(a, Optional.empty()); :}
     | arrSome:a
@@ -233,6 +159,12 @@ arrNone ::= arrNone:a LBRACK RBRACK
     {: RESULT = p; :}
     ;
 
+primitiveType ::= INTTYPE:i
+    {: RESULT = new IntType(); :}
+    | BOOLTYPE:b
+    {: RESULT = new BoolType(); :}
+    ;
+
 arrSome ::= arrSome:a LBRACK RBRACK
     {: RESULT = new ArrayType(a, Optional.empty()); :}
     | arrAll:a LBRACK RBRACK
@@ -243,6 +175,104 @@ arrAll ::= arrAll:a LBRACK expr:e RBRACK
     {: RESULT = new ArrayType(a, Optional.of(e)); :}
     | primitiveType:p
     {: RESULT = p; :}
+    ;
+
+funRetTypeLst ::= argType COMMA funRetTypeLst
+    {::}
+    | argType
+    {::}
+    ;
+//A program contains (use*) (global variable) (function*)
+// int and bool can be declared and initialized + arr cannot be initialized but can be declared
+
+//program ::= ((use∗) (definition∗))
+program ::= useLst:u definitionLst:d
+    {:
+        int l;
+        int c;
+        if (u.isEmpty()) {
+            l = d[0].line;
+            c = d[0].column;
+        } else {
+            l = u[0].line;
+            c = u[0].column;
+        }
+        RESULT = new Program(u, d, l, c);
+    :}
+    ;
+
+useLst ::= useLst:ul USE:u ID:i optSemi
+    {: ul.add(new Use(i, u.left, u.right)); RESULT = ul; :}
+    | // empty or end of useLst
+    {: RESULT = new ArrayList<Use>(); :}
+    ;
+
+optSemi ::= SEMICOLON
+    | // no semicolon
+    ;
+
+//definition ::= method | globdecl
+definitionLst ::= optGlobalLst:gl optDefinitionLst:dl
+    {: gl.addAll(dl); RESULT = gl; :}
+    ;
+
+
+optGlobalLst ::= global:g optGlobalLst:l
+    {: l.add(0, g); RESULT = l; :}
+    | funcDef:f
+    {: ArrayList<Definition> lst = new ArrayList<Definition>(); lst.add(f); RESULT = lst; :}
+    ;
+
+
+optDefinitionLst ::= global:g optDefinitionLst:lst
+    {: lst.add(0, g); RESULT = lst; :}
+    | funcDef:f optDefinitionLst:lst
+    {: lst.add(0, f); RESULT = lst; :}
+    | //no more definition in the program
+    {: RESULT = new ArrayList<Definition>(); :}
+    ;
+
+
+global ::= ID:i COLON primitiveType:t optSemi
+    {: RESULT = new GlobaDeclare(i.value, t, i.left, i.right); :}
+    | ID:i COLON INTTYPE:t ASSIGN INT:n optSemi
+    {:
+        RESULT = new AssignStmt (
+            new GlobaDeclare(i.value, new IntType(t.left, t.right), i.left, i.right),
+            new IntLiteral(n.value, t.left, t.right),
+            i.left,
+            i.right
+        );
+    :}
+    | ID:i COLON BOOLTYPE:t ASSIGN BOOL:b optSemi
+    {:
+        RESULT = new AssignStmt (
+            new GlobaDeclare(i.value, new BoolType(t.left, t.right), i.left, i.right),
+            new BoolLiteral(b.value, b.left, b.right),
+            i.left,
+            i.right
+        );
+    :}
+    ;
+
+//funcDefLst ::= funcDef:f funcDefLst:dl
+//    {: dl.add(f); RESULT = dl; :}
+//    | funcDef:f
+//    {: ArrayList<FunctionDefine> lst = new ArrayList<>(FunctionDefine); lst.add(f); RESULT = lst;:}
+//    ;
+
+funcDef ::= function:f
+    {: RESULT = f; :}
+    | procedure:p
+    {: RESULT = p; :}
+    ;
+
+function ::= ID:i LPAREN optArgLst:a RPAREN COLON funRetTypeLst:t blockStmt:b
+    {: RESULT = new FunctionDefine(i.value, t, a, b); :}
+    ;
+
+procedure ::= ID LPAREN optArgLst:a RPAREN blockStmt:b
+    {: RESULT = new FunctionDefine(i.value, Optional.empty(), a, b); :}
     ;
 
 typeLst ::= type:t COMMA typeLst:l
