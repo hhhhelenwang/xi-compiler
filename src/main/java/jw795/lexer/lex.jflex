@@ -159,7 +159,7 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
     /* Data */
     {Integer} {
     //since negative sign is still seperate token right now, we only check the face value
-        long readint = Long.parseLong(yytext());
+        Long readint = Long.parseLong(yytext());
         long range = Integer.MAX_VALUE;
         range = range +1;
         if(readint <= range){return newsymbol(TokenType.INT, readint);}

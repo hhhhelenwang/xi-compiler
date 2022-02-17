@@ -1,12 +1,16 @@
 package jw795.parser;
 
 import java_cup.runtime.*;
-import jw795.ast.*;
 import java.util.ArrayList;
 import java.util.Optional;
+import jw795.ast.*;
 import jw795.lexer.Lexer;
 import jw795.lexer.LexerAdapter;
 
+/**
+ * syntax_error(java_cup.runtime.Symbol cur) overrides the default function in the generated parser class
+ * to throw an RuntimeException with an error message reporting the Symbol location and type.
+ */
 parser code
     {:
         public void syntax_error(java_cup.runtime.Symbol cur) {
@@ -28,13 +32,13 @@ terminal    Symbol   UNARY;
 /* Non terminals */
 non terminal file;
 
+// interface
 non terminal Interface interface;
 non terminal ArrayList<ProcFuncDecl> procFuncDeclLst;
 non terminal ProcFuncDecl procFuncDecl;
-non terminal ArrayList<Type> argRetTypeLst;
 
+// program
 non terminal Program program;
-//non terminal ArrayList<FunctionDefine> funcDefLst;
 non terminal ArrayList<Definition> definitionLst;
 non terminal ArrayList<Definition> optGlobalLst;
 non terminal ArrayList<Definition> optDefinitionLst;
@@ -43,42 +47,40 @@ non terminal Definition procFuncDef;
 non terminal ProcedureDefine procDef;
 non terminal FunctionDefine funcDef;
 non terminal ArrayList<Use> useLst;
-
 non terminal ArrayList<FunProcArgs> optArgLst;
 non terminal ArrayList<FunProcArgs> argLst;
 non terminal funProcArgs argument;
 non terminal Type argRetType;
 
-
-
-
-
+// type
+non terminal Type type;
+non terminal Type primitiveType;
 non terminal Type arrNone;
 non terminal Type arrSome;
 non terminal Type arrAll;
-non terminal Type primitiveType;
-non terminal Type type;
+non terminal ArrayList<Type> argRetTypeLst;
 
+// statement
 non terminal BlockStmt blockStmt;
 non terminal ArrayList<Statement> stmtLst;
 non terminal Statement stmt;
 non terminal AssignStmt assign;
 non terminal AssignStmt multAssign;
 non terminal ReturnStmt returnStmt;
-non terminal IfStmt ifStmt;
+non terminal Statement ifStmt;
 non terminal WhileStmt whileStmt;
 non terminal ProcCallStmt procCall;
 non terminal VarDeclareStmt varDecl;
-non terminal ArrayList<varDecl> varDeclLst;
+non terminal ArrayList<VarDeclareStmt> varDeclLst;
 
+// expressions
+non terminal Expr expr;
+non terminal ArrayList<Expr> exprLst;
 non terminal LValue lftValue;
 non terminal ArrIndexExpr arrIndexExpr;
 non terminal FunCallExpr funCall;
 
-non terminal Expr expr;
-non terminal ArrayList<Expr> exprLst;
-//non terminal ASTNode indexable;
-
+// punctuation
 non terminal optSemi;
 
 /* Precedences */
@@ -96,7 +98,14 @@ precedence right UNARY;
 precedence left LBRACK;
 
 /* The grammar rules */
-//This indicates which non-terminal is the start or goal non-terminal for parsing
+
+
+
+/**
+* ===== FILE PROCESSING ====
+* A file can be either a program file or an interface file
+*/
+
 start with file;
 
 file ::= INTERFACE_FILE interface:i
@@ -105,7 +114,10 @@ file ::= INTERFACE_FILE interface:i
         {: RESULT = p; :}
         ;
 
-//An interface contains a nonempty set of procedure and function declaration without implementation
+/**
+* ===== INTERFACE PROCESSING ====
+* The general syntax of an interface is defined as interface ::= ((procFuncDec∗))
+*/
 interface ::= procFuncDeclLst:f
     {: int line = f.get(0).line;
        int col = f.get(0).col;
@@ -113,20 +125,20 @@ interface ::= procFuncDeclLst:f
     ;
 
 procFuncDeclLst ::= procFuncDecl:f optSemi procFuncDeclLst:d
-    {: RESULT = d.add(0, f); :}
+    {: d.add(0, f); RESULT = d; :}
     | procFuncDecl:f
     {: ArrayList<ProcFuncDecl> lst = new ArrayList<ProcFuncDecl>(); lst.add(f); Result = lst; :}
     ;
 
 procFuncDecl ::= ID:i LPAREN optArgLst:a RPAREN
-    {: RESULT = new ProcedureDeclare(i.value, a, i.left, i.right); :}
+    {: RESULT = new ProcedureDeclare(String.valueOf(i.value), a, i.left, i.right); :}
     | ID:i LPAREN optArgLst:a RPAREN COLON argRetTypeLst:t
-    {: RESULT = new FunctionDeclare(i.value, a, t, i.left, i.right); :}
+    {: RESULT = new FunctionDeclare(String.valueOf(i.value), a, t, i.left, i.right); :}
     ;
 
 optArgLst ::= argLst:a
     {: RESULT = a; :}
-    | // no argument
+    | // no argument was passed in
     {: RESULT = new ArrayList<FunProcArgs>(); :}
     ;
 
@@ -137,7 +149,7 @@ argLst ::= argument:a COMMA argLst:l
     ;
 
 argument ::= ID:i COLON argRetType:t
-    {: RESULT = new FunProcArgs (i.value, t, i.left, i.right); :}
+    {: RESULT = new FunProcArgs (String.valueOf(i.value), t, i.left, i.right); :}
     ;
 
 argRetType ::= INTTYPE:t
@@ -149,7 +161,7 @@ argRetType ::= INTTYPE:t
     ;
 
 argRetTypeLst ::= argRetType:a COMMA argRetTypeLst:l
-    {: l.add(0, a); RESULT = a; :}
+    {: l.add(0, a); RESULT = l; :}
     | argRetType:a
     {: ArrayList<Type> lst = new ArrayList<Type>(); lst.add(a); RESULT = lst; :}
     ;
@@ -158,10 +170,10 @@ optSemi ::= SEMICOLON
     | // no semicolon
     ;
 
-//A program contains (use*) (global variable) (function*)
-// int and bool can be declared and initialized + arr cannot be initialized but can be declared
-
-//program ::= ((use∗) (definition∗))
+/**
+* ===== PROGRAM PROCESSING ====
+* The general syntax of an interface is defined as program ::= ((use∗) (definition∗))
+*/
 program ::= useLst:u definitionLst:d
     {:
         int l;
@@ -177,13 +189,14 @@ program ::= useLst:u definitionLst:d
     :}
     ;
 
+// use ::= (use <id>)
 useLst ::= useLst:ul USE:u ID:i optSemi
-    {: ul.add(new Use(i, u.left, u.right)); RESULT = ul; :}
+    {: ul.add(new Use(String.valueOf(i.value), u.left, u.right)); RESULT = ul; :}
     | // empty or end of useLst
     {: RESULT = new ArrayList<Use>(); :}
     ;
 
-//definition ::= method | globdecl
+// definition ::= method | globdecl
 definitionLst ::= optGlobalLst:gl optDefinitionLst:dl
     {: gl.addAll(dl); RESULT = gl; :}
     ;
@@ -194,13 +207,14 @@ optGlobalLst ::= global:g optGlobalLst:l
     {: ArrayList<Definition> lst = new ArrayList<Definition>(); lst.add(f); RESULT = lst; :}
     ;
 
+// globdec ::= (<id> type) |  (<id> type <value>)
 global ::= ID:i COLON argRetType:t optSemi
-    {: RESULT = new GlobaDeclare(i.value, t, i.left, i.right); :}
+    {: RESULT = new GlobaDeclare(String.valueOf(i.value), t, i.left, i.right); :}
     | ID:i COLON INTTYPE:t ASSIGN INT:n optSemi
     {:
         RESULT = new AssignStmt (
-            new GlobaDeclare(i.value, new IntType(t.left, t.right), i.left, i.right),
-            new IntLiteral(n.value, n.left, n.right),
+            new GlobaDeclare(String.valueOf(i.value), new IntType(t.left, t.right), i.left, i.right),
+            new IntLiteral(String.valueOf(n.value), n.left, n.right),
             i.left,
             i.right
         );
@@ -208,8 +222,8 @@ global ::= ID:i COLON argRetType:t optSemi
     | ID:i COLON BOOLTYPE:t ASSIGN BOOL:b optSemi
     {:
         RESULT = new AssignStmt (
-            new GlobaDeclare(i.value, new BoolType(t.left, t.right), i.left, i.right),
-            new BoolLiteral(b.value, b.left, b.right),
+            new GlobaDeclare(String.valueOf(i.value), new BoolType(t.left, t.right), i.left, i.right),
+            new BoolLiteral(Boolean.valueOf(b.value), b.left, b.right),
             i.left,
             i.right
         );
@@ -231,34 +245,47 @@ procFuncDef ::= procDef:d
     ;
 
 procDef ::= ID:i LPAREN optArgLst:a RPAREN blockStmt:b
-    {: RESULT = new ProcedureDefine(i.value, a, b, i.left, i.right); :}
+    {: RESULT = new ProcedureDefine(String.valueOf(i.value), a, b, i.left, i.right); :}
     ;
 
 funcDef ::= ID:i LPAREN optArgLst:a RPAREN COLON argRetTypeLst:t blockStmt:b
-    {: RESULT = new FunctionDefine(i.value, t, a, b, i.left, i.right); :}
+    {: RESULT = new FunctionDefine(String.valueOf(i.value), t, a, b, i.left, i.right); :}
     ;
 
+/**
+* ===== BLOCK PROCESSING ====
+* The general syntax of an interface is defined as Block ::= (stmt*)
+*/
 blockStmt ::= LBRACE:l stmtLst:s RBRACE
     {: RESULT = new BlockStmt(s, l.left, l.right); :}
     | LBRACE:l stmtLst:s returnStmt:r RBRACE
     {: s.add(r); RESULT = new BlockStmt(s, l.left, l.right); :}
     ;
 
+returnStmt ::= RETURN:r exprLst:l optSemi
+    {: RESULT = new ReturnStmt(l, r.left, r.right); :}
+    ;
+
+/**
+* ===== STATEMENT PROCESSING ====
+* The general syntax of an interface is defined as
+* stmt ::=  ifStmt | whileStmt | procCall | assign | multiAssign | blockStmt | varDecl
+*/
 stmtLst ::= stmt:s optSemi stmtLst:l
     {: l.add(0, s); :}
     | // empty block or end of block
     {: RESULT = new ArrayList<Statement>(); :}
     ;
 
-stmt ::= assign:s
-    {: RESULT = s; :}
-    | multAssign:s
-    {: RESULT = s; :}
-    | ifStmt:s
+stmt ::= ifStmt:s
     {: RESULT = s; :}
     | whileStmt:s
     {: RESULT = s; :}
     | procCall:s
+    {: RESULT = s; :}
+    | assign:s
+    {: RESULT = s; :}
+    | multAssign:s
     {: RESULT = s; :}
     | blockStmt:s
     {: RESULT = s;:}
@@ -266,12 +293,28 @@ stmt ::= assign:s
     {: RESULT = s; :}
     ;
 
+whileStmt ::= WHILE:w expr:e stmt:s
+    {: RESULT = new WhileStmt(e, s, w.left, w.right); :}
+    ;
+
+ifStmt ::= IF:i expr:e stmt:s
+    {: RESULT = new IfStmt(e, s, i.left, i.right);:}
+    | IF:i expr:e stmt:s1 ELSE stmt:s2
+    {: RESULT = new IfElseStmt(e, s1, s2, i.left, i.right); :}
+    ;
+
+procCall ::= ID:i LPAREN exprLst:a RPAREN
+    {: RESULT = new ProcCallStmt(String.valueOf(i.value), a, i.left, i.right); :}
+    | ID:i LPAREN RPAREN
+    {: RESULT = new ProcCallStmt(String.valueOf(i.value), new ArrayList<Expr>(), i.left, i.right); :}
+    ;
+
 assign ::= lftValue:v ASSIGN expr:e
-    {: RESULT = new AssignStmt(v, e, v.line, v.col); :}
+    {: RESULT = new AssignStmt(v, e, v.left, v.right); :}
     ;
 
 lftValue ::= ID:i
-    {: RESULT = new VarExpr(i.value, i.left, i.right); :}
+    {: RESULT = new VarExpr(String.valueOf(i.value), i.left, i.right); :}
     | varDecl:v
     {: RESULT = v; :}
     | arrIndexExpr:a
@@ -279,145 +322,126 @@ lftValue ::= ID:i
     ;
 
 varDecl ::= ID:i COLON type:t
-    {: RESULT = new VarDeclareStmt(i, t, i.left, i.right);:}
+    {: RESULT = new VarDeclareStmt(String.valueOf(i.value), t, i.left, i.right);:}
     | UNDERSCORE:u
     {: RESULT = new WildCard(u.left, u.right); :}
     ;
 
 type ::= arrNone:a
-    {: RESULT = new ArrayType(a, Optional.empty(), a.line, a.col); :}
+    {: RESULT = new ArrayType(a, a.line, a.col); :}
     | arrSome:a
-    {: RESULT = new ArrayType(a, Optional.empty(), a.line, a.col); :}
+    {: RESULT = new ArrayType(a, a.line, a.col); :}
     | arrAll:a
     {: RESULT = a; :}
     ;
 
 arrNone ::= arrNone:a LBRACK RBRACK
-    {: RESULT = new ArrayType(a, Optional.empty(), a.line, a.col); :}
+    {: RESULT = new ArrayType(a, a.line, a.col); :}
     | primitiveType:p LBRACK RBRACK
     {: RESULT = p; :}
     ;
 
 primitiveType ::= INTTYPE:i
-    {: RESULT = new IntType(i.left, i.col); :}
+    {: RESULT = new IntType(i.left, i.right); :}
     | BOOLTYPE:b
-    {: RESULT = new BoolType(b.left, b.col); :}
+    {: RESULT = new BoolType(b.left, b.right); :}
     ;
 
 arrSome ::= arrSome:a LBRACK RBRACK
-    {: RESULT = new ArrayType(a, Optional.empty(), a.line, a.col); :}
+    {: RESULT = new ArrayType(a, a.line, a.col); :}
     | arrAll:a LBRACK RBRACK
     {: RESULT = a; :}
     ;
 
 arrAll ::= arrAll:a LBRACK expr:e RBRACK
-    {: RESULT = new ArrayType(a, Optional.of(e), a.line, a.col); :}
+    {: RESULT = new ArrayType(a, e, a.line, a.col); :}
     | primitiveType:p
     {: RESULT = p; :}
     ;
 
 expr ::= INT: i
-    {: RESULT = new IntLiteral(i.value, i.left, i.right); :}
+    {: RESULT = new IntLiteral((int)i.value, i.left, i.right); :}
     | BOOL: b
-    {: RESULT = new BoolLiteral(b.value, b.left, b.right); :}
+    {: RESULT = new BoolLiteral(b.value.booleanValue(), b.left, b.right); :}
     | CHARLIT: c
-    {: RESULT = new CharLiteral(c.value, c.left, c.right); :}
+    {: RESULT = new CharLiteral((char)c.value, c.left, c.right); :}
     | STRINGLIT: s
-    {: RESULT = new StringLit(s.value, s.left, s.right); :}
+    {: RESULT = new StringLit(String.valueOf(s.value), s.left, s.right); :}
     | STRINGLIT:s LBRACK expr:e RBRACK
-    {: RESULT = new ArrIndexExpr(new StringLit (s.value, s.left, s.right), e, s.left, s.right); :}
+    {: RESULT = new ArrIndexExpr(new StringLit (String.valueOf(s.value), s.left, s.right), e, s.left, s.right); :}
     | LPAREN expr:e RPAREN
     {: RESULT = e; :}
     | NOT:not expr:e
     {: RESULT = new Not(e, not.left, not.right);:} %prec UNARY
     | expr:e1 MULT expr:e2
-    {: RESULT = new Mult(e1, e2, e1.left, e1.right);:}
+    {: RESULT = new Mult(e1, e2, e1.left(), e1.right());:}
     | expr:e1 HIGHMULT expr:e2
-    {: RESULT = new HighMult(e1, e2, e1.left, e1.right);:}
+    {: RESULT = new HighMult(e1, e2, e1.left(), e1.right());:}
     | expr:e1 DIV expr:e2
-    {: RESULT = new Div(e1, e2, e1.left, e1.right);:}
+    {: RESULT = new Div(e1, e2, e1.left(), e1.right());:}
     | expr:e1 MOD expr:e2
-    {: RESULT = new Mod(e1, e2, e1.left, e1.right);:}
+    {: RESULT = new Mod(e1, e2, e1.left(), e1.right());:}
     | expr:e1 ADD expr:e2
-    {: RESULT = new Add(e1, e2, e1.left, e1.right);:}
+    {: RESULT = new Add(e1, e2, e1.left(), e1.right());:}
     | expr:e1 SUB expr:e2
-    {: RESULT = new Sub(e1, e2, e1.left, e1.right);:}
+    {: RESULT = new Sub(e1, e2, e1.left(), e1.right());:}
     | SUB:sub expr:e
     {: RESULT = new IntNeg(e, sub.left, sub.right);:} %prec UNARY
     | expr:e1 LT expr:e2
-    {: RESULT = new LessThan(e1, e2, e1.left, e1.right);:}
+    {: RESULT = new LessThan(e1, e2, e1.left(), e1.right());:}
     | expr:e1 LEQ expr:e2
-    {: RESULT = new LessEq(e1, e2, e1.left, e1.right);:}
+    {: RESULT = new LessEq(e1, e2, e1.left(), e1.right());:}
     | expr:e1 GEQ expr:e2
-    {: RESULT = new GreaterEq(e1, e2, e1.left, e1.right);:}
+    {: RESULT = new GreaterEq(e1, e2, e1.left(), e1.right());:}
     | expr:e1 GT expr:e2
-    {: RESULT = new GreaterThan(e1, e2, e1.left, e1.right);:}
+    {: RESULT = new GreaterThan(e1, e2, e1.left(), e1.right());:}
     | expr:e1 EQ expr:e2
-    {: RESULT = new Equal(e1, e2, e1.left, e1.right);:}
+    {: RESULT = new Equal(e1, e2, e1.left(), e1.right());:}
     | expr:e1 NEQ expr:e2
-    {: RESULT = new NotEqual(e1, e2, e1.left, e1.right);:}
+    {: RESULT = new NotEqual(e1, e2, e1.left(), e1.right());:}
     | expr:e1 AND expr:e2
-    {: RESULT = new And(e1, e2, e1.left, e1.right);:}
+    {: RESULT = new And(e1, e2, e1.left(), e1.right());:}
     | expr:e1 OR expr:e2
-    {: RESULT = new Or(e1, e2, e1.left, e1.right);:}
+    {: RESULT = new Or(e1, e2, e1.left(), e1.right());:}
     ;
 
 arrIndexExpr ::= ID:i LBRACK expr:e RBRACK
-    {: RESULT = new ArrIndexExpr(i.value, e, i.left, i.right); :}
+    {:
+        VarExpr expr = new VarExpr(String.valueOf(i.value), i.left, i.right);
+        RESULT = new ArrIndexExpr(expr, e, i.left, i.right);
+    :}
     | funCall:f LBRACK expr:e RBRACK
-    {: RESULT = new ArrIndexExpr(f, e, f.left, f.right); :}
+    {: RESULT = new ArrIndexExpr(f, e, f.left(), f.right()); :}
     | arrIndexExpr:a LBRACK expr:e RBRACK
     {: RESULT = new ArrIndexExpr(a, e, a.line, a.col); :}
     ;
 
 funCall ::= ID:i LPAREN exprLst:e RPAREN
-    {: RESULT = new FunCallExpr(i.value, e, i.left, i.right); :}
+    {: RESULT = new FunCallExpr(String.valueOf(i.value), e, i.left, i.right); :}
     | ID:i LPAREN RPAREN
-    {: RESULT = new FunCallExpr(i.value, new ArrayList<Expr>(), i.left, i.right); :}
+    {: RESULT = new FunCallExpr(String.valueOf(i.value), new ArrayList<Expr>(), i.left, i.right); :}
     | LENGTH:len LPAREN expr:e RPAREN
     {: ArrayList<Expr> lst = new ArrayList<Expr>();
        lst.add(e);
        RESULT = new FunCallExpr("length", lst, len.left, len.right); :}
     ;
 
-// function can take in 0 or more arguments (/expression)
 exprLst ::= expr:e COMMA exprLst:l
-    {: RESULT = l.add(0, e); :}
+    {: l.add(0, e); RESULT = l; :}
     | expr:e
-    {: ArrayList<Type> lst = new ArrayList<Type>(); lst.add(e); RESULT = lst; :}
+    {: ArrayList<Expr> lst = new ArrayList<Expr>(); lst.add(e); RESULT = lst; :}
     ;
 
 multAssign ::= varDeclLst:l ASSIGN funCall:f
     {: int line = l.get(0).line;
        int col = l.get(0).col;
-       RESULT = new AssignStmt(new LeftValueList(l, line, col), f, line, col); :}
+       LeftValueList lst = new LeftValueList(l, line, col);
+       RESULT = new AssignStmt(lst, f, line, col);
+    :}
     ;
 
-//variable declaration
 varDeclLst ::= varDecl:v COMMA varDeclLst:l
     {: l.add(0, v); RESULT = l; :}
     | varDecl:v1 COMMA varDecl:v2
-    {: ArrayList<LValue> lst = new ArrayList<LValue>(); lst.addAll(v1); lst.addAll(v2); RESULT = lst; :}
+    {: ArrayList<VarDeclareStmt> lst = new ArrayList<VarDeclareStmt>(); lst.add(v1); lst.add(v2); RESULT = lst; :}
     ;
-
-ifStmt ::= IF:i expr:e stmt:s
-    {: RESULT = new ifStmt(e, s, i.left, i.right);:}
-    | IF:i expr:e stmt:s1 ELSE stmt:s2
-    {: RESULT = new ifStmt(e, s1, s2, i.left, i.right); :}
-    ; /// ifStmt constructer
-
-//OR if and while statements
-whileStmt ::= WHILE:w expr:e stmt:s
-    {: RESULT = new WhileStmt(e, s, w.left, w.right); :}
-    ;
-
-procCall ::= ID:i LPAREN exprLst:a RPAREN
-    {: RESULT = new ProcCallStmt(i.value, a, i.left, i.right); :}
-    | ID:i LPAREN RPAREN
-    {: RESULT = new ProcCallStmt(i.value, new ArrayList<Expr>(), i.left, i.right); :}
-    ;
-
-returnStmt ::= RETURN:r exprLst:l optSemi
-    {: RESULT = new ReturnStmt(l, r.left, r.right); :}
-    ;
-
