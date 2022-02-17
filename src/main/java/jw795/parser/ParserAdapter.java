@@ -69,12 +69,11 @@ public class ParserAdapter {
 
         // parse
         try {
-            // TODO: ???????????????
-            // TODO: Somehow get a root AST node so we can node.prettyPrint(printer) and that should be it
-            Symbol node = cup_parser.parse();
-
+            ASTNode node = (ASTNode) cup_parser.parse().value;
+            node.prettyPrint(printer);
         } catch (Exception e) {
             // TODO: catch error and printer.printAtom(err_msg)
+            System.out.println(e.getMessage());
             e.printStackTrace();
         }
 
