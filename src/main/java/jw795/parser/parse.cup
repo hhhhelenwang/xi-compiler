@@ -49,7 +49,7 @@ non terminal FunctionDefine funcDef;
 non terminal ArrayList<Use> useLst;
 non terminal ArrayList<FunProcArgs> optArgLst;
 non terminal ArrayList<FunProcArgs> argLst;
-non terminal funProcArgs argument;
+non terminal FunProcArgs argument;
 non terminal Type argRetType;
 
 // type
@@ -124,7 +124,7 @@ interface ::= procFuncDeclLst:f
 procFuncDeclLst ::= procFuncDecl:f optSemi procFuncDeclLst:d
     {: d.add(0, f); RESULT = d; :}
     | procFuncDecl:f
-    {: ArrayList<ProcFuncDecl> lst = new ArrayList<ProcFuncDecl>(); lst.add(f); Result = lst; :}
+    {: ArrayList<ProcFuncDecl> lst = new ArrayList<ProcFuncDecl>(); lst.add(f); RESULT = lst; :}
     ;
 
 procFuncDecl ::= ID:i LPAREN optArgLst:a RPAREN
@@ -140,7 +140,7 @@ optArgLst ::= argLst:a
     ;
 
 argLst ::= argument:a COMMA argLst:l
-    {: RESULT = l.add(0, a); :}
+    {: l.add(0, a); RESULT = l; :}
     | argument:a
     {: ArrayList<FunProcArgs> lst = new ArrayList<FunProcArgs>(); lst.add(a); RESULT = lst; :}
     ;
@@ -154,7 +154,7 @@ argRetType ::= INTTYPE:t
     | BOOLTYPE: t
     {: RESULT = new BoolType(t.left, t.right); :}
     | argRetType:t LBRACK RBRACK
-    {: RESULT = new ArrayType(t, t.left, t.right); :}
+    {: RESULT = new ArrayType(t, t.line, t.col); :}
     ;
 
 argRetTypeLst ::= argRetType:a COMMA argRetTypeLst:l
@@ -177,10 +177,10 @@ program ::= useLst:u definitionLst:d
         int c;
         if (u.isEmpty()) {
             l = d.get(0).line;
-            c = d.get(0).column;
+            c = d.get(0).col;
         } else {
             l = u.get(0).line;
-            c = u.get(0).column;
+            c = u.get(0).col;
         }
         RESULT = new Program(u, d, l, c);
     :}
@@ -219,7 +219,7 @@ global ::= ID:i COLON argRetType:t optSemi
     | ID:i COLON BOOLTYPE:t ASSIGN BOOL:b optSemi
     {:
         RESULT = new AssignStmt (
-            new GlobaDeclare(String.valueOf(i.value), new BoolType(t.left, t.right), i.left, i.right),
+            new GlobDeclare(String.valueOf(i.value), new BoolType(t.left, t.right), i.left, i.right),
             new BoolLiteral(Boolean.valueOf(b.value), b.left, b.right),
             i.left,
             i.right

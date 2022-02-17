@@ -8,7 +8,7 @@ import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 public class Use extends ASTNode {
     String interfaceName;
 
-    Use(String name, int line, int col) {
+    public Use(String name, int line, int col) {
         super(line, col);
         interfaceName = name;
     }
