@@ -1,8 +1,8 @@
 package jw795.parser;
 import java_cup.runtime.*;
 import jw795.ast.*;
-import jw795.util.ArrayList;
-import jw795.util.Optional;
+import java.util.ArrayList;
+import java.util.Optional;
 import jw795.lexer.lexer;
 
 //TODO: connect to lexer

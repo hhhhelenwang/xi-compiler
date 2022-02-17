@@ -5,6 +5,6 @@ cd $DIR
 jflex src/main/java/jw795/lexer/lex.jflex -d src/main/java/jw795/lexer
 # build parser from parser specification
 #java deps/java_cup.Main < src/main/java/jw795/parser/parse.cup
-java -cp deps/java_cup.jar java_cup.Main src/main/java/jw795/parser/parse.cup
+java -cp deps/java_cup.jar java_cup.Main -destdir src/main/java/jw795/parser src/main/java/jw795/parser/parse.cup
 # build project
 ./gradlew build
