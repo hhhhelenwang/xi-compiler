@@ -24,7 +24,7 @@ import java_cup.runtime.*;
 
 
 %{
-    enum TokenType {
+    public enum TokenType {
         // keywords
         USE,
         IF,

@@ -13,7 +13,7 @@ import java.util.List;
 public class LeftValueList extends ASTNode implements LValue{
     List<LValue> declares;
 
-    LeftValueList(List<LValue> variables, int line, int col) {
+    public LeftValueList(List<LValue> variables, int line, int col) {
         super(line, col);
         declares = variables;
     }

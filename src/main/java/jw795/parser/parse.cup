@@ -74,8 +74,10 @@ non terminal ProcCallStmt procCall;
 //non terminal VarDeclareStmt varDecl;
 //non terminal ArrayList<VarDeclareStmt> varDeclLst;
 // because wildcard and VarDeclareStmt are different types
-non terminal LValue varDecl;
-non terminal ArrayList<LValue> varDeclLst;
+non terminal VarDeclareStmt varDecl;
+non terminal WildCard wildcard;
+non terminal LValue lftValueMulti;
+non terminal ArrayList<LValue> lftValueMultiLst;
 
 // expressions
 non terminal Expr expr;
@@ -428,9 +430,10 @@ exprLst ::= expr:e COMMA exprLst:l
     {: ArrayList<Expr> lst = new ArrayList<Expr>(); lst.add(e); RESULT = lst; :}
     ;
 
-// multAssign ::= (varDecl*) ASSIGN funcCall
-// Note that only varDecl can be on the left of ASSIGN in multiple assignment.
-multAssign ::= varDeclLst:l ASSIGN funCall:f
+// multAssign ::= (lftValueMulti*) ASSIGN funcCall
+// lftValueMulti ::= varDecl | wildCard
+// Note that only lftValueMulti can be on the left of ASSIGN in multiple assignment.
+multAssign ::= lftValueMultiLst:l ASSIGN funCall:f
     {: int line = l.get(0).line;
        int col = l.get(0).col;
        LeftValueList lst = new LeftValueList(l, line, col);
@@ -438,14 +441,18 @@ multAssign ::= varDeclLst:l ASSIGN funCall:f
     :}
     ;
 
-varDeclLst ::= varDecl:v COMMA varDeclLst:l
+lftValueMultiLst ::= lftValueMulti:v COMMA lftValueMulti:lst
     {: l.add(0, v); RESULT = l; :}
-    | varDecl:v1 COMMA varDecl:v2
+    | lftValueMulti:v1 COMMA lftValueMulti:v2
     {: ArrayList<LValue> lst = new ArrayList<LValue>(); lst.add(v1); lst.add(v2); RESULT = lst; :}
     ;
 
+lftValueMulti ::= varDecl | wildCard;
+
 varDecl ::= ID:i COLON type:t
     {: RESULT = new VarDeclareStmt(String.valueOf(i.value), t, i.left, i.right);:}
-    | UNDERSCORE:u
+    ;
+
+wildCard ::= UNDERSCORE:u
     {: RESULT = new WildCard(u.left, u.right); :}
     ;
