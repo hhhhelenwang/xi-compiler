@@ -1,4 +1,4 @@
-package jw795.parser;
+//package jw795.parser;
 
 import java_cup.runtime.*;
 import jw795.ast.*;
@@ -353,47 +353,47 @@ returnStmt ::= RETURN exprLst:l optSemi
     ;
 
 expr ::= INT: i
-    {: RESULT = new IntLiteral(i.value); :}
+    {: RESULT = new IntLiteral(i.value, i.left, i.right); :}
     | BOOL: b
-    {: RESULT = new BoolLiteral(b.value); :}
+    {: RESULT = new BoolLiteral(b.value, b.left, b.right); :}
     | CHARLIT: c
-    {: RESULT = new CharLiteral(c.value); :}
+    {: RESULT = new CharLiteral(c.value, c.left, c.right); :}
     | STRINGLIT: s
-    {: ArrayList<String> lst = new ArrayList<>(); lst.add(s.value); RESULT = new ArrayExpr(lst, s.left, s.right); :}
-    | STRINGLIT:s LPAREN expr:e RPAREN
-    {: RESULT = new ArrIndexExpr(s, e); :}
+    {: RESULT = new StringLit(s.value, s.left, s.right); :}
+    | STRINGLIT:s LBRACK expr:e RBRACK
+    {: RESULT = new ArrIndexExpr(new StringLit (s.value, s.left, s.right), e, s.left, s.right); :}
     | LPAREN expr:e RPAREN
     {: RESULT = e; :}
-    | NOT expr:e
-    {: RESULT = new Not(e);:} %prec UNARY
+    | NOT:not expr:e
+    {: RESULT = new Not(e, not.left, not.right);:} %prec UNARY
     | expr:e1 MULT expr:e2
-    {: RESULT = new Mult(e1, e2);:}
+    {: RESULT = new Mult(e1, e2, e1.left, e1.right);:}
     | expr:e1 HIGHMULT expr:e2
-    {: RESULT = new HighMult(e1, e2);:}
+    {: RESULT = new HighMult(e1, e2, e1.left, e1.right);:}
     | expr:e1 DIV expr:e2
-    {: RESULT = new Div(e1, e2);:}
+    {: RESULT = new Div(e1, e2, e1.left, e1.right);:}
     | expr:e1 MOD expr:e2
-    {: RESULT = new Mod(e1, e2);:}
+    {: RESULT = new Mod(e1, e2, e1.left, e1.right);:}
     | expr:e1 ADD expr:e2
-    {: RESULT = new Add(e1, e2);:}
+    {: RESULT = new Add(e1, e2, e1.left, e1.right);:}
     | expr:e1 SUB expr:e2
-    {: RESULT = new Sub(e1, e2);:}
-    | SUB expr:e
-    {: RESULT = new IntNeg(e);:} %prec UNARY
+    {: RESULT = new Sub(e1, e2, e1.left, e1.right);:}
+    | SUB:sub expr:e
+    {: RESULT = new IntNeg(e, sub.left, sub.right);:} %prec UNARY
     | expr:e1 LT expr:e2
-    {: RESULT = new LessThan(e1, e2);:}
+    {: RESULT = new LessThan(e1, e2, e1.left, e1.right);:}
     | expr:e1 LEQ expr:e2
-    {: RESULT = new LessEq(e1, e2);:}
+    {: RESULT = new LessEq(e1, e2, e1.left, e1.right);:}
     | expr:e1 GEQ expr:e2
-    {: RESULT = new GreaterEq(e1, e2);:}
+    {: RESULT = new GreaterEq(e1, e2, e1.left, e1.right);:}
     | expr:e1 GT expr:e2
-    {: RESULT = new GreaterThan(e1, e2);:}
+    {: RESULT = new GreaterThan(e1, e2, e1.left, e1.right);:}
     | expr:e1 EQ expr:e2
-    {: RESULT = new Equal(e1, e2);:}
+    {: RESULT = new Equal(e1, e2, e1.left, e1.right);:}
     | expr:e1 NEQ expr:e2
-    {: RESULT = new NotEqual(e1, e2);:}
+    {: RESULT = new NotEqual(e1, e2, e1.left, e1.right);:}
     | expr:e1 AND expr:e2
-    {: RESULT = new And(e1, e2);:}
+    {: RESULT = new And(e1, e2, e1.left, e1.right);:}
     | expr:e1 OR:o expr:e2
-    {: RESULT = new Or(e1, e2, o.line);:}
+    {: RESULT = new Or(e1, e2, e1.left, e1.right);:}
     ;
