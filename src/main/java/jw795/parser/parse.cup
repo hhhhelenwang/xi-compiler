@@ -211,7 +211,7 @@ global ::= ID:i COLON argRetType:t optSemi
     {:
         RESULT = new AssignStmt (
             new GlobDeclare(String.valueOf(i.value), new IntType(t.left, t.right), i.left, i.right),
-            new IntLiteral(String.valueOf(n.value), n.left, n.right),
+            new IntLiteral((Integer)n.value, n.left, n.right),
             i.left,
             i.right
         );
@@ -220,7 +220,7 @@ global ::= ID:i COLON argRetType:t optSemi
     {:
         RESULT = new AssignStmt (
             new GlobDeclare(String.valueOf(i.value), new BoolType(t.left, t.right), i.left, i.right),
-            new BoolLiteral(Boolean.valueOf(b.value), b.left, b.right),
+            new BoolLiteral((Boolean)b.value, b.left, b.right),
             i.left,
             i.right
         );
@@ -352,11 +352,11 @@ arrAll ::= arrAll:a LBRACK expr:e RBRACK
     ;
 
 expr ::= INT: i
-    {: RESULT = new IntLiteral((int)i.value, i.left, i.right); :}
+    {: RESULT = new IntLiteral((Integer)i.value, i.left, i.right); :}
     | BOOL: b
-    {: RESULT = new BoolLiteral(b.value.booleanValue(), b.left, b.right); :}
+    {: RESULT = new BoolLiteral((Boolean)b.value, b.left, b.right); :}
     | CHARLIT: c
-    {: RESULT = new CharLiteral((char)c.value, c.left, c.right); :}
+    {: RESULT = new CharLiteral((Character)c.value, c.left, c.right); :}
     | STRINGLIT: s
     {: RESULT = new StringLit(String.valueOf(s.value), s.left, s.right); :}
     | STRINGLIT:s LBRACK expr:e RBRACK
