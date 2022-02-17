@@ -33,14 +33,20 @@ non terminal procedure;
 non terminal ArrayList<FunProcArgs> optArgLst;
 non terminal ArrayList<FunProcArgs> argLst;
 non terminal funProcArgs argument;
+non terminal Type argType;
+non terminal Type arrNone;
+non terminal Type arrSome;
+non terminal Type arrAll;
 non terminal ArrayList<Type> optTypeLst;
 non terminal ArrayList<Type> typeLst;
+non terminal Type primitiveType;
 non terminal Type type;
 
 non terminal BlockStmt blockStmt;
 non terminal ArrayList<Statement> stmtLst;
 non terminal Statement stmt;
 non terminal AssignStmt assign;
+non terminal AssignStmt multAssign;
 non terminal ReturnStmt returnStmt;
 non terminal IfStmt ifStmt;
 non terminal WhileStmt whileStmt;
@@ -62,6 +68,7 @@ non terminal optSemi;
 /* Precedences */
 precedence nonassoc IF;
 precedence nonassoc ELSE;
+precedence nonassoc ASSIGN;
 
 precedence left OR;
 precedence left AND;
@@ -70,7 +77,7 @@ precedence left LT, LEQ, GEQ, GT;
 precedence left ADD, SUB;
 precedence left MULT, HIGHMULT, DIV, MOD;
 precedence right UNARY;
-//precedence left LBRACK;
+precedence left LBRACK;
 
 /* The grammar rules */
 //This indicates which non-terminal is the start or goal non-terminal for parsing
@@ -161,49 +168,49 @@ argType ::= INTTYPE
     {: RESULT = new ArrayType(t); :}
     ;
 
-typeLst ::= type:t COMMA typeLst:l
-    {: RESULT = l.add(0, t); :}
-    | type:t
-    {: ArrayList<Type> lst = new ArrayList<Type>(); lst.add(t); RESULT = Optional.of(lst); :}
-    ;
-
 primitiveType ::= INT:i
     {: RESULT = new IntType(); :}
     | BOOL:b
     {: RESULT = new BoolType(); :}
     ;
 
-type ::= arr_none:a LBRACK RBRACK
+type ::= arrNone:a
     {: RESULT = new ArrayType(a, Optional.empty()); :}
-    | arr_some:a LBRACK RBRACK
+    | arrSome:a
     {: RESULT = new ArrayType(a, Optional.empty()); :}
-    | arr_all:a
+    | arrAll:a
     {: RESULT = a; :}
     ;
 
-arr_none ::= arr_none:a LBRACK RBRACK
+arrNone ::= arrNone:a LBRACK RBRACK
     {: RESULT = new ArrayType(a, Optional.empty()); :}
-    | primitiveType:p
+    | primitiveType:p LBRACK RBRACK
     {: RESULT = p; :}
     ;
 
-arr_some ::= arr_some:a LBRACK RBRACK
+arrSome ::= arrSome:a LBRACK RBRACK
     {: RESULT = new ArrayType(a, Optional.empty()); :}
-    | arr_all:a
+    | arrAll:a LBRACK RBRACK
     {: RESULT = a; :}
     ;
 
-arr_all ::= arr_all:a LBRACK expr:e RBRACK
+arrAll ::= arrAll:a LBRACK expr:e RBRACK
     {: RESULT = new ArrayType(a, Optional.of(e)); :}
     | primitiveType:p
     {: RESULT = p; :}
+    ;
+
+typeLst ::= type:t COMMA typeLst:l
+    {: RESULT = l.add(0, t); :}
+    | type:t
+    {: ArrayList<Type> lst = new ArrayList<Type>(); lst.add(t); RESULT = Optional.of(lst); :}
     ;
 
 blockStmt ::= LBRACE stmtLst:s RBRACE
     {: RESULT = new BlockStmt(s); :}
     | LBRACE stmtLst:s returnStmt:r RBRACE
     {: s.add(r); RESULT = new BlockStmt(s); :}
-    | // empty block
+    | LBRACE RBRACE
     {: ArrayList<Statement> lst = new ArrayList<Statement>(); Result = new BlockStmt(lst); :}
     ;
 
@@ -214,6 +221,8 @@ stmtLst ::= stmt:s optSemi stmtLst:l
     ;
 
 stmt ::= assign:s
+    {: RESULT = s; :}
+    |multAssign:s
     {: RESULT = s; :}
     | ifStmt:s
     {: RESULT = s; :}
@@ -227,35 +236,34 @@ stmt ::= assign:s
     {: RESULT = s; :}
     ;
 
-assign ::= optlftValueLst:v ASSIGN expr:e
+assign ::= lftValue:v ASSIGN expr:e
     {: RESULT = new AssignStmt(v, e); :}
-    ;
-
-optlftValueLst ::= lftValue:v optlftValueLst:l
-    {: ArrayList<LValue> lst = new ArrayList<LValue>(); lst.add(v); RESULT = lst; :}
-    | lftValue:v
-    {: RESULT = v; :}
     ;
 
 lftValue ::= ID:i
     {: RESULT = new VarExpr(i.value); :}
-    | varDeclLst:v
+    | varDecl:v
     {: RESULT = v; :}
-    | UNDERSCORE
-    {: RESULT = null;:}
     | arrIndexExpr:a
     {: RESULT = a; :}
     ;
 
-//variable declaration
-varDeclLst ::= varDecl:v COMMA varDeclLst:l
-    {: l.add(0, v); :}
-    | varDecl:v
-    {: ArrayList<varDecl> lst = new ArrayList<varDecl>(); lst.add(v); RESULT = lst; :}
+varDecl ::= ID:i COLON type:t
+    {: RESULT = new VarDeclareStmt(i, t);:}
+    | UNDERSCORE
+    {: RESULT = new WildCard(); :}
     ;
 
-varDecl ::= ID:i COLON type:t
-    {: RESULT = new VarDeclareStmt(i, t);:};
+multAssign ::= varDeclLst:l ASSIGN funCall:f
+    {: RESULT = new AssignStmt(new LeftValueList(l), f); :}
+    ;
+
+//variable declaration
+varDeclLst ::= varDecl:v COMMA varDeclLst:l
+    {: l.add(0, v); RESULT = l; :}
+    | varDecl:v1 COMMA varDecl:v2
+    {: ArrayList<LValue> lst = new ArrayList<LValue>(); lst.add(v1); lst.add(v2); RESULT = lst; :}
+    ;
 
 arrIndexExpr ::= ID:i LBRACK expr:e RBRACK
     {: RESULT = new ArrIndexExpr(i.value, e); :}
@@ -303,8 +311,7 @@ returnStmt ::= RETURN exprLst:l optSemi
     {: RESULT = new ReturnStmt(l); :}
     ;
 
-expr ::=
-    | INT: i
+expr ::= INT: i
     {: RESULT = new IntLinteral(i); :}
     | BOOL: b
     {: RESULT = new BoolLiteral(b); :}
