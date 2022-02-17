@@ -16,7 +16,7 @@ parser code
     {:
         public void syntax_error(java_cup.runtime.Symbol cur) {
             throw new RuntimeException(String.format( "%d:%d error: unexpected `%s`", cur.left, cur.right,
-                  LexerAdapter.tokenTypeToString(Lexer.TokenType.values()[cur.sym])));
+                  LexerAdapter.tokenTypeToString(cur.sym)));
         }
     :}
     ;

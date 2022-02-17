@@ -9,6 +9,8 @@ import java.io.FileWriter;
 import jw795.lexer.Lexer.TokenType;
 import java_cup.runtime.Symbol;
 
+import jw795.parser.sym;
+
 /**
  * An adapter class that connects the main class Compiler.class the Lexer.class generated using JFlex. Takes
  * in a reader that reads user-provided source file, the filename for the file, and the path to put the lexed
@@ -88,9 +90,9 @@ public class LexerAdapter {
                 line.append(":");
                 line.append(t.right+1);
                 line.append(" ");
-                line.append(tokenTypeToString(TokenType.values()[t.sym]));
+                line.append(tokenTypeToString(t.sym));
                 if (t.value != null){
-                    if (TokenType.values()[t.sym].toString().equals("ERROR")){
+                    if (tokenTypeToString(t.sym).equals("error")){
                         //follow the specification of error output
                         line.append(":");
                     } else {
@@ -113,140 +115,140 @@ public class LexerAdapter {
      * @param tokenType the type of token as defined in Lexer.class
      * @return the appropriate string representation for a tokenType
      */
-    public static String tokenTypeToString(TokenType tokenType){
+    public static String tokenTypeToString(int tokenType){
         String res;
         switch(tokenType) {
-            case USE:
+            case sym.USE:
                 res = "use";
                 break;
-            case IF:
+            case sym.IF:
                 res = "if";
                 break;
-            case WHILE:
+            case sym.WHILE:
                 res = "while";
                 break;
-            case ELSE:
+            case sym.ELSE:
                 res = "else";
                 break;
-            case RETURN:
+            case sym.RETURN:
                 res = "return";
                 break;
-            case LENGTH:
+            case sym.LENGTH:
                 res = "length";
                 break;
-            case INTTYPE:
+            case sym.INTTYPE:
                 res = "int";
                 break;
-            case BOOLTYPE:
+            case sym.BOOLTYPE:
                 res = "bool";
                 break;
 
-            case INT:
+            case sym.INT:
                 res = "integer";
                 break;
-            case BOOL:
+            case sym.BOOL:
                 res = "boolean";
                 break;
-            case CHARLIT:
+            case sym.CHARLIT:
                 res = "character";
                 break;
-            case STRINGLIT:
+            case sym.STRINGLIT:
                 res = "string";
                 break;
-            case ID:
+            case sym.ID:
                 res = "id";
                 break;
-            case NOT:
+            case sym.NOT:
                 res = "!";
                 break;
-            case MULT:
+            case sym.MULT:
                 res = "*";
                 break;
-            case HIGHMULT:
+            case sym.HIGHMULT:
                 res = "*>>";
                 break;
 
-            case DIV:
+            case sym.DIV:
                 res = "/";
                 break;
-            case MOD:
+            case sym.MOD:
                 res = "%";
                 break;
-            case ADD:
+            case sym.ADD:
                 res = "+";
                 break;
-            case SUB:
+            case sym.SUB:
                 res = "-";
                 break;
-            case LT:
+            case sym.LT:
                 res = "<";
                 break;
-            case LEQ:
+            case sym.LEQ:
                 res = "<=";
                 break;
-            case GEQ:
+            case sym.GEQ:
                 res = ">=";
                 break;
-            case GT:
+            case sym.GT:
                 res = ">";
                 break;
 
-            case EQ:
+            case sym.EQ:
                 res = "==";
                 break;
-            case NEQ:
+            case sym.NEQ:
                 res = "!=";
                 break;
-            case AND:
+            case sym.AND:
                 res = "&";
                 break;
-            case OR:
+            case sym.OR:
                 res = "|";
                 break;
-            case COLON:
+            case sym.COLON:
                 res = ":";
                 break;
-            case ASSIGN:
+            case sym.ASSIGN:
                 res = "=";
                 break;
-            case LPAREN:
+            case sym.LPAREN:
                 res = "(";
                 break;
-            case RPAREN:
+            case sym.RPAREN:
                 res = ")";
                 break;
 
-            case LBRACK:
+            case sym.LBRACK:
                 res = "[";
                 break;
-            case RBRACK:
+            case sym.RBRACK:
                 res = "]";
                 break;
-            case LBRACE:
+            case sym.LBRACE:
                 res = "{";
                 break;
-            case RBRACE:
+            case sym.RBRACE:
                 res = "}";
                 break;
-            case COMMA:
+            case sym.COMMA:
                 res = ",";
                 break;
-            case SEMICOLON:
+            case sym.SEMICOLON:
                 res = ";";
                 break;
-            case UNDERSCORE:
+            case sym.UNDERSCORE:
                 res = "_";
                 break;
 
-            case ERROR:
+            case sym.error:
                 res = "error";
                 break;
 
-            case INTERFACE_FILE:
+            case sym.INTERFACE_FILE:
                 res = "interface";
                 break;
 
-            case PROGRAM_FILE:
+            case sym.PROGRAM_FILE:
                 res = "program";
                 break;
 
