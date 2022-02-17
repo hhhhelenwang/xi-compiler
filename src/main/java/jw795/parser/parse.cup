@@ -99,13 +99,10 @@ precedence left LBRACK;
 
 /* The grammar rules */
 
-
-
 /**
 * ===== FILE PROCESSING ====
-* A file can be either a program file or an interface file
+* A file can be either a program file or an interface file. A Symbol is used to indicate which file it is.
 */
-
 start with file;
 
 file ::= INTERFACE_FILE interface:i
@@ -293,14 +290,14 @@ stmt ::= ifStmt:s
     {: RESULT = s; :}
     ;
 
-whileStmt ::= WHILE:w expr:e stmt:s
-    {: RESULT = new WhileStmt(e, s, w.left, w.right); :}
-    ;
-
 ifStmt ::= IF:i expr:e stmt:s
     {: RESULT = new IfStmt(e, s, i.left, i.right);:}
     | IF:i expr:e stmt:s1 ELSE stmt:s2
     {: RESULT = new IfElseStmt(e, s1, s2, i.left, i.right); :}
+    ;
+
+whileStmt ::= WHILE:w expr:e stmt:s
+    {: RESULT = new WhileStmt(e, s, w.left, w.right); :}
     ;
 
 procCall ::= ID:i LPAREN exprLst:a RPAREN
@@ -309,6 +306,7 @@ procCall ::= ID:i LPAREN exprLst:a RPAREN
     {: RESULT = new ProcCallStmt(String.valueOf(i.value), new ArrayList<Expr>(), i.left, i.right); :}
     ;
 
+// Single Assignment is defined as Assign ::= (ID | varDecl | arrIndexExpr) ASSIGN expr
 assign ::= lftValue:v ASSIGN expr:e
     {: RESULT = new AssignStmt(v, e, v.left, v.right); :}
     ;
@@ -319,12 +317,6 @@ lftValue ::= ID:i
     {: RESULT = v; :}
     | arrIndexExpr:a
     {: RESULT = a; :}
-    ;
-
-varDecl ::= ID:i COLON type:t
-    {: RESULT = new VarDeclareStmt(String.valueOf(i.value), t, i.left, i.right);:}
-    | UNDERSCORE:u
-    {: RESULT = new WildCard(u.left, u.right); :}
     ;
 
 type ::= arrNone:a
@@ -432,6 +424,8 @@ exprLst ::= expr:e COMMA exprLst:l
     {: ArrayList<Expr> lst = new ArrayList<Expr>(); lst.add(e); RESULT = lst; :}
     ;
 
+// multAssign ::= (varDecl*) ASSIGN funcCall
+// Note that only varDecl can be on the left of ASSIGN in multiple assignment.
 multAssign ::= varDeclLst:l ASSIGN funCall:f
     {: int line = l.get(0).line;
        int col = l.get(0).col;
@@ -444,4 +438,10 @@ varDeclLst ::= varDecl:v COMMA varDeclLst:l
     {: l.add(0, v); RESULT = l; :}
     | varDecl:v1 COMMA varDecl:v2
     {: ArrayList<VarDeclareStmt> lst = new ArrayList<VarDeclareStmt>(); lst.add(v1); lst.add(v2); RESULT = lst; :}
+    ;
+
+varDecl ::= ID:i COLON type:t
+    {: RESULT = new VarDeclareStmt(String.valueOf(i.value), t, i.left, i.right);:}
+    | UNDERSCORE:u
+    {: RESULT = new WildCard(u.left, u.right); :}
     ;
