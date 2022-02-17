@@ -23,7 +23,7 @@ public class LexerAdapter {
     /**
      * Create an instance of LexerAdapter
      * @param reader a reader to read the source file
-     * @param filename filename to the source file
+     * @param name filename to the source file
      * @param path path to put the diagnostice file in
      */
     public LexerAdapter (Reader reader, String name , String path) {

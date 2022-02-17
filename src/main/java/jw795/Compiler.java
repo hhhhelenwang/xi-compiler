@@ -69,7 +69,6 @@ public class Compiler {
         try {
             // Generate token file
             Reader reader = new FileReader(fileName);
-//            fileName = path + "/" + fileName;
             LexerAdapter lexerAdapt = new LexerAdapter(reader, fileName, path);
             lexerAdapt.generateTokens();
         } catch (FileNotFoundException e) {
@@ -112,9 +111,8 @@ public class Compiler {
         try {
             // Generate token file
             Reader reader = new FileReader(fileName);
-//            fileName = path + "/" + fileName;
             ParserAdapter parserAdapt = new ParserAdapter(reader, fileName, path);
-            parserAdapt.generatesyntree();
+            parserAdapt.generateAST();
         } catch (FileNotFoundException e) {
             System.out.println(fileName + ": " + " " + "File not found.");
         }
