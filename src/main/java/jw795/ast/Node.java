@@ -8,6 +8,13 @@ import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 public interface Node {
 
     /**
+     * Getter methods for line and column.
+     */
+    int getLine();
+
+    int getCol();
+
+    /**
      * Pretty Print method for node.
      */
     void prettyPrint(CodeWriterSExpPrinter printer);

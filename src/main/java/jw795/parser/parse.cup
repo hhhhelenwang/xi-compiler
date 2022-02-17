@@ -15,7 +15,7 @@ parser code
     {:
         public void syntax_error(java_cup.runtime.Symbol cur) {
             throw new RuntimeException(String.format( "%d:%d error: unexpected `%s`", cur.left, cur.right,
-                  lexer.LexerAdapter.tokenTypeToString(Lexer.TokenType.values()[cur.sym])));
+                  LexerAdapter.tokenTypeToString(Lexer.TokenType.values()[cur.sym])));
         }
     :}
     ;
@@ -74,15 +74,13 @@ non terminal ProcCallStmt procCall;
 //non terminal VarDeclareStmt varDecl;
 //non terminal ArrayList<VarDeclareStmt> varDeclLst;
 // because wildcard and VarDeclareStmt are different types
-non terminal VarDeclareStmt varDecl;
-non terminal WildCard wildcard;
-non terminal LValue lftValueMulti;
-non terminal ArrayList<LValue> lftValueMultiLst;
+non terminal LValue varDecl;
+non terminal ArrayList<LValue> varDeclLst;
 
 // expressions
 non terminal Expr expr;
 non terminal ArrayList<Expr> exprLst;
-non terminal lftValue;
+non terminal LValue lftValue;
 non terminal ArrIndexExpr arrIndexExpr;
 non terminal FunCallExpr funCall;
 
@@ -122,8 +120,8 @@ file ::= INTERFACE_FILE interface:i
 * The general syntax of an interface is defined as interface ::= ((procFuncDec∗))
 */
 interface ::= procFuncDeclLst:f
-    {: int line = f.get(0).line;
-       int col = f.get(0).col;
+    {: int line = f.get(0).getLine();
+       int col = f.get(0).getCol();
        RESULT = new Interface(f, line, col); :}
     ;
 
@@ -160,7 +158,7 @@ argRetType ::= INTTYPE:t
     | BOOLTYPE: t
     {: RESULT = new BoolType(t.left, t.right); :}
     | argRetType:t LBRACK RBRACK
-    {: RESULT = new ArrayType(t, t.line, t.col); :}
+    {: RESULT = new ArrayType(t, t.getLine(), t.getCol()); :}
     ;
 
 argRetTypeLst ::= argRetType:a COMMA argRetTypeLst:l
@@ -182,11 +180,11 @@ program ::= useLst:u definitionLst:d
         int l;
         int c;
         if (u.isEmpty()) {
-            l = d.get(0).line;
-            c = d.get(0).col;
+            l = d.get(0).getLine();
+            c = d.get(0).getCol();
         } else {
-            l = u.get(0).line;
-            c = u.get(0).col;
+            l = u.get(0).getLine();
+            c = u.get(0).getCol();
         }
         RESULT = new Program(u, d, l, c);
     :}
@@ -314,7 +312,7 @@ procCall ::= ID:i LPAREN exprLst:a RPAREN
 
 // Single Assignment is defined as Assign ::= (ID | varDecl | arrIndexExpr) ASSIGN expr
 assign ::= lftValue:v ASSIGN expr:e
-    {: RESULT = new AssignStmt(v, e, v.left, v.right); :}
+    {: RESULT = new AssignStmt(v, e, v.getLine(), v.getCol()); :}
     ;
 
 lftValue ::= ID:i
@@ -326,15 +324,15 @@ lftValue ::= ID:i
     ;
 
 type ::= arrNone:a
-    {: RESULT = new ArrayType(a, a.line, a.col); :}
+    {: RESULT = new ArrayType(a, a.getLine(), a.getCol()); :}
     | arrSome:a
-    {: RESULT = new ArrayType(a, a.line, a.col); :}
+    {: RESULT = new ArrayType(a, a.getLine(), a.getCol()); :}
     | arrAll:a
     {: RESULT = a; :}
     ;
 
 arrNone ::= arrNone:a LBRACK RBRACK
-    {: RESULT = new ArrayType(a, a.line, a.col); :}
+    {: RESULT = new ArrayType(a, a.getLine(), a.getCol()); :}
     | primitiveType:p LBRACK RBRACK
     {: RESULT = p; :}
     ;
@@ -346,13 +344,13 @@ primitiveType ::= INTTYPE:i
     ;
 
 arrSome ::= arrSome:a LBRACK RBRACK
-    {: RESULT = new ArrayType(a, a.line, a.col); :}
+    {: RESULT = new ArrayType(a, a.getLine(), a.getCol()); :}
     | arrAll:a LBRACK RBRACK
     {: RESULT = a; :}
     ;
 
 arrAll ::= arrAll:a LBRACK expr:e RBRACK
-    {: RESULT = new ArrayType(a, e, a.line, a.col); :}
+    {: RESULT = new ArrayType(a, e, a.getLine(), a.getCol()); :}
     | primitiveType:p
     {: RESULT = p; :}
     ;
@@ -372,35 +370,35 @@ expr ::= INT: i
     | NOT:not expr:e
     {: RESULT = new Not(e, not.left, not.right);:} %prec UNARY
     | expr:e1 MULT expr:e2
-    {: RESULT = new Mult(e1, e2, e1.left(), e1.right());:}
+    {: RESULT = new Mult(e1, e2, e1.getLine(), e1.getCol());:}
     | expr:e1 HIGHMULT expr:e2
-    {: RESULT = new HighMult(e1, e2, e1.left(), e1.right());:}
+    {: RESULT = new HighMult(e1, e2, e1.getLine(), e1.getCol());:}
     | expr:e1 DIV expr:e2
-    {: RESULT = new Div(e1, e2, e1.left(), e1.right());:}
+    {: RESULT = new Div(e1, e2, e1.getLine(), e1.getCol());:}
     | expr:e1 MOD expr:e2
-    {: RESULT = new Mod(e1, e2, e1.left(), e1.right());:}
+    {: RESULT = new Mod(e1, e2, e1.getLine(), e1.getCol());:}
     | expr:e1 ADD expr:e2
-    {: RESULT = new Add(e1, e2, e1.left(), e1.right());:}
+    {: RESULT = new Add(e1, e2, e1.getLine(), e1.getCol());:}
     | expr:e1 SUB expr:e2
-    {: RESULT = new Sub(e1, e2, e1.left(), e1.right());:}
+    {: RESULT = new Sub(e1, e2, e1.getLine(), e1.getCol());:}
     | SUB:sub expr:e
     {: RESULT = new IntNeg(e, sub.left, sub.right);:} %prec UNARY
     | expr:e1 LT expr:e2
-    {: RESULT = new LessThan(e1, e2, e1.left(), e1.right());:}
+    {: RESULT = new LessThan(e1, e2, e1.getLine(), e1.getCol());:}
     | expr:e1 LEQ expr:e2
-    {: RESULT = new LessEq(e1, e2, e1.left(), e1.right());:}
+    {: RESULT = new LessEq(e1, e2, e1.getLine(), e1.getCol());:}
     | expr:e1 GEQ expr:e2
-    {: RESULT = new GreaterEq(e1, e2, e1.left(), e1.right());:}
+    {: RESULT = new GreaterEq(e1, e2, e1.getLine(), e1.getCol());:}
     | expr:e1 GT expr:e2
-    {: RESULT = new GreaterThan(e1, e2, e1.left(), e1.right());:}
+    {: RESULT = new GreaterThan(e1, e2, e1.getLine(), e1.getCol());:}
     | expr:e1 EQ expr:e2
-    {: RESULT = new Equal(e1, e2, e1.left(), e1.right());:}
+    {: RESULT = new Equal(e1, e2, e1.getLine(), e1.getCol());:}
     | expr:e1 NEQ expr:e2
-    {: RESULT = new NotEqual(e1, e2, e1.left(), e1.right());:}
+    {: RESULT = new NotEqual(e1, e2, e1.getLine(), e1.getCol());:}
     | expr:e1 AND expr:e2
-    {: RESULT = new And(e1, e2, e1.left(), e1.right());:}
+    {: RESULT = new And(e1, e2, e1.getLine(), e1.getCol());:}
     | expr:e1 OR expr:e2
-    {: RESULT = new Or(e1, e2, e1.left(), e1.right());:}
+    {: RESULT = new Or(e1, e2, e1.getLine(), e1.getCol());:}
     ;
 
 arrIndexExpr ::= ID:i LBRACK expr:e RBRACK
@@ -409,9 +407,9 @@ arrIndexExpr ::= ID:i LBRACK expr:e RBRACK
         RESULT = new ArrIndexExpr(expr, e, i.left, i.right);
     :}
     | funCall:f LBRACK expr:e RBRACK
-    {: RESULT = new ArrIndexExpr(f, e, f.left(), f.right()); :}
+    {: RESULT = new ArrIndexExpr(f, e, f.getLine(), f.getCol()); :}
     | arrIndexExpr:a LBRACK expr:e RBRACK
-    {: RESULT = new ArrIndexExpr(a, e, a.line, a.col); :}
+    {: RESULT = new ArrIndexExpr(a, e, a.getLine(), a.getCol()); :}
     ;
 
 funCall ::= ID:i LPAREN exprLst:e RPAREN
@@ -430,29 +428,23 @@ exprLst ::= expr:e COMMA exprLst:l
     {: ArrayList<Expr> lst = new ArrayList<Expr>(); lst.add(e); RESULT = lst; :}
     ;
 
-// multAssign ::= (lftValueMulti*) ASSIGN funcCall
-// lftValueMulti ::= varDecl | wildCard
-// Note that only lftValueMulti can be on the left of ASSIGN in multiple assignment.
-multAssign ::= lftValueMultiLst:l ASSIGN funCall:f
-    {: int line = l.get(0).line;
-       int col = l.get(0).col;
-       LeftValueList lst = new LeftValueList(l, line, col);
-       RESULT = new AssignStmt(lst, f, line, col);
+// multAssign ::= (varDecl*) ASSIGN funcCall
+// Note that only varDecl can be on the left of ASSIGN in multiple assignment.
+multAssign ::= varDeclLst:l ASSIGN funCall:f
+    {:
+        int line = l.get(0).getLine();
+        int col = l.get(0).getCol();
+        LeftValueList lst = new LeftValueList(l, line, col);
+        RESULT = new AssignStmt(lst, f, line, col);
     :}
     ;
-
-lftValueMultiLst ::= lftValueMulti:v COMMA lftValueMulti:lst
+varDeclLst ::= varDecl:v COMMA varDeclLst:l
     {: l.add(0, v); RESULT = l; :}
-    | lftValueMulti:v1 COMMA lftValueMulti:v2
+    | varDecl:v1 COMMA varDecl:v2
     {: ArrayList<LValue> lst = new ArrayList<LValue>(); lst.add(v1); lst.add(v2); RESULT = lst; :}
     ;
-
-lftValueMulti ::= varDecl | wildCard;
-
 varDecl ::= ID:i COLON type:t
     {: RESULT = new VarDeclareStmt(String.valueOf(i.value), t, i.left, i.right);:}
-    ;
-
-wildCard ::= UNDERSCORE:u
+    | UNDERSCORE:u
     {: RESULT = new WildCard(u.left, u.right); :}
     ;

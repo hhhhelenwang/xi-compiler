@@ -5,13 +5,6 @@ package jw795.ast;
  * All expressions implements this interface.
  */
 public abstract class Expr extends ASTNode {
-    public int left() {
-        return line;
-    }
-
-    public int right() {
-        return col;
-    }
 
     Expr(int li, int co) {
         super(li, co);
