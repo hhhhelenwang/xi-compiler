@@ -11,16 +11,16 @@ public class ArrayType extends Type {
     Type elemType;
     Optional<Expr> length;
 
-    ArrayType(Type type, int line, int col) {
+    public ArrayType(Type type, int line, int col) {
         super(line, col);
-        elemType = type;
         length = Optional.empty();
+        elemType = type;
     }
 
-    ArrayType(Type type, Expr len, int line, int col) {
+    public ArrayType(Type type, Expr len, int line, int col) {
         super(line, col);
-        elemType = type;
         length = Optional.of(len);
+        elemType = type;
     }
 
     @Override
