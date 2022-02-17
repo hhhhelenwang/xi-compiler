@@ -25,7 +25,11 @@ non terminal ArrayList<FunctionDeclare> funcDeclLst;
 non terminal FunctionDecl funcDecl;
 
 non terminal Program program;
-non terminal ArrayList<FunctionDefine> funcDefLst;
+//non terminal ArrayList<FunctionDefine> funcDefLst;
+non terminal ArrayList<Definition> definitionLst;
+non terminal ArrayList<Definition> optGlobalLst;
+non terminal ArrayList<Definition> optDefinitionLst;
+non terminal Definition global;
 non terminal FunctionDefine funcDef;
 non terminal ArrayList<Use> useLst;
 
@@ -106,32 +110,31 @@ program ::= useLst:u definitionLst:d
 
 //definition ::= method | globdecl
 definitionLst ::= optGlobalLst:gl funcDef:f optDefinitionLst:dl
-    {: :}
+    {: gl.add(f); gl.addAll(dl); RESULT = gl; :}
     ;
 
-optGlobalLst ::= globalDef:g optGlobalLst:lst
-    {:  :}
-    |
-    {::}
+optGlobalLst ::= global:g optGlobalLst:lst
+    {: lst.add(0, g); RESULT = lst; :}
+    | // no more global variables before the first function definition in the program
+    {: RESULT = new ArrayList<Definition>(); :}
     ;
 
-optDefinitionLst ::= globalDef:g optDefinitionLst:lst
-    {:  :}
+optDefinitionLst ::= global:g optDefinitionLst:lst
+    {: lst.add(0, g); RESULT = lst; :}
     | funcDef:f optDefinitionLst:lst
-    {:  :}
-    |
-    {::}
-;
-
-
-globDeclLst ::= globDeclLst:lst  globDecl:g
-    {: lst.add(g); RESULT = lst; :}
-    | globDecl:g
-    {: ArrayLst<GlobDeclare> lst = new ArrayList<GlobDeclare>(); lst.add(g); RESULT = g; :}
+    {: lst.add(0, f); RESULT = lst; :}
+    | //no more definition in the program
+    {: RESULT = new ArrayList<Definition>(); :}
     ;
 
-//globdecl ::= (:global hidi type) | (:global hidi type hvaluei)
-//globDecl ::=
+
+global ::= ID:i COLON primitiveType:t optSemi
+    {: RESULT = new GlobaDeclare(i.value, t) :}
+    | ID:i COLON INTTYPE ASSIGN INT:n optSemi
+    {: RESULT = new AssignStmt (new GlobaDeclare(i.value, new IntType()), new IntLiteral(n.value)); :}
+    | ID:i COLON BOOLTYPE ASSIGN BOOL:b optSemi
+    {: RESULT = new AssignStmt (new GlobaDeclare(i.value, new BoolType()), new BoolLiteral(b.value)); :}
+    ;
 
 useLst ::= useLst:ul USE ID:i optSemi
     {: ul.add(new Use(i)); RESULT = ul; :}
@@ -139,11 +142,11 @@ useLst ::= useLst:ul USE ID:i optSemi
     {: RESULT = new ArrayList<Use>(); :}
     ;
 
-funcDefLst ::= funcDef:f funcDefLst:dl
-    {: dl.add(f); RESULT = dl; :}
-    | funcDef:f
-    {: ArrayList<FunctionDefine> lst = new ArrayList<>(FunctionDefine); lst.add(f); RESULT = lst;:}
-    ;
+//funcDefLst ::= funcDef:f funcDefLst:dl
+//    {: dl.add(f); RESULT = dl; :}
+//    | funcDef:f
+//    {: ArrayList<FunctionDefine> lst = new ArrayList<>(FunctionDefine); lst.add(f); RESULT = lst;:}
+//    ;
 
 funcDef ::= function:f
     {: RESULT = f; :}
@@ -161,13 +164,14 @@ procedure ::= ID LPAREN optArgLst:a RPAREN blockStmt:b
 
 //An interface contains a nonempty set of procedure and function declaration without implementation
 interface ::= funcDeclLst:f
-    {:RESULT = new Interface(f); :}
+    {: RESULT = new Interface(f); :}
     ;
 
 funcDeclLst ::= funcDecl:f funcDeclLst:d
     {: RESULT = d.add(0, f); :}
     | funcDecl:f
-    {: ArrayList<FunctionDeclare> lst = new ArrayList<FunctionDeclare>(); lst.add(f); Result = lst; :} ;
+    {: ArrayList<FunctionDeclare> lst = new ArrayList<FunctionDeclare>(); lst.add(f); Result = lst; :}
+    ;
 
 funcDecl ::= ID:i LPAREN optArgLst:a RPAREN COLON typeLst:t
     {: RESULT = new FunctionDeclare(i.value, a, t); :}
@@ -199,9 +203,9 @@ argType ::= INTTYPE
     {: RESULT = new ArrayType(t); :}
     ;
 
-primitiveType ::= INT:i
+primitiveType ::= INTTYPE:i
     {: RESULT = new IntType(); :}
-    | BOOL:b
+    | BOOLTYPE:b
     {: RESULT = new BoolType(); :}
     ;
 
@@ -322,16 +326,16 @@ ifStmt ::= IF expr:e stmt:s
     | IF LPAREN expr:e RPAREN stmt:s
     {: RESULT = new ifStmt(e, s);:}
     | IF expr:e stmt:s1 ELSE stmt:s2
-    {: RESULT = new ifStmt(e, s1, s2);:}
+    {: RESULT = new ifStmt(e, s1, s2); :}
     | IF LPAREN expr:e RPAREN stmt:s1 ELSE stmt:s2
-    {: RESULT = new ifStmt(e, s1, s2);:}
+    {: RESULT = new ifStmt(e, s1, s2); :}
     ; /// ifStmt constructer
 
 //OR if and while statements
 whileStmt ::= WHILE expr:e stmt:s
-    {: RESULT = new WhileStmt(e, s);:}
+    {: RESULT = new WhileStmt(e, s); :}
     |WHILE LPAREN expr:e RPAREN stmt:s
-    {: RESULT = new WhileStmt(e, s);:}
+    {: RESULT = new WhileStmt(e, s); :}
     ;
 
 procCall ::= ID:i LPAREN exprLst:a RPAREN
@@ -345,13 +349,17 @@ returnStmt ::= RETURN exprLst:l optSemi
     ;
 
 expr ::= INT: i
-    {: RESULT = new IntLinteral(i); :}
+    {: RESULT = new IntLiteral(i.value); :}
     | BOOL: b
-    {: RESULT = new BoolLiteral(b); :}
+    {: RESULT = new BoolLiteral(b.value); :}
     | CHARLIT: c
-    {: RESULT = new CharLiteral(c); :}
+    {: RESULT = new CharLiteral(c.value); :}
     | STRINGLIT: s
     {: ArrayList<String> lst = new ArrayList<>(); lst.add(s.value); RESULT = new ArrayExpr(lst, s.left, s.right); :}
+    | STRINGLIT:s LPAREN expr:e RPAREN
+    {: RESULT = new ArrIndexExpr(s, e); :}
+    | LPAREN expr:e RPAREN
+    {: RESULT = e; :}
     | NOT expr:e
     {: RESULT = new Not(e);:} %prec UNARY
     | expr:e1 MULT expr:e2
