@@ -241,6 +241,15 @@ public class LexerAdapter {
             case ERROR:
                 res = "error";
                 break;
+
+            case INTERFACE_FILE:
+                res = "interface";
+                break;
+
+            case PROGRAM_FILE:
+                res = "program";
+                break;
+
             default: res = "Invalid Token Type";
                 break;
         }

@@ -5,6 +5,3 @@ foo(){
     gce(a,b,c,d)
 
 }
-unparseInt(n: int): int[]
-unparseInt(n: int, e:bool, f:int[][]): int[]
-readln() : int[]
