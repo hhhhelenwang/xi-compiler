@@ -1,4 +1,4 @@
-//package jw795.parser;
+package jw795.parser;
 
 import java_cup.runtime.*;
 import jw795.ast.*;
@@ -7,14 +7,14 @@ import java.util.Optional;
 import jw795.lexer.Lexer;
 import jw795.lexer.LexerAdapter;
 
-//parser code
-//    {:
-//        public void syntax_error(java_cup.runtime.Symbol cur) {
-//            throw new RuntimeException(String.format( "%d:%d error: unexpected `%s`", cur.left, cur.right,
-//                  lexer.LexerAdapter.tokenTypeToString(Lexer.TokenType.values()[cur.sym])));
-//        }
-//    :}
-//    ;
+parser code
+    {:
+        public void syntax_error(java_cup.runtime.Symbol cur) {
+            throw new RuntimeException(String.format( "%d:%d error: unexpected `%s`", cur.left, cur.right,
+                  lexer.LexerAdapter.tokenTypeToString(Lexer.TokenType.values()[cur.sym])));
+        }
+    :}
+    ;
 
 /* Terminals */
 terminal    Symbol   USE, IF, WHILE, ELSE, RETURN, LENGTH, NOT, MULT, HIGHMULT, DIV, MOD, ADD, SUB, LT, LEQ, GEQ, GT,
@@ -31,23 +31,18 @@ non terminal file;
 non terminal Interface interface;
 non terminal ArrayList<ProcFuncDecl> procFuncDeclLst;
 non terminal ProcFuncDecl procFuncDecl;
-non terminal FunctionDecl funcDecl;
 non terminal ArrayList<Type> argRetTypeLst;
 
 non terminal Program program;
 //non terminal ArrayList<FunctionDefine> funcDefLst;
 non terminal ArrayList<Definition> definitionLst;
 non terminal ArrayList<Definition> optGlobalLst;
-non terminal ArrayList<Definition> globalLst;
 non terminal ArrayList<Definition> optDefinitionLst;
 non terminal Definition global;
 non terminal Definition procFuncDef;
 non terminal ProcedureDefine procDef;
 non terminal FunctionDefine funcDef;
 non terminal ArrayList<Use> useLst;
-
-non terminal function;
-non terminal procedure;
 
 non terminal ArrayList<FunProcArgs> optArgLst;
 non terminal ArrayList<FunProcArgs> argLst;
@@ -77,7 +72,6 @@ non terminal VarDeclareStmt varDecl;
 non terminal ArrayList<varDecl> varDeclLst;
 
 non terminal LValue lftValue;
-non terminal ArrrayList<LValue> optlftValueLst;
 non terminal ArrIndexExpr arrIndexExpr;
 non terminal FunCallExpr funCall;
 
@@ -307,7 +301,7 @@ arrNone ::= arrNone:a LBRACK RBRACK
 primitiveType ::= INTTYPE:i
     {: RESULT = new IntType(i.left, i.col); :}
     | BOOLTYPE:b
-    {: RESULT = new BoolType(i.left, i.col); :}
+    {: RESULT = new BoolType(b.left, b.col); :}
     ;
 
 arrSome ::= arrSome:a LBRACK RBRACK
