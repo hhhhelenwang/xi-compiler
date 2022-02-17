@@ -206,11 +206,11 @@ optGlobalLst ::= global:g optGlobalLst:l
 
 // globdec ::= (<id> type) |  (<id> type <value>)
 global ::= ID:i COLON argRetType:t optSemi
-    {: RESULT = new GlobaDeclare(String.valueOf(i.value), t, i.left, i.right); :}
+    {: RESULT = new GlobDeclare(String.valueOf(i.value), t, i.left, i.right); :}
     | ID:i COLON INTTYPE:t ASSIGN INT:n optSemi
     {:
         RESULT = new AssignStmt (
-            new GlobaDeclare(String.valueOf(i.value), new IntType(t.left, t.right), i.left, i.right),
+            new GlobDeclare(String.valueOf(i.value), new IntType(t.left, t.right), i.left, i.right),
             new IntLiteral(String.valueOf(n.value), n.left, n.right),
             i.left,
             i.right
