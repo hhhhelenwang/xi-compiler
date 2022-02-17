@@ -1,20 +1,13 @@
 package jw795.parser;
 
-import java_cup.runtime.Symbol;
 import jw795.ast.ASTNode;
-import jw795.ast.Expr;
-import jw795.lexer.Lexer;
 import jw795.lexer.Lexwrapper;
-import jw795.parser.parser;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.Reader;
-import java_cup.runtime.Scanner;
-//import java_cup.runtime.Parser;
 import util.polyglot.util.CodeWriter;
-import util.polyglot.util.OptimalCodeWriter;
 import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 
 public class ParserAdapter {
@@ -32,8 +25,9 @@ public class ParserAdapter {
 
     }
     public void generateAST(){
+        System.out.println("Start parsing in ParserAdapter");
         // build output file
-        // build the full directory to put the lexed file in
+        // build the full directory to put the oarsed file in
         String[] dirs = fileName.split("/");
         String fullPath = parsedPath + "/";
         for (int i = 0; i < dirs.length - 1; i ++) {

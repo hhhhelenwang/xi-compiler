@@ -129,5 +129,6 @@ public class Compiler {
         compiler.help();
         compiler.setDestPath();
         compiler.lex();
+        compiler.parse();
     }
 }
