@@ -9,9 +9,9 @@ import java.util.List;
  * and may contain end-of-line comments.
  */
 public class Interface extends ASTNode {
-    List<FunctionDeclare> functions;
+    List<ProcFuncDecl> functions;
 
-    public Interface(List<FunctionDeclare> fs, int line, int col) {
+    public Interface(List<ProcFuncDecl> fs, int line, int col) {
         super(line, col);
         functions = fs;
     }
@@ -19,7 +19,7 @@ public class Interface extends ASTNode {
     @Override
     public void prettyPrint(CodeWriterSExpPrinter printer) {
         printer.startList();
-        for (FunctionDeclare decl : functions) {
+        for (ProcFuncDecl decl : functions) {
             decl.prettyPrint(printer);
         }
          printer.endList();

@@ -8,7 +8,7 @@ import java.util.Optional;
 /**
  * Representation of a function/procedure declaration in an interface file.
  */
-public class FunctionDeclare extends ASTNode {
+public class FunctionDeclare extends ASTNode implements ProcFuncDecl {
     String name;
     List<FunProcArgs> arguments;
     List<Type> returnTypes;

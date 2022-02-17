@@ -4,7 +4,7 @@ import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 
 import java.util.List;
 
-public class ProcedureDeclare extends ASTNode {
+public class ProcedureDeclare extends ASTNode implements ProcFuncDecl{
     String name;
     List<FunProcArgs> arguments;
 
