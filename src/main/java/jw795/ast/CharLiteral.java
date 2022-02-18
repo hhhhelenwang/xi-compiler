@@ -15,6 +15,6 @@ public class CharLiteral extends Expr{
 
     @Override
     public void prettyPrint(CodeWriterSExpPrinter printer) {
-        printer.printAtom(String.valueOf(value));
+        printer.printAtom("'" + String.valueOf(value) + "'");
     }
 }

@@ -12,8 +12,8 @@ public class LessEq extends BinOpExpr{
 
     @Override
     public void prettyPrint(CodeWriterSExpPrinter printer) {
-        printer.printAtom("<=");
         printer.startList();
+        printer.printAtom("<=");
         expr1.prettyPrint(printer);
         expr2.prettyPrint(printer);
         printer.endList();

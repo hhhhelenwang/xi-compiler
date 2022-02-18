@@ -12,8 +12,8 @@ public class IntNeg extends UnOpExpr{
 
     @Override
     public void prettyPrint(CodeWriterSExpPrinter printer) {
-        printer.printAtom("-");
         printer.startList();
+        printer.printAtom("-");
         expr.prettyPrint(printer);
         printer.endList();
     }
