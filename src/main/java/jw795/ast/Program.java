@@ -24,6 +24,7 @@ public class Program extends ASTNode {
     @Override
     public void prettyPrint(CodeWriterSExpPrinter printer) {
         printer.startList();
+        printer.startList();
         for (Use use : uses) {
             use.prettyPrint(printer);
         }
@@ -32,6 +33,7 @@ public class Program extends ASTNode {
         for (Definition def : definitions) {
             def.prettyPrint(printer);
         }
+        printer.endList();
         printer.endList();
     }
 }

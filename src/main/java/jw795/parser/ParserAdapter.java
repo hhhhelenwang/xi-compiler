@@ -64,7 +64,6 @@ public class ParserAdapter {
         // parse
         try {
             ASTNode node = (ASTNode) cup_parser.parse().value;
-            printer.printAtom("enter parse pretty");
             node.prettyPrint(printer);
             printer.flush();
             printer.close();

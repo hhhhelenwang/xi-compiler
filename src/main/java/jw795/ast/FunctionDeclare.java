@@ -33,7 +33,7 @@ public class FunctionDeclare extends ASTNode implements ProcFuncDecl {
         for (Type returnType : returnTypes) {
             returnType.prettyPrint(printer);
         }
-
+        printer.endList();
         printer.endList();
     }
 }

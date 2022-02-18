@@ -23,5 +23,6 @@ public class ProcedureDeclare extends ASTNode implements ProcFuncDecl{
             arg.prettyPrint(printer);
         }
         printer.endList();
+        printer.endList();
     }
 }
