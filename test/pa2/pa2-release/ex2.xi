@@ -9,6 +9,6 @@ foo(): bool, int {
 
 bar() {
   _, i: int = foo()
-  b: int[i][]
+  b: int[2][]
   b[0] = {1, 0}
 }

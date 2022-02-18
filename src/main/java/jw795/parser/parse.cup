@@ -355,7 +355,7 @@ primitiveType ::= INTTYPE:i
 arrSome ::= arrSome:a LBRACK RBRACK
     {: RESULT = new ArrayType(a, a.getLine(), a.getCol()); :}
     | arrAll:a LBRACK RBRACK
-    {: RESULT = a; :}
+    {: RESULT = new ArrayType(a, a.getLine(), a.getCol()); :}
     ;
 
 arrAll ::= arrAll:a LBRACK expr:e RBRACK
