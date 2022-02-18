@@ -361,7 +361,7 @@ arrSome ::= arrSome:a LBRACK RBRACK
 arrAll ::= arrAll:a LBRACK expr:e RBRACK
     {: RESULT = new ArrayType(a, e, a.getLine(), a.getCol()); :}
     | primitiveType:p LBRACK expr:e RBRACK
-    {: RESULT = p; :}
+    {: RESULT = new ArrayType(p, e, p.getLine(), p.getCol()); :}
     ;
 
 expr ::= INT: i
