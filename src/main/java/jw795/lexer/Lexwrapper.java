@@ -24,9 +24,9 @@ public class Lexwrapper implements java_cup.runtime.Scanner {
             started = true;
             String end = filename.substring(filename.length()-3, filename.length());
             if (end.equals("ixi")) {
-                return new Symbol(TokenType.INTERFACE_FILE.ordinal(),1,1);
+                return new Symbol(sym.INTERFACE_FILE,999,999);
             } else {
-                return new Symbol(TokenType.PROGRAM_FILE.ordinal(),1,1);
+                return new Symbol(sym.PROGRAM_FILE,888,888);
             }
         }
     }

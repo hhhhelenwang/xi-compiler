@@ -64,7 +64,10 @@ public class ParserAdapter {
         // parse
         try {
             ASTNode node = (ASTNode) cup_parser.parse().value;
+            printer.printAtom("enter parse pretty");
             node.prettyPrint(printer);
+            printer.flush();
+            printer.close();
         } catch (Exception e) {
             System.out.println("!!!!!!!!!!!!the error");
             // TODO: catch error and printer.printAtom(err_msg)

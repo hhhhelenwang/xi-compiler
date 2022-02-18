@@ -22,13 +22,18 @@ parser code
     ;
 
 /* Terminals */
-terminal    Symbol   USE, IF, WHILE, ELSE, RETURN, LENGTH, NOT, MULT, HIGHMULT, DIV, MOD, ADD, SUB, LT, LEQ, GEQ, GT,
+terminal        USE, IF, WHILE, ELSE, RETURN, LENGTH, NOT, MULT, HIGHMULT, DIV, MOD, ADD, SUB, LT, LEQ, GEQ, GT,
                      EQ, NEQ, AND, OR, COLON, ASSIGN, LPAREN, RPAREN, LBRACK, RBRACK, LBRACE, RBRACE, COMMA, SEMICOLON,
                      UNDERSCORE;
+terminal        PROGRAM_FILE, INTERFACE_FILE;
+terminal        INTTYPE, BOOLTYPE;
+terminal        UNARY;
 
-terminal    Symbol   INT, BOOL, INTTYPE, BOOLTYPE, ID, CHARLIT, STRINGLIT;
-terminal    Symbol   PROGRAM_FILE, INTERFACE_FILE;
-terminal    Symbol   UNARY;
+terminal    Long    INT;
+terminal    Boolean BOOL;
+terminal    String  ID;
+terminal    Character    CHARLIT;
+terminal    String  STRINGLIT;
 
 /* Non terminals */
 non terminal file;
@@ -136,9 +141,9 @@ procFuncDeclLst ::= procFuncDecl:f optSemi procFuncDeclLst:d
     ;
 
 procFuncDecl ::= ID:i LPAREN optArgLst:a RPAREN
-    {: RESULT = new ProcedureDeclare(String.valueOf(i.value), a, ileft, iright); :}
+    {: RESULT = new ProcedureDeclare(i, a, ileft, iright); :}
     | ID:i LPAREN optArgLst:a RPAREN COLON argRetTypeLst:t
-    {: RESULT = new FunctionDeclare(String.valueOf(i.value), a, t, ileft, iright); :}
+    {: RESULT = new FunctionDeclare(i, a, t, ileft, iright); :}
     ;
 
 optArgLst ::= argLst:a
@@ -154,7 +159,7 @@ argLst ::= argument:a COMMA argLst:l
     ;
 
 argument ::= ID:i COLON argRetType:t
-    {: RESULT = new FunProcArgs (String.valueOf(i.value), t, ileft, iright); :}
+    {: RESULT = new FunProcArgs (i, t, ileft, iright); :}
     ;
 
 argRetType ::= INTTYPE:t
@@ -196,7 +201,7 @@ program ::= useLst:u definitionLst:d
 
 // use ::= (use <id>)
 useLst ::= useLst:ul USE:u ID:i optSemi
-    {: ul.add(new Use(String.valueOf(i.value), uleft, uright)); RESULT = ul; :}
+    {: ul.add(new Use(i, uleft, uright)); RESULT = ul; :}
     | // empty or end of useLst
     {: RESULT = new ArrayList<Use>(); :}
     ;
@@ -214,12 +219,12 @@ optGlobalLst ::= global:g optGlobalLst:l
 
 // globdec ::= (<id> type) |  (<id> type <value>)
 global ::= ID:i COLON argRetType:t optSemi
-    {: RESULT = new GlobDeclare(String.valueOf(i.value), t, ileft, iright); :}
+    {: RESULT = new GlobDeclare(i, t, ileft, iright); :}
     | ID:i COLON INTTYPE:t ASSIGN INT:n optSemi
     {:
         RESULT = new AssignStmt (
-            new GlobDeclare(String.valueOf(i.value), new IntType(tleft, tright), ileft, iright),
-            new IntLiteral((Integer)n.value, nleft, nright),
+            new GlobDeclare(i, new IntType(tleft, tright), ileft, iright),
+            new IntLiteral(n, nleft, nright),
             ileft,
             iright
         );
@@ -227,8 +232,8 @@ global ::= ID:i COLON argRetType:t optSemi
     | ID:i COLON BOOLTYPE:t ASSIGN BOOL:b optSemi
     {:
         RESULT = new AssignStmt (
-            new GlobDeclare(String.valueOf(i.value), new BoolType(tleft, tright), ileft, iright),
-            new BoolLiteral((Boolean)b.value, bleft, bright),
+            new GlobDeclare(i, new BoolType(tleft, tright), ileft, iright),
+            new BoolLiteral(b, bleft, bright),
             ileft,
             iright
         );
@@ -250,11 +255,11 @@ procFuncDef ::= procDef:d
     ;
 
 procDef ::= ID:i LPAREN optArgLst:a RPAREN blockStmt:b
-    {: RESULT = new ProcedureDefine(String.valueOf(i.value), a, b, ileft, iright); :}
+    {: RESULT = new ProcedureDefine(i, a, b, ileft, iright); :}
     ;
 
 funcDef ::= ID:i LPAREN optArgLst:a RPAREN COLON argRetTypeLst:t blockStmt:b
-    {: RESULT = new FunctionDefine(String.valueOf(i.value), t, a, b, ileft, iright); :}
+    {: RESULT = new FunctionDefine(i, t, a, b, ileft, iright); :}
     ;
 
 /**
@@ -309,9 +314,9 @@ whileStmt ::= WHILE:w expr:e stmt:s
     ;
 
 procCall ::= ID:i LPAREN exprLst:a RPAREN
-    {: RESULT = new ProcCallStmt(String.valueOf(i.value), a, ileft, iright); :}
+    {: RESULT = new ProcCallStmt(i, a, ileft, iright); :}
     | ID:i LPAREN RPAREN
-    {: RESULT = new ProcCallStmt(String.valueOf(i.value), new ArrayList<Expr>(), ileft, iright); :}
+    {: RESULT = new ProcCallStmt(i, new ArrayList<Expr>(), ileft, iright); :}
     ;
 
 // Single Assignment is defined as Assign ::= (ID | varDecl | arrIndexExpr) ASSIGN expr
@@ -320,7 +325,7 @@ assign ::= lftValue:v ASSIGN expr:e
     ;
 
 lftValue ::= ID:i
-    {: RESULT = new VarExpr(String.valueOf(i.value), ileft, iright); :}
+    {: RESULT = new VarExpr(i, ileft, iright); :}
     | varDecl:v
     {: RESULT = v; :}
     | arrIndexExpr:a
@@ -360,15 +365,15 @@ arrAll ::= arrAll:a LBRACK expr:e RBRACK
     ;
 
 expr ::= INT: i
-    {: RESULT = new IntLiteral((Integer)i.value, ileft, iright); :}
+    {: RESULT = new IntLiteral(i, ileft, iright); :}
     | BOOL: b
-    {: RESULT = new BoolLiteral((Boolean)b.value, bleft, bright); :}
+    {: RESULT = new BoolLiteral(b, bleft, bright); :}
     | CHARLIT: c
-    {: RESULT = new CharLiteral((Character)c.value, cleft, cright); :}
+    {: RESULT = new CharLiteral(c, cleft, cright); :}
     | STRINGLIT: s
-    {: RESULT = new StringLit(String.valueOf(s.value), sleft, sright); :}
+    {: RESULT = new StringLit(s, sleft, sright); :}
     | STRINGLIT:s LBRACK expr:e RBRACK
-    {: RESULT = new ArrIndexExpr(new StringLit (String.valueOf(s.value), sleft, sright), e, sleft, sright); :}
+    {: RESULT = new ArrIndexExpr(new StringLit (s, sleft, sright), e, sleft, sright); :}
     | LPAREN expr:e RPAREN
     {: RESULT = e; :}
     | NOT:not expr:e
@@ -407,7 +412,7 @@ expr ::= INT: i
 
 arrIndexExpr ::= ID:i LBRACK expr:e RBRACK
     {:
-        VarExpr expr = new VarExpr(String.valueOf(i.value), ileft, iright);
+        VarExpr expr = new VarExpr(i, ileft, iright);
         RESULT = new ArrIndexExpr(expr, e, ileft, iright);
     :}
     | funCall:f LBRACK expr:e RBRACK
@@ -417,9 +422,9 @@ arrIndexExpr ::= ID:i LBRACK expr:e RBRACK
     ;
 
 funCall ::= ID:i LPAREN exprLst:e RPAREN
-    {: RESULT = new FunCallExpr(String.valueOf(i.value), e, ileft, iright); :}
+    {: RESULT = new FunCallExpr(i, e, ileft, iright); :}
     | ID:i LPAREN RPAREN
-    {: RESULT = new FunCallExpr(String.valueOf(i.value), new ArrayList<Expr>(), ileft, iright); :}
+    {: RESULT = new FunCallExpr(i, new ArrayList<Expr>(), ileft, iright); :}
     | LENGTH:len LPAREN expr:e RPAREN
     {: ArrayList<Expr> lst = new ArrayList<Expr>();
        lst.add(e);
@@ -431,27 +436,6 @@ exprLst ::= expr:e COMMA exprLst:l
     | expr:e
     {: ArrayList<Expr> lst = new ArrayList<Expr>(); lst.add(e); RESULT = lst; :}
     ;
-
-// multAssign ::= (varDecl*) ASSIGN funcCall
-// Note that only varDecl can be on the left of ASSIGN in multiple assignment.
-//multAssign ::= varDeclLst:l ASSIGN funCall:f
-//    {:
-//        int line = l.get(0).getLine();
-//        int col = l.get(0).getCol();
-//        LeftValueList lst = new LeftValueList(l, line, col);
-//        RESULT = new AssignStmt(lst, f, line, col);
-//    :}
-//    ;
-//varDeclLst ::= varDecl:v COMMA varDeclLst:l
-//    {: l.add(0, v); RESULT = l; :}
-//    | varDecl:v1 COMMA varDecl:v2
-//    {: ArrayList<LValue> lst = new ArrayList<LValue>(); lst.add(v1); lst.add(v2); RESULT = lst; :}
-//    ;
-//varDecl ::= ID:i COLON type:t
-//    {: RESULT = new VarDeclareStmt(String.valueOf(i.value), t, i.left, i.right);:}
-//    | UNDERSCORE:u
-//    {: RESULT = new WildCard(u.left, u.right); :}
-//    ;
 
 multAssign ::= lftValueMultiLst:l ASSIGN funCall:f
     {:
@@ -471,7 +455,7 @@ lftValueMultiLst ::= lftValueMulti:v COMMA lftValueMultiLst:l
 lftValueMulti ::= varDecl | wildcard;
 
 varDecl ::= ID:i COLON type:t
-    {: RESULT = new VarDeclareStmt(String.valueOf(i.value), t, ileft, iright);:}
+    {: RESULT = new VarDeclareStmt(i, t, ileft, iright);:}
     ;
 
 wildcard ::= UNDERSCORE:u
