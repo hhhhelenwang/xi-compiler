@@ -25,7 +25,6 @@ public class ParserAdapter {
 
     }
     public void generateAST(){
-        System.out.println("Start parsing in ParserAdapter");
         // build output file
         // build the full directory to put the oarsed file in
         String[] dirs = fileName.split("/");
@@ -68,10 +67,12 @@ public class ParserAdapter {
             printer.flush();
             printer.close();
         } catch (Exception e) {
-            System.out.println("!!!!!!!!!!!!the error");
             // TODO: catch error and printer.printAtom(err_msg)
-            System.out.println(e.getMessage());
-            e.printStackTrace();
+            printer.printAtom(e.getMessage());
+            printer.flush();
+            printer.close();
+//            System.out.println(e.getMessage());
+//            e.printStackTrace();
         }
 
 

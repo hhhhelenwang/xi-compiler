@@ -96,9 +96,8 @@ public class Compiler {
      * Produce syntactic analysis on all input source files.
      */
     public void parse(){
-        System.out.println("Parsing");
-        files = cmd.getArgList();
         if (cmd.hasOption("parse")) {
+            files = cmd.getArgList();
             for (String file : files) {
                 if (file.endsWith("xi")) {
                     System.out.println(file);
