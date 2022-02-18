@@ -235,7 +235,7 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
         if (charRead == 1) {
             charRead = 0;
             yybegin(YYINITIAL);
-            return newsymbol(sym.CHARLIT, sb.toString(), charstartcol);
+            return newsymbol(sym.CHARLIT, sb.toString().charAt(0), charstartcol);
         } else {
             return newsymbol(sym.error, "Invalid character constant", charstartcol);
         }

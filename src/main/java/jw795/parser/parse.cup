@@ -408,6 +408,8 @@ expr ::= INT: i
     {: RESULT = new And(e1, e2, e1.getLine(), e1.getCol());:}
     | expr:e1 OR expr:e2
     {: RESULT = new Or(e1, e2, e1.getLine(), e1.getCol());:}
+    | ID:i
+    {: RESULT = new VarExpr(i, ileft, iright); :}
     ;
 
 arrIndexExpr ::= ID:i LBRACK expr:e RBRACK
