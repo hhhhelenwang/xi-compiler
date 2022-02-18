@@ -333,9 +333,9 @@ lftValue ::= ID:i
     ;
 
 type ::= arrNone:a
-    {: RESULT = new ArrayType(a, a.getLine(), a.getCol()); :}
+    {: RESULT = a :}
     | arrSome:a
-    {: RESULT = new ArrayType(a, a.getLine(), a.getCol()); :}
+    {: RESULT = a :}
     | arrAll:a
     {: RESULT = a; :}
     ;
@@ -343,7 +343,7 @@ type ::= arrNone:a
 arrNone ::= arrNone:a LBRACK RBRACK
     {: RESULT = new ArrayType(a, a.getLine(), a.getCol()); :}
     | primitiveType:p LBRACK RBRACK
-    {: RESULT = p; :}
+    {: RESULT = new ArrayType(p, p.getLine(), p.getCol()); :}
     ;
 
 primitiveType ::= INTTYPE:i
@@ -410,6 +410,8 @@ expr ::= INT: i
     {: RESULT = new Or(e1, e2, e1.getLine(), e1.getCol());:}
     | ID:i
     {: RESULT = new VarExpr(i, ileft, iright); :}
+    | funCall: f
+    {: RESULT = f; :}
     ;
 
 arrIndexExpr ::= ID:i LBRACK expr:e RBRACK
