@@ -1,0 +1,1523 @@
+commit eea02ec29f80dbc5ee15c36784a12ed0080ff227
+Author: jw795 <jw795@cornell.edu>
+Date:   Thu Feb 17 23:41:14 2022 -0500
+
+    clean up
+
+commit 3868627f15711faebd8734cc90b095d9d2be43f1
+Merge: 01b93a4 a19f240
+Author: archerluo <luogaochen@gmail.com>
+Date:   Thu Feb 17 23:40:28 2022 -0500
+
+    Merge remote-tracking branch 'origin/main'
+
+commit 01b93a4d8f97e4ebd75a05d83cf3eea0540231b4
+Author: archerluo <luogaochen@gmail.com>
+Date:   Thu Feb 17 23:40:23 2022 -0500
+
+    deleted extra comment lines
+
+commit a19f240bf783787041d988c6eb1009168f11c4af
+Author: jw795 <jw795@cornell.edu>
+Date:   Thu Feb 17 23:40:17 2022 -0500
+
+    local tests
+
+commit 98480ea97a34a7c87309d87e9bc6f39226ecf04c
+Merge: 0d28983 77ce6fe
+Author: archerluo <luogaochen@gmail.com>
+Date:   Thu Feb 17 23:39:33 2022 -0500
+
+    Merge remote-tracking branch 'origin/main'
+
+commit 0d289839d6fea61a10e075797bd0efa33f95679c
+Author: archerluo <luogaochen@gmail.com>
+Date:   Thu Feb 17 23:39:26 2022 -0500
+
+    add documentation to parse.cup
+
+commit 77ce6feca4ab8e1f531768f210e31f04ec75c485
+Merge: f12f5cc 50d5a4c
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Thu Feb 17 23:35:29 2022 -0500
+
+    Merge branch 'main' of https://github.coecis.cornell.edu/jw795/xi-compiler into main
+
+commit f12f5ccf89dfde96e732b816b445b46fabe19cbc
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Thu Feb 17 23:35:19 2022 -0500
+
+    .
+
+commit 50d5a4c84bbc8001ac687fb8866f93534bc72df2
+Merge: 9a5bbea cedf79b
+Author: bz239 <bz239@cornell.edu>
+Date:   Thu Feb 17 23:35:04 2022 -0500
+
+    Merge branch 'main' of github.coecis.cornell.edu:jw795/xi-compiler
+
+commit 9a5bbeadd86bab25574f2fcb66104f5cf40ae3b9
+Author: bz239 <bz239@cornell.edu>
+Date:   Thu Feb 17 23:34:59 2022 -0500
+
+    more tests
+
+commit cedf79bcfd84115c06657926585f604ff0bad95b
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Thu Feb 17 23:24:04 2022 -0500
+
+    partialarray
+
+commit 76584eae2d6d3b2e3eef77d90cba97559b1a2e73
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Thu Feb 17 23:18:52 2022 -0500
+
+    fix int test
+
+commit 2c4fa7d058a198ef416a01b766f8d4b7a088a04d
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Thu Feb 17 23:11:26 2022 -0500
+
+    some test
+
+commit 1d808459a1c7790bb53e30f4eca2a179658065b6
+Author: jw795 <jw795@cornell.edu>
+Date:   Thu Feb 17 23:04:58 2022 -0500
+
+    fix print for ge
+
+commit cfc55657381326172e14885c6626ac75e08a4857
+Merge: f58e077 e974c89
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Thu Feb 17 22:46:36 2022 -0500
+
+    Merge branch 'main' of https://github.coecis.cornell.edu/jw795/xi-compiler into main
+
+commit f58e07767014291fa28caba45e8f602962c7d8db
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Thu Feb 17 22:46:30 2022 -0500
+
+    intergerbound
+
+commit e974c89b79970f6edc1c178adc9cc6c60678698f
+Author: jw795 <jw795@cornell.edu>
+Date:   Thu Feb 17 22:46:07 2022 -0500
+
+    fix interface 16 out of 16
+
+commit 8f28eb4c2db1ad3e880ba1b7e87cd4c37baac039
+Author: archerluo <luogaochen@gmail.com>
+Date:   Thu Feb 17 22:14:00 2022 -0500
+
+    add wildcard to left value
+
+commit 1e3ad6bfe509721ccad5d81935852660e64fb1a8
+Author: jw795 <jw795@cornell.edu>
+Date:   Thu Feb 17 22:04:14 2022 -0500
+
+    fix testcase
+
+commit 8a4f6dafffd02559bc05ecfe5cb83faa4305773e
+Merge: abae5ab f50b928
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Thu Feb 17 22:01:22 2022 -0500
+
+    Merge branch 'main' of https://github.coecis.cornell.edu/jw795/xi-compiler into main
+
+commit abae5ab231c6e45d48c633606bb6a502a76af8c8
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Thu Feb 17 22:01:10 2022 -0500
+
+    index array
+
+commit f50b928bf7c71a1575ace43e580dfdce177ba32c
+Author: jw795 <jw795@cornell.edu>
+Date:   Thu Feb 17 21:55:07 2022 -0500
+
+    fix print
+
+commit 11bf297254ed81e25929d1157814897a13609bd1
+Author: archerluo <luogaochen@gmail.com>
+Date:   Thu Feb 17 21:47:56 2022 -0500
+
+    fix expr
+
+commit 17b7171a9c60f1cef3fadf6dc2817d42db1f444a
+Author: archerluo <luogaochen@gmail.com>
+Date:   Thu Feb 17 21:45:05 2022 -0500
+
+    fix expr
+
+commit 50d688063689e079841332e2b6aeb431531232ad
+Author: jw795 <jw795@cornell.edu>
+Date:   Thu Feb 17 21:18:14 2022 -0500
+
+    fix char print
+
+commit 573da338b26c50a1f7ae891e1df90404d7de4901
+Author: jw795 <jw795@cornell.edu>
+Date:   Thu Feb 17 21:09:03 2022 -0500
+
+    fix string prettyprint
+
+commit c8979fa3be86b395fa9a282b7e616597dd27b24b
+Merge: 27ac376 88ab49f
+Author: jw795 <jw795@cornell.edu>
+Date:   Thu Feb 17 21:04:13 2022 -0500
+
+    Merge remote-tracking branch 'origin/main' into main
+
+commit 27ac376174cd6239a74b20295d1b2de58b844519
+Author: jw795 <jw795@cornell.edu>
+Date:   Thu Feb 17 21:04:05 2022 -0500
+
+    refix lftvaluemulti
+
+commit 88ab49f088213b3df559e4f718ac6470ee7da469
+Author: archerluo <luogaochen@gmail.com>
+Date:   Thu Feb 17 21:01:56 2022 -0500
+
+    fix prettyprint in arraytype
+
+commit 59a40da528f1b7c0e8de73680828f4e8d942e2e7
+Author: jw795 <jw795@cornell.edu>
+Date:   Thu Feb 17 21:01:15 2022 -0500
+
+    fix arr and funCall
+
+commit b5df889916c601e2c9e1795cf511ea3c836e37f1
+Merge: 3731b81 6f33b19
+Author: jw795 <jw795@cornell.edu>
+Date:   Thu Feb 17 21:00:28 2022 -0500
+
+    Merge remote-tracking branch 'origin/main' into main
+
+commit 3731b811d642f3e274003f9519f1347ece20466a
+Author: jw795 <jw795@cornell.edu>
+Date:   Thu Feb 17 21:00:23 2022 -0500
+
+    fix arr and funCall
+
+commit 6f33b19a1797502b87ab9f5cdfa0e8f3ae8f85b6
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Thu Feb 17 20:57:30 2022 -0500
+
+    primitive type
+
+commit a22cfeaeaf61face1bdc1da98eeb2e2eacee5054
+Merge: 1907ca9 359970b
+Author: jw795 <jw795@cornell.edu>
+Date:   Thu Feb 17 20:51:23 2022 -0500
+
+    Merge remote-tracking branch 'origin/main' into main
+
+commit 1907ca9f2e3b8095fe792cff4f8914c1b8fc5390
+Author: jw795 <jw795@cornell.edu>
+Date:   Thu Feb 17 20:51:06 2022 -0500
+
+    fix arrSome
+
+commit 359970b06faeb211c545b3072739a0a370b1c1ce
+Author: archerluo <luogaochen@gmail.com>
+Date:   Thu Feb 17 20:49:28 2022 -0500
+
+    potential fix to bug in expr
+
+commit dfb39aa5a2206f7474f8c497a94b6130b28a6d78
+Merge: f02104e 2ccb026
+Author: archerluo <luogaochen@gmail.com>
+Date:   Thu Feb 17 20:37:31 2022 -0500
+
+    Merge remote-tracking branch 'origin/main'
+    
+    # Conflicts:
+    #       src/main/java/jw795/parser/parse.cup
+
+commit f02104ea67e0d127c3bbf76aaf029d3da3f7c3c8
+Author: archerluo <luogaochen@gmail.com>
+Date:   Thu Feb 17 20:36:51 2022 -0500
+
+    potential fix to bug in expr
+
+commit 2ccb02672c32e5a947e8bc1f7a3fbc3f7e96e424
+Author: jw795 <jw795@cornell.edu>
+Date:   Thu Feb 17 20:34:48 2022 -0500
+
+    fix npe with lvmulti
+
+commit f610c567efbcf3424d65d9170e80b4d7c6d66605
+Author: jw795 <jw795@cornell.edu>
+Date:   Thu Feb 17 20:20:53 2022 -0500
+
+    fix stmt list npe
+
+commit a552a1e1f77e4b5b7dfbec50184ef690277ee00b
+Author: jw795 <jw795@cornell.edu>
+Date:   Thu Feb 17 20:18:10 2022 -0500
+
+    fix invalid id
+
+commit ac786a58fdb8b78d3d576898164e335f20f22cc2
+Author: archerluo <luogaochen@gmail.com>
+Date:   Thu Feb 17 20:03:34 2022 -0500
+
+    fix error message
+
+commit 76573463f0174f3fe064d90fabf8d68a10f7476d
+Author: archerluo <luogaochen@gmail.com>
+Date:   Thu Feb 17 20:01:27 2022 -0500
+
+    fix error message
+
+commit f51cfcc6f551e648614b8977e782dfbf5d6f09a3
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Thu Feb 17 19:49:27 2022 -0500
+
+    print error
+
+commit 91c9f6ab37d9b433dcb5e829c0e28cf7feae54a0
+Author: jw795 <jw795@cornell.edu>
+Date:   Thu Feb 17 19:41:29 2022 -0500
+
+    fix block mismatch
+
+commit be4e74d624bcb11da124a64454afd7bab33366f7
+Merge: c25303e 24baf47
+Author: jw795 <jw795@cornell.edu>
+Date:   Thu Feb 17 19:18:33 2022 -0500
+
+    Merge remote-tracking branch 'origin/main' into main
+    
+    # Conflicts:
+    #       src/main/java/jw795/parser/ParserAdapter.java
+
+commit c25303e0a4b700824714d6f194d6ccb90b5bca15
+Author: jw795 <jw795@cornell.edu>
+Date:   Thu Feb 17 19:18:07 2022 -0500
+
+    add pretty print for use
+
+commit 24baf475dd3302cb35172d283802a80970bc123f
+Author: bz239 <bz239@cornell.edu>
+Date:   Thu Feb 17 19:15:43 2022 -0500
+
+    printer && lexWrapper update
+
+commit 2e7478f0c2fe48e2c64038fcc31a3b69e95d83ac
+Author: jw795 <jw795@cornell.edu>
+Date:   Thu Feb 17 18:58:19 2022 -0500
+
+    change parser left right getters
+
+commit fb4085287f0083da38a7fcbdffe3cd25dc1f474e
+Author: archerluo <luogaochen@gmail.com>
+Date:   Thu Feb 17 18:05:35 2022 -0500
+
+    all lex tests passed
+
+commit 70fe9e7213dd3a6defd10c984a0812e8a9f67a34
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Thu Feb 17 17:53:10 2022 -0500
+
+    changett to sym
+
+commit e784a70147504cc2b489ad8ed6bed4b03d7248f9
+Author: archerluo <luogaochen@gmail.com>
+Date:   Thu Feb 17 17:40:56 2022 -0500
+
+    change from tokentype to sym
+
+commit c1d7014d91517906f48c445a9538e435eada84d3
+Author: archerluo <luogaochen@gmail.com>
+Date:   Thu Feb 17 17:28:59 2022 -0500
+
+    change from tokentype to sym
+
+commit 1239859bcaaa169794588fda3de763e844b36fb4
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Thu Feb 17 17:06:18 2022 -0500
+
+    some test file
+
+commit 12c92cbc1bf7a95022ecf3b82e9ed82ca1c49948
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Thu Feb 17 17:03:41 2022 -0500
+
+    test1
+
+commit 00b51a83e1e2e01098d4df1cc084f96ec922e5ae
+Author: jw795 <jw795@cornell.edu>
+Date:   Thu Feb 17 16:33:28 2022 -0500
+
+    forgot to call parse fuction lol
+
+commit 2fca99b74c1fdd0a4ddde9ce506dee60ed154bca
+Author: jw795 <jw795@cornell.edu>
+Date:   Thu Feb 17 16:25:39 2022 -0500
+
+    build successful for the first ever tim
+
+commit cfe5785bd220dd5966405f9d32f94b3db684b598
+Author: jw795 <jw795@cornell.edu>
+Date:   Thu Feb 17 16:10:13 2022 -0500
+
+    temp fix
+
+commit a1290a0a6fefa930826881d5eab5a155e6c88417
+Author: bz239 <bz239@cornell.edu>
+Date:   Thu Feb 17 15:36:30 2022 -0500
+
+    add getter
+
+commit 3130c3ffab82d8e0a755129cb9bc9b14d8892c9d
+Author: bz239 <bz239@cornell.edu>
+Date:   Thu Feb 17 14:41:17 2022 -0500
+
+    refactor varDecl for clarity && public TokenType && public constructor
+
+commit f9624ad3ed307858887ed3727b26e885f64e3453
+Author: bz239 <bz239@cornell.edu>
+Date:   Thu Feb 17 13:49:52 2022 -0500
+
+    wildCard in procFuncDecl
+
+commit 57fadb928a207651036cb8096dee39bfe73c0c8a
+Author: bz239 <bz239@cornell.edu>
+Date:   Thu Feb 17 11:13:16 2022 -0500
+
+    Object to primitive value
+
+commit 552105a68f3a1a616fbf5a133891d37346ed8715
+Author: bz239 <bz239@cornell.edu>
+Date:   Thu Feb 17 10:16:31 2022 -0500
+
+    public constructor
+
+commit d47071ce5d67be55cc630b3652afd7efc2449511
+Author: bz239 <bz239@cornell.edu>
+Date:   Thu Feb 17 10:03:57 2022 -0500
+
+    globDeclare typo
+
+commit 0d379fc85818e194c5f24623026858e0503d12b0
+Author: bz239 <bz239@cornell.edu>
+Date:   Thu Feb 17 09:36:31 2022 -0500
+
+    public arrayType constructor
+
+commit ba76d9c1882e433bf1329d4370a2ef00b526507d
+Author: bz239 <bz239@cornell.edu>
+Date:   Thu Feb 17 09:15:17 2022 -0500
+
+    small fix
+
+commit ebb06d3e8a17e0ad90bed4eac52cbf728d2f5bf2
+Author: bz239 <bz239@cornell.edu>
+Date:   Thu Feb 17 09:02:34 2022 -0500
+
+    Fix type inconsistancy && Add documentation
+
+commit 3465de0d4ba609611c45ba0d7959e8eb18864aea
+Author: archerluo <luogaochen@gmail.com>
+Date:   Thu Feb 17 04:56:12 2022 -0500
+
+    rid of cup warnings
+
+commit d03e104bf472686077844308b0f71388c6dc80f7
+Author: archerluo <luogaochen@gmail.com>
+Date:   Thu Feb 17 04:45:05 2022 -0500
+
+    add some line and column number. partly rearrange grammar into DFS order
+
+commit b2f941db9af344840e72a443dbd16ff0e4e2cd2b
+Author: jw795 <jw795@cornell.edu>
+Date:   Thu Feb 17 03:47:28 2022 -0500
+
+    add print ast to ParserAdapter
+
+commit b671592b4189325ed7d4e87a1b375be44f67cf54
+Author: jw795 <jw795@cornell.edu>
+Date:   Thu Feb 17 03:24:00 2022 -0500
+
+    add procfuncdecl interface
+
+commit 7c40d711fb007189cade638f7e974358a472c0eb
+Author: jw795 <jw795@cornell.edu>
+Date:   Thu Feb 17 03:09:03 2022 -0500
+
+    line col
+
+commit 4ff520d0a4552c5768978ca59ddfef9f12023ebd
+Author: archerluo <luogaochen@gmail.com>
+Date:   Thu Feb 17 02:49:47 2022 -0500
+
+    add some line and column number. partly rearrange grammar into DFS order
+
+commit f64ddfb3231ee699fbff9bbe7dd33201f3e47036
+Author: jw795 <jw795@cornell.edu>
+Date:   Thu Feb 17 02:46:22 2022 -0500
+
+    add line and col and add proc nodes
+
+commit 789b2ced2f5a5325f2701f076bd360510aec839a
+Author: jw795 <jw795@cornell.edu>
+Date:   Thu Feb 17 02:18:22 2022 -0500
+
+    stringlit and add line and col
+
+commit 263dbef31c6252b09acb67392f0fc66a9b9cdf4b
+Author: archerluo <luogaochen@gmail.com>
+Date:   Thu Feb 17 01:38:58 2022 -0500
+
+    finished grammar. need documentations and add line number, column number
+
+commit 565a1cfece4edbd4edce6cdf036dc404be9c1e44
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Thu Feb 17 00:34:19 2022 -0500
+
+    some test
+
+commit 2527b4eef635a0817bbb9aa25d04fb1f4d077788
+Author: archerluo <luogaochen@gmail.com>
+Date:   Thu Feb 17 00:30:45 2022 -0500
+
+    finished global in grammar. have conflicts to resolve
+
+commit 0e878a487f23b873fe2f8761d933dd5ea1fb11d6
+Author: bz239 <bz239@cornell.edu>
+Date:   Thu Feb 17 00:19:56 2022 -0500
+
+    AssignStmt implements Definition
+
+commit cee7a458133f6023565bc200ce5b566bf14dba5b
+Author: bz239 <bz239@cornell.edu>
+Date:   Wed Feb 16 23:50:51 2022 -0500
+
+    glob var in progress
+
+commit f5eb581dcdb3d1927a84ed9493516709e968013b
+Author: jw795 <jw795@cornell.edu>
+Date:   Wed Feb 16 23:04:21 2022 -0500
+
+    add global declare node
+
+commit d55b1a039ed7874dcad04547a755272dd5aecc4e
+Author: archerluo <luogaochen@gmail.com>
+Date:   Wed Feb 16 22:05:24 2022 -0500
+
+    fixed bugs in grammar relating to empty argument list and empty block
+
+commit 72bf8893d8bc4b359416a83568cf54dade3593a1
+Author: jw795 <jw795@cornell.edu>
+Date:   Wed Feb 16 21:22:02 2022 -0500
+
+    add comment on TODO
+
+commit cac1335c452073a039177b7191f36342bf92baa8
+Author: jw795 <jw795@cornell.edu>
+Date:   Wed Feb 16 21:20:11 2022 -0500
+
+    parser adapter build output file
+
+commit e564e209e8ee32292bd176b82dbf67bf8afd7f61
+Author: jw795 <jw795@cornell.edu>
+Date:   Wed Feb 16 20:47:35 2022 -0500
+
+    fix cup generate loc
+
+commit 37d2045b503096b03d62dbc774d80cb2f8ab2870
+Merge: 6f34f0f c218d9c
+Author: jw795 <jw795@cornell.edu>
+Date:   Wed Feb 16 20:33:25 2022 -0500
+
+    Merge branch 'main' of https://github.coecis.cornell.edu/jw795/xi-compiler into main
+
+commit 6f34f0fe1964be2df3b95ac455befd2bc8eed153
+Author: jw795 <jw795@cornell.edu>
+Date:   Wed Feb 16 20:33:15 2022 -0500
+
+    implement pretty print for nodes
+
+commit c218d9ca2f7550029ce1bd9e095e5702848e4273
+Author: archerluo <luogaochen@gmail.com>
+Date:   Wed Feb 16 19:10:49 2022 -0500
+
+    resolve conflicts in grammar. change to [LeftValueList.java]
+
+commit 3b5f2f6fc56cce79a3360eca69520198ccd357e6
+Author: bz239 <bz239@cornell.edu>
+Date:   Wed Feb 16 15:54:39 2022 -0500
+
+    multiple assignment
+
+commit a493345ff0246444d55443f6f30630bdf1ea8109
+Merge: fcba0f4 eb77aa6
+Author: archerluo <luogaochen@gmail.com>
+Date:   Wed Feb 16 03:31:22 2022 -0500
+
+    Merge remote-tracking branch 'origin/main'
+
+commit fcba0f4e62c756171032f8c2b5ed9bf9bf0f3742
+Author: archerluo <luogaochen@gmail.com>
+Date:   Wed Feb 16 03:31:04 2022 -0500
+
+    fix stmtLst in [parse.cup]
+
+commit eb77aa61fa13143f3f74c5db2783f34c36f8b957
+Merge: 12e7f7b cb05e4f
+Author: jw795 <jw795@cornell.edu>
+Date:   Wed Feb 16 02:28:14 2022 -0500
+
+    Merge branch 'main' of https://github.coecis.cornell.edu/jw795/xi-compiler into main
+
+commit 12e7f7b4f3c2f7e59fb6054f4adfe1cf34c2e3bc
+Author: jw795 <jw795@cornell.edu>
+Date:   Wed Feb 16 02:28:06 2022 -0500
+
+    add some tests
+
+commit cb05e4fed745ee02c167904d0be141a692314dcd
+Author: archerluo <luogaochen@gmail.com>
+Date:   Wed Feb 16 02:19:18 2022 -0500
+
+    fix array type in [parse.cup]
+
+commit b5f7cb981dc190e12b20749e708d136de3654075
+Merge: b4ee476 2493b94
+Author: jw795 <jw795@cornell.edu>
+Date:   Wed Feb 16 02:18:09 2022 -0500
+
+    Merge branch 'main' of https://github.coecis.cornell.edu/jw795/xi-compiler into main
+
+commit b4ee476ca8904cbdc1bb10d10e94c402a6b1f080
+Author: jw795 <jw795@cornell.edu>
+Date:   Wed Feb 16 02:17:59 2022 -0500
+
+    arraytype length to expr
+
+commit 2493b946b344b1f92a3166e333cb08688b589dcf
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Wed Feb 16 01:46:24 2022 -0500
+
+    lexwrapper
+
+commit 90b4e82d7904e7c772d00e3937c2df0c75dd1042
+Author: bz239 <bz239@cornell.edu>
+Date:   Wed Feb 16 01:22:32 2022 -0500
+
+    parser build
+
+commit ed57923c24f14080d2e97eecd3e8359670ec5a05
+Merge: ab1af77 42d487f
+Author: bz239 <bz239@cornell.edu>
+Date:   Wed Feb 16 01:00:42 2022 -0500
+
+    Merge branch 'main' of github.coecis.cornell.edu:jw795/xi-compiler
+
+commit ab1af7711af61dfe55335cde534d59ecddfe0b53
+Author: bz239 <bz239@cornell.edu>
+Date:   Wed Feb 16 01:00:35 2022 -0500
+
+    cur parser
+
+commit 42d487ffd75e3ef206bd268fa9fc1d6f2669340f
+Author: jw795 <jw795@cornell.edu>
+Date:   Wed Feb 16 00:53:39 2022 -0500
+
+    change program to include global variable
+
+commit 9714038b0d8351f32a40bb4ba8cda7b9fe313253
+Merge: 6623e22 8b5e4cb
+Author: bz239 <bz239@cornell.edu>
+Date:   Wed Feb 16 00:27:50 2022 -0500
+
+    Merge branch 'main' of github.coecis.cornell.edu:jw795/xi-compiler
+
+commit 6623e22eb08533da27f8ffe1d3cc8a1be9cc4639
+Author: bz239 <bz239@cornell.edu>
+Date:   Wed Feb 16 00:27:42 2022 -0500
+
+    style fix
+
+commit 8b5e4cb5e25f793c0d78af488d236de76fd8da8d
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Wed Feb 16 00:12:49 2022 -0500
+
+    test till now
+
+commit 24bad6b37cbc940a5db7567b79984195c06bf0e6
+Author: bz239 <bz239@cornell.edu>
+Date:   Wed Feb 16 00:00:29 2022 -0500
+
+    expre lst
+
+commit 499aa9e562b95b02deae39b0235b56eea0d5d307
+Merge: 1ab3c07 ac9bbab
+Author: bz239 <bz239@cornell.edu>
+Date:   Tue Feb 15 23:58:21 2022 -0500
+
+    Merge branch 'main' of github.coecis.cornell.edu:jw795/xi-compiler
+
+commit 1ab3c07cf98963197b7be178361e9b6e2cebee71
+Author: bz239 <bz239@cornell.edu>
+Date:   Tue Feb 15 23:58:14 2022 -0500
+
+    exprLst
+
+commit ac9bbab3bc95814a2358cc4972383e6955f88b92
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Tue Feb 15 23:45:10 2022 -0500
+
+    middle test
+
+commit 547ad89048255c91ced60262f3fcb610d5223e06
+Author: bz239 <bz239@cornell.edu>
+Date:   Tue Feb 15 23:40:02 2022 -0500
+
+    more non terminals
+
+commit a3d9e39298494b1c33fdc295431130b31b348dcd
+Author: bz239 <bz239@cornell.edu>
+Date:   Tue Feb 15 23:33:16 2022 -0500
+
+    assign non terminal
+
+commit bf1606dc7d24f71afc18c36e2756559d29e057f4
+Merge: f057ea9 9814cc9
+Author: bz239 <bz239@cornell.edu>
+Date:   Tue Feb 15 23:24:56 2022 -0500
+
+    Merge branch 'main' of github.coecis.cornell.edu:jw795/xi-compiler
+
+commit f057ea9ed20e4d000c073cf17ef727bcf76163e1
+Author: bz239 <bz239@cornell.edu>
+Date:   Tue Feb 15 23:24:50 2022 -0500
+
+    quick fix
+
+commit 9814cc9cdc8dd14e6d237348ed7c83c790c6899a
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Tue Feb 15 23:17:45 2022 -0500
+
+    some parser testcase
+
+commit c24dfee11c263d45a0ca0ef4a7f0a2c7f1c1c644
+Merge: 1a00a1b 7ca7855
+Author: jw795 <jw795@cornell.edu>
+Date:   Tue Feb 15 23:11:40 2022 -0500
+
+    Merge branch 'main' of https://github.coecis.cornell.edu/jw795/xi-compiler into main
+
+commit 1a00a1ba23b0009886ba4afe9638f96389945c3c
+Author: jw795 <jw795@cornell.edu>
+Date:   Tue Feb 15 23:11:36 2022 -0500
+
+    modify ast to include line and col
+
+commit 7ca78550d255f7bcefb25473f9ecb3aa8048d83c
+Author: archerluo <luogaochen@gmail.com>
+Date:   Tue Feb 15 22:52:01 2022 -0500
+
+    add more to the [parse.cup]
+
+commit 75dabd08f05701313e5750d6f6bd48521ddac2b2
+Author: jw795 <jw795@cornell.edu>
+Date:   Tue Feb 15 21:51:09 2022 -0500
+
+    left value list
+
+commit 946de98ea8a42798e816b80b27740a84696aca5f
+Author: jw795 <jw795@cornell.edu>
+Date:   Tue Feb 15 21:46:46 2022 -0500
+
+    wild card
+
+commit 99a6017cc845c5430da25c5de89c31517da504fa
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Tue Feb 15 21:23:26 2022 -0500
+
+    try to link parser
+
+commit f95016dcb77bdaf8037dcd34119abe990948e193
+Merge: e660d0d 02d7d26
+Author: jw795 <jw795@cornell.edu>
+Date:   Tue Feb 15 20:32:26 2022 -0500
+
+    Merge branch 'main' of https://github.coecis.cornell.edu/jw795/xi-compiler into main
+
+commit e660d0d5e8b7e59a04e71eedbf0b8aba1857a730
+Author: jw795 <jw795@cornell.edu>
+Date:   Tue Feb 15 20:32:21 2022 -0500
+
+    multiple return result
+
+commit 02d7d26695d68874d6093071dd5b7e0b2b8247dd
+Merge: e8045f6 a37bb77
+Author: bz239 <bz239@cornell.edu>
+Date:   Tue Feb 15 20:31:01 2022 -0500
+
+    Merge branch 'main' of github.coecis.cornell.edu:jw795/xi-compiler
+
+commit e8045f6f6f41a7fe3ac9297518418797b5830de0
+Author: bz239 <bz239@cornell.edu>
+Date:   Tue Feb 15 20:30:56 2022 -0500
+
+    parser cur prog
+
+commit a37bb77f20340c70b33a1ddc1aa08149fa4cb11c
+Author: jw795 <jw795@cornell.edu>
+Date:   Tue Feb 15 20:14:05 2022 -0500
+
+    added release tests
+
+commit 396d7643ccf3a15ba87494121756fdef60f68cc6
+Author: jw795 <jw795@cornell.edu>
+Date:   Tue Feb 15 18:41:34 2022 -0500
+
+    add field length for array type
+
+commit 0930bdb6f70914a13b2075e457c8a0c1564c2d18
+Author: jw795 <jw795@cornell.edu>
+Date:   Tue Feb 15 02:24:26 2022 -0500
+
+    run without building everytime
+
+commit 1268eec1e025fa458ccde480a103fe54378ae078
+Author: archerluo <luogaochen@gmail.com>
+Date:   Tue Feb 15 02:10:16 2022 -0500
+
+    add more to the [parse.cup], add use list to [Program.java].
+
+commit db46b4df07bb6c06bb280d3d79da6eda0082e82b
+Author: jw795 <jw795@cornell.edu>
+Date:   Tue Feb 15 00:25:00 2022 -0500
+
+    parser adapater
+
+commit 21e3ae171e1d6a0099d993fa193b754d07cd921c
+Author: jw795 <jw795@cornell.edu>
+Date:   Tue Feb 15 00:24:30 2022 -0500
+
+    int literal uses long
+
+commit fc946aec219d512dcb915d1c80b8b568226e8297
+Author: jw795 <jw795@cornell.edu>
+Date:   Mon Feb 14 23:57:35 2022 -0500
+
+    add cup command
+
+commit 90348c0f5645bf9714ac66237fc04ea6e205b670
+Merge: 2f418b9 a898ae2
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Mon Feb 14 23:38:36 2022 -0500
+
+    Merge branch 'main' of https://github.coecis.cornell.edu/jw795/xi-compiler into main
+
+commit 2f418b9c338076fa08cffa8594537992dcdc550e
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Mon Feb 14 23:38:15 2022 -0500
+
+    fix for int range
+
+commit a898ae25778ce99f1394c02f1f87672f03b70618
+Author: jw795 <jw795@cornell.edu>
+Date:   Mon Feb 14 23:36:23 2022 -0500
+
+    no need for RValue
+
+commit f71a4b3ec1e671b3dd270db4cb4abce7a7ea7a89
+Author: jw795 <jw795@cornell.edu>
+Date:   Mon Feb 14 23:24:57 2022 -0500
+
+    change unop to abstract class
+
+commit 5dc4f491be6f83fc834ceffda9dc299286a1afc0
+Author: jw795 <jw795@cornell.edu>
+Date:   Mon Feb 14 22:43:25 2022 -0500
+
+    change ast design from binop interface to binop abstract class
+
+commit 223d2d755aadc4220943ac7cb72cb0905e3a2662
+Author: bz239 <bz239@cornell.edu>
+Date:   Mon Feb 14 21:53:39 2022 -0500
+
+    parser uniary/binary sub
+
+commit c38d912d9266fd70f6925ac8d9ebe1bf2721b55b
+Author: bz239 <bz239@cornell.edu>
+Date:   Mon Feb 14 14:17:20 2022 -0500
+
+    fix start with attempt:')
+
+commit f26d8de23e4bcefb3c8e8f013d147215bbc5d042
+Author: bz239 <bz239@cornell.edu>
+Date:   Mon Feb 14 13:47:44 2022 -0500
+
+    add interface class, update precedence, parse progress
+
+commit 5169c11737bb655f50fcc1c4e2969b025df63883
+Author: bz239 <bz239@cornell.edu>
+Date:   Sun Feb 13 10:57:15 2022 -0500
+
+    add interface class
+
+commit f7d1382b990350646e845d2455a1f208bb42f26e
+Author: jw795 <jw795@cornell.edu>
+Date:   Sun Feb 13 03:55:26 2022 -0500
+
+    test commit
+
+commit 3044ebafbfa98bab2ac4639996b9b7b7a0ff20a8
+Author: jw795 <jw795@cornell.edu>
+Date:   Sun Feb 13 03:54:06 2022 -0500
+
+    test
+
+commit a2b9e3e1d0343fbb363e03a0f6799a5c9c9e7116
+Author: jw795 <jw795@cornel.edu>
+Date:   Sun Feb 13 03:41:47 2022 -0500
+
+    test
+
+commit ed9bafe1de0011c90ba8c4951eb972b8a5bc8538
+Author: jw795 <jw795@cornel.edu>
+Date:   Sun Feb 13 03:39:45 2022 -0500
+
+    test
+
+commit 86fee66716b1684317de19f89e16a007e61d3d66
+Author: jw795 <jw795@cornel.edu>
+Date:   Sun Feb 13 03:22:45 2022 -0500
+
+    grammar in docs
+
+commit 2284e51aecbb366ae8431193ba44582c8bf5e631
+Author: jw795 <jw795@cornel.edu>
+Date:   Sun Feb 13 03:21:49 2022 -0500
+
+    update readme
+
+commit 3274b906adb78e027be88ceda3559743e14f0e13
+Author: jw795 <jw795@cornel.edu>
+Date:   Sun Feb 13 03:15:08 2022 -0500
+
+    function declare class added
+
+commit 504fb95382c602cb46b3f51015316fc22c9cc499
+Merge: 5b7f3e7 4f91d8c
+Author: jw795 <jw795@cornel.edu>
+Date:   Sun Feb 13 03:03:13 2022 -0500
+
+    Merge branch 'main' of https://github.coecis.cornell.edu/jw795/xi-compiler into main
+
+commit 5b7f3e740a3170410f848ba0d82cbf7360e47d3f
+Author: jw795 <jw795@cornel.edu>
+Date:   Sun Feb 13 03:03:02 2022 -0500
+
+    ast
+
+commit 4f91d8cf57598a63859286ee548f9c30a806c579
+Merge: e95c2cc bcbbb61
+Author: bz239 <bz239@cornell.edu>
+Date:   Sun Feb 13 01:57:19 2022 -0500
+
+    Merge branch 'main' of github.coecis.cornell.edu:jw795/xi-compiler
+
+commit e95c2cc8d0d8a3aba11778495393dfc0769ba202
+Author: bz239 <bz239@cornell.edu>
+Date:   Sun Feb 13 01:56:40 2022 -0500
+
+    current progress
+
+commit bcbbb61937feb43ff8d6640e83efe2ff0f72b3b1
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Sun Feb 13 01:14:41 2022 -0500
+
+    try with .ixi
+
+commit 1e665a38ab513fc0d7f7bbe872048855a33d92cf
+Merge: d464381 a28c02f
+Author: bz239 <bz239@cornell.edu>
+Date:   Sat Feb 12 23:50:27 2022 -0500
+
+    Merge branch 'main' of github.coecis.cornell.edu:jw795/xi-compiler
+
+commit d464381cb45bcf20d786d4c1a9a92c0affb4d8a3
+Author: bz239 <bz239@cornell.edu>
+Date:   Sat Feb 12 23:50:20 2022 -0500
+
+    parse program/interface
+
+commit a28c02f1abecb14c8060c8cbcdf41e3daf0c348f
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Sat Feb 12 23:48:57 2022 -0500
+
+    token to cup_symbol
+
+commit eef0a8ada584fbe81b20ce1acbd304fc6e06c126
+Author: bz239 <bz239@cornell.edu>
+Date:   Sat Feb 12 16:55:32 2022 -0500
+
+    parser.cup init
+
+commit 84ae3bb07f2bbabe8e0a427047c3fca284ea8b2a
+Merge: ecd244e 9c95643
+Author: bz239 <bz239@cornell.edu>
+Date:   Sat Feb 12 15:18:51 2022 -0500
+
+    Merge branch 'main' of github.coecis.cornell.edu:jw795/xi-compiler
+
+commit 9c95643e58b773aa05cb8d6d9cb52427dee50b6b
+Author: jw795 <jw795@cornel.edu>
+Date:   Sat Feb 12 15:18:28 2022 -0500
+
+    autograder fix
+
+commit ecd244e45efc803f80877aa99d5b24b21ad035ae
+Author: bz239 <bz239@cornell.edu>
+Date:   Sat Feb 12 15:18:15 2022 -0500
+
+    add cup jar
+
+commit 607e96b52cabe8aad9b7fb1647b70c98628c9c79
+Author: jw795 <jw795@cornel.edu>
+Date:   Tue Feb 8 00:05:01 2022 -0500
+
+    log
+
+commit 2bec00c0860106f46eb65a7127aa88df886d04b0
+Merge: 6e40365 7d2ff79
+Author: bz239 <bz239@cornell.edu>
+Date:   Mon Feb 7 23:41:01 2022 -0500
+
+    Merge branch 'main' of github.coecis.cornell.edu:jw795/xi-compiler
+
+commit 6e40365d8c771441a73afae0e7a1a0877d6c3e02
+Author: bz239 <bz239@cornell.edu>
+Date:   Mon Feb 7 23:40:54 2022 -0500
+
+    update char
+
+commit 7d2ff7906c969e285c819abe0d990012eb6fe29a
+Merge: 8c1a64d 8209c5b
+Author: jw795 <jw795@cornel.edu>
+Date:   Mon Feb 7 23:33:19 2022 -0500
+
+    Merge branch 'main' of https://github.coecis.cornell.edu/jw795/xi-compiler into main
+
+commit 8c1a64d7ecde6afd16f755b0d5b556e2ca89059c
+Author: jw795 <jw795@cornel.edu>
+Date:   Mon Feb 7 23:33:06 2022 -0500
+
+    docstring
+
+commit 8209c5b9a8f9241e44fafa3af02fe0fdd26f336f
+Author: bz239 <bz239@cornell.edu>
+Date:   Mon Feb 7 23:11:06 2022 -0500
+
+    eof char
+
+commit acfd98f260b45cdf0ce54c90fbfc66bed893ecc5
+Merge: 22cd426 f4a00b9
+Author: jw795 <jw795@cornel.edu>
+Date:   Mon Feb 7 22:50:21 2022 -0500
+
+    Merge branch 'main' of https://github.coecis.cornell.edu/jw795/xi-compiler into main
+
+commit 22cd42677447c171e3ce15bb091d74b2ce342732
+Author: jw795 <jw795@cornel.edu>
+Date:   Mon Feb 7 22:50:17 2022 -0500
+
+    battling with autograder
+
+commit f4a00b91e4ea77df0ece36e00994a41c4b550db5
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Mon Feb 7 22:41:24 2022 -0500
+
+    char hexnum fix and char test
+
+commit dfbfe0942ed365030773fa1071db02c26c14fc49
+Merge: e9a248e 71da9f3
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Mon Feb 7 22:34:06 2022 -0500
+
+    Merge branch 'main' of https://github.coecis.cornell.edu/jw795/xi-compiler into main
+
+commit e9a248ec42a17e2a45e016e772aaeba1636cd4cf
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Mon Feb 7 22:34:02 2022 -0500
+
+    char fix
+
+commit 71da9f31266f129cd8f74f5212bcd0cc260fd065
+Author: archerluo <luogaochen@gmail.com>
+Date:   Mon Feb 7 22:31:32 2022 -0500
+
+    changed hex RE
+
+commit 772d39eb10204e2a56df046a2d6107f3d313a387
+Author: archerluo <luogaochen@gmail.com>
+Date:   Mon Feb 7 22:10:28 2022 -0500
+
+    deleted unused chardata
+
+commit 570852a0c6c36ff0743d70f0030327da2d7e9e11
+Author: archerluo <luogaochen@gmail.com>
+Date:   Mon Feb 7 22:08:35 2022 -0500
+
+    fixed some tests and their sol. Now all tests should pass.
+
+commit 9b6404d579745d922e6abbb48ef074c1eddbea77
+Merge: 51018f1 0d42c65
+Author: archerluo <luogaochen@gmail.com>
+Date:   Mon Feb 7 22:06:33 2022 -0500
+
+    Merge branch 'main' of github.coecis.cornell.edu:jw795/xi-compiler
+
+commit 51018f1640139af766c63818e54a7c54457b01a6
+Author: archerluo <luogaochen@gmail.com>
+Date:   Mon Feb 7 22:05:05 2022 -0500
+
+    changed mistakes in lexedsol. Now all tests should be passed.
+
+commit 0d42c658f45f667ec4cd5dd6a6126909b7f1bd1d
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Mon Feb 7 21:50:32 2022 -0500
+
+    pa all passed
+
+commit 36eb54edc14dcfda1ae34cf2395335a4129082f3
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Mon Feb 7 21:25:53 2022 -0500
+
+    continue
+
+commit 3aec039ab74914657a26a85ff4b118e4bf45bc59
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Mon Feb 7 21:12:54 2022 -0500
+
+     char col fix
+
+commit 71e1e278ed0c4f33b8c244a6b9437751bc6a415d
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Mon Feb 7 20:55:10 2022 -0500
+
+     \\ fix
+
+commit c00cc640ea42b748f1b6e8d4453e1145694307da
+Author: bz239 <bz239@cornell.edu>
+Date:   Mon Feb 7 20:09:41 2022 -0500
+
+    update testescape_string
+
+commit 43bf40203ad51e6dcbf3f760924be335f9b4b8ec
+Author: bz239 <bz239@cornell.edu>
+Date:   Mon Feb 7 19:42:56 2022 -0500
+
+    handle when hex code is a special char
+
+commit 24bb7087e58476fd8f1927a51ab0b3f29ec9348c
+Merge: 3f757ad fbcb039
+Author: bz239 <bz239@cornell.edu>
+Date:   Mon Feb 7 19:11:20 2022 -0500
+
+    Merge branch 'main' of github.coecis.cornell.edu:jw795/xi-compiler
+
+commit 3f757ad962a24ba963b3833024d582b3f482528f
+Author: bz239 <bz239@cornell.edu>
+Date:   Mon Feb 7 19:11:14 2022 -0500
+
+    add eofval for other states
+
+commit fbcb039dc8212af49483b2bb827af2c61443f760
+Author: archerluo <luogaochen@gmail.com>
+Date:   Mon Feb 7 19:09:15 2022 -0500
+
+    fix a test sol and changed sthscript
+
+commit da04cc32bd76af192fa62eda33fd85d076acd42b
+Author: archerluo <luogaochen@gmail.com>
+Date:   Mon Feb 7 18:14:45 2022 -0500
+
+    add and change some tests
+
+commit 72a2ad57cc7d8565d5367b164fe3336d113a272c
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Mon Feb 7 17:04:37 2022 -0500
+
+    eof fix
+
+commit 5bd77293aa7f1ae95ed5f4ed74796769f511a8e1
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Mon Feb 7 16:27:51 2022 -0500
+
+    modified type test and sol
+
+commit 6d64d8a8c63eb7d51476590f71d892b7409787ba
+Merge: 10306a5 405788d
+Author: bz239 <bz239@cornell.edu>
+Date:   Mon Feb 7 15:50:43 2022 -0500
+
+    Merge branch 'main' of github.coecis.cornell.edu:jw795/xi-compiler
+
+commit 10306a587ba7aa000479f008b91ce92f4e689a51
+Author: bz239 <bz239@cornell.edu>
+Date:   Mon Feb 7 15:50:38 2022 -0500
+
+    sample test
+
+commit 405788db0a6f8a8ec33bd1595270a42ce29b2988
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Mon Feb 7 15:49:01 2022 -0500
+
+     stringxi fix
+
+commit 1be3d056fcdd788017ed07ec33b2bce959a72baf
+Author: bz239 <bz239@cornell.edu>
+Date:   Mon Feb 7 14:01:05 2022 -0500
+
+    fix string token's col number
+
+commit 21182083a2839580e27fbe8aab6f7d05c7d64126
+Author: bz239 <bz239@cornell.edu>
+Date:   Mon Feb 7 13:48:04 2022 -0500
+
+    error handling in yyinitial
+
+commit 22372366b623e01fa9ba1467e7ee8c61db37cc58
+Author: jw795 <jw795@cornel.edu>
+Date:   Mon Feb 7 12:15:21 2022 -0500
+
+    wut is goin on gradle
+
+commit bf493db655ca2b687dd928b7630e556e03c60851
+Author: archerluo <luogaochen@gmail.com>
+Date:   Mon Feb 7 11:39:18 2022 -0500
+
+    remove chmod, add a test and its sol
+
+commit 4d2d25132ddfa2e35b90379be5049f089e3137b7
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Mon Feb 7 11:09:32 2022 -0500
+
+    wrapper try
+
+commit 4b0b531064dd5f0bf1224186e38f83890c851718
+Merge: 4b53aa7 58fd107
+Author: bz239 <bz239@cornell.edu>
+Date:   Mon Feb 7 02:45:00 2022 -0500
+
+    Merge branch 'main' of github.coecis.cornell.edu:jw795/xi-compiler
+
+commit 4b53aa791ac90f9f306da043538c6e42ce9e9266
+Author: bz239 <bz239@cornell.edu>
+Date:   Mon Feb 7 02:44:15 2022 -0500
+
+    correct error output
+
+commit 58fd107e9819442ed787ddd994d1e94256a1ba75
+Merge: fb8e2d7 1b4d4bd
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Mon Feb 7 02:17:15 2022 -0500
+
+    Merge branch 'main' of https://github.coecis.cornell.edu/jw795/xi-compiler into main
+
+commit fb8e2d739f4c02c7ee12942010269170e8b84569
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Mon Feb 7 02:10:41 2022 -0500
+
+    id and type test
+
+commit 1b4d4bd00687c98ff329ca176ca39d0a1e737c49
+Merge: 6a0f51f 748e4ec
+Author: jw795 <jw795@cornel.edu>
+Date:   Mon Feb 7 01:32:52 2022 -0500
+
+    Merge branch 'main' of https://github.coecis.cornell.edu/jw795/xi-compiler into main
+
+commit 6a0f51f83d4196685ba1861bfa9be5d24fe5caba
+Author: jw795 <jw795@cornel.edu>
+Date:   Mon Feb 7 01:32:49 2022 -0500
+
+    remove remote packages
+
+commit 748e4ec22e3494d4719ab99e49142e1b86b213e5
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Mon Feb 7 01:29:44 2022 -0500
+
+    fix for Assign 14 cases passed
+
+commit 3028ff07e714b48f5a5652aa03dd6d7b06087c2c
+Merge: bc41f0c f92e8b9
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Mon Feb 7 01:19:00 2022 -0500
+
+    Merge branch 'main' of https://github.coecis.cornell.edu/jw795/xi-compiler into main
+
+commit bc41f0c7721eccbdbbb795f8760b44556a542063
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Mon Feb 7 01:18:49 2022 -0500
+
+    string fix
+
+commit f92e8b94d6e9a0e88da337665fd6b104719b3488
+Author: archerluo <luogaochen@gmail.com>
+Date:   Mon Feb 7 01:03:43 2022 -0500
+
+    remove the redundant substring call
+
+commit d411a0d2fda06bf48fc752431c501f408cadbf0f
+Author: archerluo <luogaochen@gmail.com>
+Date:   Mon Feb 7 01:02:30 2022 -0500
+
+    fix the lex command to only lex files with .xi suffix
+
+commit f0ac4adaf8b41a3f0c8987e52ae1dbc988217af0
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Mon Feb 7 00:44:28 2022 -0500
+
+    string and char column number fix
+
+commit 5c56ca9fc65497c29fa828c784c0d3eb3e747922
+Merge: 86d5fa6 139f9c0
+Author: bz239 <bz239@cornell.edu>
+Date:   Mon Feb 7 00:15:30 2022 -0500
+
+    Merge branch 'main' of github.coecis.cornell.edu:jw795/xi-compiler
+
+commit 86d5fa6d256d192b0b6a7ac09c43574d6d989cd4
+Author: bz239 <bz239@cornell.edu>
+Date:   Mon Feb 7 00:15:09 2022 -0500
+
+    ignore new line character in yyinitial
+
+commit 139f9c0734520b90679223fd78fb293491b558d9
+Author: archerluo <luogaochen@gmail.com>
+Date:   Mon Feb 7 00:04:36 2022 -0500
+
+    added all the public test folder to local
+
+commit 1ebff0bda7c60f484148c037bd2727cea829362a
+Author: jw795 <jw795@cornel.edu>
+Date:   Sun Feb 6 23:04:23 2022 -0500
+
+    added a help page and changed file path as specified
+
+commit c7fbdc883040b9f69363023d1bb6bde85c980df8
+Author: jw795 <jw795@cornel.edu>
+Date:   Sun Feb 6 22:12:28 2022 -0500
+
+    change file path
+
+commit f77c06ad731faf7b0ad17e157b67bbef244cce67
+Merge: eae7889 fae4f69
+Author: jw795 <jw795@cornel.edu>
+Date:   Sun Feb 6 14:42:14 2022 -0500
+
+    Merge branch 'main' of https://github.coecis.cornell.edu/jw795/xi-compiler into main
+
+commit eae78893da1709314c15677d2d60ab68b06a01f9
+Author: jw795 <jw795@cornel.edu>
+Date:   Sun Feb 6 14:41:56 2022 -0500
+
+    disable gradle cmdline log
+
+commit fae4f692207db10bbe4329f1a1343e3bd9c79a59
+Author: bz239 <bz239@cornell.edu>
+Date:   Sun Feb 6 10:33:03 2022 -0500
+
+    update identifier
+
+commit d55664cbe8c032a1cb8fc4b4311121cdba5b1392
+Author: jw795 <jw795@cornel.edu>
+Date:   Sun Feb 6 02:25:26 2022 -0500
+
+    modified cli input
+
+commit fa0ff051426eef072779d00186a007de5eea45d6
+Author: jw795 <jw795@cornel.edu>
+Date:   Sun Feb 6 00:40:13 2022 -0500
+
+    first test passed
+
+commit 38dfa9a03b9d1e8d9bbdc86ad2485e49024a4bde
+Merge: 11c1a51 ede9a38
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Sun Feb 6 00:27:28 2022 -0500
+
+    Merge branch 'main' of https://github.coecis.cornell.edu/jw795/xi-compiler into main
+
+commit 11c1a51f4e2f0119d2667fe3d0ac24d643990ed3
+Author: Tianjing Zhang <tz346@cornell.edu>
+Date:   Sun Feb 6 00:27:14 2022 -0500
+
+    first test
+
+commit ede9a38120091c152e589edb7a960ed4936eaf61
+Author: jw795 <jw795@cornel.edu>
+Date:   Sat Feb 5 23:43:14 2022 -0500
+
+    this project is killing me
+
+commit d23e467dc8f6e366c73ed6614a4e38576f11c4db
+Author: jw795 <jw795@cornel.edu>
+Date:   Sat Feb 5 23:14:11 2022 -0500
+
+    gralde build script issue
+
+commit aa082a02525616c0ada892b5578ff23afe68d17e
+Author: jw795 <jw795@cornel.edu>
+Date:   Sat Feb 5 22:48:41 2022 -0500
+
+    attempt to test
+
+commit a5f910504d1914882098aef80401a0806be263ce
+Author: jw795 <jw795@cornel.edu>
+Date:   Sat Feb 5 00:38:38 2022 -0500
+
+    merge conflict again
+
+commit 7c92b8c4bdb41252c68d6d555eabba74f0f343b3
+Author: jw795 <jw795@cornel.edu>
+Date:   Sat Feb 5 00:36:59 2022 -0500
+
+    merge conflict
+
+commit 14b49649724cb031ed6b9498bdaf1b3d05a57f3f
+Merge: f24abcd e8454d4
+Author: jw795 <jw795@cornel.edu>
+Date:   Sat Feb 5 00:33:17 2022 -0500
+
+    merge conflict
+
+commit e8454d41d4e45d960ee4d39db50666342b481e2c
+Author: bz239 <bz239@cornell.edu>
+Date:   Sat Feb 5 00:26:15 2022 -0500
+
+    add tokenTypeToString
+
+commit 4c80c9d9d57f9b7ef17235c6ce42f59589a4d90d
+Author: bz239 <bz239@cornell.edu>
+Date:   Sat Feb 5 00:16:29 2022 -0500
+
+    add file name
+
+commit 2ce16c8395e6fbf651d1bf686935ca15cce83be4
+Author: bz239 <bz239@cornell.edu>
+Date:   Sat Feb 5 00:05:26 2022 -0500
+
+    lexer connected
+
+commit f24abcddccce0a60f42af06f40a9206239cc0b1f
+Author: vagrant <vagrant@cs4120>
+Date:   Sat Feb 5 03:42:45 2022 +0000
+
+    debug
+
+commit eb89ee8660b9650837add805f5c2e826d900a069
+Author: vagrant <vagrant@cs4120>
+Date:   Sat Feb 5 03:39:32 2022 +0000
+
+    debug
+
+commit eceaa56e03eed41dbfa88c224e9984cf1ccc2e48
+Author: bz239 <bz239@cornell.edu>
+Date:   Fri Feb 4 22:03:41 2022 -0500
+
+    lexer progress
+
+commit 0fb4cb3477d57411e3f4a60f0ef89efb9b39cdb3
+Author: bz239 <bz239@cornell.edu>
+Date:   Fri Feb 4 21:05:00 2022 -0500
+
+    generate Lexer.java
+
+commit 179f9d359c81da82a5ed232593b3444686ad0180
+Author: archerluo <luogaochen@gmail.com>
+Date:   Thu Feb 3 23:02:57 2022 -0500
+
+    Character and String states mostly completed. Some changes to previous work.
+
+commit 0410291a5f8fa2b2d8568257536b61b2cb49064f
+Author: archerluo <luogaochen@gmail.com>
+Date:   Thu Feb 3 22:42:29 2022 -0500
+
+    Character and String states mostly completed. Some changes to previous work.
+
+commit 3efe94c6cf5481669c6962327a37af24ecbe2e69
+Author: jw795 <jw795@cornel.edu>
+Date:   Wed Feb 2 20:52:18 2022 -0500
+
+    lexer spec half done
+
+commit fd0d9b10cd87c2eeaff3d7189487dbf71d988892
+Author: jw795 <jw795@cornel.edu>
+Date:   Wed Feb 2 02:18:20 2022 -0500
+
+    added test directory
+
+commit b7a2788d797d096344a8b4b02a2695923c28965f
+Author: jw795 <jw795@cornel.edu>
+Date:   Wed Feb 2 01:50:56 2022 -0500
+
+    add xic build
+
+commit efa6994a20b9313dce2912236f2fa4f1e36c62f9
+Author: jw795 <jw795@cornel.edu>
+Date:   Mon Jan 31 02:47:51 2022 -0500
+
+    set to ignore ide files
+
+commit 7c3bb423da73b920a19a83c7a81a92ccecb32b59
+Author: jw795 <jw795@cornel.edu>
+Date:   Mon Jan 31 02:38:48 2022 -0500
+
+    cleanup
+
+commit be6a842381f46ae372cb603b17fab3c46cac8bc0
+Author: jw795 <jw795@cornel.edu>
+Date:   Mon Jan 31 02:36:06 2022 -0500
+
+    rename to use netid
+
+commit c9295c08e840a47612fd5adf16e0721a48b135e8
+Author: jw795 <jw795@cornel.edu>
+Date:   Mon Jan 31 02:05:05 2022 -0500
+
+    lexer pkg
+
+commit 2b09f421c70b8b1f9126d95b64cc506967f60284
+Author: jw795 <jw795@cornel.edu>
+Date:   Mon Jan 31 01:33:44 2022 -0500
+
+    rename
+
+commit c2b433cae71598995951b0fff1456592c3129c9f
+Author: jw795 <jw795@cornel.edu>
+Date:   Sun Jan 30 00:33:00 2022 -0500
+
+    xic script
+
+commit c4e881c2390f08c44456551afab5b91962f44a83
+Author: jw795 <jw795@cornel.edu>
+Date:   Sat Jan 29 23:31:24 2022 -0500
+
+    update dependency
+
+commit 4cac82723eda63db49ab8d2608a8de5a8b235b52
+Author: jw795 <jw795@cornel.edu>
+Date:   Sat Jan 29 22:53:53 2022 -0500
+
+    cli
+
+commit 3c208ecde0d90fdbca73fdf0da2b3592b5025b93
+Author: jw795 <jw795@cornel.edu>
+Date:   Sat Jan 29 21:31:35 2022 -0500
+
+    buildfiles
+
+commit 861d4617a2cfc6344ee0497a290e420edafc6ac8
+Author: Jian Wang <jw795@cornell.edu>
+Date:   Sat Jan 29 21:16:09 2022 -0500
+
+    Initial commit
