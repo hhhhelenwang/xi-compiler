@@ -12,6 +12,6 @@ public class StringLit extends Expr{
 
     @Override
     public void prettyPrint(CodeWriterSExpPrinter printer) {
-        printer.printAtom(str);
+        printer.printAtom("\"" + str + "\"");
     }
 }
