@@ -80,7 +80,6 @@ public class Compiler {
      * Produce lexical analysis on all input source files.
      */
     public void lex(){
-        System.out.println("Lexing");
         files = cmd.getArgList();
         if (cmd.hasOption("lex")) {
             for (String file : files) {
