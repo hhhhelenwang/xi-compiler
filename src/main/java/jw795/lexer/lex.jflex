@@ -2,6 +2,7 @@ package jw795.lexer;
 
 import java_cup.runtime.*;
 import jw795.parser.sym;
+import java.math.BigInteger;
 
 %%
 %public
@@ -160,10 +161,9 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
     /* Data */
     {Integer} {
     //since negative sign is still seperate token right now, we only check the face value
-        Long readint = Long.parseLong(yytext());
-        long range = Integer.MAX_VALUE;
-        range = range +1;
-        if(readint <= range){return newsymbol(sym.INT, readint);}
+        BigInteger readint = new BigInteger(yytext());
+        BigInteger range = new BigInteger("9223372036854775809");
+        if(range.compareTo(readint) == 1){return newsymbol(sym.INT, readint);}
         else{return newsymbol(sym.error, "Int value out of range");}
     }
     {Boolean} {return newsymbol(sym.BOOL, parseBool(yytext()));}

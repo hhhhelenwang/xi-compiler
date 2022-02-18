@@ -6,6 +6,7 @@ import java.util.Optional;
 import jw795.ast.*;
 import jw795.lexer.Lexer;
 import jw795.lexer.LexerAdapter;
+import java.math.BigInteger;
 
 
 /**
@@ -29,7 +30,7 @@ terminal        PROGRAM_FILE, INTERFACE_FILE;
 terminal        INTTYPE, BOOLTYPE;
 terminal        UNARY;
 
-terminal    Long    INT;
+terminal    BigInteger    INT;
 terminal    Boolean BOOL;
 terminal    String  ID;
 terminal    Character    CHARLIT;
