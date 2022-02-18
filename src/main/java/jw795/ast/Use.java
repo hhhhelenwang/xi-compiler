@@ -15,6 +15,9 @@ public class Use extends ASTNode {
 
     @Override
     public void prettyPrint(CodeWriterSExpPrinter printer) {
-
+        printer.startList();
+        printer.printAtom("use");
+        printer.printAtom(interfaceName);
+        printer.endList();
     }
 }

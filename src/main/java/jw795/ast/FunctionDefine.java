@@ -38,7 +38,7 @@ public class FunctionDefine extends ASTNode implements Definition{
             returnType.prettyPrint(printer);
         }
         printer.endList();
-
         functionBody.prettyPrint(printer);
+        printer.endList();
     }
 }
