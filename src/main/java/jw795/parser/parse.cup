@@ -338,6 +338,8 @@ type ::= arrNone:a
     {: RESULT = new ArrayType(a, a.getLine(), a.getCol()); :}
     | arrAll:a
     {: RESULT = a; :}
+    | primitiveType:p
+    {: RESULT = p; :}
     ;
 
 arrNone ::= arrNone:a LBRACK RBRACK
@@ -360,7 +362,7 @@ arrSome ::= arrSome:a LBRACK RBRACK
 
 arrAll ::= arrAll:a LBRACK expr:e RBRACK
     {: RESULT = new ArrayType(a, e, a.getLine(), a.getCol()); :}
-    | primitiveType:p
+    | primitiveType:p LBRACK expr:e RBRACK
     {: RESULT = p; :}
     ;
 
