@@ -408,17 +408,23 @@ expr ::= INT: i
     {: RESULT = new And(e1, e2, e1.getLine(), e1.getCol());:}
     | expr:e1 OR expr:e2
     {: RESULT = new Or(e1, e2, e1.getLine(), e1.getCol());:}
+    | arrIndexExpr:a
+    {: RESULT = a:}
     ;
 
-arrIndexExpr ::= ID:i LBRACK expr:e RBRACK
+arrIndexExpr ::= arrIndexExpr:a LBRACK expr:e RBRACK
+    {: RESULT = new ArrIndexExpr(a, e, a.getLine(), a.getCol()); :}
+    | ID:i LBRACK expr:e RBRACK
     {:
-        VarExpr expr = new VarExpr(i, ileft, iright);
-        RESULT = new ArrIndexExpr(expr, e, ileft, iright);
+        VarExpr exp = new VarExpr(i, ileft, iright);
+        RESULT = new ArrIndexExpr(exp, e, ileft, iright);
     :}
     | funCall:f LBRACK expr:e RBRACK
     {: RESULT = new ArrIndexExpr(f, e, f.getLine(), f.getCol()); :}
-    | arrIndexExpr:a LBRACK expr:e RBRACK
-    {: RESULT = new ArrIndexExpr(a, e, a.getLine(), a.getCol()); :}
+    | STRINGLIT:s LBRACK expr:e RBRACK
+    {: RESULT = new ArrIndexExpr(s, e, sleft, sright); :}
+    | LPAREN:l expr:e1 RPAREN LBRACK expr:e2 RBRACK
+    {: RESULT = new ArrIndexExpr(e1, e2, lleft, lright); :}
     ;
 
 funCall ::= ID:i LPAREN exprLst:e RPAREN
