@@ -27,10 +27,10 @@ public class ArrayType extends Type {
     public void prettyPrint(CodeWriterSExpPrinter printer) {
         printer.startList();
         printer.printAtom("[]");
+        elemType.prettyPrint(printer);
         if (length.isPresent()) {
             length.get().prettyPrint(printer);
         }
-        elemType.prettyPrint(printer);
         printer.endList();
     }
 }
