@@ -282,7 +282,7 @@ returnStmt ::= RETURN:r exprLst:l optSemi
 * stmt ::=  ifStmt | whileStmt | procCall | assign | multiAssign | blockStmt | varDecl
 */
 stmtLst ::= stmt:s optSemi stmtLst:l
-    {: l.add(0, s); :}
+    {: l.add(0, s); RESULT = l; :}
     | // empty block or end of block
     {: RESULT = new ArrayList<Statement>(); :}
     ;
