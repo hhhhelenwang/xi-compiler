@@ -10,7 +10,7 @@ foo() {
 foo2():int, int {
     //valid function
 
-    return 3,5,7,9,10
+    return 3,5
 }
 
 foo4():int, int, int, int, int{

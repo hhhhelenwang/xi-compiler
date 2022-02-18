@@ -5,7 +5,7 @@ xic ("Test --help") "--help" {
     ;
 }
 
-xic ("Test --lex") "--lex" {
+xic ("Test --lex") ["../pa1"]"--lex" {
     test1.xi;
     test2.xi;
     testcomment.xi;
@@ -20,3 +20,13 @@ xic ("Test --lex") "--lex" {
     testsample_1.xi
     testtype.xi;
 }
+
+xic ("Test --parse") "--parse" {
+    test_declare_assign.xi;
+    test_func_no_arg_type.xi;
+    test_function_definition.xi;
+    test_function_mult_results.xi;
+    test_variable_declares.xi;
+
+}
+
