@@ -412,6 +412,8 @@ expr ::= INT: i
     {: RESULT = e; :}
     | expr:e1 LBRACK expr:e2 RBRACK
     {: RESULT = new ArrIndexExpr(e1, e2, e1.getLine(), e1.getCol()); :}
+    | LBRACE:l exprLst:e RBRACE
+    {: RESULT = new ArrayExpr(e, lleft, lright); :}
     ;
 
 arrIndexExpr ::= ID:i LBRACK expr:e RBRACK
