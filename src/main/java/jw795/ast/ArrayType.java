@@ -13,14 +13,40 @@ public class ArrayType extends Type {
 
     public ArrayType(Type type, int line, int col) {
         super(line, col);
-        length = Optional.empty();
-        elemType = type;
+        if (! (type instanceof ArrayType)) {
+            length = Optional.empty();
+            elemType = type;
+        } else {
+            Type next = type;
+            ArrayType pre = this;
+            while (next instanceof ArrayType) {
+                pre = (ArrayType) next;
+                next = ((ArrayType) next).elemType;
+            }
+            pre.elemType = new ArrayType(next, line, col);
+            this.elemType = ((ArrayType) type).elemType;
+            this.length = ((ArrayType) type).length;
+        }
+
+
     }
 
     public ArrayType(Type type, Expr len, int line, int col) {
         super(line, col);
-        length = Optional.of(len);
-        elemType = type;
+        if (! (type instanceof ArrayType)) {
+            length = Optional.of(len);
+            elemType = type;
+        } else {
+            Type next = type;
+            ArrayType pre = this;
+            while (next instanceof ArrayType) {
+                pre = (ArrayType) next;
+                next = ((ArrayType) next).elemType;
+            }
+            pre.elemType = new ArrayType(next, len, line, col);
+            this.elemType = ((ArrayType) type).elemType;
+            this.length = ((ArrayType) type).length;
+        }
     }
 
     @Override

@@ -67,8 +67,8 @@ public class ParserAdapter {
             printer.flush();
             printer.close();
         } catch (Exception e) {
-            System.out.println(e.toString());
-            e.printStackTrace();
+//            System.out.println(e.toString());
+//            e.printStackTrace();
             // TODO: catch error and printer.printAtom(err_msg)
             printer.printAtom(e.getMessage());
             printer.flush();
