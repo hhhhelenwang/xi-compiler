@@ -333,9 +333,9 @@ lftValue ::= ID:i
     ;
 
 type ::= arrNone:a
-    {: RESULT = a :}
+    {: RESULT = a; :}
     | arrSome:a
-    {: RESULT = a :}
+    {: RESULT = a; :}
     | arrAll:a
     {: RESULT = a; :}
     | primitiveType:p
