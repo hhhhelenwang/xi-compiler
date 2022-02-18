@@ -458,7 +458,10 @@ lftValueMultiLst ::= lftValueMulti:v COMMA lftValueMultiLst:l
     {: ArrayList<LValue> lst = new ArrayList<LValue>(); lst.add(v1); lst.add(v2); RESULT = lst; :}
     ;
 
-lftValueMulti ::= varDecl | wildcard;
+lftValueMulti ::= varDecl: v
+    {: RESULT = v; :}
+    | wildcard: w
+    {: RESULT = w; :};
 
 varDecl ::= ID:i COLON type:t
     {: RESULT = new VarDeclareStmt(i, t, ileft, iright);:}
