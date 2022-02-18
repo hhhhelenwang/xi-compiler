@@ -41,7 +41,6 @@ non terminal file;
 
 // interface
 non terminal Interface interface;
-// might need to change because procFuncDeclLst
 non terminal ArrayList<ProcFuncDecl> procFuncDeclLst;
 non terminal ProcFuncDecl procFuncDecl;
 
@@ -78,11 +77,8 @@ non terminal ReturnStmt returnStmt;
 non terminal Statement ifStmt;
 non terminal WhileStmt whileStmt;
 non terminal ProcCallStmt procCall;
-//non terminal VarDeclareStmt varDecl;
-//non terminal ArrayList<VarDeclareStmt> varDeclLst;
 // because wildcard and VarDeclareStmt are different types
 non terminal WildCard wildcard;
-//non terminal LValue varDecl;
 non terminal VarDeclareStmt varDecl;
 non terminal LValue lftValueMulti;
 non terminal ArrayList<LValue> lftValueMultiLst;
