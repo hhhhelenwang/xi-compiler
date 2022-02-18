@@ -499,7 +499,8 @@ lftValueMultiLst ::= lftValueMulti:v COMMA lftValueMultiLst:l
 lftValueMulti ::= varDecl: v
     {: RESULT = v; :}
     | wildcard: w
-    {: RESULT = w; :};
+    {: RESULT = w; :}
+    ;
 
 // variable declaration
 varDecl ::= ID:i COLON type:t
