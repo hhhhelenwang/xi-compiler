@@ -27,6 +27,9 @@ public class ProcedureDefine extends ASTNode implements Definition{
         }
         printer.endList();
 
+        printer.startList();
+        printer.endList();
+
         procBody.prettyPrint(printer);
         printer.endList();
     }
