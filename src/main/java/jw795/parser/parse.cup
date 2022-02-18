@@ -315,8 +315,6 @@ whileStmt ::= WHILE:w expr:e stmt:s
 
 procCall ::= ID:i LPAREN exprLst:a RPAREN
     {: RESULT = new ProcCallStmt(i, a, ileft, iright); :}
-    | ID:i LPAREN RPAREN
-    {: RESULT = new ProcCallStmt(i, new ArrayList<Expr>(), ileft, iright); :}
     ;
 
 // Single Assignment is defined as Assign ::= (ID | varDecl | arrIndexExpr) ASSIGN expr
@@ -374,10 +372,6 @@ expr ::= INT: i
     {: RESULT = new CharLiteral(c, cleft, cright); :}
     | STRINGLIT: s
     {: RESULT = new StringLit(s, sleft, sright); :}
-    | STRINGLIT:s LBRACK expr:e RBRACK
-    {: RESULT = new ArrIndexExpr(new StringLit (s, sleft, sright), e, sleft, sright); :}
-    | LPAREN expr:e RPAREN
-    {: RESULT = e; :}
     | NOT:not expr:e
     {: RESULT = new Not(e, notleft, notright);:} %prec UNARY
     | expr:e1 MULT expr:e2
@@ -414,6 +408,10 @@ expr ::= INT: i
     {: RESULT = new VarExpr(i, ileft, iright); :}
     | funCall: f
     {: RESULT = f; :}
+    | LPAREN expr:e RPAREN
+    {: RESULT = e; :}
+    | expr:e1 LBRACK expr:e2 RBRACK
+    {: RESULT = new ArrIndexExpr(e1, e2, e1.getLine(), e1.getCol()); :}
     ;
 
 arrIndexExpr ::= ID:i LBRACK expr:e RBRACK
@@ -429,8 +427,6 @@ arrIndexExpr ::= ID:i LBRACK expr:e RBRACK
 
 funCall ::= ID:i LPAREN exprLst:e RPAREN
     {: RESULT = new FunCallExpr(i, e, ileft, iright); :}
-    | ID:i LPAREN RPAREN
-    {: RESULT = new FunCallExpr(i, new ArrayList<Expr>(), ileft, iright); :}
     | LENGTH:len LPAREN expr:e RPAREN
     {: ArrayList<Expr> lst = new ArrayList<Expr>();
        lst.add(e);
@@ -441,6 +437,8 @@ exprLst ::= expr:e COMMA exprLst:l
     {: l.add(0, e); RESULT = l; :}
     | expr:e
     {: ArrayList<Expr> lst = new ArrayList<Expr>(); lst.add(e); RESULT = lst; :}
+    |
+    {: ArrayList<Expr> lst = new ArrayList<Expr>(); RESULT = lst; :}
     ;
 
 multAssign ::= lftValueMultiLst:l ASSIGN funCall:f
