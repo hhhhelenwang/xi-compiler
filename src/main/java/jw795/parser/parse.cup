@@ -15,7 +15,7 @@ import jw795.lexer.LexerAdapter;
 parser code
     {:
         public void syntax_error(java_cup.runtime.Symbol cur) {
-            throw new RuntimeException(String.format( "%d:%d error: unexpected `%s`", cur.left, cur.right,
+            throw new RuntimeException(String.format( "%d:%d error:Unexpected token `%s`", cur.left, cur.right,
                   LexerAdapter.tokenTypeToString(cur.sym)));
         }
     :}
