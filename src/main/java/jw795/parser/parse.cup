@@ -329,6 +329,8 @@ lftValue ::= ID:i
     {: RESULT = v; :}
     | arrIndexExpr:a
     {: RESULT = a; :}
+    | UNDERSCORE:u
+    {: RESULT = new WildCard(uleft, uright); :}
     ;
 
 type ::= arrNone:a
@@ -465,7 +467,7 @@ lftValueMulti ::= varDecl: v
     {: RESULT = w; :};
 
 varDecl ::= ID:i COLON type:t
-    {: RESULT = new VarDeclareStmt(i, t, ileft, iright);:}
+    {: RESULT = new VarDeclareStmt(i, t, ileft, iright); :}
     ;
 
 wildcard ::= UNDERSCORE:u

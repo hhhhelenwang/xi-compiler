@@ -19,10 +19,12 @@ public class Interface extends ASTNode {
     @Override
     public void prettyPrint(CodeWriterSExpPrinter printer) {
         printer.startList();
+        printer.startList();
         for (ProcFuncDecl decl : functions) {
             decl.prettyPrint(printer);
         }
-         printer.endList();
+        printer.endList();
+        printer.endList();
     }
 }
 
