@@ -440,10 +440,11 @@ exprLst ::= expr:e COMMA exprLst:l
     ;
 
 multAssign ::= lftValueMultiLst:l ASSIGN funCall:f
-    {: int line = l.get(0).getLine();
-       int col = l.get(0).getCol();
-       LeftValueList lst = new LeftValueList(l, line, col);
-       RESULT = new AssignStmt(lst, f, line, col);
+    {:
+        int line = l.get(0).getLine();
+        int col = l.get(0).getCol();
+        LeftValueList lst = new LeftValueList(l, line, col);
+        RESULT = new AssignStmt(lst, f, line, col);
     :}
     ;
 
@@ -453,10 +454,7 @@ lftValueMultiLst ::= lftValueMulti:v COMMA lftValueMultiLst:l
     {: ArrayList<LValue> lst = new ArrayList<LValue>(); lst.add(v1); lst.add(v2); RESULT = lst; :}
     ;
 
-lftValueMulti ::= varDecl:v
-    {: RESULT = v; :}
-    | wildcard : w
-    {: RESULT = w; :};
+lftValueMulti ::= varDecl | wildcard;
 
 varDecl ::= ID:i COLON type:t
     {: RESULT = new VarDeclareStmt(i, t, ileft, iright);:}
