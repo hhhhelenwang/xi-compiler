@@ -26,8 +26,4 @@ public abstract class ASTNode implements Node{
         return col;
     }
 
-//    @Override
-//    public XiType type() {
-//        return type;
-//    }
 }

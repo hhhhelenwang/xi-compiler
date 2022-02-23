@@ -22,12 +22,6 @@ public interface Node {
     void prettyPrint(CodeWriterSExpPrinter printer);
 
     /**
-     * Getter method for the node's type
-     * @return the type given by type checking process.
-     */
-    XiType type();
-
-    /**
      * Accepts a visitor to perform type check.
      * @param visitor
      */

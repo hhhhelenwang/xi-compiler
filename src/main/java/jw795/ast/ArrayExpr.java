@@ -1,5 +1,6 @@
 package jw795.ast;
 
+import jw795.typechecker.Visitor;
 import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 
 import java.util.List;
@@ -8,7 +9,7 @@ import java.util.List;
  * Representation of an array in AST.
  */
 public class ArrayExpr extends Expr{
-    List<Expr> arrayElements;
+    public List<Expr> arrayElements;
 
     public ArrayExpr(List<Expr> elements, int line, int col) {
         super(line, col);
@@ -23,4 +24,13 @@ public class ArrayExpr extends Expr{
         }
         printer.endList();
     }
+
+    @Override
+    public void accept(Visitor v) {
+        for (Expr e : arrayElements) {
+            e.accept(v);
+        }
+        v.visitArrayExpr(this);
+    }
+
 }

@@ -6,8 +6,15 @@ public class TypeChecker extends Visitor{
 
     @Override
     public void visitAdd(Add node) {
-        if ((node.expr1.type() instanceof Int) && (node.expr2.type() instanceof Int)) {
+        if ((node.expr1.type instanceof Int) && (node.expr2.type instanceof Int)) {
             node.type = new Int();
+        }
+    }
+
+    @Override
+    public void visitArrayExpr(ArrayExpr node) {
+        for (Expr e: node.arrayElements) {
+
         }
     }
 }
