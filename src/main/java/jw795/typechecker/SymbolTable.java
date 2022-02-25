@@ -35,7 +35,7 @@ public class SymbolTable {
 
     /**
      * Find the type of id in the context.
-     * @param id
+     * @param id identifier for the variable to find type for
      * @return the type of id, null if id is not found
      */
     public XiType findType(String id) {
@@ -49,7 +49,7 @@ public class SymbolTable {
 
     /**
      * If the context contains a mapping for id.
-     * @param id
+     * @param id identifier for the variable to check for
      * @return true if context contains id, false otherwise
      */
     public boolean contains(String id) {
