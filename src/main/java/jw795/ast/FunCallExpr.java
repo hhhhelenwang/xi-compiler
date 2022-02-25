@@ -33,6 +33,10 @@ public class FunCallExpr extends Expr{
         for ( Expr arg: arguments ){
             arg.accept(visitor);
         }
+        if(this.name.equals("length")){
+            visitor.visitLength(this);
+        }else{
         visitor.visitFunCallExpr(this);
+        }
     }
 }

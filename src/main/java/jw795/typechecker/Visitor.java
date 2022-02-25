@@ -11,12 +11,14 @@ public abstract class Visitor {
     public abstract void visitStringLit(StringLit node);
     public abstract void visitCharLiteral(CharLiteral node);
     public abstract void visitFunCallExpr(FunCallExpr node);
+    public abstract void visitLength(FunCallExpr node);
 
     // variable
     public abstract void visitVar(VarExpr node);
 
     // UnOps
     public abstract void visitIntNeg(IntNeg node);
+    public abstract void visitNot(Not node);
 
     // BinOps algebraic
     public abstract void visitAdd(Add node);
@@ -26,6 +28,8 @@ public abstract class Visitor {
     public abstract void visitDiv(Div node);
     public abstract void visitMod(Mod node);
 
+
+
     // BinOps compare
     public abstract void visitEqual(Equal node);
     public abstract void visitNotEqual(NotEqual node);
@@ -34,5 +38,6 @@ public abstract class Visitor {
     public abstract void visitGreaterThan(GreaterThan node);
     public abstract void visitGreaterEq(GreaterEq node);
 
+    //
 
 }
