@@ -9,6 +9,8 @@ import java.io.FileWriter;
 import jw795.lexer.Lexer.TokenType;
 import java_cup.runtime.Symbol;
 
+import util.edu.cornell.cs.cs4120.util.FileUtil;
+
 import jw795.parser.sym;
 
 /**
@@ -38,6 +40,7 @@ public class LexerAdapter {
      * Calls next_token() method in Lexer.class to generate a list of tokens, and output a diagnostic file.
      */
     public void generateTokens () {
+        //read tokens generated from lexer into an ArrayList<Symbol>
         List<Symbol> tokens = new ArrayList<>();
         boolean isEndofTokens = false;
 
@@ -58,32 +61,12 @@ public class LexerAdapter {
             }
         }
 
-        // build the full directory to put the lexed file in
-        String[] dirs = fileName.split("/");
-        String fullPath = lexedPath + "/";
-        for (int i = 0; i < dirs.length - 1; i ++) {
-            fullPath += dirs[i] + "/";
-        }
-        // build the name of the lexed file
-        String file = dirs[dirs.length - 1];
-        String lexedFile;
-        String end = file.substring(file.length()-3);
-        if(end.equals(".xi")) {
-            lexedFile =file.substring(0,file.length()-3)  + ".lexed";
-        }else{
-            lexedFile =file.substring(0,file.length()-4)  + ".lexed";
-        }
+        //generate the target .lexed file
+        File targetLexed = FileUtil.generateTargetFile(fileName, lexedPath, "lexed");
 
-        // check if directory to put the lexed file in exists, create a new dir if doesn't
-        File directory = new File(fullPath);
-        if (!directory.exists()) {
-            directory.mkdir();
-        }
-
-        // output tokens into the target file
-        File targetFile = new File(fullPath + lexedFile);
+        //write to the target file
         try{
-            FileWriter targetWriter = new FileWriter(targetFile);
+            FileWriter targetWriter = new FileWriter(targetLexed);
             for (Symbol t : tokens){
                 StringBuilder line = new StringBuilder();
                 line.append(t.left+1);
