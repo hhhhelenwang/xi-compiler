@@ -29,7 +29,7 @@ public class SymbolTable {
      * Leave the scope when scope ends.
      */
     public void leaveScope() {
-        // pop the hashmap on top of stack
+        // pop the hashmap off top of stack
         gamma.removeLast();
     }
 
