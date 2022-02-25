@@ -6,8 +6,8 @@ public abstract class Visitor {
     public abstract void visitArrayExpr(ArrayExpr node);
 
     // int, bool, string, char literals
-    public abstract void visitIntType(IntType node);
-    public abstract void visitBoolType(BoolType node);
+    public abstract void visitIntLiteral(IntLiteral node);
+    public abstract void visitBoolLiteral(BoolLiteral node);
     public abstract void visitStringLit(StringLit node);
     public abstract void visitCharLiteral(CharLiteral node);
     public abstract void visitFunCallExpr(FunCallExpr node);

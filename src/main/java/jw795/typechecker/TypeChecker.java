@@ -8,30 +8,26 @@ public class TypeChecker extends Visitor{
 
     @Override
     // TODO: naming a bit confusing, can confuse with an int type keyword
-    public void visitIntType(IntType node) {
-        if (node.type instanceof Int){
-            node.type = new Int();
-        }
+    public void visitIntLiteral(IntLiteral node) {
+        node.type = new Int();
     }
 
     @Override
-    public void visitBoolType(BoolType node) {
-        if (node.type instanceof Bool){
-            node.type = new Bool();
-        }
+    public void visitBoolLiteral(BoolLiteral node) {
+        node.type = new Bool();
     }
 
     @Override
     public void visitStringLit(StringLit node) {
         if (node.type instanceof Array && ((Array) node.type).elementType instanceof Int ) {
-            node.type = new Str(); //new Array(new Int())? //TODO: should be int[]
+            node.type = new Array(new Int()); //TODO: should be int[]
         }
     }
 
     @Override
     public void visitCharLiteral(CharLiteral node) {
         if (node.type instanceof Int ) {
-            node.type = new Char(); //new Int()?
+            node.type = new Int();
         }
     }
 

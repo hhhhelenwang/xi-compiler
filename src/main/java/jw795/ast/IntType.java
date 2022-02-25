@@ -18,6 +18,8 @@ public class IntType extends Type {
 
     @Override
     public void accept(Visitor visitor) {
-        visitor.visitIntType(this);
+
     }
+
+
 }

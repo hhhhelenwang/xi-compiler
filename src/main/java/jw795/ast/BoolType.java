@@ -18,6 +18,5 @@ public class BoolType extends Type {
 
     @Override
     public void accept(Visitor visitor) {
-        visitor.visitBoolType(this);
     }
 }
