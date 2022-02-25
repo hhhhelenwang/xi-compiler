@@ -1,5 +1,7 @@
 package jw795.ast;
 
+import jw795.typechecker.Visitor;
+import jw795.typechecker.XiType;
 import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 
 /**
@@ -16,5 +18,11 @@ public class IntNeg extends UnOpExpr{
         printer.printAtom("-");
         expr.prettyPrint(printer);
         printer.endList();
+    }
+
+    @Override
+    public void accept(Visitor visitor) {
+        super.accept(visitor);
+        visitor.visitIntNeg(this);
     }
 }
