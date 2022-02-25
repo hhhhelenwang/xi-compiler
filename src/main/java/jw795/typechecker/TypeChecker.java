@@ -57,6 +57,12 @@ public class TypeChecker extends Visitor{
         }
     }
 
+    private void setBinOpBoolType(BinOpExpr node) {
+        if ((node.expr1.type instanceof Bool) && (node.expr2.type instanceof Bool)) {
+            node.type = new Bool();
+        }
+    }
+
     @Override
     public void visitAdd(Add node) {
         setBinOpIntType(node);
@@ -90,11 +96,13 @@ public class TypeChecker extends Visitor{
     @Override
     public void visitEqual(Equal node) {
         setBinOpIntType(node);
+        setBinOpBoolType(node);
     }
 
     @Override
     public void visitNotEqual(NotEqual node) {
         setBinOpIntType(node);
+        setBinOpBoolType(node);
     }
 
     @Override
@@ -142,5 +150,9 @@ public class TypeChecker extends Visitor{
         }
     }
 
+    @Override
+    public void visitAnd(And node){setBinOpBoolType(node);}
+    @Override
+    public void visitNot(Not node){setBinOpBoolType(node);}
 
 }

@@ -27,6 +27,8 @@ public abstract class Visitor {
     public abstract void visitHighMult(HighMult node);
     public abstract void visitDiv(Div node);
     public abstract void visitMod(Mod node);
+    public abstract void visitAnd(And node);
+    public abstract
 
 
 
