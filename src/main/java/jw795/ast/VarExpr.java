@@ -1,12 +1,14 @@
 package jw795.ast;
 
+import jw795.typechecker.Visitor;
+import jw795.typechecker.XiType;
 import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 
 /**
  * Representations of variables in AST. Implements interface Expr and LValue.
  */
 public class VarExpr extends Expr implements LValue{
-    String identifier;
+    public String identifier;
 
     public VarExpr(String id, int line, int col) {
         super(line, col);
@@ -16,5 +18,10 @@ public class VarExpr extends Expr implements LValue{
     @Override
     public void prettyPrint(CodeWriterSExpPrinter printer) {
         printer.printAtom(identifier);
+    }
+
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visitVar(this);
     }
 }
