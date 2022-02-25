@@ -2,9 +2,9 @@ package jw795.typechecker;
 
 import jw795.ast.*;
 
-import java.util.List;
-
 public class TypeChecker extends Visitor{
+
+    SymbolTable env;
 
     @Override
     public void visitAdd(Add node) {
@@ -37,7 +37,7 @@ public class TypeChecker extends Visitor{
     @Override
     public void visitStringLit(StringLit node) {
         if (node.type instanceof Array && ((Array) node.type).elementType instanceof Int ) {
-            node.type = new Str(); //new Array(new Int())?
+            node.type = new Str(); //new Array(new Int())? //TODO: should be int[]
         }
     }
 
