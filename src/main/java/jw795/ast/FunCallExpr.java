@@ -9,8 +9,8 @@ import java.util.List;
  * Representation of function calls in AST.
  */
 public class FunCallExpr extends Expr{
-    String name;
-    List<Expr> arguments;
+    public String name;
+    public List<Expr> arguments;
 
     public FunCallExpr(String n, List<Expr> args, int line, int col) {
         super(line, col);

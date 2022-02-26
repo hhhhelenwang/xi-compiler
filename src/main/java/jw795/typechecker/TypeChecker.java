@@ -135,20 +135,18 @@ public class TypeChecker extends Visitor{
     @Override
     public void visitLength(FunCallExpr node){
         if(node.name.equals("length") ){
-            if((node.arguments.size() == 1) {
-                if(this.env.findType(node.arguments[0]) instanceof Array){
-                    node.type = new Int();
+            if((node.arguments.size() == 1)) {
+                Expr argu =node.arguments.get(0);
+                if(argu instanceof VarExpr){
+                    if(this.env.findType(((VarExpr) argu).identifier) instanceof Array){
+                        node.type = new Int();
+                    }
                 }
+
             }
         }
     }
 
-    @Override
-    public void visitNot(Not node){
-        if(node.expr.type instanceof Bool){
-            node.type = new Bool();
-        }
-    }
 
     @Override
     public void visitAnd(And node){setBinOpBoolType(node);}
