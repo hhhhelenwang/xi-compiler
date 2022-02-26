@@ -147,10 +147,17 @@ public class TypeChecker extends Visitor{
         }
     }
 
+    @Override
+    public void visitNot(Not node){
+        if(node.expr.type instanceof Bool){
+            node.type = new Bool();
+        }
+    }
 
     @Override
     public void visitAnd(And node){setBinOpBoolType(node);}
+
     @Override
-    public void visitNot(Not node){setBinOpBoolType(node);}
+    public void visitOr(Or node){setBinOpBoolType(node);}
 
 }
