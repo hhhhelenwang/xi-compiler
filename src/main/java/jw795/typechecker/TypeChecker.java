@@ -127,8 +127,13 @@ public class TypeChecker extends Visitor{
 
     @Override
     public void visitArrayExpr(ArrayExpr node) {
-        for (Expr e: node.arrayElements) {
-
+        if (node.arrayElements.isEmpty()) {
+            node.type = new Unit();
+        } else {
+            XiType t;
+            for (Expr e: node.arrayElements) {
+                
+            }
         }
     }
 

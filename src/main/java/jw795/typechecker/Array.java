@@ -1,9 +1,10 @@
 package jw795.typechecker;
 
-public class Array implements XiType {
-    XiType elementType;
+public class Array extends Tau {
+    Tau elementType;
 
-    public Array(XiType type) {
+    public Array(Tau type) {
         elementType = type;
     }
+
 }

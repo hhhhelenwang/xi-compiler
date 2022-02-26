@@ -1,4 +1,4 @@
 package jw795.typechecker;
 
-public class Bool implements XiType {
+public class Bool extends Tau {
 }

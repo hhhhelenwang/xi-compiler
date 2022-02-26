@@ -1,5 +1,6 @@
 package jw795.ast;
 
+import jw795.typechecker.Visitor;
 import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 
 import java.util.Optional;
@@ -27,8 +28,6 @@ public class ArrayType extends Type {
             this.elemType = ((ArrayType) type).elemType;
             this.length = ((ArrayType) type).length;
         }
-
-
     }
 
     public ArrayType(Type type, Expr len, int line, int col) {
@@ -54,9 +53,12 @@ public class ArrayType extends Type {
         printer.startList();
         printer.printAtom("[]");
         elemType.prettyPrint(printer);
-        if (length.isPresent()) {
-            length.get().prettyPrint(printer);
-        }
+        length.ifPresent(expr -> expr.prettyPrint(printer));
         printer.endList();
+    }
+
+    @Override
+    public void accept(Visitor visitor) {
+
     }
 }
