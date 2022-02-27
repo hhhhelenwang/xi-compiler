@@ -4,6 +4,7 @@
 package jw795;
 import jw795.lexer.LexerAdapter;
 import jw795.parser.ParserAdapter;
+import jw795.typechecker.TypeCheckerAdapter;
 import org.apache.commons.cli.*;
 
 import java.io.FileNotFoundException;
@@ -32,6 +33,7 @@ public class Compiler {
         options.addOption("lex", "lex", false, "perform lexical analysis on the input file");
         options.addOption("D", "destination", true, "set path for diagnostic files");
         options.addOption("parse", "parse", false, "generate output from syntactic analysis");
+        options.addOption("typechecck", "typecheck", false, "generate output from semantic analysis");
 
         CommandLineParser parser = new DefaultParser();
         cmd = parser.parse(options, args);
@@ -116,6 +118,27 @@ public class Compiler {
         }
     }
 
+    public void typecheck(){
+        if (cmd.hasOption("typecheck")) {
+            files = cmd.getArgList();
+            for (String file : files) {
+                if (file.endsWith("xi")) {
+                    System.out.println(file);
+                    typecheckFile(file);
+                }
+            }
+        }
+    }
+    public void typecheckFile(String fileName) {
+        try {
+            // Generate token file
+            Reader reader = new FileReader(fileName);
+            TypeCheckerAdapter typeAdapt = new TypeCheckerAdapter(reader, fileName, path);
+        } catch (FileNotFoundException e) {
+            System.out.println(fileName + ": " + " " + "File not found.");
+        }
+    }
+
     public static void main(String[] args) {
         Compiler compiler = new Compiler();
         try {
@@ -128,5 +151,6 @@ public class Compiler {
         compiler.setDestPath();
         compiler.lex();
         compiler.parse();
+        compiler.typecheck();
     }
 }

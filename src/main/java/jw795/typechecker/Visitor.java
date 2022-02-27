@@ -16,6 +16,9 @@ public abstract class Visitor {
     //Procedure
     public abstract void visitPrCall(ProcCallStmt node);
 
+    //Return stmt
+    public abstract void visitRet(ReturnStmt node);
+
     // variable
     public abstract void visitVar(VarExpr node);
 

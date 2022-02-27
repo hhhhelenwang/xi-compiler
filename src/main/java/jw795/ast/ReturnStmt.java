@@ -10,7 +10,7 @@ import java.util.List;
  * Representation of a return statement.
  */
 public class ReturnStmt extends Statement {
-    List<Expr> returnVals;
+    public List<Expr> returnVals;
 
     public ReturnStmt(List<Expr> vals, int line, int col) {
         super(line, col);
@@ -29,6 +29,9 @@ public class ReturnStmt extends Statement {
 
     @Override
     public void accept(Visitor visitor) {
-
+        for (Expr arg: returnVals){
+            arg.accept(visitor);
+        }
+        visitor.visitRet(this);
     }
 }

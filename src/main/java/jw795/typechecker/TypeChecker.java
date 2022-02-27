@@ -50,14 +50,14 @@ public class TypeChecker extends Visitor{
 
             if(l1.size() == l2.size()){
                 for(int i =0; i<l1.size(); i++){
-                    if(! l2.get(i).equals(l1.get(i))){
+                    if(! l2.get(i).equals(l1.get(i).type)){
                         valid = false;
                     }
                 }
             }
         }
-        if(!valid){
-            //error handling
+        if(valid){
+            node.type = new Unit();
         }
     }
 
@@ -65,6 +65,14 @@ public class TypeChecker extends Visitor{
     public void visitVar(VarExpr node) {
         if (env.contains(node.identifier)) {
             node.type = (T) env.findType(node.identifier);
+        }
+    }
+
+    @Override
+    public void visitRet(ReturnStmt node) {
+        boolean isvalid =true;
+        for (Expr e: node.returnVals){
+
         }
     }
 
