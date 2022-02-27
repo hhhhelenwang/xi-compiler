@@ -19,8 +19,8 @@ public class TypeChecker extends Visitor{
 
     @Override
     public void visitStringLit(StringLit node) {
-        if (node.type instanceof Array && ((Array) node.type).elementType instanceof Int ) {
-            node.type = new Array(new Int()); //TODO: should be int[]
+        if (node.type instanceof TypedArray && ((TypedArray) node.type).elementType instanceof Int ) {
+            node.type = new TypedArray(new Int()); //TODO: should be int[]
         }
     }
 
@@ -128,7 +128,7 @@ public class TypeChecker extends Visitor{
     @Override
     public void visitArrayExpr(ArrayExpr node) {
         if (node.arrayElements.isEmpty()) {
-            node.type = new Unit();
+            node.type = new EmptyArray();
         } else {
             XiType t;
             for (Expr e: node.arrayElements) {
@@ -143,7 +143,7 @@ public class TypeChecker extends Visitor{
             if((node.arguments.size() == 1)) {
                 Expr argu =node.arguments.get(0);
                 if(argu instanceof VarExpr){
-                    if(this.env.findType(((VarExpr) argu).identifier) instanceof Array){
+                    if(this.env.findType(((VarExpr) argu).identifier) instanceof TypedArray){
                         node.type = new Int();
                     }
                 }
