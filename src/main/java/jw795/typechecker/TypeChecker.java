@@ -2,6 +2,8 @@ package jw795.typechecker;
 
 import jw795.ast.*;
 
+import java.util.List;
+
 public class TypeChecker extends Visitor{
 
     SymbolTable env;
@@ -34,6 +36,29 @@ public class TypeChecker extends Visitor{
     @Override
     public void visitFunCallExpr(FunCallExpr node) {
         //evaluates to new context, new conext != unit
+    }
+
+    @Override
+    public void visitPrCall(ProcCallStmt node) {
+        // check if f exist, and if f evaluate to unit
+        boolean valid = false;
+        XiType arglst = this.env.findType(node.name);
+        if(arglst instanceof Prod) {
+            valid = true;
+            List<Expr> l1 = node.arguments;
+            List<Tau> l2 = ((Prod) arglst).elementTypes;
+
+            if(l1.size() == l2.size()){
+                for(int i =0; i<l1.size(); i++){
+                    if(! l2.get(i).equals(l1.get(i))){
+                        valid = false;
+                    }
+                }
+            }
+        }
+        if(!valid){
+            //error handling
+        }
     }
 
     @Override

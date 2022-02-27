@@ -13,6 +13,9 @@ public abstract class Visitor {
     public abstract void visitFunCallExpr(FunCallExpr node);
     public abstract void visitLength(FunCallExpr node);
 
+    //Procedure
+    public abstract void visitPrCall(ProcCallStmt node);
+
     // variable
     public abstract void visitVar(VarExpr node);
 

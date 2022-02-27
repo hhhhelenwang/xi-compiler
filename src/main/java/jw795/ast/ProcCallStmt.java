@@ -10,8 +10,8 @@ import java.util.List;
  * Representation of a procedure call.
  */
 public class ProcCallStmt extends Statement {
-    String name;
-    List<Expr> arguments;
+    public String name;
+    public List<Expr> arguments;
 
     public ProcCallStmt(String n, List<Expr> args, int line, int col) {
         super(line, col);
@@ -31,6 +31,9 @@ public class ProcCallStmt extends Statement {
 
     @Override
     public void accept(Visitor visitor) {
-
+        for (Expr arg: arguments){
+            arg.accept(visitor);
+        }
+        visitor.visitPrCall(this);
     }
 }
