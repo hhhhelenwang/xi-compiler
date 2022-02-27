@@ -30,13 +30,13 @@ public class FunCallExpr extends Expr{
 
     @Override
     public void accept(Visitor visitor) {
-        for ( Expr arg: arguments ){
+        for (Expr arg: arguments){
             arg.accept(visitor);
         }
-        if(this.name.equals("length")){
+        if (this.name.equals("length")){
             visitor.visitLength(this);
-        }else{
-        visitor.visitFunCallExpr(this);
+        } else {
+            visitor.visitFunCallExpr(this);
         }
     }
 }

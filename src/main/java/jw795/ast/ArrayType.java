@@ -59,6 +59,6 @@ public class ArrayType extends Type {
 
     @Override
     public void accept(Visitor visitor) {
-
+        // should not be called
     }
 }

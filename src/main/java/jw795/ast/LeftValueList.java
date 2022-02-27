@@ -1,5 +1,6 @@
 package jw795.ast;
 
+import jw795.typechecker.Visitor;
 import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 
 import java.util.List;
@@ -25,5 +26,10 @@ public class LeftValueList extends ASTNode implements LValue{
             lv.prettyPrint(printer);
         }
         printer.endList();
+    }
+
+    @Override
+    public void accept(Visitor visitor) {
+        // TODO: figure out what to do
     }
 }

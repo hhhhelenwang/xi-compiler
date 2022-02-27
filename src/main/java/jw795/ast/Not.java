@@ -24,4 +24,9 @@ public class Not extends UnOpExpr{
         super.accept(visitor);
         visitor.visitNot(this);
     }
+
+    @Override
+    public void accept(Visitor visitor) {
+
+    }
 }

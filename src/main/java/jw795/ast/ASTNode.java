@@ -9,7 +9,7 @@ import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 public abstract class ASTNode implements Node{
     private int line;
     private int col;
-    public XiType type; // the type given
+//    public XiType type; // the type given
 
     public ASTNode (int li, int co) {
         line = li;

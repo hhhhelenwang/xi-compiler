@@ -1,5 +1,7 @@
 package jw795.ast;
 
+import jw795.typechecker.R;
+import jw795.typechecker.Visitor;
 import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 
 import java.util.List;
@@ -23,5 +25,10 @@ public class ReturnStmt extends Statement {
             val.prettyPrint(printer);
         }
         printer.endList();
+    }
+
+    @Override
+    public void accept(Visitor visitor) {
+
     }
 }

@@ -1,5 +1,7 @@
 package jw795.ast;
 
+import jw795.typechecker.Tau;
+import jw795.typechecker.Visitor;
 import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 
 /**
@@ -8,6 +10,7 @@ import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 public class FunProcArgs extends ASTNode {
     String identifier;
     Type argType;
+    Tau type;
 
     public FunProcArgs(String id, Type type, int line, int col) {
         super(line, col);
@@ -21,5 +24,10 @@ public class FunProcArgs extends ASTNode {
         printer.printAtom(identifier);
         argType.prettyPrint(printer);
         printer.endList();
+    }
+
+    @Override
+    public void accept(Visitor visitor) {
+
     }
 }

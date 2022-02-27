@@ -39,7 +39,7 @@ public class TypeChecker extends Visitor{
     @Override
     public void visitVar(VarExpr node) {
         if (env.contains(node.identifier)) {
-            node.type = env.findType(node.identifier);
+            node.type = (T) env.findType(node.identifier);
         }
     }
 

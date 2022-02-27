@@ -18,7 +18,7 @@ public class IntType extends Type {
 
     @Override
     public void accept(Visitor visitor) {
-
+        // should not be called
     }
 
 

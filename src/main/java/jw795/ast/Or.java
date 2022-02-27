@@ -1,5 +1,6 @@
 package jw795.ast;
 
+import jw795.typechecker.Visitor;
 import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 
 /**
@@ -17,5 +18,10 @@ public class Or extends BinOpExpr{
         expr1.prettyPrint(printer);
         expr2.prettyPrint(printer);
         printer.endList();
+    }
+
+    @Override
+    public void accept(Visitor visitor) {
+
     }
 }

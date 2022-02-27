@@ -18,5 +18,6 @@ public class BoolType extends Type {
 
     @Override
     public void accept(Visitor visitor) {
+        // should not be called
     }
 }

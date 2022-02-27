@@ -1,5 +1,6 @@
 package jw795.ast;
 
+import jw795.typechecker.Visitor;
 import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 
 import java.util.List;
@@ -26,5 +27,10 @@ public class ProcedureDeclare extends ASTNode implements ProcFuncDecl{
         printer.startList();
         printer.endList();
         printer.endList();
+    }
+
+    @Override
+    public void accept(Visitor visitor) {
+
     }
 }

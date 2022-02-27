@@ -1,5 +1,6 @@
 package jw795.ast;
 
+import jw795.typechecker.Visitor;
 import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 
 /**
@@ -19,5 +20,10 @@ public class Use extends ASTNode {
         printer.printAtom("use");
         printer.printAtom(interfaceName);
         printer.endList();
+    }
+
+    @Override
+    public void accept(Visitor visitor) {
+        // should not be called
     }
 }
