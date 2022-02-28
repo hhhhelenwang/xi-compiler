@@ -27,6 +27,9 @@ xic ("Test --parse") "--parse" {
     test_function_definition.xi;
     test_function_mult_results.xi;
     test_variable_declares.xi;
+    test_arr_init1.xi;
+    test_arr_init2.xi;
+    test_arr_init3.xi;
 
 }
 

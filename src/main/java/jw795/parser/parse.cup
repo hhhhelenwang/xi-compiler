@@ -61,6 +61,7 @@ non terminal Type argRetType;
 
 // type
 non terminal Type type;
+non terminal Type typeInitiable;
 non terminal Type primitiveType;
 non terminal Type arrNone;
 non terminal Type arrSome;
@@ -80,6 +81,7 @@ non terminal ProcCallStmt procCall;
 // because wildcard and VarDeclareStmt are different types
 non terminal WildCard wildcard;
 non terminal VarDeclareStmt varDecl;
+non terminal VarDeclareStmt varDeclInitiable;
 non terminal LValue lftValueMulti;
 non terminal ArrayList<LValue> lftValueMultiLst;
 
@@ -333,7 +335,7 @@ assign ::= lftValue:v ASSIGN expr:e
 // value that can appear on the left hand side of assign
 lftValue ::= ID:i
     {: RESULT = new VarExpr(i, ileft, iright); :}
-    | varDecl:v
+    | varDeclInitiable:v
     {: RESULT = v; :}
     | arrIndexExpr:a
     {: RESULT = a; :}
@@ -341,17 +343,20 @@ lftValue ::= ID:i
     {: RESULT = new WildCard(uleft, uright); :}
     ;
 
-// type that can be
-type ::= arrNone:a
-    {: RESULT = a; :}
+type ::= typeInitiable:t
+    {: RESULT = t; :}
     | arrSome:a
     {: RESULT = a; :}
     | arrAll:a
     {: RESULT = a; :}
+    ;
+
+// type that can be initiazed
+typeInitiable ::= arrNone:a
+    {: RESULT = a; :}
     | primitiveType:p
     {: RESULT = p; :}
     ;
-
 
 // array type with no length specified
 arrNone ::= arrNone:a LBRACK RBRACK
@@ -482,7 +487,7 @@ lftValueMultiLst ::= lftValueMulti:v COMMA lftValueMultiLst:l
     ;
 
 // values that can appear in multi assign left side
-lftValueMulti ::= varDecl: v
+lftValueMulti ::= varDeclInitiable: v
     {: RESULT = v; :}
     | wildcard: w
     {: RESULT = w; :}
@@ -490,6 +495,11 @@ lftValueMulti ::= varDecl: v
 
 // variable declaration
 varDecl ::= ID:i COLON type:t
+    {: RESULT = new VarDeclareStmt(i, t, ileft, iright); :}
+    ;
+
+// variable declarations that can be initialized
+varDeclInitiable ::= ID:i COLON typeInitiable:t
     {: RESULT = new VarDeclareStmt(i, t, ileft, iright); :}
     ;
 
