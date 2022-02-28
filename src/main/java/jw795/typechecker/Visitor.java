@@ -30,7 +30,6 @@ public abstract class Visitor {
     // BinOps logical
     public abstract void visitAnd(And node);
     public abstract void visitOr(Or node);
-
     // BinOps compare
     public abstract void visitEqual(Equal node);
     public abstract void visitNotEqual(NotEqual node);
@@ -42,8 +41,11 @@ public abstract class Visitor {
     // Statement =====================
     //Procedure
     public abstract void visitPrCall(ProcCallStmt node);
-
     //Return stmt
     public abstract void visitRet(ReturnStmt node);
+    //Assign stmt
+    public abstract void visitAssign(AssignStmt node);
+    // Variable Declare stmt
+    public abstract void visitVarDecl(VarDeclareStmt node);
 
 }

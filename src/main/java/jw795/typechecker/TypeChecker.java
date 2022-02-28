@@ -42,7 +42,6 @@ public class TypeChecker extends Visitor{
         // f(), f(e), length(e), and f(e1, ..., en) and call them in this function
         if (node.name.equals("length")) {
             visitLength(node);
-
         }
     }
 
@@ -166,8 +165,6 @@ public class TypeChecker extends Visitor{
         }
     }
 
-
-
     @Override
     public void visitNot(Not node){
         if(node.expr.type instanceof Bool){
@@ -205,6 +202,22 @@ public class TypeChecker extends Visitor{
         for (Expr e: node.returnVals){
 
         }
+    }
+
+    @Override
+    public void visitAssign(AssignStmt node) {
+        // TODO:
+        //  x = e,
+        //  e1[e2] = e2,
+        //  x:tau = e,
+        //  _ = e
+        //  d1...dn = e
+
+    }
+
+    @Override
+    public void visitVarDecl(VarDeclareStmt node) {
+        // TODO: x:tau, x:tau[]
     }
 
 
