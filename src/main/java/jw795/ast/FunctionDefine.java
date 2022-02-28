@@ -58,6 +58,8 @@ public class FunctionDefine extends ASTNode implements Definition{
         for(Type e:returnTypes){
             e.accept(visitor);
         }
+        functionBody.accept(visitor);
+
         visitor.visitFundef(this);
 
     }

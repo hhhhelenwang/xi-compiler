@@ -39,9 +39,15 @@ public class FunctionDeclare extends ASTNode implements ProcFuncDecl {
         printer.endList();
     }
 
+    /**
+     * It seems like all interface node doesn't a visit function
+     * @param visitor
+     */
     @Override
     public void accept(Visitor visitor) {
-
+        for (FunProcArgs fp:arguments){
+            fp.accept(visitor);
+        }
 
     }
 }
