@@ -7,8 +7,8 @@ import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
  * Representation of array elements in AST. Implements Expr and RValue.
  */
 public class ArrIndexExpr extends Expr implements LValue{
-    Expr array;
-    Expr index;
+    public Expr array;
+    public Expr index;
 
     public ArrIndexExpr(Expr arr, Expr i, int line, int col) {
         super(line, col);
@@ -27,6 +27,8 @@ public class ArrIndexExpr extends Expr implements LValue{
 
     @Override
     public void accept(Visitor visitor) {
-
+        array.accept(visitor);
+        index.accept(visitor);
+        visitor.visitArrIndexExpr(this);
     }
 }

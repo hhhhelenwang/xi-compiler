@@ -85,7 +85,7 @@ public class TypeChecker extends Visitor{
             node.type = new Bool();
         }
     }
-    private void serArrayBoolType(BinOpExpr node){
+    private void setArrayBoolType(BinOpExpr node){
         if(node.expr1.type instanceof  Tau){
             if(node.expr2.type instanceof  Tau) {
                 if (((Tau) node.expr1.type).equals(node.expr2.type)) {
@@ -98,7 +98,7 @@ public class TypeChecker extends Visitor{
     @Override
     public void visitAdd(Add node) {
         setBinOpIntType(node);
-        serArrayBoolType(node);
+        setArrayBoolType(node);
     }
 
     @Override
@@ -136,7 +136,7 @@ public class TypeChecker extends Visitor{
     public void visitEqual(Equal node) {
         setBinOpIntType(node);
         setBinOpBoolType(node);
-        serArrayBoolType(node);
+        setArrayBoolType(node);
 
     }
 
@@ -144,7 +144,7 @@ public class TypeChecker extends Visitor{
     public void visitNotEqual(NotEqual node) {
         setBinOpIntType(node);
         setBinOpBoolType(node);
-        serArrayBoolType(node);
+        setArrayBoolType(node);
     }
 
     @Override
@@ -175,12 +175,15 @@ public class TypeChecker extends Visitor{
             T t = node.arrayElements.get(0).type;
             boolean validArray = true;
             for (Expr e: node.arrayElements) {
-                if (!(e.type instanceof Tau)) {
+                T et = e.type;
+                if (!(et instanceof Tau)) {
                     validArray = false;
                     break;
-                } else if (((Tau) e.type).equals((Tau) t)) {
-                    if (t instanceof EmptyArray && !(e.type instanceof EmptyArray)) {
-                        t = e.type;
+                } else if (((Tau) et).equals((Tau) t)) {
+                    if (et instanceof Array) {
+                        if (((Array)t).compare((Array)et)) {
+                            t = et;
+                        }
                     }
                 } else {
                     validArray = false;
@@ -190,6 +193,15 @@ public class TypeChecker extends Visitor{
             if (validArray) {
                 node.type = new TypedArray((Tau)t);
             }
+        }
+    }
+
+    @Override
+    public void visitArrIndexExpr(ArrIndexExpr node) {
+        if (node.array.type instanceof TypedArray && node.index.type instanceof Int) {
+            node.type = ((TypedArray) node.array.type).elementType;
+        } else if (node.array.type instanceof EmptyArray && node.index.type instanceof Int) {
+            node.type = new Unit();
         }
     }
 
