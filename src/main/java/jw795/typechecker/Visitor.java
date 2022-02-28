@@ -6,6 +6,9 @@ public abstract class Visitor {
     // array literal
     public abstract void visitArrayExpr(ArrayExpr node);
 
+    //indexing
+    public abstract void visitArrIndexExpr(ArrIndexExpr node);
+
     // int, bool, string, char literals
     public abstract void visitIntLiteral(IntLiteral node);
     public abstract void visitBoolLiteral(BoolLiteral node);
