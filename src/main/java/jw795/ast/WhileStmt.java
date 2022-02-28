@@ -7,8 +7,8 @@ import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
  * Representation of a while statement in AST.
  */
 public class WhileStmt extends Statement {
-    Expr condition;
-    Statement loopBody;
+    public Expr condition;
+    public Statement loopBody;
 
     public WhileStmt(Expr cond, Statement body, int line, int col) {
         super(line, col);
@@ -27,6 +27,10 @@ public class WhileStmt extends Statement {
 
     @Override
     public void accept(Visitor visitor) {
-
+        condition.accept(visitor);
+        visitor.env.enterScope();
+        loopBody.accept(visitor);
+        visitor.visitWhileStmt(this);
+        visitor.env.leaveScope();
     }
 }

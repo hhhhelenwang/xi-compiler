@@ -8,8 +8,8 @@ import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
  * Representation of an if statement with no else branch in AST.
  */
 public class IfStmt extends Statement {
-    Expr condition;
-    Statement clause;
+    public Expr condition;
+    public Statement clause;
 
     public IfStmt(Expr cond, Statement cls, int line, int col) {
         super(line, col);
@@ -28,6 +28,10 @@ public class IfStmt extends Statement {
 
     @Override
     public void accept(Visitor visitor) {
-
+        condition.accept(visitor);
+        visitor.env.enterScope();
+        clause.accept(visitor);
+        visitor.visitIfStmt(this);
+        visitor.env.leaveScope();
     }
 }

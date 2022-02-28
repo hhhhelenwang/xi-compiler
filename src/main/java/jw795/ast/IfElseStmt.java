@@ -8,9 +8,9 @@ import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
  * Representation of an if-else statement in AST.
  */
 public class IfElseStmt extends Statement {
-    Expr condition;
-    Statement ifClause;
-    Statement elseClause;
+    public Expr condition;
+    public Statement ifClause;
+    public Statement elseClause;
 
     public IfElseStmt(Expr cond, Statement clause1, Statement clause2, int line, int col) {
         super(line, col);
@@ -31,6 +31,11 @@ public class IfElseStmt extends Statement {
 
     @Override
     public void accept(Visitor visitor) {
-
+        condition.accept(visitor);
+        visitor.env.enterScope();
+        ifClause.accept(visitor);
+        elseClause.accept(visitor);
+        visitor.visitIfElseStmt(this);
+        visitor.env.leaveScope();
     }
 }

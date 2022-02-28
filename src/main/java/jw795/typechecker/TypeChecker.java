@@ -9,7 +9,7 @@ public class TypeChecker extends Visitor{
 
     SymbolTable env;
 
-    // Visit functions for Expressions =================================
+    // ================================= Visit functions for Expressions =================================
     @Override
     // TODO: naming a bit confusing, can confuse with an int type keyword
     public void visitIntLiteral(IntLiteral node) {
@@ -24,7 +24,7 @@ public class TypeChecker extends Visitor{
     @Override
     public void visitStringLit(StringLit node) {
         if (node.type instanceof TypedArray && ((TypedArray) node.type).elementType instanceof Int ) {
-            node.type = new TypedArray(new Int()); //TODO: should be int[]
+            node.type = new TypedArray(new Int());
         }
     }
 
@@ -37,21 +37,42 @@ public class TypeChecker extends Visitor{
 
     @Override
     public void visitFunCallExpr(FunCallExpr node) {
-        //evaluates to new context, new conext != unit
-        //TODO: this method needs to type check the following: f(), f(e), length(e), and f(e1, ..., en)
-        //TODO: one way to do this is to write *private* helper function similar to visitLength below for each of
-        // f(), f(e), length(e), and f(e1, ..., en) and call them in this function
-        if (node.name.equals("length")) {
-            checkLength(node);
+        Sigma fnType = this.env.findType(node.name);
+        if(fnType instanceof Fn && !(((Fn) fnType).outputType instanceof Unit)){
+            if (node.name.equals("length")) {
+                checkLength(node);
+            } else { //f(), f(e), f(e1, ..., en)
+                List<Expr> nodeArgs = node.arguments;
+                T declArgs = ((Fn) fnType).inputType;
+                if (argsConform(nodeArgs, declArgs)){ //e1:tau, e2:tau ..
+                    node.type = toTau(((Fn) fnType).outputType);
+                }
+            }
         }
+    }
+
+    /** Initialize a new object that is the same type as the Type T object passed in */
+    private T toTau(T type){
+        if (type instanceof Tau){
+            return new Tau();
+        } else if (type instanceof Bool){
+            return new Bool();
+        } else if (type instanceof EmptyArray){
+            return new EmptyArray();
+        } else if (type instanceof TypedArray){
+            //TODO: cannot resolve field elementType
+//            Tau eleType = (TypedArray)type.elementType;
+//            return new TypedArray(eleType);
+        }
+        return null;
     }
 
     /** Type check the function call of length(e) function */
     private void checkLength(FunCallExpr node){
         if((node.arguments.size() == 1)) {
-            Expr argu =node.arguments.get(0);
-            if(argu instanceof VarExpr){
-                if(this.env.findType(((VarExpr) argu).identifier) instanceof TypedArray){
+            Expr arg =node.arguments.get(0);
+            if(arg instanceof VarExpr){
+                if(this.env.findType(((VarExpr) arg).identifier) instanceof TypedArray){
                     node.type = new Int();
                 }
             }
@@ -212,23 +233,79 @@ public class TypeChecker extends Visitor{
         }
     }
 
-    // Visit functions for Statements =================================
+    // ================================= Visit functions for Statements =================================
     @Override
     public void visitPrCall(ProcCallStmt node) {
-        // Firstly, a procedure need to be fn T -> unit
-        XiType prType = this.env.findType(node.name);
+        // a procedure need to be fn T -> unit
+        Sigma prType = this.env.findType(node.name);
         if(prType instanceof Fn && ((Fn) prType).outputType instanceof Unit){
-            //secondly, each argument must match the signature of prDecl correspondingly
             List<Expr> nodeArgs = node.arguments;
             T declArgs = ((Fn) prType).inputType;
-            boolean valid = checkArgCorrespondence(nodeArgs, declArgs);
-            if (valid){
+            if (argsConform(nodeArgs, declArgs)){ //e1:tau, e2:tau ..
                 node.type = new Unit();
             }
         }
     }
 
-    private boolean checkArgCorrespondence(List<Expr> nodeArgs, T declArgs){
+    @Override
+    public void visitBlockStmt(BlockStmt node) {
+        int numArgs = node.statements.size();
+        boolean stmtTypeChecked = true;
+        for (int i = 0; i < numArgs - 1; i++){
+            if (!(node.statements.get(i).type instanceof Unit)){
+                stmtTypeChecked = false;
+            }
+        }
+        Statement lastStmt = node.statements.get(numArgs - 1);
+        if (stmtTypeChecked && lastStmt.type instanceof R){
+            node.type = toR(lastStmt.type);
+        }
+    }
+
+    /** Initialize a new object that is the same type as the Type R object passed in. R ::= unit | void */
+    private R toR(R type){
+        if (type instanceof Unit){
+            return new Unit();
+        } else if (type instanceof Void) {
+            return new Void();
+        }
+        System.out.println("error in toR(R type): null passed in");
+        return null; // an error, should not call toR on a null object
+    }
+
+    @Override
+    public void visitIfStmt(IfStmt node) {
+        if (node.condition.type instanceof Bool && node.clause.type instanceof R) {
+            node.type = new Unit();
+        }
+    }
+
+    @Override
+    public void visitIfElseStmt(IfElseStmt node) {
+        if (node.condition.type instanceof Bool && node.ifClause.type instanceof R && node.elseClause.type instanceof R)
+        {
+            node.type = lub(node.ifClause.type, node.elseClause.type);
+        }
+    }
+
+    /** Function lub is defined as spec: lub(R, R) = R, lub(unit, R) = lub(R, unit) = unit */
+    private R lub(R r1, R r2) {
+        if (r1 instanceof Unit || r2 instanceof Unit){
+            return new Unit();
+        } else {
+            return toR(r1);
+        }
+    }
+
+    @Override
+    public void visitWhileStmt(WhileStmt node) {
+        if (node.condition.type instanceof Bool && node.loopBody.type instanceof R){
+            node.type = new Unit();
+        }
+    }
+
+    /** helper to check the types of arg passed in match the signature of declaration correspondingly */
+    private boolean argsConform(List<Expr> nodeArgs, T declArgs){
         boolean valid = false;
         if (declArgs instanceof Unit && nodeArgs.size() == 0) {
             valid = true;
@@ -325,7 +402,7 @@ public class TypeChecker extends Visitor{
         }
         // if typeChecks, build an array type with m + n levels and primitive type = next
         if (typeChecks) {
-            Tau type = toTau(arrType);
+            Tau type = typeToTau(arrType);
             env.add(id, new Var(type));
         }
     }
@@ -334,8 +411,8 @@ public class TypeChecker extends Visitor{
     public void visitFundef(FunctionDefine node){
         T input;
         T output;
-        if(node.arguments.size() == 0 ){
-            input =new Unit();
+        if(node.arguments.size() == 0){
+            input = new Unit();
         }else if(node.arguments.size() == 1){
             input =  node.arguments.get(0).type;
         }else{
@@ -344,17 +421,16 @@ public class TypeChecker extends Visitor{
                 eletype.add(fp.type);
             }
             input = new Prod(eletype);
-
         }
 
-        if(node.returnTypes.size() == 0 ){
+        if(node.returnTypes.size() == 0){
             output =new Unit();
         }else if(node.returnTypes.size() == 1){
-            output = toTau(node.returnTypes.get(0)) ;
+            output = typeToTau(node.returnTypes.get(0)) ;
         }else{
             List<Tau> rettype= new ArrayList<>();
             for(Type e: node.returnTypes){
-                rettype.add(toTau(e));
+                rettype.add(typeToTau(e));
             }
             output = new Prod(rettype);
         }
@@ -367,7 +443,7 @@ public class TypeChecker extends Visitor{
 
 
     /** Build a Tau type from a Type AST node. */
-    private Tau toTau(Type t){
+    private Tau typeToTau(Type t){
         if (t instanceof IntType){
             return new Int();
         }
@@ -378,7 +454,7 @@ public class TypeChecker extends Visitor{
             if (((ArrayType) t).elemType == null){
                 return new EmptyArray();
             }else{
-                return new TypedArray(toTau(((ArrayType) t).elemType));
+                return new TypedArray(typeToTau(((ArrayType) t).elemType));
             }
         }
         return null;

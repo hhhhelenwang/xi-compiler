@@ -46,6 +46,14 @@ public abstract class Visitor {
     // Statement =====================
     //Procedure
     public abstract void visitPrCall(ProcCallStmt node);
+    //Block stmt (SEQ)
+    public abstract void visitBlockStmt(BlockStmt node);
+    //If stmt
+    public abstract void visitIfStmt(IfStmt node);
+    //If Else stmt
+    public abstract void visitIfElseStmt(IfElseStmt node);
+    //While stmt
+    public abstract void visitWhileStmt(WhileStmt node);
     //Return stmt
     public abstract void visitRet(ReturnStmt node);
     //Assign stmt
@@ -53,6 +61,4 @@ public abstract class Visitor {
     // Variable Declare stmt
     public abstract void visitVarDecl(VarDeclareStmt node);
     public abstract void visitFundef(FunctionDefine node);
-
-
 }

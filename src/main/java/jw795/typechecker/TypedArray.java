@@ -1,7 +1,7 @@
 package jw795.typechecker;
 
 public class TypedArray extends Array {
-    Tau elementType;
+    public Tau elementType;
 
     /**
      * Array type with the type of the element known. In other words, an array that's not an empty array
