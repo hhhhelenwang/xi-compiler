@@ -37,6 +37,25 @@ public class TypeChecker extends Visitor{
     @Override
     public void visitFunCallExpr(FunCallExpr node) {
         //evaluates to new context, new conext != unit
+        //TODO: this method needs to type check the following: f(), f(e), length(e), and f(e1, ..., en)
+        //TODO: one way to do this is to write *private* helper function similar to visitLength below for each of
+        // f(), f(e), length(e), and f(e1, ..., en) and call them in this function
+        if (node.name.equals("length")) {
+            visitLength(node);
+
+        }
+    }
+
+    /** Type check the function call of length(e) function */
+    private void visitLength(FunCallExpr node){
+        if((node.arguments.size() == 1)) {
+            Expr argu =node.arguments.get(0);
+            if(argu instanceof VarExpr){
+                if(this.env.findType(((VarExpr) argu).identifier) instanceof TypedArray){
+                    node.type = new Int();
+                }
+            }
+        }
     }
 
     @Override
@@ -53,14 +72,14 @@ public class TypeChecker extends Visitor{
         }
     }
 
-    // helper to check the type of the subexpressions of algebraic and comparison binop
+    /** helper to check the type of the subexpressions of algebraic and comparison binop */
     private void setBinOpIntType(BinOpExpr node) {
         if ((node.expr1.type instanceof Int) && (node.expr2.type instanceof Int)) {
             node.type = new Int();
         }
     }
 
-    // helper to check the type of the subexpressions of logical binop
+    /** helper to check the type of the subexpressions of logical binop */
     private void setBinOpBoolType(BinOpExpr node) {
         if ((node.expr1.type instanceof Bool) && (node.expr2.type instanceof Bool)) {
             node.type = new Bool();
@@ -147,20 +166,7 @@ public class TypeChecker extends Visitor{
         }
     }
 
-    @Override
-    public void visitLength(FunCallExpr node){
-        if(node.name.equals("length") ){
-            if((node.arguments.size() == 1)) {
-                Expr argu =node.arguments.get(0);
-                if(argu instanceof VarExpr){
-                    if(this.env.findType(((VarExpr) argu).identifier) instanceof TypedArray){
-                        node.type = new Int();
-                    }
-                }
 
-            }
-        }
-    }
 
     @Override
     public void visitNot(Not node){

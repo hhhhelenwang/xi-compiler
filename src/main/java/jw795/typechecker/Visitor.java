@@ -12,7 +12,6 @@ public abstract class Visitor {
     public abstract void visitStringLit(StringLit node);
     public abstract void visitCharLiteral(CharLiteral node);
     public abstract void visitFunCallExpr(FunCallExpr node);
-    public abstract void visitLength(FunCallExpr node);
 
     // variable
     public abstract void visitVar(VarExpr node);
