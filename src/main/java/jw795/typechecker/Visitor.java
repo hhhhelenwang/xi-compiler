@@ -2,6 +2,7 @@ package jw795.typechecker;
 import jw795.ast.*;
 
 public abstract class Visitor {
+    // Expression =================
     // array literal
     public abstract void visitArrayExpr(ArrayExpr node);
 
@@ -12,12 +13,6 @@ public abstract class Visitor {
     public abstract void visitCharLiteral(CharLiteral node);
     public abstract void visitFunCallExpr(FunCallExpr node);
     public abstract void visitLength(FunCallExpr node);
-
-    //Procedure
-    public abstract void visitPrCall(ProcCallStmt node);
-
-    //Return stmt
-    public abstract void visitRet(ReturnStmt node);
 
     // variable
     public abstract void visitVar(VarExpr node);
@@ -33,10 +28,9 @@ public abstract class Visitor {
     public abstract void visitHighMult(HighMult node);
     public abstract void visitDiv(Div node);
     public abstract void visitMod(Mod node);
+    // BinOps logical
     public abstract void visitAnd(And node);
     public abstract void visitOr(Or node);
-
-
 
     // BinOps compare
     public abstract void visitEqual(Equal node);
@@ -46,6 +40,11 @@ public abstract class Visitor {
     public abstract void visitGreaterThan(GreaterThan node);
     public abstract void visitGreaterEq(GreaterEq node);
 
-    //
+    // Statement =====================
+    //Procedure
+    public abstract void visitPrCall(ProcCallStmt node);
+
+    //Return stmt
+    public abstract void visitRet(ReturnStmt node);
 
 }
