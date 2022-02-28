@@ -84,10 +84,20 @@ public class TypeChecker extends Visitor{
             node.type = new Bool();
         }
     }
+    private void serArrayBoolType(BinOpExpr node){
+        if(node.expr1.type instanceof  Tau){
+            if(node.expr2.type instanceof  Tau) {
+                if (((Tau) node.expr1.type).equals(node.expr2.type)) {
+                    node.type = new Bool();
+                }
+            }
+        }
+    }
 
     @Override
     public void visitAdd(Add node) {
         setBinOpIntType(node);
+        serArrayBoolType(node);
     }
 
     @Override
@@ -125,12 +135,15 @@ public class TypeChecker extends Visitor{
     public void visitEqual(Equal node) {
         setBinOpIntType(node);
         setBinOpBoolType(node);
+        serArrayBoolType(node);
+
     }
 
     @Override
     public void visitNotEqual(NotEqual node) {
         setBinOpIntType(node);
         setBinOpBoolType(node);
+        serArrayBoolType(node);
     }
 
     @Override
