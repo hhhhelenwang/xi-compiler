@@ -42,5 +42,6 @@ public class FunctionDeclare extends ASTNode implements ProcFuncDecl {
     @Override
     public void accept(Visitor visitor) {
 
+
     }
 }

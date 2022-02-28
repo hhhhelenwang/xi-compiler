@@ -213,8 +213,18 @@ public class TypeChecker extends Visitor{
     @Override
     public void visitRet(ReturnStmt node) {
         boolean isvalid =true;
-        for (Expr e: node.returnVals){
-
+        XiType retarg = this.env.findType("return");
+        if(retarg instanceof  Prod){
+            if (((Prod) retarg).elementTypes.size() == node.returnVals.size() ){
+                for (int i =0; i < node.returnVals.size(); i++){
+                    if(! ((Prod) retarg).elementTypes.get(i).equals(node.returnVals.get(i))){
+                        isvalid = false;
+                    }
+                }
+            }
+        }
+        if(isvalid){
+            node.type = new Void();
         }
     }
 
