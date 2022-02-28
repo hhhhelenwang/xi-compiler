@@ -61,4 +61,11 @@ public class SymbolTable {
         return false;
     }
 
+    //add an variable with name and argumenttype in the current scope
+    public void add(String name,  XiType t){
+        HashMap<String, XiType> lastone = this.gamma.get(this.gamma.size()-1);
+        lastone.put(name,t);
+    }
+
+
 }

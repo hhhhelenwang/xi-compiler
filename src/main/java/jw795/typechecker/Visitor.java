@@ -2,6 +2,8 @@ package jw795.typechecker;
 import jw795.ast.*;
 
 public abstract class Visitor {
+    public SymbolTable env;
+
     // Expression =================
     // array literal
     public abstract void visitArrayExpr(ArrayExpr node);
@@ -50,5 +52,7 @@ public abstract class Visitor {
     public abstract void visitAssign(AssignStmt node);
     // Variable Declare stmt
     public abstract void visitVarDecl(VarDeclareStmt node);
+    public abstract void visitFundef(FunctionDefine node);
+
 
 }
