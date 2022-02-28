@@ -1,8 +1,11 @@
 package jw795.ast;
 
+import jw795.typechecker.Prod;
+import jw795.typechecker.Tau;
 import jw795.typechecker.Visitor;
 import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -10,10 +13,10 @@ import java.util.Optional;
  * Representation of a function or procedure definition in AST.
  */
 public class FunctionDefine extends ASTNode implements Definition{
-    String name;
-    List<Type> returnTypes; // procedure does not have return values
-    List<FunProcArgs> arguments;
-    BlockStmt functionBody;
+    public String name;
+    public List<Type> returnTypes; // procedure does not have return values
+    public List<FunProcArgs> arguments;
+    public BlockStmt functionBody;
 
     public FunctionDefine(String n, List<Type> types, List<FunProcArgs> args, BlockStmt body, int line, int col) {
         super(line, col);
@@ -43,8 +46,19 @@ public class FunctionDefine extends ASTNode implements Definition{
         printer.endList();
     }
 
+    /**
+     * First enter a scope, and thenput in fun arg and return
+     * @param visitor
+     */
     @Override
     public void accept(Visitor visitor) {
+        for(FunProcArgs fp:arguments ){
+            fp.accept(visitor);
+        }
+        for(Type e:returnTypes){
+            e.accept(visitor);
+        }
+        visitor.visitFundef(this);
 
     }
 }

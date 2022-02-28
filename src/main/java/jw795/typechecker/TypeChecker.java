@@ -2,6 +2,7 @@ package jw795.typechecker;
 
 import jw795.ast.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class TypeChecker extends Visitor{
@@ -262,5 +263,39 @@ public class TypeChecker extends Visitor{
 
     }
 
+    @Override
+    public void visitFundef(FunctionDefine node){
+        this.env.enterScope();
+        List<Tau> eletype= new ArrayList<>();
+        for(FunProcArgs fp: node.arguments){
+            eletype.add(fp.type);
+        }
+        List<Tau> rettype= new ArrayList<>();
+        for(Type e: node.returnTypes){
+            eletype.add(transgenaric(e));
+        }
+        Fn thetype = new Fn(new Prod(eletype), new Prod(rettype));
+        this.env.add(node.name, thetype);
+
+        this.env.leaveScope();
+    }
+
+
+    public Tau transgenaric(Type t){
+        if (t instanceof IntType){
+            return new Int();
+        }
+        else if (t instanceof BoolType){
+            return new Bool();
+        }
+        else if (t instanceof ArrayType){
+            if (((ArrayType) t).elemType == null){
+                return new EmptyArray();
+            }else{
+                return new TypedArray(transgenaric(((ArrayType) t).elemType));
+            }
+        }
+        return null;
+    }
 
 }

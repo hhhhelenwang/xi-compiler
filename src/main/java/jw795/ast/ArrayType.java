@@ -9,7 +9,7 @@ import java.util.Optional;
  * Representation of array type. Contains the type of the array's elements.
  */
 public class ArrayType extends Type {
-    Type elemType;
+    public Type elemType;
     Optional<Expr> length;
 
     public ArrayType(Type type, int line, int col) {

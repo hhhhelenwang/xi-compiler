@@ -29,7 +29,6 @@ public class TypeCheckerAdapter {
     public void gentypecheck(){
         //generate the target .parsed file
         File targetParsed = FileUtil.generateTargetFile(fileName, parsedPath, "parsed");
-
         PrintWriter pw = null;
         try {
             pw = new PrintWriter(targetParsed);
@@ -43,7 +42,8 @@ public class TypeCheckerAdapter {
         // parse
         try {
             ASTNode node = (ASTNode) cup_parser.parse().value;
-
+            Visitor vis = new TypeChecker();
+            node.accept(vis);
         } catch (Exception e) {
             printer.printAtom(e.getMessage());
             printer.flush();
