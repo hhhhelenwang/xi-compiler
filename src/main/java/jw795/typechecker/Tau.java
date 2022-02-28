@@ -6,15 +6,10 @@ public class Tau implements T{
         if (!(this instanceof Array)) {
             return this.getClass() == type.getClass();  // first type is not an array
         } else {
-            if (!(type instanceof TypedArray)) {
+            if (!(type instanceof Array)) {
                 return false;   // first type is an array, second type is not an array
             } else {
-                if ((this instanceof EmptyArray) || (type instanceof EmptyArray)) {
-                    return true;    // first type is an empty array or second type is an empty array
-                } else {
-                    // both are array with known element type
-                    return (!((TypedArray)this).elementType.equals(((TypedArray) type).elementType));
-                }
+                return ((Array)this).compare((Array)type) || ((Array)type).compare((Array)this);
             }
         }
     }
@@ -23,3 +18,4 @@ public class Tau implements T{
         return ((this.getClass() == t.getClass()) || (t instanceof Unit));
     }
 }
+

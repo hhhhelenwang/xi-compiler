@@ -158,9 +158,23 @@ public class TypeChecker extends Visitor{
         if (node.arrayElements.isEmpty()) {
             node.type = new EmptyArray();
         } else {
-            XiType t;
+            T t = node.arrayElements.get(0).type;
+            boolean validArray = true;
             for (Expr e: node.arrayElements) {
-                
+                if (!(e.type instanceof Tau)) {
+                    validArray = false;
+                    break;
+                } else if (((Tau) e.type).equals((Tau) t)) {
+                    if (t instanceof EmptyArray && !(e.type instanceof EmptyArray)) {
+                        t = e.type;
+                    }
+                } else {
+                    validArray = false;
+                    break;
+                }
+            }
+            if (validArray) {
+                node.type = new TypedArray((Tau)t);
             }
         }
     }
