@@ -41,12 +41,12 @@ public class TypeChecker extends Visitor{
         //TODO: one way to do this is to write *private* helper function similar to visitLength below for each of
         // f(), f(e), length(e), and f(e1, ..., en) and call them in this function
         if (node.name.equals("length")) {
-            visitLength(node);
+            checkLength(node);
         }
     }
 
     /** Type check the function call of length(e) function */
-    private void visitLength(FunCallExpr node){
+    private void checkLength(FunCallExpr node){
         if((node.arguments.size() == 1)) {
             Expr argu =node.arguments.get(0);
             if(argu instanceof VarExpr){
@@ -218,6 +218,11 @@ public class TypeChecker extends Visitor{
     @Override
     public void visitVarDecl(VarDeclareStmt node) {
         // TODO: x:tau, x:tau[]
+    }
+
+    /** Type check _ = e */
+    private void checkExprStmt() {
+
     }
 
 
