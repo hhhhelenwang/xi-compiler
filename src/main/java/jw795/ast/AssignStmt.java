@@ -7,8 +7,8 @@ import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
  * Representation of an assignment statement.
  */
 public class AssignStmt extends Statement implements Definition {
-    LValue leftVal;
-    Expr expr;
+    public LValue leftVal;
+    public Expr expr;
 
     public AssignStmt(LValue left, Expr e, int line, int col) {
         super(line, col);

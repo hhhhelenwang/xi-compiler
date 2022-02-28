@@ -10,8 +10,8 @@ import java.util.Optional;
  * Representation of a variable declaration.
  */
 public class VarDeclareStmt extends Statement implements LValue {
-    String identifier;
-    Type varType;
+    public String identifier;
+    public Type varType;
 
     public VarDeclareStmt(String id, Type t, int line, int col) {
         super(line, col);

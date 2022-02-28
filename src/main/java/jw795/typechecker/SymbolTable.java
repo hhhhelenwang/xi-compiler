@@ -10,7 +10,7 @@ public class SymbolTable {
 
     // the context is implemented as a stack of hashmaps
     // end of linked-list = top of stack
-    LinkedList<HashMap<String, XiType>> gamma;
+    LinkedList<HashMap<String, Sigma>> gamma;
 
     public SymbolTable() {
         gamma = new LinkedList<>();
@@ -38,8 +38,8 @@ public class SymbolTable {
      * @param id identifier for the variable to find type for
      * @return the type of id, null if id is not found
      */
-    public XiType findType(String id) {
-        for (HashMap<String, XiType> context : gamma) {
+    public Sigma findType(String id) {
+        for (HashMap<String, Sigma> context : gamma) {
             if (context.containsKey(id)) {
                 return context.get(id);
             }
@@ -53,7 +53,7 @@ public class SymbolTable {
      * @return true if context contains id, false otherwise
      */
     public boolean contains(String id) {
-        for (HashMap<String, XiType> context : gamma) {
+        for (HashMap<String, Sigma> context : gamma) {
             if (context.containsKey(id)) {
                 return true;
             }
@@ -61,10 +61,14 @@ public class SymbolTable {
         return false;
     }
 
-    //add an variable with name and argumenttype in the current scope
-    public void add(String name,  XiType t){
-        HashMap<String, XiType> lastone = this.gamma.get(this.gamma.size()-1);
-        lastone.put(name,t);
+    /**
+     * Add identifier name and its type t to the symbol table.
+     * @param name identifier of the variable
+     * @param t type of the variable
+     */
+    public void add(String name,  Sigma t){
+        HashMap<String, Sigma> lastOne = this.gamma.getLast();
+        lastOne.put(name, t);
     }
 
 
