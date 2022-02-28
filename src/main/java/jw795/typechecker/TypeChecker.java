@@ -215,11 +215,39 @@ public class TypeChecker extends Visitor{
     // Visit functions for Statements =================================
     @Override
     public void visitPrCall(ProcCallStmt node) {
+        // Firstly, a procedure need to be fn T -> unit
         XiType prType = this.env.findType(node.name);
         if(prType instanceof Fn && ((Fn) prType).outputType instanceof Unit){
-            node.type = new Unit();
+            //secondly, each argument must match the signature of prDecl correspondingly
+            List<Expr> nodeArgs = node.arguments;
+            T declArgs = ((Fn) prType).inputType;
+            boolean valid = checkArgCorrespondence(nodeArgs, declArgs);
+            if (valid){
+                node.type = new Unit();
+            }
         }
     }
+
+    private boolean checkArgCorrespondence(List<Expr> nodeArgs, T declArgs){
+        boolean valid = false;
+        if (declArgs instanceof Unit && nodeArgs.size() == 0) {
+            valid = true;
+        } else if (declArgs instanceof Tau && nodeArgs.size() == 1){
+            valid = declArgs.equals(nodeArgs.get(0).type);
+        } else if (declArgs instanceof Prod && nodeArgs.size() == ((Prod) declArgs).elementTypes.size()){
+            valid = true;
+            for (int i = 0; i < nodeArgs.size(); i++){
+                Tau declArg = ((Prod) declArgs).elementTypes.get(i);
+                Expr nodeArg = nodeArgs.get(i);
+                if (!declArg.equals(nodeArg)){
+                    valid = false;
+                }
+            }
+        }
+        return valid;
+    }
+
+
 
     @Override
     public void visitRet(ReturnStmt node) {
