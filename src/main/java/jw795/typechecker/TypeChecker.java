@@ -239,7 +239,7 @@ public class TypeChecker extends Visitor{
     @Override
     public void visitRet(ReturnStmt node) {
         boolean isvalid =true;
-        XiType retarg = this.env.findType("return");
+        Sigma retarg = this.env.findType("return");
         if(retarg instanceof  Prod){
             if (((Prod) retarg).elementTypes.size() == node.returnVals.size() ){
                 for (int i =0; i < node.returnVals.size(); i++){
@@ -262,17 +262,59 @@ public class TypeChecker extends Visitor{
         //  x:tau = e,
         //  _ = e
         //  d1...dn = e
+        if (node.leftVal instanceof WildCard) {
+            checkExprStmt(node);
+        }
 
     }
+
+    /** Type check _ = e */
+    private void checkExprStmt(AssignStmt node) {
+        if (node.expr.type instanceof Tau) {
+            node.type = new Unit();
+        }
+    }
+
+
 
     @Override
     public void visitVarDecl(VarDeclareStmt node) {
         // TODO: x:tau, x:tau[]
     }
 
-    /** Type check _ = e */
-    private void checkExprStmt() {
-
+    /** Type check array declaration x:tau[e1][e2]...[en][]...[], allow n = 0.
+     *  Requires:
+     *  - node is an array declaration (check when calling this method in visitVarDecl),
+     *  - all dimensions are specified to the left-most (checked at parsing),
+     */
+    public void checkArrayDecl(VarDeclareStmt node) {
+        String id = node.identifier;
+        ArrayType arrType = (ArrayType) node.varType;
+        boolean typeChecks = true;
+        if (env.contains(id)) {
+            // error: id is already declared
+            typeChecks = false;
+        } else {
+            Type next = arrType;
+            // check type
+            while (next instanceof ArrayType) {
+                boolean hasDim = ((ArrayType) next).length.isPresent(); // if dim is defined for this level
+                if (hasDim) {
+                    XiType dimType = ((ArrayType) next).length.get().type;
+                    if (!(dimType instanceof Int)) {
+                        // error: expected Int, got <dimType>
+                        typeChecks = false;
+                        break;
+                    }
+                    next = ((ArrayType) next).elemType;
+                }
+            }
+        }
+        // if typeChecks, build an array type with m + n levels and primitive type = next
+        if (typeChecks) {
+            Tau type = toTau(arrType);
+            env.add(id, new Var(type));
+        }
     }
 
     @Override
@@ -307,10 +349,12 @@ public class TypeChecker extends Visitor{
         Fn thetype = new Fn(input, output);
         this.env.add(node.name, thetype);
 
+        this.env.leaveScope();
     }
 
 
-    public Tau transgenaric(Type t){
+    /** Build a Tau type from a Type AST node. */
+    private Tau toTau(Type t){
         if (t instanceof IntType){
             return new Int();
         }
@@ -321,7 +365,7 @@ public class TypeChecker extends Visitor{
             if (((ArrayType) t).elemType == null){
                 return new EmptyArray();
             }else{
-                return new TypedArray(transgenaric(((ArrayType) t).elemType));
+                return new TypedArray(toTau(((ArrayType) t).elemType));
             }
         }
         return null;

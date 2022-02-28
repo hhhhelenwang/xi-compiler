@@ -10,7 +10,7 @@ import java.util.Optional;
  */
 public class ArrayType extends Type {
     public Type elemType;
-    Optional<Expr> length;
+    public Optional<Expr> length;
 
     public ArrayType(Type type, int line, int col) {
         super(line, col);
