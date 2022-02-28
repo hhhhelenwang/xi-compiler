@@ -214,23 +214,8 @@ public class TypeChecker extends Visitor{
     // Visit functions for Statements =================================
     @Override
     public void visitPrCall(ProcCallStmt node) {
-        // check if f exist, and if f evaluate to unit
-        boolean valid = false;
-        XiType arglst = this.env.findType(node.name);
-        if(arglst instanceof Prod) {
-            valid = true;
-            List<Expr> l1 = node.arguments;
-            List<Tau> l2 = ((Prod) arglst).elementTypes;
-
-            if(l1.size() == l2.size()){
-                for(int i =0; i<l1.size(); i++){
-                    if(! l2.get(i).equals(l1.get(i).type)){
-                        valid = false;
-                    }
-                }
-            }
-        }
-        if(valid){
+        XiType prType = this.env.findType(node.name);
+        if(prType instanceof Fn && ((Fn) prType).outputType instanceof Unit){
             node.type = new Unit();
         }
     }
