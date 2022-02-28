@@ -5,6 +5,7 @@
 build
 
 .idea
+.idea/*
 Lexer.java
 Lexer.java~
 xthScript.results
