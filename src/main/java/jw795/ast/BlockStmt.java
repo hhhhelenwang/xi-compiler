@@ -27,11 +27,11 @@ public class BlockStmt extends Statement {
 
     @Override
     public void accept(Visitor visitor) {
-        visitor.env.enterScope();
+        visitor.enterScope();
         for(Statement s: statements){
             s.accept(visitor);
         }
         visitor.visitBlockStmt(this);
-        visitor.env.leaveScope();
+        visitor.leaveScope();
     }
 }

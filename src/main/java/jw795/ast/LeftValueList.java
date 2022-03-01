@@ -12,7 +12,7 @@ import java.util.List;
  * _, b:int = fun_that_returns_two_ints() -> LeftValueList.declares = {_, b:int}
  */
 public class LeftValueList extends ASTNode implements LValue{
-    List<LValue> declares;
+    public List<LValue> declares;
 
     public LeftValueList(List<LValue> variables, int line, int col) {
         super(line, col);

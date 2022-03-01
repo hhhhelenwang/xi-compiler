@@ -7,7 +7,17 @@ import java.util.List;
 
 public class TypeChecker extends Visitor{
 
-    SymbolTable env;
+    private SymbolTable env;
+
+    @Override
+    public void enterScope() {
+        env.enterScope();
+    }
+
+    @Override
+    public void leaveScope() {
+        env.leaveScope();
+    }
 
     // ================================= Visit functions for Expressions =================================
     @Override
@@ -45,27 +55,12 @@ public class TypeChecker extends Visitor{
                 List<Expr> nodeArgs = node.arguments;
                 T declArgs = ((Fn) fnType).inputType;
                 if (argsConform(nodeArgs, declArgs)){ //e1:tau, e2:tau ..
-                    node.type = toTau(((Fn) fnType).outputType);
+                    node.type = toT(((Fn) fnType).outputType);
                 }
             }
         }
     }
 
-    /** Initialize a new object that is the same type as the Type T object passed in */
-    private T toTau(T type){
-        if (type instanceof Tau){
-            return new Tau();
-        } else if (type instanceof Bool){
-            return new Bool();
-        } else if (type instanceof EmptyArray){
-            return new EmptyArray();
-        } else if (type instanceof TypedArray){
-            //TODO: cannot resolve field elementType
-//            Tau eleType = (TypedArray)type.elementType;
-//            return new TypedArray(eleType);
-        }
-        return null;
-    }
 
     /** Type check the function call of length(e) function */
     private void checkLength(FunCallExpr node){
@@ -262,16 +257,6 @@ public class TypeChecker extends Visitor{
         }
     }
 
-    /** Initialize a new object that is the same type as the Type R object passed in. R ::= unit | void */
-    private R toR(R type){
-        if (type instanceof Unit){
-            return new Unit();
-        } else if (type instanceof Void) {
-            return new Void();
-        }
-        System.out.println("error in toR(R type): null passed in");
-        return null; // an error, should not call toR on a null object
-    }
 
     @Override
     public void visitIfStmt(IfStmt node) {
@@ -350,10 +335,12 @@ public class TypeChecker extends Visitor{
         //  x = e,
         //  e1[e2] = e2,
         //  x:tau = e,
-        //  _ = e
+        //  _ = e -> done
         //  d1...dn = e
         if (node.leftVal instanceof WildCard) {
             checkExprStmt(node);
+        } else if (node.leftVal instanceof LeftValueList) {
+            checkMultiAssign(node);
         }
 
     }
@@ -365,11 +352,36 @@ public class TypeChecker extends Visitor{
         }
     }
 
+    /** Type check multiple assignment statement d1, d2, ..., dn = e
+     * Requires:
+     * - node is a multiple assign statement (check in visitAssign) so must contain a LeftValueList
+     * - contains a list of declarations or wildcards on the left, checked in parsing
+     * - a function call on the right, checked in parsing
+     */
+    private void checkMultiAssign(AssignStmt node) {
+        boolean typeChecks = true;
+        List<LValue> declares = ((LeftValueList) node.leftVal).declares;
+        List<Tau> returnTypes = ((Prod) node.expr.type).elementTypes;
+        if (declares.size() != returnTypes.size()) {
+            typeChecks = false;
+            // TODO: error, assignment mismatch
+        } else {
+            for (int i = 0; i < declares.size(); i ++) {
+
+            }
+        }
+
+
+
+    }
 
 
     @Override
     public void visitVarDecl(VarDeclareStmt node) {
         // TODO: x:tau, x:tau[]
+        if (node.varType instanceof ArrayType) { // check array declaration
+            checkArrayDecl(node);
+        }
     }
 
     /** Type check array declaration x:tau[e1][e2]...[en][]...[], allow n = 0.
@@ -382,17 +394,18 @@ public class TypeChecker extends Visitor{
         ArrayType arrType = (ArrayType) node.varType;
         boolean typeChecks = true;
         if (env.contains(id)) {
-            // error: id is already declared
+            // TODO: error: id is already declared
             typeChecks = false;
         } else {
             Type next = arrType;
             // check type
             while (next instanceof ArrayType) {
-                boolean hasDim = ((ArrayType) next).length.isPresent(); // if dim is defined for this level
+                // if dim is defined for this level
+                boolean hasDim = ((ArrayType) next).length.isPresent();
                 if (hasDim) {
                     XiType dimType = ((ArrayType) next).length.get().type;
                     if (!(dimType instanceof Int)) {
-                        // error: expected Int, got <dimType>
+                        // TODO: error: expected Int, got <dimType>
                         typeChecks = false;
                         break;
                     }
@@ -478,6 +491,34 @@ public class TypeChecker extends Visitor{
             }else{
                 return new TypedArray(typeToTau(((ArrayType) t).elemType));
             }
+        }
+        return null;
+    }
+
+
+    /** Initialize a new object that is the same type as the Type R object passed in. R ::= unit | void */
+    private R toR(R type){
+        if (type instanceof Unit){
+            return new Unit();
+        } else if (type instanceof Void) {
+            return new Void();
+        }
+        System.out.println("error in toR(R type): null passed in");
+        return null; // an error, should not call toR on a null object
+    }
+
+    /** Initialize a new object that is the same type as the Type T object passed in */
+    private T toT(T type){
+        if (type instanceof Tau){
+            return new Tau();
+        } else if (type instanceof Bool){
+            return new Bool();
+        } else if (type instanceof EmptyArray){
+            return new EmptyArray();
+        } else if (type instanceof TypedArray){
+            //TODO: cannot resolve field elementType
+//            Tau eleType = (TypedArray)type.elementType;
+//            return new TypedArray(eleType);
         }
         return null;
     }
