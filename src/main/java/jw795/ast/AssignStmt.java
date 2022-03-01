@@ -26,7 +26,9 @@ public class AssignStmt extends Statement implements Definition {
     }
 
     @Override
-    public void accept(Visitor visitor) {
-
+    public void accept(Visitor visitor) throws Exception {
+        leftVal.accept(visitor);
+        expr.accept(visitor);
+        visitor.visitAssign(this);
     }
 }
