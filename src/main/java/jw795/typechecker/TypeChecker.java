@@ -79,6 +79,7 @@ public class TypeChecker extends Visitor{
 
 
     /** Type check the function call of length(e) function */
+    //this function'error will be handle by the more general function call
     private void checkLength(FunCallExpr node){
         if((node.arguments.size() == 1)) {
             Expr arg =node.arguments.get(0);
@@ -91,16 +92,25 @@ public class TypeChecker extends Visitor{
     }
 
     @Override
-    public void visitVar(VarExpr node) {
+    public void visitVar(VarExpr node) throws Exception {
         if (env.contains(node.identifier)) {
             node.type = (T) env.findType(node.identifier);
+        }
+        else {
+            String res = errorstart(node.getLine(), node.getCol());
+            res += "Name " + node.identifier + " cannot be resolved";
+            throw new Exception(res);
         }
     }
 
     @Override
-    public void visitIntNeg(IntNeg node) {
+    public void visitIntNeg(IntNeg node) throws Exception {
         if (node.expr.type instanceof Int) {
             node.type = new Int();
+        } else {
+            String res = errorstart(node.getLine(), node.getCol());
+            res += "Int negation cannot be apply to" + node.expr.type.tostr();
+            throw new Exception(res);
         }
     }
 
@@ -134,78 +144,107 @@ public class TypeChecker extends Visitor{
 
         if(node.type == null) {
             String result = errorstart(node.getLine(), node.getCol());
-            throw new Exception(result += "Operand of + must be same type of tau");
+            result += "Operand of + must be same type of tau";
+            throw new Exception(result);
         }
     }
 
     @Override
-    public void visitSub(Sub node) {
+    public void visitSub(Sub node) throws Exception {
         setBinOpIntType(node);
+        errrorint("-", node);
     }
 
     @Override
-    public void visitMult(Mult node) {
+    public void visitMult(Mult node) throws Exception {
         setBinOpIntType(node);
+        errrorint("*", node);
     }
 
     @Override
-    public void visitHighMult(HighMult node) {
+    public void visitHighMult(HighMult node) throws Exception {
         setBinOpIntType(node);
+        errrorint("*>>", node);
     }
 
     @Override
-    public void visitDiv(Div node) {
+    public void visitDiv(Div node) throws Exception {
         setBinOpIntType(node);
+        errrorint("//", node);
     }
 
     @Override
-    public void visitMod(Mod node) {
+    public void visitMod(Mod node) throws Exception {
         setBinOpIntType(node);
+        errrorint("%", node);
     }
 
     @Override
-    public void visitAnd(And node){setBinOpBoolType(node);}
+    public void visitAnd(And node) throws Exception {
+        setBinOpBoolType(node);
+        errrorbool("&", node);
+    }
 
     @Override
-    public void visitOr(Or node){setBinOpBoolType(node);}
+    public void visitOr(Or node) throws Exception {
+        setBinOpBoolType(node);
+        errrorbool("|", node);
+    }
 
     @Override
-    public void visitEqual(Equal node) {
+    public void visitEqual(Equal node) throws Exception {
         setBinOpIntType(node);
         setBinOpBoolType(node);
         setArrayBoolType(node);
 
+        if(node.type == null) {
+            String result = errorstart(node.getLine(), node.getCol());
+            result += "Operands of = must be same type of tau";
+            throw new Exception(result);
+        }
+
     }
 
     @Override
-    public void visitNotEqual(NotEqual node) {
+    public void visitNotEqual(NotEqual node) throws Exception {
         setBinOpIntType(node);
         setBinOpBoolType(node);
         setArrayBoolType(node);
+
+        if(node.type == null) {
+            String result = errorstart(node.getLine(), node.getCol());
+            result += "Operands of != must be same type of tau";
+            throw new Exception(result);
+        }
     }
 
     @Override
-    public void visitLessThan(LessThan node) {
+    public void visitLessThan(LessThan node) throws Exception {
         setBinOpIntType(node);
+        errrorint("<", node);
+
     }
 
     @Override
-    public void visitLessEq(LessEq node) {
+    public void visitLessEq(LessEq node) throws Exception {
         setBinOpIntType(node);
+        errrorint("<=", node);
     }
 
     @Override
-    public void visitGreaterThan(GreaterThan node) {
+    public void visitGreaterThan(GreaterThan node) throws Exception {
         setBinOpIntType(node);
+        errrorint(">", node);
     }
 
     @Override
-    public void visitGreaterEq(GreaterEq node) {
+    public void visitGreaterEq(GreaterEq node) throws Exception {
         setBinOpIntType(node);
+        errrorint(">=", node);
     }
 
     @Override
-    public void visitArrayExpr(ArrayExpr node) {
+    public void visitArrayExpr(ArrayExpr node) throws Exception {
         if (node.arrayElements.isEmpty()) {
             node.type = new EmptyArray();
         } else {
@@ -229,24 +268,39 @@ public class TypeChecker extends Visitor{
             }
             if (validArray) {
                 node.type = new TypedArray((Tau)t);
+            }else{
+                String res = errorstart(node.getLine(), node.getCol());
+                throw new Exception(res + "The elements of this array have different types");
             }
         }
     }
 
     @Override
-    public void visitArrIndexExpr(ArrIndexExpr node) {
+    public void visitArrIndexExpr(ArrIndexExpr node) throws Exception {
         if (node.array.type instanceof TypedArray && node.index.type instanceof Int) {
             node.type = ((TypedArray) node.array.type).elementType;
         } else if (node.array.type instanceof EmptyArray && node.index.type instanceof Int) {
             node.type = new Unit();
+        }else if(! (node.index.type instanceof Int)){
+            String res = errorstart(node.getLine(), node.getCol());
+            throw new Exception(res + "Expected index as int but got"+ node.index.type.tostr());
+        }else{
+            String res = errorstart(node.getLine(), node.getCol());
+            throw  new Exception(res + "Expected an array for indedxing but got "+ node.array.type);
         }
     }
 
     @Override
-    public void visitNot(Not node){
+    public void visitNot(Not node) throws Exception {
         if(node.expr.type instanceof Bool){
             node.type = new Bool();
         }
+        if(node.type == null) {
+            String result = errorstart(node.getLine(), node.getCol());
+            result += "bool negation cannot be applied " + node.expr.type.tostr();
+            throw new Exception(result);
+        }
+
     }
 
     // ================================= Visit functions for Statements =================================
@@ -547,6 +601,21 @@ public class TypeChecker extends Visitor{
 
     private String errorstart(int line, int colmn){
         return (line + ":" + colmn +"error:" );
+    }
+    private void errrorint (String operands, BinOpExpr node) throws Exception {
+        if(node.type == null) {
+            String result = errorstart(node.getLine(), node.getCol());
+            result += "Operands of " + operands+ " must be int";
+            throw new Exception(result);
+        }
+
+    }
+    private void errrorbool (String operands, BinOpExpr node) throws Exception {
+        if(node.type == null) {
+            String result = errorstart(node.getLine(), node.getCol());
+            result += "Operands of " + operands+ " must be bool";
+            throw new Exception(result);
+        }
     }
 
 }
