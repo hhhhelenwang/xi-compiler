@@ -58,7 +58,7 @@ public abstract class Visitor {
     //Return stmt
     public abstract void visitRet(ReturnStmt node);
     //Assign stmt
-    public abstract void visitAssign(AssignStmt node);
+    public abstract void visitAssign(AssignStmt node) throws Exception;
 
     public abstract void visitWildCard(WildCard node);
 

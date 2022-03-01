@@ -407,7 +407,7 @@ public class TypeChecker extends Visitor{
     }
 
     @Override
-    public void visitAssign(AssignStmt node) {
+    public void visitAssign(AssignStmt node) throws Exception {
         // TODO:
         //  x = e,
         //  e1[e2] = e2,
@@ -420,6 +420,7 @@ public class TypeChecker extends Visitor{
             checkMultiAssign(node);
         } else if (node.leftVal instanceof VarExpr) {
             Sigma t = this.env.findType(((VarExpr) node.leftVal).identifier);
+
             if (t instanceof Var) {
                 if (node.expr.type instanceof Tau) {
                     if (((Var) t).varType.equals((Tau)(node.expr.type))) {
@@ -427,13 +428,26 @@ public class TypeChecker extends Visitor{
                     }
                 }
             }
+            if(node.type == null){
+                String res = errorstart(node.getLine(), node.getCol());
+                res += "Cannot assign " +node.expr.type.tostr() +" to "+  ((ArrIndexExpr) node.leftVal).type.tostr();
+                throw new Exception( res);
+            }
         } else if (node.leftVal instanceof ArrIndexExpr) {
             if (node.expr.type instanceof Tau) {
                 if (((ArrIndexExpr) node.leftVal).type.equals(node.expr.type)) {
                     node.type = new Unit();
                 }
             }
-
+            if(node.type == null){
+                String res = errorstart(node.getLine(), node.getCol());
+                res += "Cannot assign " +node.expr.type.tostr() +" to "+ ((ArrIndexExpr) node.leftVal).type.tostr();
+                throw new Exception( res);
+            }
+        }
+        else{
+            String res = errorstart(node.getLine(), node.getCol());
+            throw new Exception(res + "invalid oject to assign to");
         }
         // TODO: leave scope here?
     }
@@ -444,6 +458,8 @@ public class TypeChecker extends Visitor{
     }
 
     /** Type check _ = e */
+    //Todo: we only allow wild car to be assign by a function
+    //yet currently it is unchecked
     private void checkExprStmt(AssignStmt node) {
         if (node.expr.type instanceof Tau) {
             node.type = new Unit();
@@ -456,13 +472,15 @@ public class TypeChecker extends Visitor{
      * - contains a list of declarations or wildcards on the left, checked in parsing
      * - a function call on the right, checked in parsing
      */
-    private void checkMultiAssign(AssignStmt node) {
+    private void checkMultiAssign(AssignStmt node) throws Exception {
         boolean typeChecks = true;
         List<LValue> declares = ((LeftValueList) node.leftVal).declares;
         List<Tau> returnTypes = ((Prod) node.expr.type).elementTypes;
         if (declares.size() != returnTypes.size()) {
             typeChecks = false;
             // TODO: error, assignment mismatch
+            String res = errorstart(node.getLine(), node.getCol());
+            throw new Exception(res+ "Mismatched number of values");
         } else {
             for (int i = 0; i < declares.size(); i ++) {
 
