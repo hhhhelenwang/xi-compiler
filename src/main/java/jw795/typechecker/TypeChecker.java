@@ -365,8 +365,29 @@ public class TypeChecker extends Visitor{
             checkExprStmt(node);
         } else if (node.leftVal instanceof LeftValueList) {
             checkMultiAssign(node);
-        }
+        } else if (node.leftVal instanceof VarExpr) {
+            Sigma t = this.env.findType(((VarExpr) node.leftVal).identifier);
+            if (t instanceof Var) {
+                if (node.expr.type instanceof Tau) {
+                    if (((Var) t).varType.equals((Tau)(node.expr.type))) {
+                        node.type = new Unit();
+                    }
+                }
+            }
+        } else if (node.leftVal instanceof ArrIndexExpr) {
+            if (node.expr.type instanceof Tau) {
+                if (((ArrIndexExpr) node.leftVal).type.equals(node.expr.type)) {
+                    node.type = new Unit();
+                }
+            }
 
+        }
+        // TODO: leave scope here?
+    }
+
+    @Override
+    public void visitWildCard(WildCard node) {
+        node.type = new Unit();
     }
 
     /** Type check _ = e */
@@ -405,6 +426,12 @@ public class TypeChecker extends Visitor{
         // TODO: x:tau, x:tau[]
         if (node.varType instanceof ArrayType) { // check array declaration
             checkArrayDecl(node);
+        } else { // TODO: is it safe to use else here
+            if (!env.contains(node.identifier)) {
+                node.type = new Unit();
+                env.add(node.identifier, new Var(typeToTau(node.varType)));
+            }
+            // TODO: else
         }
     }
 

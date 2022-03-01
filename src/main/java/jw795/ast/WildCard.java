@@ -1,9 +1,10 @@
 package jw795.ast;
 
-import jw795.typechecker.Visitor;
+import jw795.typechecker.*;
 import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 
 public class WildCard extends ASTNode implements LValue{
+    public Unit type;
 
     public WildCard(int li, int co) {
         super(li, co);
@@ -16,6 +17,6 @@ public class WildCard extends ASTNode implements LValue{
 
     @Override
     public void accept(Visitor visitor) {
-
+        visitor.visitWildCard(this);
     }
 }

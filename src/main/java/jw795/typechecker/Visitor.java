@@ -59,6 +59,9 @@ public abstract class Visitor {
     public abstract void visitRet(ReturnStmt node);
     //Assign stmt
     public abstract void visitAssign(AssignStmt node);
+
+    public abstract void visitWildCard(WildCard node);
+
     // Variable Declare stmt
     public abstract void visitVarDecl(VarDeclareStmt node);
     public abstract void visitFundef(FunctionDefine node);

@@ -30,6 +30,8 @@ public class LeftValueList extends ASTNode implements LValue{
 
     @Override
     public void accept(Visitor visitor) {
-        // TODO: figure out what to do
+        for (LValue declare : declares) {
+            declare.accept(visitor);
+        }
     }
 }
