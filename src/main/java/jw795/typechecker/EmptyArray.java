@@ -15,4 +15,8 @@ public class EmptyArray extends Array {
     public boolean compare (Array a) {
         return true;
     }
+
+    public String tostr(){
+        return "tau"+ "[]";
+    }
 }

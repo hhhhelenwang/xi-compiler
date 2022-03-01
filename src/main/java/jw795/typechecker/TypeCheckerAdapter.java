@@ -28,7 +28,7 @@ public class TypeCheckerAdapter {
 
     public void gentypecheck(){
         //generate the target .parsed file
-        File targetParsed = FileUtil.generateTargetFile(fileName, parsedPath, "parsed");
+        File targetParsed = FileUtil.generateTargetFile(fileName, parsedPath, "typed");
         PrintWriter pw = null;
         try {
             pw = new PrintWriter(targetParsed);

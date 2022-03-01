@@ -21,7 +21,7 @@ public class Mod extends BinOpExpr {
     }
 
     @Override
-    public void accept(Visitor visitor) {
+    public void accept(Visitor visitor) throws Exception {
         super.accept(visitor);
         visitor.visitMod(this);
     }

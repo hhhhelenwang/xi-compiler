@@ -33,4 +33,9 @@ public class TypedArray extends Array {
             }
         }
     }
+
+
+    public String tostr(){
+        return elementType.tostr()+"[]";
+    }
 }

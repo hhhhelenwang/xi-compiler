@@ -26,7 +26,7 @@ public class WhileStmt extends Statement {
     }
 
     @Override
-    public void accept(Visitor visitor) {
+    public void accept(Visitor visitor) throws Exception {
         condition.accept(visitor);
         visitor.env.enterScope();
         loopBody.accept(visitor);

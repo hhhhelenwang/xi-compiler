@@ -16,7 +16,7 @@ public abstract class Visitor {
     public abstract void visitBoolLiteral(BoolLiteral node);
     public abstract void visitStringLit(StringLit node);
     public abstract void visitCharLiteral(CharLiteral node);
-    public abstract void visitFunCallExpr(FunCallExpr node);
+    public abstract void visitFunCallExpr(FunCallExpr node) throws Exception;
 
     // variable
     public abstract void visitVar(VarExpr node);
@@ -26,7 +26,7 @@ public abstract class Visitor {
     public abstract void visitNot(Not node);
 
     // BinOps algebraic
-    public abstract void visitAdd(Add node);
+    public abstract void visitAdd(Add node) throws Exception;
     public abstract void visitSub(Sub node);
     public abstract void visitMult(Mult node);
     public abstract void visitHighMult(HighMult node);

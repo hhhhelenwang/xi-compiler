@@ -9,6 +9,10 @@ public class TypeChecker extends Visitor{
 
     SymbolTable env;
 
+    TypeChecker(){
+        this.env = new SymbolTable();
+    }
+
     // ================================= Visit functions for Expressions =================================
     @Override
     // TODO: naming a bit confusing, can confuse with an int type keyword
@@ -23,22 +27,27 @@ public class TypeChecker extends Visitor{
 
     @Override
     public void visitStringLit(StringLit node) {
-        if (node.type instanceof TypedArray && ((TypedArray) node.type).elementType instanceof Int ) {
-            node.type = new TypedArray(new Int());
-        }
+        node.type = new TypedArray(new Int());
+
     }
 
     @Override
     public void visitCharLiteral(CharLiteral node) {
-        if (node.type instanceof Int ) {
             node.type = new Int();
-        }
     }
 
+    // there should not be any exception throw out from the upper 4 function, since they are basic type
+
+
     @Override
-    public void visitFunCallExpr(FunCallExpr node) {
+    public void visitFunCallExpr(FunCallExpr node) throws Exception {
         Sigma fnType = this.env.findType(node.name);
-        if(fnType instanceof Fn && !(((Fn) fnType).outputType instanceof Unit)){
+        if(!(fnType instanceof Fn)){
+            String errmes = node.getLine() + ":" + node.getCol() +"error:" ;
+            errmes = errmes + node.name + " is not a function";
+            throw new Exception(errmes);
+        }
+        else if(!(((Fn) fnType).outputType instanceof Unit)){
             if (node.name.equals("length")) {
                 checkLength(node);
             } else { //f(), f(e), f(e1, ..., en)
@@ -48,6 +57,16 @@ public class TypeChecker extends Visitor{
                     node.type = toTau(((Fn) fnType).outputType);
                 }
             }
+        }
+        if(node.type == null){
+            //this is the case when argument type does not match
+            String errmes = errorstart(node.getLine(), node.getCol()) + "Expected ";
+            errmes += ((Fn) fnType).inputType.tostr();
+            errmes += ", but got ";
+            for(Expr e: node.arguments){
+                e.type.tostr();
+            }
+            throw new Exception(errmes);
         }
     }
 
@@ -117,9 +136,14 @@ public class TypeChecker extends Visitor{
     }
 
     @Override
-    public void visitAdd(Add node) {
+    public void visitAdd(Add node) throws Exception {
         setBinOpIntType(node);
         setArrayBoolType(node);
+
+        if(node.type == null) {
+            String result = errorstart(node.getLine(), node.getCol());
+            throw new Exception(result += "Operand of + must be same type of tau");
+        }
     }
 
     @Override
@@ -444,7 +468,6 @@ public class TypeChecker extends Visitor{
     @Override
     public void visitPrdef(ProcedureDefine node){
         T input;
-        T output;
         if(node.arguments.size() == 0){
             input = new Unit();
         }else if(node.arguments.size() == 1){
@@ -480,6 +503,10 @@ public class TypeChecker extends Visitor{
             }
         }
         return null;
+    }
+
+    private String errorstart(int line, int colmn){
+        return (line + ":" + colmn +"error:" );
     }
 
 }

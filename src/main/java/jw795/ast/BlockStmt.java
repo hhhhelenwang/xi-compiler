@@ -26,7 +26,7 @@ public class BlockStmt extends Statement {
     }
 
     @Override
-    public void accept(Visitor visitor) {
+    public void accept(Visitor visitor) throws Exception {
         visitor.env.enterScope();
         for(Statement s: statements){
             s.accept(visitor);

@@ -26,7 +26,7 @@ public class ArrayExpr extends Expr{
     }
 
     @Override
-    public void accept(Visitor v) {
+    public void accept(Visitor v) throws Exception {
         for (Expr e : arrayElements) {
             e.accept(v);
         }

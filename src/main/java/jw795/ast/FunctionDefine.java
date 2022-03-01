@@ -51,7 +51,7 @@ public class FunctionDefine extends ASTNode implements Definition{
      * @param visitor
      */
     @Override
-    public void accept(Visitor visitor) {
+    public void accept(Visitor visitor) throws Exception {
         for(FunProcArgs fp:arguments ){
             fp.accept(visitor);
         }

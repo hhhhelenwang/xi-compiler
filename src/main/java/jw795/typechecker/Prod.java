@@ -8,4 +8,13 @@ public class Prod implements T{
     public Prod(List<Tau> elementTypes) {
         this.elementTypes = elementTypes;
     }
+
+    @Override
+    public String tostr() {
+        String result = "";
+        for (Tau type: elementTypes){
+            result+= type.tostr() + " ";
+        }
+        return result;
+    }
 }

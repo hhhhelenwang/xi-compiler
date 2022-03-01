@@ -39,7 +39,15 @@ public class Program extends ASTNode {
     }
 
     @Override
-    public void accept(Visitor visitor) {
+    public void accept(Visitor visitor) throws Exception {
+        System.out.println("get a program");
+        for(Use u: uses){
+            u.accept(visitor);
+        }
+        for(Definition d: definitions){
+            d.accept(visitor);
+        }
+
 
     }
 }

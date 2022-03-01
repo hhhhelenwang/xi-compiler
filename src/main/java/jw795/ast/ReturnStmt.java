@@ -28,7 +28,7 @@ public class ReturnStmt extends Statement {
     }
 
     @Override
-    public void accept(Visitor visitor) {
+    public void accept(Visitor visitor) throws Exception {
         for (Expr arg: returnVals){
             arg.accept(visitor);
         }

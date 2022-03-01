@@ -26,7 +26,7 @@ public class ArrIndexExpr extends Expr implements LValue{
     }
 
     @Override
-    public void accept(Visitor visitor) {
+    public void accept(Visitor visitor) throws Exception {
         array.accept(visitor);
         index.accept(visitor);
         visitor.visitArrIndexExpr(this);

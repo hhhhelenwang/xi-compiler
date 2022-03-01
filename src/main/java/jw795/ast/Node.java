@@ -25,5 +25,5 @@ public interface Node {
      * Accepts a visitor to perform type check.
      * @param visitor
      */
-    void accept(Visitor visitor);
+    void accept(Visitor visitor) throws Exception;
 }

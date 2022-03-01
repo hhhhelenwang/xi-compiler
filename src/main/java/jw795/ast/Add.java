@@ -21,7 +21,7 @@ public class Add extends BinOpExpr{
     }
 
     @Override
-    public void accept(Visitor visitor) {
+    public void accept(Visitor visitor) throws Exception {
         super.accept(visitor);
         visitor.visitAdd(this);
     }
