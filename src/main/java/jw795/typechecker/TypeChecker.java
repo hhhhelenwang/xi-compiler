@@ -36,10 +36,7 @@ public class TypeChecker extends Visitor{
     }
 
     @Override
-    public void visitStringLit(StringLit node) {
-        node.type = new TypedArray(new Int());
-
-    }
+    public void visitStringLit(StringLit node) { node.type = new TypedArray(new Int()); }
 
     @Override
     public void visitCharLiteral(CharLiteral node) {
@@ -64,7 +61,7 @@ public class TypeChecker extends Visitor{
                 List<Expr> nodeArgs = node.arguments;
                 T declArgs = ((Fn) fnType).inputType;
                 if (argsConform(nodeArgs, declArgs)){ //e1:tau, e2:tau ..
-                    node.type = toT(((Fn) fnType).outputType);
+                    node.type = ((Fn) fnType).outputType;
                 }
             }
         }
@@ -277,7 +274,7 @@ public class TypeChecker extends Visitor{
         }
         Statement lastStmt = node.statements.get(numArgs - 1);
         if (stmtTypeChecked && lastStmt.type instanceof R){
-            node.type = toR(lastStmt.type);
+            node.type = lastStmt.type;
         }
     }
 
@@ -286,6 +283,8 @@ public class TypeChecker extends Visitor{
     public void visitIfStmt(IfStmt node) {
         if (node.condition.type instanceof Bool && node.clause.type instanceof R) {
             node.type = new Unit();
+        } else if (!(node.condition.type instanceof Bool)){
+
         }
     }
 
@@ -542,34 +541,6 @@ public class TypeChecker extends Visitor{
             }else{
                 return new TypedArray(typeToTau(((ArrayType) t).elemType));
             }
-        }
-        return null;
-    }
-
-
-    /** Initialize a new object that is the same type as the Type R object passed in. R ::= unit | void */
-    private R toR(R type){
-        if (type instanceof Unit){
-            return new Unit();
-        } else if (type instanceof Void) {
-            return new Void();
-        }
-        System.out.println("error in toR(R type): null passed in");
-        return null; // an error, should not call toR on a null object
-    }
-
-    /** Initialize a new object that is the same type as the Type T object passed in */
-    private T toT(T type){
-        if (type instanceof Tau){
-            return new Tau();
-        } else if (type instanceof Bool){
-            return new Bool();
-        } else if (type instanceof EmptyArray){
-            return new EmptyArray();
-        } else if (type instanceof TypedArray){
-            //TODO: cannot resolve field elementType
-//            Tau eleType = (TypedArray)type.elementType;
-//            return new TypedArray(eleType);
         }
         return null;
     }
