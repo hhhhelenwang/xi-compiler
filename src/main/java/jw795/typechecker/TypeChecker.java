@@ -301,7 +301,7 @@ public class TypeChecker extends Visitor{
         if (r1 instanceof Unit || r2 instanceof Unit){
             return new Unit();
         } else {
-            return toR(r1);
+            return r1;
         }
     }
 
