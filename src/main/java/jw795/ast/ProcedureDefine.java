@@ -6,9 +6,9 @@ import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 import java.util.List;
 
 public class ProcedureDefine extends ASTNode implements Definition{
-    String name;
-    List<FunProcArgs> arguments;
-    BlockStmt procBody;
+    public String name;
+    public List<FunProcArgs> arguments;
+    public BlockStmt procBody;
 
     public ProcedureDefine(String n, List<FunProcArgs> args, BlockStmt body, int li, int co) {
         super(li, co);
@@ -37,6 +37,9 @@ public class ProcedureDefine extends ASTNode implements Definition{
 
     @Override
     public void accept(Visitor visitor) {
-
+        for (FunProcArgs fp:arguments){
+            fp.accept(visitor);
+        }
+        visitor.visitPrdef(this);
     }
 }

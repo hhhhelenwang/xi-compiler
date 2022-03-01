@@ -441,6 +441,28 @@ public class TypeChecker extends Visitor{
         this.env.leaveScope();
     }
 
+    @Override
+    public void visitPrdef(ProcedureDefine node){
+        T input;
+        T output;
+        if(node.arguments.size() == 0){
+            input = new Unit();
+        }else if(node.arguments.size() == 1){
+            input =  node.arguments.get(0).type;
+        }else{
+            List<Tau> eletype= new ArrayList<>();
+            for(FunProcArgs fp: node.arguments){
+                eletype.add(fp.type);
+            }
+            input = new Prod(eletype);
+        }
+
+        Fn thetype = new Fn(input, new Unit());
+        this.env.add(node.name, thetype);
+
+        this.env.leaveScope();
+    }
+
 
     /** Build a Tau type from a Type AST node. */
     private Tau typeToTau(Type t){

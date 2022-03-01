@@ -61,4 +61,5 @@ public abstract class Visitor {
     // Variable Declare stmt
     public abstract void visitVarDecl(VarDeclareStmt node);
     public abstract void visitFundef(FunctionDefine node);
+    public abstract void visitPrdef(ProcedureDefine node);
 }
