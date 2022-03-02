@@ -120,7 +120,7 @@ public class TypeChecker extends Visitor{
     private void setArrayBoolType(BinOpExpr node){
         if(node.expr1.type instanceof  Tau){
             if(node.expr2.type instanceof  Tau) {
-                if (((Tau) node.expr1.type).equals(node.expr2.type)) {
+                if (((Tau) node.expr1.type).equals((Tau) node.expr2.type)) {
                     node.type = new Bool();
                 }
             }
@@ -327,17 +327,22 @@ public class TypeChecker extends Visitor{
     }
 
     @Override
-    public void visitBlockStmt(BlockStmt node) {
+    public void visitBlockStmt(BlockStmt node) throws Exception {
         int numArgs = node.statements.size();
-        boolean stmtTypeChecked = true;
         for (int i = 0; i < numArgs - 1; i++){
             if (!(node.statements.get(i).type instanceof Unit)){
-                stmtTypeChecked = false;
+                String errorMsg =  errorstart(node.getLine(), node.getCol()) +
+                        "Unexpected statement evaluation outcome void. Expected unit.";
+                throw new Exception(errorMsg);
             }
         }
         Statement lastStmt = node.statements.get(numArgs - 1);
-        if (stmtTypeChecked && lastStmt.type instanceof R){
+        if (lastStmt.type instanceof R){
             node.type = lastStmt.type;
+        } else {
+            String errorMsg =  errorstart(node.getLine(), node.getCol()) +
+                    "Unexpected unassigned statement type null. Expected R.";
+            throw new Exception(errorMsg);
         }
     }
 
@@ -427,8 +432,6 @@ public class TypeChecker extends Visitor{
         }
         throw new Exception(errMsg);
     }
-
-
 
     @Override
     public void visitRet(ReturnStmt node) throws Exception {
