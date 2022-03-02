@@ -680,9 +680,7 @@ public class TypeChecker extends Visitor{
                 input = new Prod(eletype);
             }
 
-            if (node.returnTypes.size() == 0) {
-                output = new Unit();
-            } else if (node.returnTypes.size() == 1) {
+            if (node.returnTypes.size() == 1) {
                 output = typeToTau(node.returnTypes.get(0));
             } else {
                 List<Tau> rettype = new ArrayList<>();
