@@ -49,29 +49,21 @@ public class TypeChecker extends Visitor{
     @Override
     public void visitFunCallExpr(FunCallExpr node) throws Exception {
         Sigma fnType = this.env.findType(node.name);
-        if(!(fnType instanceof Fn)){
-            String errorMsg = errorstart(node.getLine(), node.getCol()) + node.name +  " is not a function." +
-                    "Got " + fnType.toString();
-            throw new Exception(errorMsg);
-        } else if (((Fn) fnType).outputType instanceof Unit){
-            String errorMsg = errorstart(node.getLine(), node.getCol()) + "Unexpected output type Unit";
-            throw new Exception(errorMsg);
-        } else {
+        try {
+            profunCall(true, fnType, node.name);
             if (node.name.equals("length")) {
                 checkLength(node);
             } else {
                 List<Expr> nodeArgs = node.arguments;
                 T declArgs = ((Fn) fnType).inputType;
-                try {
-                    if (argsConform(nodeArgs, declArgs)){
-                        node.type = ((Fn) fnType).outputType;
-                    }
-                } catch (Exception e) {
-                    String errorMsg = errorstart(node.getLine(), node.getCol()) + "Mismatch argument types in FunCall:"
-                            + e.getMessage();
-                    throw new Exception(errorMsg);
+                if (argsConform(nodeArgs, declArgs)) {
+                    node.type = ((Fn) fnType).outputType;
                 }
             }
+        } catch (Exception e) {
+            String errorMsg = errorstart(node.getLine(), node.getCol()) + "Mismatch argument types in FunCall:"
+                    + e.getMessage();
+            throw new Exception(errorMsg);
         }
     }
 
@@ -306,30 +298,33 @@ public class TypeChecker extends Visitor{
     public void visitPrCall(ProcCallStmt node) throws Exception {
         // a procedure need to be fn T -> unit
         Sigma prType = this.env.findType(node.name);
-        if(!(prType instanceof Fn)){
-            String errorMsg = errorstart(node.getLine(), node.getCol()) + node.name +
-                    " is not type fn. Got " + prType.toString();
-            throw new Exception(errorMsg);
-        } else if(!(((Fn) prType).outputType instanceof Unit)){
-            String errorMsg = errorstart(node.getLine(), node.getCol()) + "Unexpected output type "
-                    + (((Fn) prType).outputType).tostr();
-            throw new Exception(errorMsg);
-        } else {
-            // satisfies 2 premises above
+        try {
+            profunCall(false, prType, node.name);
             List<Expr> nodeArgs = node.arguments;
             T declArgs = ((Fn) prType).inputType;
-            try {
-                if (argsConform(nodeArgs, declArgs)){
-                    node.type = new Unit();
-                }
-            } catch (Exception e) {
-                String errorMsg = errorstart(node.getLine(), node.getCol()) + "Mismatch argument types in ProCall:"
-                        + e.getMessage();
-                throw new Exception(errorMsg);
+            if (argsConform(nodeArgs, declArgs)){
+                node.type = new Unit();
             }
+        } catch (Exception e) {
+            String errorMsg = errorstart(node.getLine(), node.getCol())
+                    + e.getMessage();
+            throw new Exception(errorMsg);
         }
     }
 
+    /** Helper visitFunCall for vistProCall and visitFunCall. It checks 1) f is fn type 2) outputType is correct */
+    private void profunCall(boolean isFun, Sigma prFnType, String fnPrName) throws Exception{
+        if(!(prFnType instanceof Fn)){
+            String errorMsg = fnPrName + " is not type fn. Got " + prFnType.toString();
+            throw new Exception(errorMsg);
+        } else if(!isFun && !(((Fn) prFnType).outputType instanceof Unit)) {
+            String errorMsg = "Unexpected output type " + (((Fn) prFnType).outputType).tostr();
+            throw new Exception(errorMsg);
+        } else if (isFun && ((Fn) prFnType).outputType instanceof Unit){
+            String errorMsg = "Unexpected output type Unit";
+            throw new Exception(errorMsg);
+        }
+    }
     @Override
     public void visitBlockStmt(BlockStmt node) {
         int numArgs = node.statements.size();
@@ -408,7 +403,8 @@ public class TypeChecker extends Visitor{
         } else if (declArgs instanceof Tau && nodeArgs.size() == 1){
             valid = declArgs.equals(nodeArgs.get(0).type);
             if (!valid){
-                String errMsg = "Expected "+ declArgs.tostr() + ", but got " + nodeArgs.get(0).type.tostr();
+                String errMsg = "Mismatch argument types in ProCall: Expected "+ declArgs.tostr() + ", but got " +
+                        nodeArgs.get(0).type.tostr();
                 throw new Exception(errMsg);
             }
         } else if (declArgs instanceof Prod && nodeArgs.size() == ((Prod) declArgs).elementTypes.size()){
@@ -417,7 +413,8 @@ public class TypeChecker extends Visitor{
                 Tau declArg = ((Prod) declArgs).elementTypes.get(i);
                 Expr nodeArg = nodeArgs.get(i);
                 if (!declArg.equals((Tau) nodeArg.type)){ // NOTE: expression can only type check to tau
-                    String errMsg = "Expected "+ declArg.tostr() + ", but got " + nodeArg.type.toString();
+                    String errMsg = "Mismatch argument types in ProCall: Expected "+ declArg.tostr() + ", but got " +
+                            nodeArg.type.toString();
                     throw new Exception(errMsg);
                 }
             }
@@ -429,7 +426,7 @@ public class TypeChecker extends Visitor{
             }
             throw new Exception(errMsg);
         }
-        return valid;
+        return true;
     }
 
 
