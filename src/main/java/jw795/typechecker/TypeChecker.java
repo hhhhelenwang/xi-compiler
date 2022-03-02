@@ -312,7 +312,7 @@ public class TypeChecker extends Visitor{
         }
     }
 
-    /** Helper visitFunCall for vistProCall and visitFunCall. It checks 1) f is fn type 2) outputType is correct */
+    /** Helper for vistProCall and visitFunCall. It checks 1) f is type fn 2) outputType is correct */
     private void profunCall(boolean isFun, Sigma prFnType, String fnPrName) throws Exception{
         if(!(prFnType instanceof Fn)){
             String errorMsg = fnPrName + " is not type fn. Got " + prFnType.toString();
@@ -325,6 +325,7 @@ public class TypeChecker extends Visitor{
             throw new Exception(errorMsg);
         }
     }
+
     @Override
     public void visitBlockStmt(BlockStmt node) {
         int numArgs = node.statements.size();
@@ -395,38 +396,36 @@ public class TypeChecker extends Visitor{
         }
     }
 
-    /** helper to check the types of arg passed in match the signature of declaration correspondingly*/
+    /** Checks if the types of arg passed in match the signature of declaration correspondingly*/
     private boolean argsConform(List<Expr> nodeArgs, T declArgs) throws Exception {
-        boolean valid = false;
         if (declArgs instanceof Unit && nodeArgs.size() == 0) {
-            valid = true;
+            return true;
         } else if (declArgs instanceof Tau && nodeArgs.size() == 1){
-            valid = declArgs.equals(nodeArgs.get(0).type);
-            if (!valid){
-                String errMsg = "Mismatch argument types in ProCall: Expected "+ declArgs.tostr() + ", but got " +
+            if (((Tau)declArgs).equals((Tau)nodeArgs.get(0).type)) {
+                return true;
+            } else {
+                String errMsg = "Mismatch argument types: Expected "+ declArgs.tostr() + ", but got " +
                         nodeArgs.get(0).type.tostr();
                 throw new Exception(errMsg);
             }
         } else if (declArgs instanceof Prod && nodeArgs.size() == ((Prod) declArgs).elementTypes.size()){
-            valid = true;
             for (int i = 0; i < nodeArgs.size(); i++){
                 Tau declArg = ((Prod) declArgs).elementTypes.get(i);
                 Expr nodeArg = nodeArgs.get(i);
                 if (!declArg.equals((Tau) nodeArg.type)){ // NOTE: expression can only type check to tau
-                    String errMsg = "Mismatch argument types in ProCall: Expected "+ declArg.tostr() + ", but got " +
+                    String errMsg = "Mismatch argument types: Expected "+ declArg.tostr() + ", but got " +
                             nodeArg.type.toString();
                     throw new Exception(errMsg);
                 }
             }
+            return true;
         }
-        if (!valid){
-            String errMsg = "Expected no argument passed in, but got ";
-            for (Expr e : nodeArgs){
-                errMsg += e.type.tostr();
-            }
-            throw new Exception(errMsg);
+
+        String errMsg = "Mismatch number of arguments passed in: Got ";
+        for (Expr e : nodeArgs){
+            errMsg += e.type.tostr();
         }
-        return true;
+        throw new Exception(errMsg);
     }
 
 
