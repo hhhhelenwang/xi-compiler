@@ -7,10 +7,10 @@ public abstract class Visitor {
     public abstract void leaveScope();
     // Expression =================
     // array literal
-    public abstract void visitArrayExpr(ArrayExpr node);
+    public abstract void visitArrayExpr(ArrayExpr node) throws Exception;
 
     //indexing
-    public abstract void visitArrIndexExpr(ArrIndexExpr node);
+    public abstract void visitArrIndexExpr(ArrIndexExpr node) throws Exception;
 
     // int, bool, string, char literals
     public abstract void visitIntLiteral(IntLiteral node);
@@ -20,29 +20,29 @@ public abstract class Visitor {
     public abstract void visitFunCallExpr(FunCallExpr node) throws Exception;
 
     // variable
-    public abstract void visitVar(VarExpr node);
+    public abstract void visitVar(VarExpr node) throws Exception;
 
     // UnOps
-    public abstract void visitIntNeg(IntNeg node);
-    public abstract void visitNot(Not node);
+    public abstract void visitIntNeg(IntNeg node) throws Exception;
+    public abstract void visitNot(Not node) throws Exception;
 
     // BinOps algebraic
     public abstract void visitAdd(Add node) throws Exception;
-    public abstract void visitSub(Sub node);
-    public abstract void visitMult(Mult node);
-    public abstract void visitHighMult(HighMult node);
-    public abstract void visitDiv(Div node);
-    public abstract void visitMod(Mod node);
+    public abstract void visitSub(Sub node) throws Exception;
+    public abstract void visitMult(Mult node) throws Exception;
+    public abstract void visitHighMult(HighMult node) throws Exception;
+    public abstract void visitDiv(Div node) throws Exception;
+    public abstract void visitMod(Mod node) throws Exception;
     // BinOps logical
-    public abstract void visitAnd(And node);
-    public abstract void visitOr(Or node);
+    public abstract void visitAnd(And node) throws Exception;
+    public abstract void visitOr(Or node) throws Exception;
     // BinOps compare
-    public abstract void visitEqual(Equal node);
-    public abstract void visitNotEqual(NotEqual node);
-    public abstract void visitLessThan(LessThan node);
-    public abstract void visitLessEq(LessEq node);
-    public abstract void visitGreaterThan(GreaterThan node);
-    public abstract void visitGreaterEq(GreaterEq node);
+    public abstract void visitEqual(Equal node) throws Exception;
+    public abstract void visitNotEqual(NotEqual node) throws Exception;
+    public abstract void visitLessThan(LessThan node) throws Exception;
+    public abstract void visitLessEq(LessEq node) throws Exception;
+    public abstract void visitGreaterThan(GreaterThan node) throws Exception;
+    public abstract void visitGreaterEq(GreaterEq node) throws Exception;
 
     // Statement =====================
     //Procedure
@@ -58,7 +58,7 @@ public abstract class Visitor {
     //Return stmt
     public abstract void visitRet(ReturnStmt node) throws Exception;
     //Assign stmt
-    public abstract void visitAssign(AssignStmt node);
+    public abstract void visitAssign(AssignStmt node) throws Exception;
 
     public abstract void visitWildCard(WildCard node);
 
