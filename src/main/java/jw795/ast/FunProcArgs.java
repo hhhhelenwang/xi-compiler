@@ -28,6 +28,6 @@ public class FunProcArgs extends ASTNode {
 
     @Override
     public void accept(Visitor visitor) {
-
+        visitor.visitFunProcArgs(this);
     }
 }

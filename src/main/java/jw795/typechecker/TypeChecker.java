@@ -719,6 +719,10 @@ public class TypeChecker extends Visitor{
         this.env.leaveScope();
     }
 
+    @Override
+    public void visitFunProcArgs(FunProcArgs node) {
+
+    }
 
     /** Build a Tau type from a Type AST node. */
     private Tau typeToTau(Type t){
