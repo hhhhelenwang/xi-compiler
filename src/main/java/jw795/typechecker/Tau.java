@@ -14,7 +14,7 @@ public class Tau implements T{
         }
     }
 
-    public boolean isSubOf (XiType t) {
+    public boolean isSubOf (T t) {
         return ((this.getClass() == t.getClass()) || (t instanceof Unit));
     }
 

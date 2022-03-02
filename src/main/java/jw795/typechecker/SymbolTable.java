@@ -1,7 +1,9 @@
 package jw795.typechecker;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Set;
 
 /**
  * Representation of a symbol table that acts as the gamma-context.
@@ -69,6 +71,18 @@ public class SymbolTable {
     public void add(String name,  Sigma t){
         HashMap<String, Sigma> lastOne = this.gamma.getLast();
         lastOne.put(name, t);
+    }
+
+    /**
+     * Return the domain of the symbol table as a set of identifiers.
+     * @return a set of string representing the domain of the context
+     */
+    public Set<String> dom() {
+        Set<String> domain = new HashSet<>();
+        for (HashMap<String, Sigma> context : gamma) {
+            domain.addAll(context.keySet());
+        }
+        return domain;
     }
 
 

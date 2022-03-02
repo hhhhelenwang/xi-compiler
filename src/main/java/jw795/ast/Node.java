@@ -1,7 +1,6 @@
 package jw795.ast;
 
 import jw795.typechecker.Visitor;
-import jw795.typechecker.XiType;
 import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 
 /**

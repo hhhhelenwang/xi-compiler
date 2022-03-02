@@ -48,7 +48,7 @@ public abstract class Visitor {
     //Procedure
     public abstract void visitPrCall(ProcCallStmt node) throws Exception;
     //Block stmt (SEQ)
-    public abstract void visitBlockStmt(BlockStmt node);
+    public abstract void visitBlockStmt(BlockStmt node) throws Exception;
     //If stmt
     public abstract void visitIfStmt(IfStmt node) throws Exception;
     //If Else stmt
@@ -63,7 +63,7 @@ public abstract class Visitor {
     public abstract void visitWildCard(WildCard node);
 
     // Variable Declare stmt
-    public abstract void visitVarDecl(VarDeclareStmt node);
+    public abstract void visitVarDecl(VarDeclareStmt node) throws Exception;
     public abstract void visitFundef(FunctionDefine node);
     public abstract void visitPrdef(ProcedureDefine node);
 }
