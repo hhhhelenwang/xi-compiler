@@ -53,8 +53,10 @@ public class TypeChecker extends Visitor{
             String errorMsg = errorstart(node.getLine(), node.getCol()) + node.name +  " is not a function." +
                     "Got " + fnType.toString();
             throw new Exception(errorMsg);
-        } else if (!(((Fn) fnType).outputType instanceof Unit)){
-            // function should not return a unit
+        } else if (((Fn) fnType).outputType instanceof Unit){
+            String errorMsg = errorstart(node.getLine(), node.getCol()) + "Unexpected output type Unit";
+            throw new Exception(errorMsg);
+        } else {
             if (node.name.equals("length")) {
                 checkLength(node);
             } else {
@@ -69,17 +71,7 @@ public class TypeChecker extends Visitor{
                             + e.getMessage();
                     throw new Exception(errorMsg);
                 }
-
             }
-        }
-        if(node.type == null){
-            //this is the case when argument type does not match
-            String errorMsg = errorstart(node.getLine(), node.getCol()) + "Expected " +
-                    ((Fn) fnType).inputType.tostr() + ", but got ";
-            for(Expr e: node.arguments){
-                errorMsg += e.type.tostr();
-            }
-            throw new Exception(errorMsg);
         }
     }
 
@@ -319,11 +311,8 @@ public class TypeChecker extends Visitor{
                     " is not type fn. Got " + prType.toString();
             throw new Exception(errorMsg);
         } else if(!(((Fn) prType).outputType instanceof Unit)){
-            String errorMsg = errorstart(node.getLine(), node.getCol()) + "Expected " +
-                    ((Fn) prType).inputType.tostr() + ", but got ";
-            for(Expr e: node.arguments){
-                errorMsg += e.type.tostr();
-            }
+            String errorMsg = errorstart(node.getLine(), node.getCol()) + "Unexpected output type "
+                    + (((Fn) prType).outputType).tostr();
             throw new Exception(errorMsg);
         } else {
             // satisfies 2 premises above
