@@ -48,7 +48,7 @@ public abstract class Visitor {
     //Procedure
     public abstract void visitPrCall(ProcCallStmt node) throws Exception;
     //Block stmt (SEQ)
-    public abstract void visitBlockStmt(BlockStmt node);
+    public abstract void visitBlockStmt(BlockStmt node) throws Exception;
     //If stmt
     public abstract void visitIfStmt(IfStmt node) throws Exception;
     //If Else stmt

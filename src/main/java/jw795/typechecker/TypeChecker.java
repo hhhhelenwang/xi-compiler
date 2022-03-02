@@ -51,36 +51,20 @@ public class TypeChecker extends Visitor{
     @Override
     public void visitFunCallExpr(FunCallExpr node) throws Exception {
         Sigma fnType = this.env.findType(node.name);
-        if(!(fnType instanceof Fn)){
-            String errorMsg = errorstart(node.getLine(), node.getCol()) + node.name +  " is not a function." +
-                    "Got " + fnType.toString();
-            throw new Exception(errorMsg);
-        } else if (!(((Fn) fnType).outputType instanceof Unit)){
-            // function should not return a unit
+        try {
+            profunCall(true, fnType, node.name);
             if (node.name.equals("length")) {
                 checkLength(node);
             } else {
                 List<Expr> nodeArgs = node.arguments;
                 T declArgs = ((Fn) fnType).inputType;
-                try {
-                    if (argsConform(nodeArgs, declArgs)){
-                        node.type = ((Fn) fnType).outputType;
-                    }
-                } catch (Exception e) {
-                    String errorMsg = errorstart(node.getLine(), node.getCol()) + "Mismatch argument types in FunCall:"
-                            + e.getMessage();
-                    throw new Exception(errorMsg);
+                if (argsConform(nodeArgs, declArgs)) {
+                    node.type = ((Fn) fnType).outputType;
                 }
-
             }
-        }
-        if(node.type == null){
-            //this is the case when argument type does not match
-            String errorMsg = errorstart(node.getLine(), node.getCol()) + "Expected " +
-                    ((Fn) fnType).inputType.tostr() + ", but got ";
-            for(Expr e: node.arguments){
-                errorMsg += e.type.tostr();
-            }
+        } catch (Exception e) {
+            String errorMsg = errorstart(node.getLine(), node.getCol()) + "Mismatch argument types in FunCall:"
+                    + e.getMessage();
             throw new Exception(errorMsg);
         }
     }
@@ -138,7 +122,7 @@ public class TypeChecker extends Visitor{
     private void setArrayBoolType(BinOpExpr node){
         if(node.expr1.type instanceof  Tau){
             if(node.expr2.type instanceof  Tau) {
-                if (((Tau) node.expr1.type).equals(node.expr2.type)) {
+                if (((Tau) node.expr1.type).equals((Tau) node.expr2.type)) {
                     node.type = new Bool();
                 }
             }
@@ -316,45 +300,51 @@ public class TypeChecker extends Visitor{
     public void visitPrCall(ProcCallStmt node) throws Exception {
         // a procedure need to be fn T -> unit
         Sigma prType = this.env.findType(node.name);
-        if(!(prType instanceof Fn)){
-            String errorMsg = errorstart(node.getLine(), node.getCol()) + node.name +
-                    " is not type fn. Got " + prType.toString();
-            throw new Exception(errorMsg);
-        } else if(!(((Fn) prType).outputType instanceof Unit)){
-            String errorMsg = errorstart(node.getLine(), node.getCol()) + "Expected " +
-                    ((Fn) prType).inputType.tostr() + ", but got ";
-            for(Expr e: node.arguments){
-                errorMsg += e.type.tostr();
-            }
-            throw new Exception(errorMsg);
-        } else {
-            // satisfies 2 premises above
+        try {
+            profunCall(false, prType, node.name);
             List<Expr> nodeArgs = node.arguments;
             T declArgs = ((Fn) prType).inputType;
-            try {
-                if (argsConform(nodeArgs, declArgs)){
-                    node.type = new Unit();
-                }
-            } catch (Exception e) {
-                String errorMsg = errorstart(node.getLine(), node.getCol()) + "Mismatch argument types in ProCall:"
-                        + e.getMessage();
-                throw new Exception(errorMsg);
+            if (argsConform(nodeArgs, declArgs)){
+                node.type = new Unit();
             }
+        } catch (Exception e) {
+            String errorMsg = errorstart(node.getLine(), node.getCol())
+                    + e.getMessage();
+            throw new Exception(errorMsg);
+        }
+    }
+
+    /** Helper for vistProCall and visitFunCall. It checks 1) f is type fn 2) outputType is correct */
+    private void profunCall(boolean isFun, Sigma prFnType, String fnPrName) throws Exception{
+        if(!(prFnType instanceof Fn)){
+            String errorMsg = fnPrName + " is not type fn. Got " + prFnType.toString();
+            throw new Exception(errorMsg);
+        } else if(!isFun && !(((Fn) prFnType).outputType instanceof Unit)) {
+            String errorMsg = "Unexpected output type " + (((Fn) prFnType).outputType).tostr();
+            throw new Exception(errorMsg);
+        } else if (isFun && ((Fn) prFnType).outputType instanceof Unit){
+            String errorMsg = "Unexpected output type Unit";
+            throw new Exception(errorMsg);
         }
     }
 
     @Override
-    public void visitBlockStmt(BlockStmt node) {
+    public void visitBlockStmt(BlockStmt node) throws Exception {
         int numArgs = node.statements.size();
-        boolean stmtTypeChecked = true;
         for (int i = 0; i < numArgs - 1; i++){
             if (!(node.statements.get(i).type instanceof Unit)){
-                stmtTypeChecked = false;
+                String errorMsg =  errorstart(node.getLine(), node.getCol()) +
+                        "Unexpected statement evaluation outcome void. Expected unit.";
+                throw new Exception(errorMsg);
             }
         }
         Statement lastStmt = node.statements.get(numArgs - 1);
-        if (stmtTypeChecked && lastStmt.type instanceof R){
+        if (lastStmt.type instanceof R){
             node.type = lastStmt.type;
+        } else {
+            String errorMsg =  errorstart(node.getLine(), node.getCol()) +
+                    "Unexpected unassigned statement type null. Expected R.";
+            throw new Exception(errorMsg);
         }
     }
 
@@ -413,39 +403,37 @@ public class TypeChecker extends Visitor{
         }
     }
 
-    /** helper to check the types of arg passed in match the signature of declaration correspondingly*/
+    /** Checks if the types of arg passed in match the signature of declaration correspondingly*/
     private boolean argsConform(List<Expr> nodeArgs, T declArgs) throws Exception {
-        boolean valid = false;
         if (declArgs instanceof Unit && nodeArgs.size() == 0) {
-            valid = true;
+            return true;
         } else if (declArgs instanceof Tau && nodeArgs.size() == 1){
-            valid = declArgs.equals(nodeArgs.get(0).type);
-            if (!valid){
-                String errMsg = "Expected "+ declArgs.tostr() + ", but got " + nodeArgs.get(0).type.tostr();
+            if (((Tau)declArgs).equals((Tau)nodeArgs.get(0).type)) {
+                return true;
+            } else {
+                String errMsg = "Mismatch argument types: Expected "+ declArgs.tostr() + ", but got " +
+                        nodeArgs.get(0).type.tostr();
                 throw new Exception(errMsg);
             }
         } else if (declArgs instanceof Prod && nodeArgs.size() == ((Prod) declArgs).elementTypes.size()){
-            valid = true;
             for (int i = 0; i < nodeArgs.size(); i++){
                 Tau declArg = ((Prod) declArgs).elementTypes.get(i);
                 Expr nodeArg = nodeArgs.get(i);
                 if (!declArg.equals((Tau) nodeArg.type)){ // NOTE: expression can only type check to tau
-                    String errMsg = "Expected "+ declArg.tostr() + ", but got " + nodeArg.type.toString();
+                    String errMsg = "Mismatch argument types: Expected "+ declArg.tostr() + ", but got " +
+                            nodeArg.type.toString();
                     throw new Exception(errMsg);
                 }
             }
+            return true;
         }
-        if (!valid){
-            String errMsg = "Expected no argument passed in, but got ";
-            for (Expr e : nodeArgs){
-                errMsg += e.type.tostr();
-            }
-            throw new Exception(errMsg);
+
+        String errMsg = "Mismatch number of arguments passed in: Got ";
+        for (Expr e : nodeArgs){
+            errMsg += e.type.tostr();
         }
-        return valid;
+        throw new Exception(errMsg);
     }
-
-
 
     @Override
     public void visitRet(ReturnStmt node) throws Exception {
