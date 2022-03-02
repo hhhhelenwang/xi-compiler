@@ -6,4 +6,9 @@ public class Ret implements Sigma{
     public Ret(T retType) {
         this.retType = retType;
     }
+
+    @Override
+    public String toString() {
+        return "ret T";
+    }
 }

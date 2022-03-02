@@ -50,30 +50,36 @@ public class TypeChecker extends Visitor{
     public void visitFunCallExpr(FunCallExpr node) throws Exception {
         Sigma fnType = this.env.findType(node.name);
         if(!(fnType instanceof Fn)){
-            String errmes = node.getLine() + ":" + node.getCol() +"error:" ;
-            errmes = errmes + node.name + " is not a function";
-            throw new Exception(errmes);
-        }
-        else if(!(((Fn) fnType).outputType instanceof Unit)){
+            String errorMsg = errorstart(node.getLine(), node.getCol()) + node.name +  " is not a function." +
+                    "Got " + fnType.toString();
+            throw new Exception(errorMsg);
+        } else if (!(((Fn) fnType).outputType instanceof Unit)){
+            // function should not return a unit
             if (node.name.equals("length")) {
                 checkLength(node);
-            } else { //f(), f(e), f(e1, ..., en)
+            } else {
                 List<Expr> nodeArgs = node.arguments;
                 T declArgs = ((Fn) fnType).inputType;
-                if (argsConform(nodeArgs, declArgs)){ //e1:tau, e2:tau ..
-                    node.type = ((Fn) fnType).outputType;
+                try {
+                    if (argsConform(nodeArgs, declArgs)){
+                        node.type = ((Fn) fnType).outputType;
+                    }
+                } catch (Exception e) {
+                    String errorMsg = errorstart(node.getLine(), node.getCol()) + "Mismatch argument types in FunCall:"
+                            + e.getMessage();
+                    throw new Exception(errorMsg);
                 }
+
             }
         }
         if(node.type == null){
             //this is the case when argument type does not match
-            String errmes = errorstart(node.getLine(), node.getCol()) + "Expected ";
-            errmes += ((Fn) fnType).inputType.tostr();
-            errmes += ", but got ";
+            String errorMsg = errorstart(node.getLine(), node.getCol()) + "Expected " +
+                    ((Fn) fnType).inputType.tostr() + ", but got ";
             for(Expr e: node.arguments){
-                e.type.tostr();
+                errorMsg += e.type.tostr();
             }
-            throw new Exception(errmes);
+            throw new Exception(errorMsg);
         }
     }
 
@@ -251,14 +257,32 @@ public class TypeChecker extends Visitor{
 
     // ================================= Visit functions for Statements =================================
     @Override
-    public void visitPrCall(ProcCallStmt node) {
+    public void visitPrCall(ProcCallStmt node) throws Exception {
         // a procedure need to be fn T -> unit
         Sigma prType = this.env.findType(node.name);
-        if(prType instanceof Fn && ((Fn) prType).outputType instanceof Unit){
+        if(!(prType instanceof Fn)){
+            String errorMsg = errorstart(node.getLine(), node.getCol()) + node.name +
+                    " is not type fn. Got " + prType.toString();
+            throw new Exception(errorMsg);
+        } else if(!(((Fn) prType).outputType instanceof Unit)){
+            String errorMsg = errorstart(node.getLine(), node.getCol()) + "Expected " +
+                    ((Fn) prType).inputType.tostr() + ", but got ";
+            for(Expr e: node.arguments){
+                errorMsg += e.type.tostr();
+            }
+            throw new Exception(errorMsg);
+        } else {
+            // satisfies 2 premises above
             List<Expr> nodeArgs = node.arguments;
             T declArgs = ((Fn) prType).inputType;
-            if (argsConform(nodeArgs, declArgs)){ //e1:tau, e2:tau ..
-                node.type = new Unit();
+            try {
+                if (argsConform(nodeArgs, declArgs)){
+                    node.type = new Unit();
+                }
+            } catch (Exception e) {
+                String errorMsg = errorstart(node.getLine(), node.getCol()) + "Mismatch argument types in ProCall:"
+                        + e.getMessage();
+                throw new Exception(errorMsg);
             }
         }
     }
@@ -280,18 +304,32 @@ public class TypeChecker extends Visitor{
 
 
     @Override
-    public void visitIfStmt(IfStmt node) {
-        if (node.condition.type instanceof Bool && node.clause.type instanceof R) {
+    public void visitIfStmt(IfStmt node) throws Exception {
+        if (!(node.condition.type instanceof Bool)) {
+            String errorMsg = errorstart(node.getLine(), node.getCol()) + "Expected condition is type Bool, but got" +
+                    node.condition.type.tostr();
+            throw new Exception(errorMsg);
+        } else if (!(node.clause.type instanceof R)){
+            String errorMsg = errorstart(node.getLine(), node.getCol()) + "The if clause is null";
+            throw new Exception(errorMsg);
+        } else {
             node.type = new Unit();
-        } else if (!(node.condition.type instanceof Bool)){
-
         }
     }
 
     @Override
-    public void visitIfElseStmt(IfElseStmt node) {
-        if (node.condition.type instanceof Bool && node.ifClause.type instanceof R && node.elseClause.type instanceof R)
-        {
+    public void visitIfElseStmt(IfElseStmt node) throws Exception {
+        if (!(node.condition.type instanceof Bool)){
+            String errorMsg = errorstart(node.getLine(), node.getCol()) + "Expected condition is type Bool, but got" +
+                    node.condition.type.tostr();
+            throw new Exception(errorMsg);
+        } else if (!(node.ifClause.type instanceof R)){
+            String errorMsg = errorstart(node.getLine(), node.getCol()) + "The if clause is null";
+            throw new Exception(errorMsg);
+        } else if (!(node.elseClause.type instanceof R)){
+            String errorMsg = errorstart(node.getLine(), node.getCol()) + "The else clause is null";
+            throw new Exception(errorMsg);
+        } else {
             node.type = lub(node.ifClause.type, node.elseClause.type);
         }
     }
@@ -306,28 +344,47 @@ public class TypeChecker extends Visitor{
     }
 
     @Override
-    public void visitWhileStmt(WhileStmt node) {
-        if (node.condition.type instanceof Bool && node.loopBody.type instanceof R){
+    public void visitWhileStmt(WhileStmt node) throws Exception {
+        if (!(node.condition.type instanceof Bool)){
+            String errorMsg = errorstart(node.getLine(), node.getCol()) + "Expected condition is type Bool, but got" +
+                    node.condition.type.tostr();
+            throw new Exception(errorMsg);
+        } else if (!(node.loopBody.type instanceof R)){
+            String errorMsg = errorstart(node.getLine(), node.getCol()) + "The while loop body is null";
+            throw new Exception(errorMsg);
+        } else {
             node.type = new Unit();
         }
     }
 
-    /** helper to check the types of arg passed in match the signature of declaration correspondingly */
-    private boolean argsConform(List<Expr> nodeArgs, T declArgs){
+    /** helper to check the types of arg passed in match the signature of declaration correspondingly*/
+    private boolean argsConform(List<Expr> nodeArgs, T declArgs) throws Exception {
         boolean valid = false;
         if (declArgs instanceof Unit && nodeArgs.size() == 0) {
             valid = true;
         } else if (declArgs instanceof Tau && nodeArgs.size() == 1){
             valid = declArgs.equals(nodeArgs.get(0).type);
+            if (!valid){
+                String errMsg = "Expected "+ declArgs.tostr() + ", but got " + nodeArgs.get(0).type.tostr();
+                throw new Exception(errMsg);
+            }
         } else if (declArgs instanceof Prod && nodeArgs.size() == ((Prod) declArgs).elementTypes.size()){
             valid = true;
             for (int i = 0; i < nodeArgs.size(); i++){
                 Tau declArg = ((Prod) declArgs).elementTypes.get(i);
                 Expr nodeArg = nodeArgs.get(i);
-                if (!declArg.equals(nodeArg)){
-                    valid = false;
+                if (!declArg.equals((Tau) nodeArg.type)){ // NOTE: expression can only type check to tau
+                    String errMsg = "Expected "+ declArg.tostr() + ", but got " + nodeArg.type.toString();
+                    throw new Exception(errMsg);
                 }
             }
+        }
+        if (!valid){
+            String errMsg = "Expected no argument passed in, but got ";
+            for (Expr e : nodeArgs){
+                errMsg += e.type.tostr();
+            }
+            throw new Exception(errMsg);
         }
         return valid;
     }
@@ -546,7 +603,7 @@ public class TypeChecker extends Visitor{
     }
 
     private String errorstart(int line, int colmn){
-        return (line + ":" + colmn +"error:" );
+        return (line + ":" + colmn +"error: " );
     }
 
 }

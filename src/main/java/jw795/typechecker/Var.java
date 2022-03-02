@@ -6,4 +6,9 @@ public class Var implements Sigma{
     public Var(Tau varType) {
         this.varType = varType;
     }
+
+    @Override
+    public String toString() {
+        return "var tau";
+    }
 }

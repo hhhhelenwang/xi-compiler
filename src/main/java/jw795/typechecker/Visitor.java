@@ -46,17 +46,17 @@ public abstract class Visitor {
 
     // Statement =====================
     //Procedure
-    public abstract void visitPrCall(ProcCallStmt node);
+    public abstract void visitPrCall(ProcCallStmt node) throws Exception;
     //Block stmt (SEQ)
     public abstract void visitBlockStmt(BlockStmt node);
     //If stmt
-    public abstract void visitIfStmt(IfStmt node);
+    public abstract void visitIfStmt(IfStmt node) throws Exception;
     //If Else stmt
-    public abstract void visitIfElseStmt(IfElseStmt node);
+    public abstract void visitIfElseStmt(IfElseStmt node) throws Exception;
     //While stmt
-    public abstract void visitWhileStmt(WhileStmt node);
+    public abstract void visitWhileStmt(WhileStmt node) throws Exception;
     //Return stmt
-    public abstract void visitRet(ReturnStmt node);
+    public abstract void visitRet(ReturnStmt node) throws Exception;
     //Assign stmt
     public abstract void visitAssign(AssignStmt node);
 

@@ -8,4 +8,9 @@ public class Fn implements Sigma{
         this.inputType = inputType;
         this.outputType = outputType;
     }
+
+    @Override
+    public String toString() {
+        return "fn " + inputType.tostr() + " => " + outputType.tostr();
+    }
 }
