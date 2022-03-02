@@ -23,6 +23,10 @@ public class TypeCheckerAdapter {
 
     public TypeCheckerAdapter(Reader reader, String name, String path){
         this.checker = new TypeChecker();
+        this.scanner = new Lexwrapper(reader, name);
+        this.cup_parser = new parser(scanner);
+        this.fileName = name;
+        this.parsedPath = path;
 
     }
 

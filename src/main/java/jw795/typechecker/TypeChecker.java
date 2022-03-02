@@ -688,7 +688,7 @@ public class TypeChecker extends Visitor{
     }
 
     private String errorstart(int line, int colmn){
-        return (line + ":" + colmn +"error: " );
+        return (line + ":" + colmn +" error: " );
     }
     private void errrorint (String operands, BinOpExpr node) throws Exception {
         if(node.type == null) {
