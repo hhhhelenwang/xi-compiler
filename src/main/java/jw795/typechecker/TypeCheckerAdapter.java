@@ -48,6 +48,9 @@ public class TypeCheckerAdapter {
             ASTNode node = (ASTNode) cup_parser.parse().value;
             Visitor vis = new TypeChecker();
             node.accept(vis);
+            printer.printAtom("Valid Xi Program");
+            printer.flush();
+            printer.close();
         } catch (Exception e) {
             printer.printAtom(e.getMessage());
             printer.flush();
