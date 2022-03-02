@@ -432,10 +432,11 @@ public class TypeChecker extends Visitor{
 
 
     @Override
-    public void visitRet(ReturnStmt node) {
-        boolean isvalid =true;
+    public void visitRet(ReturnStmt node) throws Exception {
+        boolean isvalid =false;
         Sigma retarg = this.env.findType("return");
         if(retarg instanceof  Prod){
+            isvalid = true;
             if (((Prod) retarg).elementTypes.size() == node.returnVals.size() ){
                 for (int i =0; i < node.returnVals.size(); i++){
                     if(! ((Prod) retarg).elementTypes.get(i).equals(node.returnVals.get(i))){
@@ -443,9 +444,21 @@ public class TypeChecker extends Visitor{
                     }
                 }
             }
+        }else if(retarg instanceof Unit){
+            if(node.returnVals.size() == 0){
+                isvalid = true;
+            }
+        }else if(retarg instanceof Tau){
+            if (node.returnVals.size() ==1 & ((Tau) retarg).equals(node.returnVals.get(0))){
+                isvalid = true;
+            }
         }
         if(isvalid){
             node.type = new Void();
+        }else{
+            String res= errorstart(node.getLine(), node.getCol());
+            res += "invalid return";
+            throw new Exception(res);
         }
     }
 
@@ -661,7 +674,7 @@ public class TypeChecker extends Visitor{
     }
 
     private String errorstart(int line, int colmn){
-        return (line + ":" + colmn +"error: " );
+        return (line + ":" + colmn +" error: " );
     }
     private void errrorint (String operands, BinOpExpr node) throws Exception {
         if(node.type == null) {

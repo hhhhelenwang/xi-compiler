@@ -34,6 +34,8 @@ public class Compiler {
         options.addOption("D", "destination", true, "set path for diagnostic files");
         options.addOption("parse", "parse", false, "generate output from syntactic analysis");
         options.addOption("typechecck", "typecheck", false, "generate output from semantic analysis");
+        options.addOption("sourcepath", "sourcepath", true, "Specify where to find input source files");
+        options.addOption("libpath", "libpath", true, "Specify where to find library interface files");
 
         CommandLineParser parser = new DefaultParser();
         cmd = parser.parse(options, args);
@@ -122,6 +124,7 @@ public class Compiler {
         if (cmd.hasOption("typecheck")) {
             files = cmd.getArgList();
             for (String file : files) {
+                System.out.println(file);
                 if (file.endsWith("xi")) {
                     System.out.println(file);
                     typecheckFile(file);

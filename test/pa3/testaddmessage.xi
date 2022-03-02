@@ -1,3 +1,3 @@
 foo(): bool{
-    1 + true
+    a: int = 1 + true
 }
