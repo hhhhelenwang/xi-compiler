@@ -4,6 +4,8 @@ import jw795.ast.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class TypeChecker extends Visitor{
 
@@ -530,9 +532,16 @@ public class TypeChecker extends Visitor{
     /** Type check _ = e */
     //Todo: we only allow wild car to be assign by a function
     //yet currently it is unchecked
-    private void checkExprStmt(AssignStmt node) {
+    private void checkExprStmt(AssignStmt node) throws Exception{
+        if (!(node.expr instanceof FunCallExpr)) {
+            String pos = errorstart(node.expr.getLine(), node.expr.getCol());
+            throw new Exception(pos + "Expected function call");
+        }
         if (node.expr.type instanceof Tau) {
             node.type = new Unit();
+        } else {
+            String pos = errorstart(node.expr.getLine(), node.expr.getCol());
+            throw new Exception(pos + "Expected int, bool, or array, got " + node.expr.type.tostr());
         }
     }
 
@@ -543,29 +552,86 @@ public class TypeChecker extends Visitor{
      * - a function call on the right, checked in parsing
      */
     private void checkMultiAssign(AssignStmt node) throws Exception {
-        boolean typeChecks = true;
         List<LValue> declares = ((LeftValueList) node.leftVal).declares;
         List<Tau> returnTypes = ((Prod) node.expr.type).elementTypes;
         if (declares.size() != returnTypes.size()) {
-            typeChecks = false;
-            // TODO: error, assignment mismatch
-            String res = errorstart(node.getLine(), node.getCol());
-            throw new Exception(res+ "Mismatched number of values");
-        } else {
-            for (int i = 0; i < declares.size(); i ++) {
-
+            String pos = errorstart(node.getLine(), node.getCol());
+            throw new Exception(pos + "Mismatched number of values");
+        }
+        // check dom(gamma) does not contains varsOf(d)
+        for (LValue decl: declares) {
+            // dom contains varsOf(decl)
+            if (env.dom().removeAll(varsOf(decl))) {
+                String pos = errorstart(decl.getLine(), decl.getCol());
+                throw new Exception(pos + "Variable " + ((VarDeclareStmt) decl).identifier + " already declared");
             }
         }
 
-
+        // check no two declarations have same var
+        for (LValue d1 : declares) {
+            for (LValue d2: declares) {
+                Set<String> intersect = varsOf(d1);
+                intersect.retainAll(varsOf(d2));
+                if (!d1.equals(d2) && !intersect.isEmpty()) {
+                    String pos = errorstart(d1.getLine(), d1.getCol());
+                    throw new Exception(pos + "Repeated declarations of variables");
+                }
+            }
+        }
+        // check tau(i) <= typesOf(d(i))
+        for (int i = 0; i < declares.size(); i++) {
+            Tau tau = returnTypes.get(i);
+            LValue d = declares.get(i);
+            if (tau instanceof Array && typesOf(d) instanceof Array) {
+                if (!((Array) tau).compare((Array) typesOf(d))) {
+                    String pos = errorstart(d.getLine(), d.getCol());
+                    throw new Exception(pos + "Expected " + typesOf(d).tostr() + " got" + tau.tostr());
+                }
+            } else {
+                if (!tau.isSubOf(typesOf(d))) {
+                    String pos = errorstart(d.getLine(), d.getCol());
+                    throw new Exception(pos + "Expected " + typesOf(d).tostr() + " got" + tau.tostr());
+                }
+            }
+        }
+        // all premises satisfied
+        // type this statement
+        node.type = new Unit();
+        // update context
+        for (LValue decl : declares) {
+            Set<String> var = varsOf(decl);
+            if (!var.isEmpty()) {
+                String id = var.iterator().next();
+                env.add(id, new Var((Tau) typesOf(decl)));
+            }
+        }
 
     }
 
+    /** The set of variable in a declaration d. */
+    private Set<String> varsOf(LValue d) {
+        Set<String> vars = new TreeSet<>();
+        if (d instanceof VarDeclareStmt) {
+            String id = ((VarDeclareStmt) d).identifier;
+            vars.add(id);
+        }
+        return vars;
+    }
+
+    /** The set of types in a declaration d. */
+    private T typesOf(LValue d) {
+        if (d instanceof VarDeclareStmt) {
+            Tau type = typeToTau(((VarDeclareStmt) d).varType);
+            return type;
+        } else {
+            return new Unit();
+        }
+    }
 
     @Override
-    public void visitVarDecl(VarDeclareStmt node) {
+    public void visitVarDecl(VarDeclareStmt node) throws Exception{
         // TODO: x:tau, x:tau[]
-        if (node.varType instanceof ArrayType) { // check array declaration
+        if (node.varType instanceof ArrayType) { // check array declaratio
             checkArrayDecl(node);
         } else { // TODO: is it safe to use else here
             if (!env.contains(node.identifier)) {
@@ -581,13 +647,12 @@ public class TypeChecker extends Visitor{
      *  - node is an array declaration (check when calling this method in visitVarDecl),
      *  - all dimensions are specified to the left-most (checked at parsing),
      */
-    public void checkArrayDecl(VarDeclareStmt node) {
+    public void checkArrayDecl(VarDeclareStmt node) throws Exception{
         String id = node.identifier;
         ArrayType arrType = (ArrayType) node.varType;
-        boolean typeChecks = true;
         if (env.contains(id)) {
-            // TODO: error: id is already declared
-            typeChecks = false;
+            String pos = errorstart(node.getLine(), node.getLine());
+            throw new Exception(pos + "Variable already exists");
         } else {
             Type next = arrType;
             // check type
@@ -595,21 +660,19 @@ public class TypeChecker extends Visitor{
                 // if dim is defined for this level
                 boolean hasDim = ((ArrayType) next).length.isPresent();
                 if (hasDim) {
-                    XiType dimType = ((ArrayType) next).length.get().type;
+                    Expr length = ((ArrayType) next).length.get();
+                    T dimType = length.type;
                     if (!(dimType instanceof Int)) {
-                        // TODO: error: expected Int, got <dimType>
-                        typeChecks = false;
-                        break;
+                        String pos = errorstart(length.getLine(), length.getLine());
+                        throw new Exception(pos + "Expected int, but found " + dimType.tostr());
                     }
                     next = ((ArrayType) next).elemType;
                 }
             }
         }
         // if typeChecks, build an array type with m + n levels and primitive type = next
-        if (typeChecks) {
-            Tau type = typeToTau(arrType);
-            env.add(id, new Var(type));
-        }
+        Tau type = typeToTau(arrType);
+        env.add(id, new Var(type));
     }
 
     @Override
@@ -683,6 +746,34 @@ public class TypeChecker extends Visitor{
             }else{
                 return new TypedArray(typeToTau(((ArrayType) t).elemType));
             }
+        }
+        return null;
+    }
+
+
+    /** Initialize a new object that is the same type as the Type R object passed in. R ::= unit | void */
+    private R toR(R type){
+        if (type instanceof Unit){
+            return new Unit();
+        } else if (type instanceof Void) {
+            return new Void();
+        }
+        System.out.println("error in toR(R type): null passed in");
+        return null; // an error, should not call toR on a null object
+    }
+
+    /** Initialize a new object that is the same type as the Type T object passed in */
+    private T toT(T type){
+        if (type instanceof Tau){
+            return new Tau();
+        } else if (type instanceof Bool){
+            return new Bool();
+        } else if (type instanceof EmptyArray){
+            return new EmptyArray();
+        } else if (type instanceof TypedArray){
+            //TODO: cannot resolve field elementType
+//            Tau eleType = (TypedArray)type.elementType;
+//            return new TypedArray(eleType);
         }
         return null;
     }

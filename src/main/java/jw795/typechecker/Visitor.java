@@ -63,7 +63,7 @@ public abstract class Visitor {
     public abstract void visitWildCard(WildCard node);
 
     // Variable Declare stmt
-    public abstract void visitVarDecl(VarDeclareStmt node);
+    public abstract void visitVarDecl(VarDeclareStmt node) throws Exception;
     public abstract void visitFundef(FunctionDefine node);
     public abstract void visitPrdef(ProcedureDefine node);
 }
