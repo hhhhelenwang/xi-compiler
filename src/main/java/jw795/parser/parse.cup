@@ -7,6 +7,9 @@ import jw795.ast.*;
 import jw795.lexer.Lexer;
 import jw795.lexer.LexerAdapter;
 import java.math.BigInteger;
+import util.edu.cornell.cs.cs4120.util.LexicalErrorException;
+import util.edu.cornell.cs.cs4120.util.SyntacticErrorException;
+
 
 
 /**
@@ -16,8 +19,13 @@ import java.math.BigInteger;
 parser code
     {:
         public void syntax_error(java_cup.runtime.Symbol cur) {
-            throw new RuntimeException(String.format( "%d:%d error:Unexpected token `%s`", cur.left + 1, cur.right + 1,
-                  LexerAdapter.tokenTypeToString(cur.sym)));
+            String tokenType = LexerAdapter.tokenTypeToString(cur.sym);
+            String errMsg = String.format("%d:%d error:Unexpected token `%s`", cur.left + 1, cur.right + 1, tokenType);
+            if (tokenType.equals("error"){
+                throw new LexicalErrorException(errMsg);
+            } else {
+                throw new SyntacticErrorException(errMsg);
+            }
         }
     :}
     ;
