@@ -724,7 +724,7 @@ public class TypeChecker extends Visitor{
     }
 
     /** Build a Tau type from a Type AST node. */
-    private Tau typeToTau(Type t) throws Exception {
+    private Tau typeToTau(Type t)  {
         if (t instanceof IntType){
             return new Int();
         }
@@ -738,7 +738,8 @@ public class TypeChecker extends Visitor{
                 return new TypedArray(typeToTau(((ArrayType) t).elemType));
             }
         }
-        throw new Exception("invalid variable type in typetotau");
+        //throw new Exception("invalid variable type in typetotau");
+        return null;
     }
 
 
