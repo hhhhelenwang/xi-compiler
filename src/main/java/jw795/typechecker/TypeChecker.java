@@ -642,36 +642,73 @@ public class TypeChecker extends Visitor{
     }
 
     @Override
-    public void visitFunDef(FunctionDefine node) {
-
-
+    public void visitFunDef(FunctionDefine node) throws Exception{
+        if (!(node.functionBody.type instanceof Void)) {
+            String pos = errorstart(node.functionBody.getLine(), node.functionBody.getCol());
+            throw new Exception(pos + "Expected void, but found " + node.functionBody.type.tostr());
+        }
     }
 
     @Override
     public void visitPrDef(ProcedureDefine node) {
+        // nothing to check here
+    }
+
+    @Override
+    public void visitFunDecl(FunctionDeclare node) {
+//        if (!visitor.env.contains(node.name)){
+//            T input;
+//            T output;
+//            if (node.arguments.size() == 0) {
+//                input = new Unit();
+//            } else if (node.arguments.size() == 1) {
+//                input = visitor.typeToTau(node.arguments.get(0).argType);
+//            } else {
+//                List<Tau> eletype = new ArrayList<>();
+//                for (FunProcArgs fp : node.arguments) {
+//                    eletype.add(visitor.typeToTau(fp.argType));
+//                }
+//                input = new Prod(eletype);
+//            }
+//
+//            if (node.returnTypes.size() == 1) {
+//                output = visitor.typeToTau(node.returnTypes.get(0));
+//            } else {
+//                List<Tau> rettype = new ArrayList<>();
+//                for (Type e : node.returnTypes) {
+//                    rettype.add(visitor.typeToTau(e));
+//                }
+//                output = new Prod(rettype);
+//            }
+//
+//            Fn result = new Fn(input, output);
+//            visitor.env.add(node.name, result);
+//        }
+    }
+
+    @Override
+    public void visitPrDecl(ProcedureDeclare node) {
         T input;
-        if(node.arguments.size() == 0){
+        if (node.arguments.size() == 0) {
             input = new Unit();
-        }else if(node.arguments.size() == 1){
-            input =  node.arguments.get(0).type;
-        }else{
-            List<Tau> eletype= new ArrayList<>();
-            for(FunProcArgs fp: node.arguments){
-                eletype.add(fp.type);
+        } else if (node.arguments.size() == 1) {
+            input = typeToTau(node.arguments.get(0).argType);
+        } else {
+            List<Tau> eletype = new ArrayList<>();
+            for (FunProcArgs fp : node.arguments) {
+                eletype.add(typeToTau(fp.argType));
             }
             input = new Prod(eletype);
         }
-
         Fn result = new Fn(input, new Unit());
-        this.env.add(node.name, result);
-
-        this.env.leaveScope();
+        env.add(node.name, result);
     }
 
     @Override
     public void visitFunProcArgs(FunProcArgs node) {
 
     }
+
     @Override
     public void visitUse(Use node) {
 
@@ -682,16 +719,16 @@ public class TypeChecker extends Visitor{
 
     }
 
+
     @Override
     public void visitInterface(Interface node) {
+        // TODO
+        for (ProcFuncDecl decl : node.functions) {
+            if (decl instanceof ProcedureDeclare) {
+                ProcedureDeclare procDecl = (ProcedureDeclare) decl;
 
-    }
-
-    /** Second pass for function definition with multiple arguments and one return type. */
-    // TODO: Helen: used a helper function so I don't get distracted,
-    //  might just move the code into functions above later
-    private void checkMultiArgOneRetFunDef(FunctionDefine node) {
-
+            }
+        }
 
     }
 

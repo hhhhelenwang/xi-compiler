@@ -10,7 +10,7 @@ import java.util.List;
  * and may contain end-of-line comments.
  */
 public class Interface extends ASTNode {
-    List<ProcFuncDecl> functions;
+    public List<ProcFuncDecl> functions;
 
     public Interface(List<ProcFuncDecl> fs, int line, int col) {
         super(line, col);
