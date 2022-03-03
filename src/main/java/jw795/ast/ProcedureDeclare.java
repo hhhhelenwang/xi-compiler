@@ -30,7 +30,7 @@ public class ProcedureDeclare extends ASTNode implements ProcFuncDecl{
     }
 
     @Override
-    public void accept(Visitor visitor) {
-        
+    public void accept(Visitor visitor) throws Exception {
+        visitor.visitPrDecl(this);
     }
 }

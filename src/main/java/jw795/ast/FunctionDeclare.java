@@ -10,9 +10,9 @@ import java.util.Optional;
  * Representation of a function/procedure declaration in an interface file.
  */
 public class FunctionDeclare extends ASTNode implements ProcFuncDecl {
-    String name;
-    List<FunProcArgs> arguments;
-    List<Type> returnTypes;
+    public String name;
+    public List<FunProcArgs> arguments;
+    public List<Type> returnTypes;
 
 
     public FunctionDeclare(String n, List<FunProcArgs> args, List<Type> types, int line, int col) {
@@ -44,10 +44,7 @@ public class FunctionDeclare extends ASTNode implements ProcFuncDecl {
      * @param visitor
      */
     @Override
-    public void accept(Visitor visitor) {
-        for (FunProcArgs fp:arguments){
-            fp.accept(visitor);
-        }
-
+    public void accept(Visitor visitor) throws Exception{
+        visitor.visitFunDecl(this);
     }
 }

@@ -649,39 +649,43 @@ public class TypeChecker extends Visitor{
     }
 
     @Override
-    public void visitFunDecl(FunctionDeclare node) {
-//        if (!visitor.env.contains(node.name)){
-//            T input;
-//            T output;
-//            if (node.arguments.size() == 0) {
-//                input = new Unit();
-//            } else if (node.arguments.size() == 1) {
-//                input = visitor.typeToTau(node.arguments.get(0).argType);
-//            } else {
-//                List<Tau> eletype = new ArrayList<>();
-//                for (FunProcArgs fp : node.arguments) {
-//                    eletype.add(visitor.typeToTau(fp.argType));
-//                }
-//                input = new Prod(eletype);
-//            }
-//
-//            if (node.returnTypes.size() == 1) {
-//                output = visitor.typeToTau(node.returnTypes.get(0));
-//            } else {
-//                List<Tau> rettype = new ArrayList<>();
-//                for (Type e : node.returnTypes) {
-//                    rettype.add(visitor.typeToTau(e));
-//                }
-//                output = new Prod(rettype);
-//            }
-//
-//            Fn result = new Fn(input, output);
-//            visitor.env.add(node.name, result);
-//        }
+    public void visitFunDecl(FunctionDeclare node) throws Exception {
+            T input;
+            T output;
+            if (node.arguments.size() == 0) {
+                input = new Unit();
+            } else if (node.arguments.size() == 1) {
+                input = typeToTau(node.arguments.get(0).argType);
+            } else {
+                List<Tau> eletype = new ArrayList<>();
+                for (FunProcArgs fp : node.arguments) {
+                    eletype.add(typeToTau(fp.argType));
+                }
+                input = new Prod(eletype);
+            }
+
+            if (node.returnTypes.size() == 1) {
+                output = typeToTau(node.returnTypes.get(0));
+            } else {
+                List<Tau> rettype = new ArrayList<>();
+                for (Type e : node.returnTypes) {
+                    rettype.add(typeToTau(e));
+                }
+                output = new Prod(rettype);
+            }
+
+            Fn result = new Fn(input, output);
+            // check if function id already exist, check for type equivalence
+            if (env.containsFun(node.name) && !result.equals(env.findTypeofFun(node.name))) {
+                String pos = errorstart(node.getLine(), node.getCol());
+                throw new Exception(pos + "Function " + node.name + " already exists");
+            }
+            env.addFun(node.name, result);
+
     }
 
     @Override
-    public void visitPrDecl(ProcedureDeclare node) {
+    public void visitPrDecl(ProcedureDeclare node) throws Exception {
         T input;
         if (node.arguments.size() == 0) {
             input = new Unit();
@@ -695,6 +699,11 @@ public class TypeChecker extends Visitor{
             input = new Prod(eletype);
         }
         Fn result = new Fn(input, new Unit());
+        // if procedure id already exist, check for type equivalence
+        if (env.containsFun(node.name) && !result.equals(env.findTypeofFun(node.name))) {
+            String pos = errorstart(node.getLine(), node.getCol());
+            throw new Exception(pos + "Function " + node.name + " already exists");
+        }
         env.addFun(node.name, result);
     }
 
@@ -725,7 +734,6 @@ public class TypeChecker extends Visitor{
             res+= "Invalid type";
             throw new Exception(res);
         }
-
     }
 
     @Override
@@ -740,30 +748,18 @@ public class TypeChecker extends Visitor{
 
     @Override
     public void visitUse(Use node) {
-
+        // nothing to do here
     }
 
     @Override
     public void visitProgram(Program node) {
-
+        // nothing to do here
     }
 
 
     @Override
     public void visitInterface(Interface node) {
-        // TODO
-        for (ProcFuncDecl decl : node.functions) {
-            if (decl instanceof ProcedureDeclare) {
-                ProcedureDeclare procDecl = (ProcedureDeclare) decl;
-
-            }
-        }
-
-    }
-
-    /** Second pass for function definition with one arguments and multiple return type. */
-    private void checkOneArgMultiRetFunDef(FunctionDefine node) {
-
+        // nothing to do here
     }
 
     // Helper functions ======================================================================================

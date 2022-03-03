@@ -29,8 +29,11 @@ public class Interface extends ASTNode {
     }
 
     @Override
-    public void accept(Visitor visitor) {
-
+    public void accept(Visitor visitor) throws Exception{
+        for (ProcFuncDecl decl : functions) {
+            decl.accept(visitor);
+        }
+        visitor.visitInterface(this);
     }
 }
 

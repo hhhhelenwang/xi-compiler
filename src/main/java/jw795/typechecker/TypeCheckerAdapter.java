@@ -8,9 +8,7 @@ import util.edu.cornell.cs.cs4120.util.FileUtil;
 import util.polyglot.util.CodeWriter;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 
 public class TypeCheckerAdapter {
@@ -48,19 +46,32 @@ public class TypeCheckerAdapter {
 
             TypeChecker visitor = new TypeChecker();
 
+            // first pass of top level definitions
+            programFirstPass(node, visitor);
+
             // to resolve dependencies, find imported interface files, parse them, and type check them
             HashMap<String, Interface> dependencies = new HashMap<>();
             for (Use use : node.uses) {
                 try {
-                    String interfaceFileName = use.interfaceName + ".ixi";
-                    Reader interfaceReader = new FileReader(interfaceFileName);
-                    Lexwrapper interfaceScanner = new Lexwrapper(interfaceReader, interfaceFileName);
-                    parser interfaceParser = new parser(interfaceScanner);
-                    Interface interfaceNode = (Interface) interfaceParser.parse().value;
-                    dependencies.put(use.interfaceName, interfaceNode);
+                    if (use.interfaceName != "io") {
+                        // check for repeated use of interface
+                        if (dependencies.containsKey(use.interfaceName)) {
+                            String pos = visitor.errorstart(use.getLine(), use.getCol());
+                            throw new Exception(pos + "Interface already used");
+                        }
+                        String interfaceFileName = use.interfaceName + ".ixi";
+                        Reader interfaceReader = new FileReader(interfaceFileName);
+                        Lexwrapper interfaceScanner = new Lexwrapper(interfaceReader, interfaceFileName);
+                        parser interfaceParser = new parser(interfaceScanner);
+                        Interface interfaceNode = (Interface) interfaceParser.parse().value;
+                        dependencies.put(use.interfaceName, interfaceNode);
+                    }
                 } catch (FileNotFoundException e) {
                     String pos = visitor.errorstart(use.getLine(), use.getCol());
                     throw new Exception(pos + "Interface " + use.interfaceName + " not found");
+                } catch (Exception e) {
+                    // interface used twice
+                    throw e;
                 }
             }
 
@@ -70,8 +81,6 @@ public class TypeCheckerAdapter {
                 interfaceNode.accept(visitor); // type check interface using the same visitor
             }
 
-            // first pass of top level definitions
-            programFirstPass(node, visitor);
             // type check the entire program
             node.accept(visitor);
 
@@ -101,7 +110,7 @@ public class TypeCheckerAdapter {
 
     /** First pass of function definition. */
     private void funDefFirstPass(FunctionDefine node, TypeChecker visitor) {
-        if (!visitor.env.contains(node.name)){
+        if (!visitor.env.containsFun(node.name)){
             T input;
             T output;
             if (node.arguments.size() == 0) {
@@ -127,13 +136,16 @@ public class TypeCheckerAdapter {
             }
 
             Fn result = new Fn(input, output);
-            visitor.env.add(node.name, result);
+            visitor.env.addFun(node.name, result);
+        } else {
+            // TODO: error
         }
 
     }
 
     /** First pass of procedure definition. */
     private void procDefFirstPass(ProcedureDefine node, TypeChecker visitor) {
+        // TODO: check if procedure exist
         T input;
         if (node.arguments.size() == 0) {
             input = new Unit();
@@ -148,12 +160,12 @@ public class TypeCheckerAdapter {
         }
 
         Fn result = new Fn(input, new Unit());
-        visitor.env.add(node.name, result);
+        visitor.env.addFun(node.name, result);
     }
 
     /** First pass of procedure definition. */
     private void globDeclFirstPass(GlobDeclare globDecl, TypeChecker visitor) throws Exception {
-        if(visitor.env.contains(globDecl.identifier)){
+        if(visitor.env.containsVar(globDecl.identifier)){
             String res = visitor.errorstart(globDecl.getLine(),globDecl.getCol());
             res += "variable already been declared";
             throw new Exception(res);

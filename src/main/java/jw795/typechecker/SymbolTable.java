@@ -19,7 +19,15 @@ public class SymbolTable {
         variables = new LinkedList<>();
         variables.add(new HashMap<>());
         functions = new LinkedList<>();
-        functions.add(new HashMap<>());
+
+        // add io support
+        HashMap<String, Sigma> initialMap = new HashMap<>();
+        initialMap.put("print", new Fn(new TypedArray(new Int()), new Unit()));
+        initialMap.put("println", new Fn(new TypedArray(new Int()), new Unit()));
+        initialMap.put("readln", new Fn(new Unit(), new TypedArray(new Int())));
+        initialMap.put("getchar", new Fn(new Unit(), new Int()));
+
+        functions.add(initialMap);
     }
 
     /**

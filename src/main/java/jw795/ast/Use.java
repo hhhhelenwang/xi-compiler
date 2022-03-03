@@ -23,7 +23,7 @@ public class Use extends ASTNode {
     }
 
     @Override
-    public void accept(Visitor visitor) {
-        // should not be called
+    public void accept(Visitor visitor) throws Exception {
+        visitor.visitUse(this);
     }
 }
