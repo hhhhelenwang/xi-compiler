@@ -63,7 +63,7 @@ public class FunctionDefine extends ASTNode implements Definition{
             }
             T returns = new Prod(retTauList);
             Sigma ret = new Ret(returns);
-            ((TypeChecker) visitor).env.add("return", ret);
+            ((TypeChecker) visitor).env.addVar("return", ret);
         }
 
         functionBody.accept(visitor);

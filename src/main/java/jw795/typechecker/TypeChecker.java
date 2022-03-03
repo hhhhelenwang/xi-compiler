@@ -1,6 +1,7 @@
 package jw795.typechecker;
 
 import jw795.ast.*;
+import util.SemanticErrorException;
 
 import java.util.*;
 
@@ -45,40 +46,7 @@ public class TypeChecker extends Visitor{
     // there should not be any exception throw out from the upper 4 function, since they are basic type
 
 
-    @Override
-    public void visitFunCallExpr(FunCallExpr node) throws Exception {
-        Sigma fnType = this.env.findTypeofFun(node.name);
-        try {
-            profunCall(true, fnType, node.name);
-            if (node.name.equals("length")) {
-                checkLength(node);
-            } else {
-                List<Expr> nodeArgs = node.arguments;
-                T declArgs = ((Fn) fnType).inputType;
-                if (argsConform(nodeArgs, declArgs)) {
-                    node.type = ((Fn) fnType).outputType;
-                }
-            }
-        } catch (Exception e) {
-            String errorMsg = errorstart(node.getLine(), node.getCol()) + "Mismatch argument types in FunCall:"
-                    + e.getMessage();
-            throw new Exception(errorMsg);
-        }
-    }
 
-
-    /** Type check the function call of length(e) function */
-    //this function'error will be handle by the more general function call
-    private void checkLength(FunCallExpr node){
-        if((node.arguments.size() == 1)) {
-            Expr arg =node.arguments.get(0);
-            if(arg instanceof VarExpr){
-                if(this.env.findTypeofVar(((VarExpr) arg).identifier) instanceof TypedArray){
-                    node.type = new Int();
-                }
-            }
-        }
-    }
 
     @Override
     public void visitVar(VarExpr node) throws Exception {
@@ -298,29 +266,107 @@ public class TypeChecker extends Visitor{
         // a procedure need to be fn T -> unit
         Sigma prType = this.env.findTypeofFun(node.name);
         try {
-            profunCall(false, prType, node.name);
+            proFunCall(false, prType, node.name);
+        } catch (Exception e) {
+            String errorMsg = errorstart(node.getLine(), node.getCol()) + e.getMessage();
+            throw new SemanticErrorException(errorMsg);
+        }
             List<Expr> nodeArgs = node.arguments;
             T declArgs = ((Fn) prType).inputType;
+            // argsConform throws SemanticErrorException if there is a mismatch
             if (argsConform(nodeArgs, declArgs)){
                 node.type = new Unit();
             }
-        } catch (Exception e) {
-            String errorMsg = errorstart(node.getLine(), node.getCol())
-                    + e.getMessage();
-            throw new Exception(errorMsg);
+
+    }
+
+    @Override
+    public void visitFunCallExpr(FunCallExpr node) throws Exception {
+        // special case for length
+        if (node.name.equals("length"))  {
+            checkLength(node);
+        } else {
+            Sigma fnType = this.env.findTypeofFun(node.name);
+            // check function types
+            try {
+                proFunCall(true, fnType, node.name);
+            } catch (Exception e) {
+                String errorMsg = errorstart(node.getLine(), node.getCol()) + e.getMessage();
+                throw new SemanticErrorException(errorMsg);
+            }
+            List<Expr> nodeArgs = node.arguments;
+            T declArgs = ((Fn) fnType).inputType;
+            // check for argument types, argsConform throws SemanticErrorException if premise fails
+            if (argsConform(nodeArgs, declArgs)) {
+                node.type = ((Fn) fnType).outputType;
+            }
         }
     }
 
-    /** Helper for vistProCall and visitFunCall. It checks 1) f is type fn 2) outputType is correct */
-    private void profunCall(boolean isFun, Sigma prFnType, String fnPrName) throws Exception{
+    /** Type check the function call of length(e) function */
+    private void checkLength(FunCallExpr node) throws Exception {
+        if (node.arguments.size() != 1) {
+            String pos = errorstart(node.getLine(), node.getCol());
+            throw new SemanticErrorException(pos + "Mismatch number of arguments");
+        }
+        Expr arg = node.arguments.get(0);
+        if (arg.type instanceof Array) { // type checks as long as
+            node.type = new Int();
+        } else {
+            String pos = errorstart(node.getLine(), node.getCol());
+            throw new SemanticErrorException(pos + "Expected an array, but found " + arg.type.tostr());
+        }
+    }
+
+    /** Checks if the types of arg passed in match the signature of declaration correspondingly*/
+    private boolean argsConform(List<Expr> nodeArgs, T declArgs) throws Exception {
+        if (declArgs instanceof Unit && nodeArgs.size() == 0) {
+            return true;
+        } else if (declArgs instanceof Tau && nodeArgs.size() == 1){
+            if (((Tau)declArgs).equals((Tau)nodeArgs.get(0).type)) {
+                return true;
+            } else {
+                String pos = errorstart(nodeArgs.get(0).getLine(), nodeArgs.get(0).getCol());
+                String errMsg = pos + "Expected "+ declArgs.tostr() + ", but found " +
+                        nodeArgs.get(0).type.tostr();
+                throw new SemanticErrorException(errMsg);
+            }
+        } else if (declArgs instanceof Prod && nodeArgs.size() == ((Prod) declArgs).elementTypes.size()){
+            for (int i = 0; i < nodeArgs.size(); i++){
+                Tau declArg = ((Prod) declArgs).elementTypes.get(i);
+                Expr nodeArg = nodeArgs.get(i);
+                if (nodeArg.type instanceof Tau) {
+                    if (!declArg.equals((Tau) nodeArg.type)){ // NOTE: checked that nodeArg is a Tau type
+                        String pos = errorstart(nodeArg.getLine(), nodeArg.getCol());
+                        String errMsg = pos + "Expected "+ declArg.tostr() + ", but found " +
+                                nodeArg.type.toString();
+                        throw new SemanticErrorException(errMsg);
+                    }
+                } else {
+                    String pos = errorstart(nodeArg.getLine(), nodeArg.getCol());
+                    String errMsg = pos + "Expected "+ declArg.tostr() + ", but found " +
+                            nodeArg.type.toString();
+                    throw new SemanticErrorException(errMsg);
+                }
+            }
+            return true;
+        }
+        // number mismatch
+        String errMsg = "Mismatch number of arguments";
+        String pos = errorstart(nodeArgs.get(0).getLine(), nodeArgs.get(0).getCol());
+        throw new SemanticErrorException(pos + errMsg);
+    }
+
+    /** Helper for visitProCall and visitFunCall. It checks 1) f is type fn 2) outputType is correct */
+    private void proFunCall(boolean isFun, Sigma prFnType, String fnPrName) throws Exception{
         if(!(prFnType instanceof Fn)){
-            String errorMsg = fnPrName + " is not type fn. Got " + prFnType.toString();
+            String errorMsg = "Expected a function or procedure call, but found " + prFnType.toString();
             throw new Exception(errorMsg);
         } else if(!isFun && !(((Fn) prFnType).outputType instanceof Unit)) {
-            String errorMsg = "Unexpected output type " + (((Fn) prFnType).outputType).tostr();
+            String errorMsg = fnPrName + " is not a procedure";
             throw new Exception(errorMsg);
         } else if (isFun && ((Fn) prFnType).outputType instanceof Unit){
-            String errorMsg = "Unexpected output type Unit";
+            String errorMsg = fnPrName + " is not a function";
             throw new Exception(errorMsg);
         }
     }
@@ -382,37 +428,6 @@ public class TypeChecker extends Visitor{
         }
     }
 
-    /** Checks if the types of arg passed in match the signature of declaration correspondingly*/
-    private boolean argsConform(List<Expr> nodeArgs, T declArgs) throws Exception {
-        if (declArgs instanceof Unit && nodeArgs.size() == 0) {
-            return true;
-        } else if (declArgs instanceof Tau && nodeArgs.size() == 1){
-            if (((Tau)declArgs).equals((Tau)nodeArgs.get(0).type)) {
-                return true;
-            } else {
-                String errMsg = "Mismatch argument types: Expected "+ declArgs.tostr() + ", but got " +
-                        nodeArgs.get(0).type.tostr();
-                throw new Exception(errMsg);
-            }
-        } else if (declArgs instanceof Prod && nodeArgs.size() == ((Prod) declArgs).elementTypes.size()){
-            for (int i = 0; i < nodeArgs.size(); i++){
-                Tau declArg = ((Prod) declArgs).elementTypes.get(i);
-                Expr nodeArg = nodeArgs.get(i);
-                if (!declArg.equals((Tau) nodeArg.type)){ // NOTE: expression can only type check to tau
-                    String errMsg = "Mismatch argument types: Expected "+ declArg.tostr() + ", but got " +
-                            nodeArg.type.toString();
-                    throw new Exception(errMsg);
-                }
-            }
-            return true;
-        }
-
-        String errMsg = "Mismatch number of arguments passed in: Got ";
-        for (Expr e : nodeArgs){
-            errMsg += e.type.tostr();
-        }
-        throw new Exception(errMsg);
-    }
 
     @Override
     public void visitRet(ReturnStmt node) throws Exception {
