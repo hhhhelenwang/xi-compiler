@@ -607,7 +607,7 @@ public class TypeChecker extends Visitor{
     }
 
     /** The set of types in a declaration d. */
-    private T typesOf(LValue d) {
+    private T typesOf(LValue d) throws Exception {
         if (d instanceof VarDeclareStmt) {
             Tau type = typeToTau(((VarDeclareStmt) d).varType);
             return type;
@@ -619,14 +619,15 @@ public class TypeChecker extends Visitor{
     @Override
     public void visitVarDecl(VarDeclareStmt node) throws Exception{
         // TODO: x:tau, x:tau[]
-        if (node.varType instanceof ArrayType) { // check array declaratio
+        if(this.env.contains(node.identifier)){
+            String res = errorstart(node.getLine(), node.getCol());
+            throw new Exception(res+"variable already declared");
+        }
+        else if (node.varType instanceof ArrayType) { // check array declaratio
             checkArrayDecl(node);
         } else { // TODO: is it safe to use else here
-            if (!env.contains(node.identifier)) {
                 node.type = new Unit();
                 env.add(node.identifier, new Var(typeToTau(node.varType)));
-            }
-            // TODO: else
         }
     }
 
@@ -721,7 +722,7 @@ public class TypeChecker extends Visitor{
 
 
     /** Build a Tau type from a Type AST node. */
-    private Tau typeToTau(Type t){
+    private Tau typeToTau(Type t) throws Exception {
         if (t instanceof IntType){
             return new Int();
         }
@@ -735,7 +736,7 @@ public class TypeChecker extends Visitor{
                 return new TypedArray(typeToTau(((ArrayType) t).elemType));
             }
         }
-        return null;
+        throw new Exception("invalid variable type in typetotau");
     }
 
 
