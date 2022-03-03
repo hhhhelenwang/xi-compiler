@@ -21,7 +21,6 @@ public class TypeChecker extends Visitor{
 
     TypeChecker(){
         this.env = new SymbolTable();
-//        deps = dependencies;
     }
 
     // ================================= Visit functions for Expressions =================================
@@ -572,12 +571,12 @@ public class TypeChecker extends Visitor{
             if (tau instanceof Array && typesOf(d) instanceof Array) {
                 if (!((Array) tau).compare((Array) typesOf(d))) {
                     String pos = errorstart(d.getLine(), d.getCol());
-                    throw new Exception(pos + "Expected " + typesOf(d).tostr() + " but found " + tau.tostr());
+                    throw new Exception(pos + "Expected " + typesOf(d).tostr() + " got" + tau.tostr());
                 }
             } else {
                 if (!tau.isSubOf(typesOf(d))) {
                     String pos = errorstart(d.getLine(), d.getCol());
-                    throw new Exception(pos + "Expected " + typesOf(d).tostr() + " but found " + tau.tostr());
+                    throw new Exception(pos + "Expected " + typesOf(d).tostr() + " got" + tau.tostr());
                 }
             }
         }
@@ -618,14 +617,15 @@ public class TypeChecker extends Visitor{
     @Override
     public void visitVarDecl(VarDeclareStmt node) throws Exception{
         // TODO: x:tau
-        if (node.varType instanceof ArrayType) { // check array declaratio
+        if(this.env.contains(node.identifier)){
+            String res = errorstart(node.getLine(), node.getCol());
+            throw new Exception(res+"variable already declared");
+        }
+        else if (node.varType instanceof ArrayType) { // check array declaratio
             checkArrayDecl(node);
         } else { // TODO: is it safe to use else here
-            if (!env.contains(node.identifier)) {
                 node.type = new Unit();
                 env.add(node.identifier, new Var(typeToTau(node.varType)));
-            }
-            // TODO: else
         }
     }
 
@@ -664,48 +664,40 @@ public class TypeChecker extends Visitor{
 
     @Override
     public void visitFundef(FunctionDefine node){
-        T input;
-        T output;
-        // generate input type
-        if (node.arguments.size() == 0) {
-            input = new Unit();
-        } else if (node.arguments.size() == 1) {
-            input = node.arguments.get(0).type;
-        } else {
-            List<Tau> eletype = new ArrayList<>();
-            for (FunProcArgs fp: node.arguments){
-                eletype.add(fp.type);
+        if (!env.contains(node.name)){
+            T input;
+            T output;
+            if (node.arguments.size() == 0) {
+                input = new Unit();
+            } else if (node.arguments.size() == 1) {
+                input = node.arguments.get(0).type;
+            } else {
+                List<Tau> eletype = new ArrayList<>();
+                for (FunProcArgs fp : node.arguments) {
+                    eletype.add(fp.type);
+                }
+                input = new Prod(eletype);
             }
-            input = new Prod(eletype);
-        }
 
-        // generate output type
-        if (node.returnTypes.size() == 0) {
-            output = new Unit();
-        } else if (node.returnTypes.size() == 1) {
-            output = typeToTau(node.returnTypes.get(0)) ;
-        } else {
-            List<Tau> rettype = new ArrayList<>();
-            for (Type e: node.returnTypes){
-                rettype.add(typeToTau(e));
+            if (node.returnTypes.size() == 1) {
+                output = typeToTau(node.returnTypes.get(0));
+            } else {
+                List<Tau> rettype = new ArrayList<>();
+                for (Type e : node.returnTypes) {
+                    rettype.add(typeToTau(e));
+                }
+                output = new Prod(rettype);
             }
-            output = new Prod(rettype);
+
+            Fn result = new Fn(input, output);
+            this.env.add(node.name, result);
         }
-
-        Fn thetype = new Fn(input, output);
-        this.env.add(node.name, thetype);
-
-
-    }
-
-    public void helper(FunctionDefine node) {
 
     }
 
     @Override
     public void visitPrdef(ProcedureDefine node){
         T input;
-        T output;
         if(node.arguments.size() == 0){
             input = new Unit();
         }else if(node.arguments.size() == 1){
@@ -718,12 +710,16 @@ public class TypeChecker extends Visitor{
             input = new Prod(eletype);
         }
 
-        Fn thetype = new Fn(input, new Unit());
-        this.env.add(node.name, thetype);
+        Fn result = new Fn(input, new Unit());
+        this.env.add(node.name, result);
 
         this.env.leaveScope();
     }
 
+    @Override
+    public void visitFunProcArgs(FunProcArgs node) {
+
+    }
     @Override
     public void visitUse(Use node) throws Exception {
 
@@ -746,7 +742,7 @@ public class TypeChecker extends Visitor{
     // Helper functions ======================================================================================
 
     /** Build a Tau type from a Type AST node. */
-    private Tau typeToTau(Type t){
+    private Tau typeToTau(Type t) throws Exception {
         if (t instanceof IntType){
             return new Int();
         }
@@ -760,7 +756,7 @@ public class TypeChecker extends Visitor{
                 return new TypedArray(typeToTau(((ArrayType) t).elemType));
             }
         }
-        return null;
+        throw new Exception("invalid variable type in typetotau");
     }
 
     /** Initialize a new object that is the same type as the Type R object passed in. R ::= unit | void */
@@ -793,14 +789,15 @@ public class TypeChecker extends Visitor{
     private String errorstart(int line, int colmn){
         return (line + ":" + colmn +" error: " );
     }
+
     private void errrorint (String operands, BinOpExpr node) throws Exception {
         if(node.type == null) {
             String result = errorstart(node.getLine(), node.getCol());
             result += "Operands of " + operands+ " must be int";
             throw new Exception(result);
         }
-
     }
+
     private void errrorbool (String operands, BinOpExpr node) throws Exception {
         if(node.type == null) {
             String result = errorstart(node.getLine(), node.getCol());
@@ -808,5 +805,4 @@ public class TypeChecker extends Visitor{
             throw new Exception(result);
         }
     }
-
 }

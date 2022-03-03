@@ -72,6 +72,9 @@ public class TypeCheckerAdapter {
             // type check the entire program
             node.accept(visitor);
 
+            printer.printAtom("Valid Xi Program");
+            printer.flush();
+            printer.close();
         } catch (Exception e) {
             printer.printAtom(e.getMessage());
             printer.flush();
