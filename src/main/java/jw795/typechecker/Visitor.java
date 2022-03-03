@@ -79,4 +79,5 @@ public abstract class Visitor {
     // Interface
     public abstract void visitInterface(Interface node);
 
+    public abstract void visitGlobdecl(GlobDeclare node) throws Exception;
 }

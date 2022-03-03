@@ -615,7 +615,6 @@ public class TypeChecker extends Visitor{
 
     @Override
     public void visitVarDecl(VarDeclareStmt node) throws Exception{
-        // TODO: x:tau
         if(this.env.contains(node.identifier)){
             String res = errorstart(node.getLine(), node.getCol());
             throw new Exception(res+"variable already declared");
@@ -633,32 +632,25 @@ public class TypeChecker extends Visitor{
      *  - node is an array declaration (check when calling this method in visitVarDecl),
      *  - all dimensions are specified to the left-most (checked at parsing),
      */
-    public void checkArrayDecl(VarDeclareStmt node) throws Exception{
-        String id = node.identifier;
-        ArrayType arrType = (ArrayType) node.varType;
-        if (env.contains(id)) {
-            String pos = errorstart(node.getLine(), node.getLine());
-            throw new Exception(pos + "Variable already exists");
-        } else {
-            Type next = arrType;
-            // check type
-            while (next instanceof ArrayType) {
-                // if dim is defined for this level
-                boolean hasDim = ((ArrayType) next).length.isPresent();
-                if (hasDim) {
-                    Expr length = ((ArrayType) next).length.get();
-                    T dimType = length.type;
-                    if (!(dimType instanceof Int)) {
-                        String pos = errorstart(length.getLine(), length.getLine());
-                        throw new Exception(pos + "Expected int, but found " + dimType.tostr());
-                    }
-                    next = ((ArrayType) next).elemType;
+    public Tau checkArrayDecl(ArrayType arrType) throws Exception{
+        Type next = arrType;
+        // check type
+        while (next instanceof ArrayType) {
+            // if dim is defined for this level
+            boolean hasDim = ((ArrayType) next).length.isPresent();
+            if (hasDim) {
+                Expr length = ((ArrayType) next).length.get();
+                T dimType = length.type;
+                if (!(dimType instanceof Int)) {
+                    String pos = errorstart(length.getLine(), length.getLine());
+                    throw new Exception(pos + "Expected int, but found " + dimType.tostr());
                 }
+                next = ((ArrayType) next).elemType;
             }
         }
         // if typeChecks, build an array type with m + n levels and primitive type = next
         Tau type = typeToTau(arrType);
-        env.add(id, new Var(type));
+        return type;
     }
 
     @Override
@@ -689,6 +681,36 @@ public class TypeChecker extends Visitor{
     }
 
     @Override
+    public void visitGlobdecl(GlobDeclare node) throws Exception {
+        if (node.varType instanceof ArrayType) { // check array declaration
+            Tau vart = checkArrayDecl((ArrayType) node.varType);
+            if(node.value.type.equals(vart)){
+                this.env.add(node.identifier, new Var(checkArrayDecl((ArrayType) node.varType)));
+            }
+            else {
+                String res = errorstart(node.getLine(), node.getCol());
+                res+= "Cannot assign "+ node.value.type.tostr() + " to " + vart.tostr();
+                throw new Exception(res);
+            }
+        } else if (node.varType instanceof  IntType ||node.varType instanceof  BoolType ){
+            // is it safe to use else here? Yes, it's var type already
+            Tau vart = typeToTau(node.varType);
+            if(node.value.type.equals(vart)){
+                env.add(node.identifier, new Var(vart));
+            }else{
+                String res = errorstart(node.getLine(), node.getCol());
+                res+= "Cannot assign "+ node.value.type.tostr() + " to " + vart.tostr();
+                throw new Exception(res);
+            }
+        }else{
+            String res = errorstart(node.getLine(), node.getCol());
+            res+= "Invalid type";
+            throw new Exception(res);
+        }
+
+    }
+
+    @Override
     public void visitFunProcArgs(FunProcArgs node) {
 
     }
@@ -706,6 +728,7 @@ public class TypeChecker extends Visitor{
     public void visitInterface(Interface node) {
 
     }
+
 
     /** Second pass for function definition with multiple arguments and one return type. */
     // TODO: Helen: used a helper function so I don't get distracted,
