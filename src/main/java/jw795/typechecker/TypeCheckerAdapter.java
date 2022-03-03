@@ -107,11 +107,11 @@ public class TypeCheckerAdapter {
             if (node.arguments.size() == 0) {
                 input = new Unit();
             } else if (node.arguments.size() == 1) {
-                input = node.arguments.get(0).type;
+                input = visitor.typeToTau(node.arguments.get(0).argType);
             } else {
                 List<Tau> eletype = new ArrayList<>();
                 for (FunProcArgs fp : node.arguments) {
-                    eletype.add(fp.type);
+                    eletype.add(visitor.typeToTau(fp.argType));
                 }
                 input = new Prod(eletype);
             }
@@ -138,11 +138,11 @@ public class TypeCheckerAdapter {
         if (node.arguments.size() == 0) {
             input = new Unit();
         } else if (node.arguments.size() == 1) {
-            input = node.arguments.get(0).type;
+            input = visitor.typeToTau(node.arguments.get(0).argType);
         } else {
             List<Tau> eletype = new ArrayList<>();
-            for (FunProcArgs fp: node.arguments) {
-                eletype.add(fp.type);
+            for (FunProcArgs fp : node.arguments) {
+                eletype.add(visitor.typeToTau(fp.argType));
             }
             input = new Prod(eletype);
         }

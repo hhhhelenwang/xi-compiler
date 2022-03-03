@@ -125,7 +125,7 @@ public class Compiler {
             files = cmd.getArgList();
             for (String file : files) {
                 System.out.println(file);
-                if (file.endsWith("xi")) {
+                if (file.endsWith(".xi")) {
                     System.out.println(file);
                     typecheckFile(file);
                 }

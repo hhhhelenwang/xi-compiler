@@ -624,8 +624,11 @@ public class TypeChecker extends Visitor{
         else if (node.varType instanceof ArrayType) { // check array declaratio
             checkArrayDecl(node);
         } else { // TODO: is it safe to use else here
+            if (!env.contains(node.identifier)) {
                 node.type = new Unit();
                 env.add(node.identifier, new Var(typeToTau(node.varType)));
+            }
+            // TODO: else
         }
     }
 
@@ -665,12 +668,27 @@ public class TypeChecker extends Visitor{
     @Override
     public void visitFundef(FunctionDefine node){
 
-
     }
 
     @Override
     public void visitPrdef(ProcedureDefine node){
+        T input;
+        if(node.arguments.size() == 0){
+            input = new Unit();
+        }else if(node.arguments.size() == 1){
+            input =  node.arguments.get(0).type;
+        }else{
+            List<Tau> eletype= new ArrayList<>();
+            for(FunProcArgs fp: node.arguments){
+                eletype.add(fp.type);
+            }
+            input = new Prod(eletype);
+        }
 
+        Fn result = new Fn(input, new Unit());
+        this.env.add(node.name, result);
+
+        this.env.leaveScope();
     }
 
     @Override
@@ -691,6 +709,8 @@ public class TypeChecker extends Visitor{
     public void visitInterface(Interface node) {
 
     }
+
+
 
 
 
