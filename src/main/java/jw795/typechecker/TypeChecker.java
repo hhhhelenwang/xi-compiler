@@ -620,14 +620,11 @@ public class TypeChecker extends Visitor{
             String res = errorstart(node.getLine(), node.getCol());
             throw new Exception(res+"variable already declared");
         }
-        else if (node.varType instanceof ArrayType) { // check array declaratio
+        else if (node.varType instanceof ArrayType) { // check array declaration
             checkArrayDecl(node);
-        } else { // TODO: is it safe to use else here
-            if (!env.contains(node.identifier)) {
+        } else { // is it safe to use else here? Yes, it's var type already
                 node.type = new Unit();
                 env.add(node.identifier, new Var(typeToTau(node.varType)));
-            }
-            // TODO: else
         }
     }
 
@@ -666,6 +663,7 @@ public class TypeChecker extends Visitor{
 
     @Override
     public void visitFunDef(FunctionDefine node) {
+
 
     }
 
