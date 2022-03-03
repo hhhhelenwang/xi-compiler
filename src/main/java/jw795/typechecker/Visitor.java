@@ -81,4 +81,5 @@ public abstract class Visitor {
     // Interface
     public abstract void visitInterface(Interface node) throws Exception;
 
+    public abstract void visitGlobdecl(GlobDeclare node) throws Exception;
 }

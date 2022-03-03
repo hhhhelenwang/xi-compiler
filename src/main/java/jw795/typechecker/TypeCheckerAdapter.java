@@ -87,7 +87,7 @@ public class TypeCheckerAdapter {
 
 
     /** The first pass of type checking global definitions in a program. */
-    public void programFirstPass(Program node, TypeChecker visitor) {
+    public void programFirstPass(Program node, TypeChecker visitor) throws Exception {
         for (Definition def : node.definitions) {
             if (def instanceof FunctionDefine) {
                 funDefFirstPass((FunctionDefine) def, visitor);
@@ -152,7 +152,16 @@ public class TypeCheckerAdapter {
     }
 
     /** First pass of procedure definition. */
-    private void globDeclFirstPass(GlobDeclare globDecl, TypeChecker visitor) {
+    private void globDeclFirstPass(GlobDeclare globDecl, TypeChecker visitor) throws Exception {
+        if(visitor.env.contains(globDecl.identifier)){
+            String res = visitor.errorstart(globDecl.getLine(),globDecl.getCol());
+            res += "variable already been declared";
+            throw new Exception(res);
+        }else{
+            globDecl.value.accept(visitor);
+
+        }
+
 
     }
 

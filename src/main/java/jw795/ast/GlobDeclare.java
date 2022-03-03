@@ -4,21 +4,21 @@ import jw795.typechecker.Visitor;
 import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 
 public class GlobDeclare extends ASTNode implements Definition, LValue{
-    String identifier;
-    Type type;
-    Expr value;
+    public String identifier;
+    public Type varType;
+    public Expr value;
 
     public GlobDeclare(String id, Type t, int li, int co) {
         super(li, co);
         identifier = id;
-        type = t;
+        varType = t;
 
     }
 
     public GlobDeclare(String id, Type t, Expr v, int li, int co) {
         super(li, co);
         identifier = id;
-        type = t;
+        varType = t;
         value = v;
 
     }
@@ -28,7 +28,7 @@ public class GlobDeclare extends ASTNode implements Definition, LValue{
         printer.startList();
         printer.printAtom(":global");
         printer.printAtom(identifier);
-        type.prettyPrint(printer);
+        varType.prettyPrint(printer);
         if (value != null) {
             value.prettyPrint(printer);
         }
@@ -36,7 +36,11 @@ public class GlobDeclare extends ASTNode implements Definition, LValue{
     }
 
     @Override
-    public void accept(Visitor visitor) {
+    public void accept(Visitor visitor) throws Exception {
+        value.accept(visitor);
+
+        visitor.visitGlobdecl(this);
+
 
     }
 }
