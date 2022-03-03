@@ -670,7 +670,23 @@ public class TypeChecker extends Visitor{
 
     @Override
     public void visitPrdef(ProcedureDefine node){
+        T input;
+        if(node.arguments.size() == 0){
+            input = new Unit();
+        }else if(node.arguments.size() == 1){
+            input =  node.arguments.get(0).type;
+        }else{
+            List<Tau> eletype= new ArrayList<>();
+            for(FunProcArgs fp: node.arguments){
+                eletype.add(fp.type);
+            }
+            input = new Prod(eletype);
+        }
 
+        Fn result = new Fn(input, new Unit());
+        this.env.add(node.name, result);
+
+        this.env.leaveScope();
     }
 
     @Override
@@ -691,6 +707,8 @@ public class TypeChecker extends Visitor{
     public void visitInterface(Interface node) {
 
     }
+
+
 
 
 
@@ -742,7 +760,7 @@ public class TypeChecker extends Visitor{
         return null;
     }
 
-    private String errorstart(int line, int colmn){
+    public String errorstart(int line, int colmn){
         return (line + ":" + colmn +" error: " );
     }
     private void errrorint (String operands, BinOpExpr node) throws Exception {
