@@ -705,8 +705,13 @@ public class TypeChecker extends Visitor{
     }
 
     @Override
-    public void visitFunProcArgs(FunProcArgs node) {
-
+    public void visitFunProcArgs(FunProcArgs node) throws Exception {
+        if (this.env.contains(node.identifier)){
+            String errorMsg = errorstart(node.getLine(), node.getCol()) + node.identifier + "is already defined.";
+            throw new Exception(errorMsg);
+        } else {
+            env.add(node.identifier, new Var(typeToTau(node.argType)));
+        }
     }
 
     @Override

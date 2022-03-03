@@ -27,7 +27,7 @@ public class FunProcArgs extends ASTNode {
     }
 
     @Override
-    public void accept(Visitor visitor) {
+    public void accept(Visitor visitor) throws Exception {
         visitor.visitFunProcArgs(this);
     }
 }
