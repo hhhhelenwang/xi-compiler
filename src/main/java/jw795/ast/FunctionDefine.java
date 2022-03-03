@@ -1,8 +1,6 @@
 package jw795.ast;
 
-import jw795.typechecker.Prod;
-import jw795.typechecker.Tau;
-import jw795.typechecker.Visitor;
+import jw795.typechecker.*;
 import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 
 import java.util.ArrayList;
@@ -52,15 +50,24 @@ public class FunctionDefine extends ASTNode implements Definition{
      */
     @Override
     public void accept(Visitor visitor) throws Exception {
-        for(FunProcArgs fp:arguments ){
-            fp.accept(visitor);
+        // enter scope
+        visitor.enterScope();
+        for (FunProcArgs arg : arguments) {
+            arg.accept(visitor);
         }
-        for(Type e:returnTypes){
-            e.accept(visitor);
+        // for all return types, add return types, only happens in type-checking
+        if (visitor instanceof TypeChecker) {
+            List<Tau> retTauList = new ArrayList<>();
+            for (Type retType : returnTypes) {
+                retTauList.add(((TypeChecker) visitor).typeToTau(retType));
+            }
+            T returns = new Prod(retTauList);
+            Sigma ret = new Ret(returns);
+            ((TypeChecker) visitor).env.add("return", ret);
         }
+
         functionBody.accept(visitor);
-
         visitor.visitFunDef(this);
-
+        visitor.leaveScope();
     }
 }

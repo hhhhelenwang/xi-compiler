@@ -25,7 +25,6 @@ public class TypeChecker extends Visitor{
 
     // ================================= Visit functions for Expressions =================================
     @Override
-    // TODO: naming a bit confusing, can confuse with an int type keyword
     public void visitIntLiteral(IntLiteral node) {
         node.type = new Int();
     }
