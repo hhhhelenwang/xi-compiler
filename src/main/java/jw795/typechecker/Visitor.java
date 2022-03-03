@@ -64,8 +64,10 @@ public abstract class Visitor {
 
     // Variable Declare stmt
     public abstract void visitVarDecl(VarDeclareStmt node) throws Exception;
-    public abstract void visitFunDef(FunctionDefine node);
-    public abstract void visitPrDef(ProcedureDefine node);
+    public abstract void visitFunDef(FunctionDefine node) throws Exception;
+    public abstract void visitPrDef(ProcedureDefine node) throws Exception;
+    public abstract void visitFunDecl(FunctionDeclare node) throws Exception;
+    public abstract void visitPrDecl(ProcedureDeclare node) throws Exception;
 
     // arguments
     public abstract void visitFunProcArgs(FunProcArgs funProcArgs);
@@ -74,10 +76,10 @@ public abstract class Visitor {
     public abstract void visitUse(Use node) throws Exception;
 
     // Program
-    public abstract void visitProgram(Program node);
+    public abstract void visitProgram(Program node) throws Exception;
 
     // Interface
-    public abstract void visitInterface(Interface node);
+    public abstract void visitInterface(Interface node) throws Exception;
 
     public abstract void visitGlobdecl(GlobDeclare node) throws Exception;
 }

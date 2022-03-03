@@ -1,8 +1,9 @@
 package jw795.ast;
 
-import jw795.typechecker.Visitor;
+import jw795.typechecker.*;
 import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ProcedureDefine extends ASTNode implements Definition{
@@ -36,10 +37,13 @@ public class ProcedureDefine extends ASTNode implements Definition{
     }
 
     @Override
-    public void accept(Visitor visitor) {
-        for (FunProcArgs fp:arguments){
-            fp.accept(visitor);
+    public void accept(Visitor visitor) throws Exception {
+        visitor.enterScope();
+        for (FunProcArgs arg : arguments) {
+            arg.accept(visitor);
         }
-        visitor.visitPrdef(this);
+        procBody.accept(visitor);
+        visitor.visitPrDef(this);
+        visitor.leaveScope();
     }
 }

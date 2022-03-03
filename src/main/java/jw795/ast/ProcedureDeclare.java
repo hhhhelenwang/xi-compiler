@@ -6,8 +6,8 @@ import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 import java.util.List;
 
 public class ProcedureDeclare extends ASTNode implements ProcFuncDecl{
-    String name;
-    List<FunProcArgs> arguments;
+    public String name;
+    public List<FunProcArgs> arguments;
 
     public ProcedureDeclare(String n, List<FunProcArgs> args, int li, int co) {
         super(li, co);
@@ -31,6 +31,6 @@ public class ProcedureDeclare extends ASTNode implements ProcFuncDecl{
 
     @Override
     public void accept(Visitor visitor) {
-
+        
     }
 }
