@@ -664,56 +664,13 @@ public class TypeChecker extends Visitor{
 
     @Override
     public void visitFundef(FunctionDefine node){
-        if (!env.contains(node.name)){
-            T input;
-            T output;
-            if (node.arguments.size() == 0) {
-                input = new Unit();
-            } else if (node.arguments.size() == 1) {
-                input = node.arguments.get(0).type;
-            } else {
-                List<Tau> eletype = new ArrayList<>();
-                for (FunProcArgs fp : node.arguments) {
-                    eletype.add(fp.type);
-                }
-                input = new Prod(eletype);
-            }
 
-            if (node.returnTypes.size() == 1) {
-                output = typeToTau(node.returnTypes.get(0));
-            } else {
-                List<Tau> rettype = new ArrayList<>();
-                for (Type e : node.returnTypes) {
-                    rettype.add(typeToTau(e));
-                }
-                output = new Prod(rettype);
-            }
-
-            Fn result = new Fn(input, output);
-            this.env.add(node.name, result);
-        }
 
     }
 
     @Override
     public void visitPrdef(ProcedureDefine node){
-        T input;
-        if(node.arguments.size() == 0){
-            input = new Unit();
-        }else if(node.arguments.size() == 1){
-            input =  node.arguments.get(0).type;
-        }else{
-            List<Tau> eletype= new ArrayList<>();
-            for(FunProcArgs fp: node.arguments){
-                eletype.add(fp.type);
-            }
-            input = new Prod(eletype);
-        }
 
-        Fn result = new Fn(input, new Unit());
-        this.env.add(node.name, result);
-
-        this.env.leaveScope();
     }
 
     @Override
@@ -740,7 +697,7 @@ public class TypeChecker extends Visitor{
     // Helper functions ======================================================================================
 
     /** Build a Tau type from a Type AST node. */
-    private Tau typeToTau(Type t) {
+    public Tau typeToTau(Type t) {
         if (t instanceof IntType){
             return new Int();
         }
@@ -784,7 +741,7 @@ public class TypeChecker extends Visitor{
         return null;
     }
 
-    private String errorstart(int line, int colmn){
+    public String errorstart(int line, int colmn){
         return (line + ":" + colmn +" error: " );
     }
 

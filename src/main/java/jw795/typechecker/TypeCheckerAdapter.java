@@ -8,7 +8,9 @@ import util.edu.cornell.cs.cs4120.util.FileUtil;
 import util.polyglot.util.CodeWriter;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 
 public class TypeCheckerAdapter {
@@ -44,6 +46,8 @@ public class TypeCheckerAdapter {
             // parse the program
             Program node = (Program) cup_parser.parse().value;
 
+            TypeChecker visitor = new TypeChecker();
+
             // to resolve dependencies, find imported interface files, parse them, and type check them
             HashMap<String, Interface> dependencies = new HashMap<>();
             for (Use use : node.uses) {
@@ -55,13 +59,12 @@ public class TypeCheckerAdapter {
                     Interface interfaceNode = (Interface) interfaceParser.parse().value;
                     dependencies.put(use.interfaceName, interfaceNode);
                 } catch (FileNotFoundException e) {
-                    String pos = errorstart(use.getLine(), use.getCol());
+                    String pos = visitor.errorstart(use.getLine(), use.getCol());
                     throw new Exception(pos + "Interface " + use.interfaceName + " not found");
                 }
             }
 
             // check all interfaces and add them to context
-            TypeChecker visitor = new TypeChecker();
             for (Use use : node.uses) {
                 Interface interfaceNode = dependencies.get(use.interfaceName);
                 interfaceNode.accept(visitor); // type check interface using the same visitor
@@ -97,13 +100,55 @@ public class TypeCheckerAdapter {
     }
 
     /** First pass of function definition. */
-    private void funDefFirstPass(FunctionDefine funDef, TypeChecker visitor) {
+    private void funDefFirstPass(FunctionDefine node, TypeChecker visitor) {
+        if (!visitor.env.contains(node.name)){
+            T input;
+            T output;
+            if (node.arguments.size() == 0) {
+                input = new Unit();
+            } else if (node.arguments.size() == 1) {
+                input = node.arguments.get(0).type;
+            } else {
+                List<Tau> eletype = new ArrayList<>();
+                for (FunProcArgs fp : node.arguments) {
+                    eletype.add(fp.type);
+                }
+                input = new Prod(eletype);
+            }
+
+            if (node.returnTypes.size() == 1) {
+                output = visitor.typeToTau(node.returnTypes.get(0));
+            } else {
+                List<Tau> rettype = new ArrayList<>();
+                for (Type e : node.returnTypes) {
+                    rettype.add(visitor.typeToTau(e));
+                }
+                output = new Prod(rettype);
+            }
+
+            Fn result = new Fn(input, output);
+            visitor.env.add(node.name, result);
+        }
 
     }
 
     /** First pass of procedure definition. */
-    private void procDefFirstPass(ProcedureDefine procDef, TypeChecker visitor) {
+    private void procDefFirstPass(ProcedureDefine node, TypeChecker visitor) {
+        T input;
+        if (node.arguments.size() == 0) {
+            input = new Unit();
+        } else if (node.arguments.size() == 1) {
+            input = node.arguments.get(0).type;
+        } else {
+            List<Tau> eletype = new ArrayList<>();
+            for (FunProcArgs fp: node.arguments) {
+                eletype.add(fp.type);
+            }
+            input = new Prod(eletype);
+        }
 
+        Fn result = new Fn(input, new Unit());
+        visitor.env.add(node.name, result);
     }
 
     /** First pass of procedure definition. */
@@ -111,7 +156,4 @@ public class TypeCheckerAdapter {
 
     }
 
-    private String errorstart(int line, int colmn){
-        return (line + ":" + colmn +" error: " );
-    }
 }
