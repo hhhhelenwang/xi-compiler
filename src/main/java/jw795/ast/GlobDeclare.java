@@ -39,7 +39,7 @@ public class GlobDeclare extends ASTNode implements Definition, LValue{
     public void accept(Visitor visitor) throws Exception {
         value.accept(visitor);
 
-        visitor.visitGlobdecl(this);
+        visitor.visitGlobDecl(this);
 
 
     }
