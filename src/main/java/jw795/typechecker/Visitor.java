@@ -67,6 +67,16 @@ public abstract class Visitor {
     public abstract void visitFundef(FunctionDefine node);
     public abstract void visitPrdef(ProcedureDefine node);
 
-    public void visitFunProcArgs(FunProcArgs funProcArgs) {
-    }
+    // arguments
+    public abstract void visitFunProcArgs(FunProcArgs funProcArgs);
+
+    // Use statements
+    public abstract void visitUse(Use node) throws Exception;
+
+    // Program
+    public abstract void visitProgram(Program node);
+
+    // Interface
+    public abstract void visitInterface(Interface node);
+
 }

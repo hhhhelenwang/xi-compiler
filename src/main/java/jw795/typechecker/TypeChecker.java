@@ -2,14 +2,12 @@ package jw795.typechecker;
 
 import jw795.ast.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 public class TypeChecker extends Visitor{
 
-    private SymbolTable env;
+    public SymbolTable env;
+//    private HashMap<String, Interface> deps;
 
     @Override
     public void enterScope() {
@@ -607,7 +605,7 @@ public class TypeChecker extends Visitor{
     }
 
     /** The set of types in a declaration d. */
-    private T typesOf(LValue d) throws Exception {
+    private T typesOf(LValue d) {
         if (d instanceof VarDeclareStmt) {
             Tau type = typeToTau(((VarDeclareStmt) d).varType);
             return type;
@@ -618,7 +616,7 @@ public class TypeChecker extends Visitor{
 
     @Override
     public void visitVarDecl(VarDeclareStmt node) throws Exception{
-        // TODO: x:tau, x:tau[]
+        // TODO: x:tau
         if(this.env.contains(node.identifier)){
             String res = errorstart(node.getLine(), node.getCol());
             throw new Exception(res+"variable already declared");
@@ -666,65 +664,40 @@ public class TypeChecker extends Visitor{
 
     @Override
     public void visitFundef(FunctionDefine node){
-        if (!env.contains(node.name)){
-            T input;
-            T output;
-            if (node.arguments.size() == 0) {
-                input = new Unit();
-            } else if (node.arguments.size() == 1) {
-                input = node.arguments.get(0).type;
-            } else {
-                List<Tau> eletype = new ArrayList<>();
-                for (FunProcArgs fp : node.arguments) {
-                    eletype.add(fp.type);
-                }
-                input = new Prod(eletype);
-            }
 
-            if (node.returnTypes.size() == 1) {
-                output = typeToTau(node.returnTypes.get(0));
-            } else {
-                List<Tau> rettype = new ArrayList<>();
-                for (Type e : node.returnTypes) {
-                    rettype.add(typeToTau(e));
-                }
-                output = new Prod(rettype);
-            }
-
-            Fn result = new Fn(input, output);
-            this.env.add(node.name, result);
-        }
 
     }
 
     @Override
     public void visitPrdef(ProcedureDefine node){
-        T input;
-        if(node.arguments.size() == 0){
-            input = new Unit();
-        }else if(node.arguments.size() == 1){
-            input =  node.arguments.get(0).type;
-        }else{
-            List<Tau> eletype= new ArrayList<>();
-            for(FunProcArgs fp: node.arguments){
-                eletype.add(fp.type);
-            }
-            input = new Prod(eletype);
-        }
 
-        Fn result = new Fn(input, new Unit());
-        this.env.add(node.name, result);
-
-        this.env.leaveScope();
     }
 
     @Override
     public void visitFunProcArgs(FunProcArgs node) {
 
     }
+    @Override
+    public void visitUse(Use node) throws Exception {
+
+    }
+
+    @Override
+    public void visitProgram(Program node) {
+
+    }
+
+    @Override
+    public void visitInterface(Interface node) {
+
+    }
+
+
+
+    // Helper functions ======================================================================================
 
     /** Build a Tau type from a Type AST node. */
-    private Tau typeToTau(Type t)  {
+    public Tau typeToTau(Type t) {
         if (t instanceof IntType){
             return new Int();
         }
@@ -738,7 +711,6 @@ public class TypeChecker extends Visitor{
                 return new TypedArray(typeToTau(((ArrayType) t).elemType));
             }
         }
-        //throw new Exception("invalid variable type in typetotau");
         return null;
     }
 

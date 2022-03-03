@@ -19,14 +19,14 @@ public class FileUtil {
      * @return targetFile
      */
     public static File generateTargetFile(String fileName, String path, String fileType){
-        // build the full directory to put the lexed file in
+        // build the full directory to put the generated file in
         String[] dirs = fileName.split("/");
         String fullPath = path + "/";
         for (int i = 0; i < dirs.length - 1; i ++) {
             fullPath += dirs[i] + "/";
         }
 
-        // build the name of the lexed file
+        // build the name of the file
         String file = dirs[dirs.length - 1];
         String processedFile;
         String end = file.substring(file.length()-3);
