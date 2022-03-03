@@ -64,8 +64,8 @@ public abstract class Visitor {
 
     // Variable Declare stmt
     public abstract void visitVarDecl(VarDeclareStmt node) throws Exception;
-    public abstract void visitFundef(FunctionDefine node);
-    public abstract void visitPrdef(ProcedureDefine node);
+    public abstract void visitFunDef(FunctionDefine node);
+    public abstract void visitPrDef(ProcedureDefine node);
 
     // arguments
     public abstract void visitFunProcArgs(FunProcArgs funProcArgs);

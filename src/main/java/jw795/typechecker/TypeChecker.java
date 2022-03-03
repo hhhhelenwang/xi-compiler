@@ -552,7 +552,6 @@ public class TypeChecker extends Visitor{
                 throw new Exception(pos + "Variable " + ((VarDeclareStmt) decl).identifier + " already declared");
             }
         }
-
         // check no two declarations have same var
         for (LValue d1 : declares) {
             for (LValue d2: declares) {
@@ -666,12 +665,12 @@ public class TypeChecker extends Visitor{
     }
 
     @Override
-    public void visitFundef(FunctionDefine node){
+    public void visitFunDef(FunctionDefine node) {
 
     }
 
     @Override
-    public void visitPrdef(ProcedureDefine node){
+    public void visitPrDef(ProcedureDefine node) {
         T input;
         if(node.arguments.size() == 0){
             input = new Unit();
@@ -696,7 +695,7 @@ public class TypeChecker extends Visitor{
 
     }
     @Override
-    public void visitUse(Use node) throws Exception {
+    public void visitUse(Use node) {
 
     }
 
@@ -710,9 +709,18 @@ public class TypeChecker extends Visitor{
 
     }
 
+    /** Second pass for function definition with multiple arguments and one return type. */
+    // TODO: Helen: used a helper function so I don't get distracted,
+    //  might just move the code into functions above later
+    private void checkMultiArgOneRetFunDef(FunctionDefine node) {
 
 
+    }
 
+    /** Second pass for function definition with one arguments and multiple return type. */
+    private void checkOneArgMultiRetFunDef(FunctionDefine node) {
+
+    }
 
     // Helper functions ======================================================================================
 
@@ -762,7 +770,7 @@ public class TypeChecker extends Visitor{
         return null;
     }
 
-    private String errorstart(int line, int colmn){
+    public String errorstart(int line, int colmn){
         return (line + ":" + colmn +" error: " );
     }
     private void errrorint (String operands, BinOpExpr node) throws Exception {

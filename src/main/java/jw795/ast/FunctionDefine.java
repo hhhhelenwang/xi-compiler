@@ -60,7 +60,7 @@ public class FunctionDefine extends ASTNode implements Definition{
         }
         functionBody.accept(visitor);
 
-        visitor.visitFundef(this);
+        visitor.visitFunDef(this);
 
     }
 }
