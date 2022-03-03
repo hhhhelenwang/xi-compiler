@@ -10,8 +10,8 @@ import java.util.List;
  * Contains a list of functions/procedures.
  */
 public class Program extends ASTNode {
-    List<Use> uses;
-    List<Definition> definitions;
+    public List<Use> uses;
+    public List<Definition> definitions;
 
     public Program(List<Use> us,
             List<Definition> defs,
@@ -44,10 +44,11 @@ public class Program extends ASTNode {
         for(Use u: uses){
             u.accept(visitor);
         }
-        for(Definition d: definitions){
+
+        visitor.visitProgram(this);
+
+        for (Definition d: definitions) {
             d.accept(visitor);
         }
-
-
     }
 }

@@ -66,4 +66,13 @@ public abstract class Visitor {
     public abstract void visitVarDecl(VarDeclareStmt node) throws Exception;
     public abstract void visitFundef(FunctionDefine node);
     public abstract void visitPrdef(ProcedureDefine node);
+
+    // Use statements
+    public abstract void visitUse(Use node) throws Exception;
+
+    // Program
+    public abstract void visitProgram(Program node);
+
+    // Interface
+    public abstract void visitInterface(Interface node);
 }

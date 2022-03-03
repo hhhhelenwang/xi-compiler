@@ -2,14 +2,12 @@ package jw795.typechecker;
 
 import jw795.ast.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 public class TypeChecker extends Visitor{
 
-    private SymbolTable env;
+    public SymbolTable env;
+//    private HashMap<String, Interface> deps;
 
     @Override
     public void enterScope() {
@@ -23,6 +21,7 @@ public class TypeChecker extends Visitor{
 
     TypeChecker(){
         this.env = new SymbolTable();
+//        deps = dependencies;
     }
 
     // ================================= Visit functions for Expressions =================================
@@ -573,12 +572,12 @@ public class TypeChecker extends Visitor{
             if (tau instanceof Array && typesOf(d) instanceof Array) {
                 if (!((Array) tau).compare((Array) typesOf(d))) {
                     String pos = errorstart(d.getLine(), d.getCol());
-                    throw new Exception(pos + "Expected " + typesOf(d).tostr() + " got" + tau.tostr());
+                    throw new Exception(pos + "Expected " + typesOf(d).tostr() + " but found " + tau.tostr());
                 }
             } else {
                 if (!tau.isSubOf(typesOf(d))) {
                     String pos = errorstart(d.getLine(), d.getCol());
-                    throw new Exception(pos + "Expected " + typesOf(d).tostr() + " got" + tau.tostr());
+                    throw new Exception(pos + "Expected " + typesOf(d).tostr() + " but found " + tau.tostr());
                 }
             }
         }
@@ -618,7 +617,7 @@ public class TypeChecker extends Visitor{
 
     @Override
     public void visitVarDecl(VarDeclareStmt node) throws Exception{
-        // TODO: x:tau, x:tau[]
+        // TODO: x:tau
         if (node.varType instanceof ArrayType) { // check array declaratio
             checkArrayDecl(node);
         } else { // TODO: is it safe to use else here
@@ -667,25 +666,27 @@ public class TypeChecker extends Visitor{
     public void visitFundef(FunctionDefine node){
         T input;
         T output;
-        if(node.arguments.size() == 0){
+        // generate input type
+        if (node.arguments.size() == 0) {
             input = new Unit();
-        }else if(node.arguments.size() == 1){
-            input =  node.arguments.get(0).type;
-        }else{
-            List<Tau> eletype= new ArrayList<>();
-            for(FunProcArgs fp: node.arguments){
+        } else if (node.arguments.size() == 1) {
+            input = node.arguments.get(0).type;
+        } else {
+            List<Tau> eletype = new ArrayList<>();
+            for (FunProcArgs fp: node.arguments){
                 eletype.add(fp.type);
             }
             input = new Prod(eletype);
         }
 
-        if(node.returnTypes.size() == 0){
-            output =new Unit();
-        }else if(node.returnTypes.size() == 1){
+        // generate output type
+        if (node.returnTypes.size() == 0) {
+            output = new Unit();
+        } else if (node.returnTypes.size() == 1) {
             output = typeToTau(node.returnTypes.get(0)) ;
-        }else{
-            List<Tau> rettype= new ArrayList<>();
-            for(Type e: node.returnTypes){
+        } else {
+            List<Tau> rettype = new ArrayList<>();
+            for (Type e: node.returnTypes){
                 rettype.add(typeToTau(e));
             }
             output = new Prod(rettype);
@@ -694,7 +695,11 @@ public class TypeChecker extends Visitor{
         Fn thetype = new Fn(input, output);
         this.env.add(node.name, thetype);
 
-        this.env.leaveScope();
+
+    }
+
+    public void helper(FunctionDefine node) {
+
     }
 
     @Override
@@ -719,6 +724,26 @@ public class TypeChecker extends Visitor{
         this.env.leaveScope();
     }
 
+    @Override
+    public void visitUse(Use node) throws Exception {
+
+    }
+
+    @Override
+    public void visitProgram(Program node) {
+
+    }
+
+    @Override
+    public void visitInterface(Interface node) {
+
+    }
+
+
+
+
+
+    // Helper functions ======================================================================================
 
     /** Build a Tau type from a Type AST node. */
     private Tau typeToTau(Type t){
@@ -737,7 +762,6 @@ public class TypeChecker extends Visitor{
         }
         return null;
     }
-
 
     /** Initialize a new object that is the same type as the Type R object passed in. R ::= unit | void */
     private R toR(R type){
