@@ -17,7 +17,6 @@ public abstract class Visitor {
     public abstract void visitBoolLiteral(BoolLiteral node);
     public abstract void visitStringLit(StringLit node);
     public abstract void visitCharLiteral(CharLiteral node);
-    public abstract void visitFunCallExpr(FunCallExpr node) throws Exception;
 
     // variable
     public abstract void visitVar(VarExpr node) throws Exception;
@@ -45,8 +44,10 @@ public abstract class Visitor {
     public abstract void visitGreaterEq(GreaterEq node) throws Exception;
 
     // Statement =====================
-    //Procedure
+    // Procedure call
     public abstract void visitPrCall(ProcCallStmt node) throws Exception;
+    // Function call
+    public abstract void visitFunCallExpr(FunCallExpr node) throws Exception;
     //Block stmt (SEQ)
     public abstract void visitBlockStmt(BlockStmt node) throws Exception;
     //If stmt
@@ -81,5 +82,6 @@ public abstract class Visitor {
     // Interface
     public abstract void visitInterface(Interface node) throws Exception;
 
-    public abstract void visitGlobdecl(GlobDeclare node) throws Exception;
+    // Global declaration
+    public abstract void visitGlobDecl(GlobDeclare node) throws Exception;
 }

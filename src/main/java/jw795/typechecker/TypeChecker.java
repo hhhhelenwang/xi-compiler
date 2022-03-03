@@ -47,7 +47,7 @@ public class TypeChecker extends Visitor{
 
     @Override
     public void visitFunCallExpr(FunCallExpr node) throws Exception {
-        Sigma fnType = this.env.findType(node.name);
+        Sigma fnType = this.env.findTypeofFun(node.name);
         try {
             profunCall(true, fnType, node.name);
             if (node.name.equals("length")) {
@@ -73,7 +73,7 @@ public class TypeChecker extends Visitor{
         if((node.arguments.size() == 1)) {
             Expr arg =node.arguments.get(0);
             if(arg instanceof VarExpr){
-                if(this.env.findType(((VarExpr) arg).identifier) instanceof TypedArray){
+                if(this.env.findTypeofVar(((VarExpr) arg).identifier) instanceof TypedArray){
                     node.type = new Int();
                 }
             }
@@ -82,8 +82,8 @@ public class TypeChecker extends Visitor{
 
     @Override
     public void visitVar(VarExpr node) throws Exception {
-        if (env.contains(node.identifier)) {
-            node.type = (T) env.findType(node.identifier);
+        if (env.containsVar(node.identifier)) {
+            node.type = (T) env.findTypeofVar(node.identifier);
         }
         else {
             String res = errorstart(node.getLine(), node.getCol());
@@ -296,7 +296,7 @@ public class TypeChecker extends Visitor{
     @Override
     public void visitPrCall(ProcCallStmt node) throws Exception {
         // a procedure need to be fn T -> unit
-        Sigma prType = this.env.findType(node.name);
+        Sigma prType = this.env.findTypeofFun(node.name);
         try {
             profunCall(false, prType, node.name);
             List<Expr> nodeArgs = node.arguments;
@@ -417,7 +417,7 @@ public class TypeChecker extends Visitor{
     @Override
     public void visitRet(ReturnStmt node) throws Exception {
         boolean isvalid =false;
-        Sigma retarg = this.env.findType("return");
+        Sigma retarg = this.env.findTypeofVar("return");
         if(retarg instanceof  Prod){
             isvalid = true;
             if (((Prod) retarg).elementTypes.size() == node.returnVals.size() ){
@@ -458,7 +458,7 @@ public class TypeChecker extends Visitor{
         } else if (node.leftVal instanceof LeftValueList) {
             checkMultiAssign(node);
         } else if (node.leftVal instanceof VarExpr) {
-            Sigma t = this.env.findType(((VarExpr) node.leftVal).identifier);
+            Sigma t = this.env.findTypeofVar(((VarExpr) node.leftVal).identifier);
 
             if (t instanceof Var) {
                 if (node.expr.type instanceof Tau) {
@@ -528,7 +528,7 @@ public class TypeChecker extends Visitor{
         // check dom(gamma) does not contains varsOf(d)
         for (LValue decl: declares) {
             // dom contains varsOf(decl)
-            if (env.dom().removeAll(varsOf(decl))) {
+            if (env.domVar().removeAll(varsOf(decl))) {
                 String pos = errorstart(decl.getLine(), decl.getCol());
                 throw new Exception(pos + "Variable " + ((VarDeclareStmt) decl).identifier + " already declared");
             }
@@ -568,7 +568,7 @@ public class TypeChecker extends Visitor{
             Set<String> var = varsOf(decl);
             if (!var.isEmpty()) {
                 String id = var.iterator().next();
-                env.add(id, new Var((Tau) typesOf(decl)));
+                env.addVar(id, new Var((Tau) typesOf(decl)));
             }
         }
 
@@ -596,16 +596,16 @@ public class TypeChecker extends Visitor{
 
     @Override
     public void visitVarDecl(VarDeclareStmt node) throws Exception{
-        if(this.env.contains(node.identifier)){
+        if(this.env.containsVar(node.identifier)){
             String res = errorstart(node.getLine(), node.getCol());
             throw new Exception(res+"variable already declared");
         }
         else if (node.varType instanceof ArrayType) { // check array declaration
             Tau vat = checkArrayDecl((ArrayType) node.varType);
-            this.env.add(node.identifier,new Var(vat));
+            this.env.addVar(node.identifier,new Var(vat));
         } else { // is it safe to use else here? Yes, it's var type already
             node.type = new Unit();
-            env.add(node.identifier, new Var(typeToTau(node.varType)));
+            env.addVar(node.identifier, new Var(typeToTau(node.varType)));
         }
     }
 
@@ -695,15 +695,15 @@ public class TypeChecker extends Visitor{
             input = new Prod(eletype);
         }
         Fn result = new Fn(input, new Unit());
-        env.add(node.name, result);
+        env.addFun(node.name, result);
     }
 
     @Override
-    public void visitGlobdecl(GlobDeclare node) throws Exception {
+    public void visitGlobDecl(GlobDeclare node) throws Exception {
         if (node.varType instanceof ArrayType) { // check array declaration
             Tau vart = checkArrayDecl((ArrayType) node.varType);
             if(node.value.type.equals(vart)){
-                this.env.add(node.identifier, new Var(checkArrayDecl((ArrayType) node.varType)));
+                this.env.addVar(node.identifier, new Var(checkArrayDecl((ArrayType) node.varType)));
             }
             else {
                 String res = errorstart(node.getLine(), node.getCol());
@@ -714,7 +714,7 @@ public class TypeChecker extends Visitor{
             // is it safe to use else here? Yes, it's var type already
             Tau vart = typeToTau(node.varType);
             if(node.value.type.equals(vart)){
-                env.add(node.identifier, new Var(vart));
+                env.addVar(node.identifier, new Var(vart));
             }else{
                 String res = errorstart(node.getLine(), node.getCol());
                 res+= "Cannot assign "+ node.value.type.tostr() + " to " + vart.tostr();
@@ -777,34 +777,6 @@ public class TypeChecker extends Visitor{
             }else{
                 return new TypedArray(typeToTau(((ArrayType) t).elemType));
             }
-        }
-        return null;
-    }
-
-
-    /** Initialize a new object that is the same type as the Type R object passed in. R ::= unit | void */
-    private R toR(R type){
-        if (type instanceof Unit){
-            return new Unit();
-        } else if (type instanceof Void) {
-            return new Void();
-        }
-        System.out.println("error in toR(R type): null passed in");
-        return null; // an error, should not call toR on a null object
-    }
-
-    /** Initialize a new object that is the same type as the Type T object passed in */
-    private T toT(T type){
-        if (type instanceof Tau){
-            return new Tau();
-        } else if (type instanceof Bool){
-            return new Bool();
-        } else if (type instanceof EmptyArray){
-            return new EmptyArray();
-        } else if (type instanceof TypedArray){
-            //TODO: cannot resolve field elementType
-//            Tau eleType = (TypedArray)type.elementType;
-//            return new TypedArray(eleType);
         }
         return null;
     }
