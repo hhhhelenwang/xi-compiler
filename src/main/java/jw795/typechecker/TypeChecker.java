@@ -336,13 +336,7 @@ public class TypeChecker extends Visitor{
             }
         }
         Statement lastStmt = node.statements.get(numArgs - 1);
-        if (lastStmt.type instanceof R){
-            node.type = lastStmt.type;
-        } else {
-            String errorMsg =  errorstart(node.getLine(), node.getCol()) +
-                    "Unexpected unassigned statement type null. Expected R.";
-            throw new Exception(errorMsg);
-        }
+        node.type = lastStmt.type;
     }
 
 
@@ -351,9 +345,6 @@ public class TypeChecker extends Visitor{
         if (!(node.condition.type instanceof Bool)) {
             String errorMsg = errorstart(node.getLine(), node.getCol()) + "Expected condition is type Bool, but got" +
                     node.condition.type.tostr();
-            throw new Exception(errorMsg);
-        } else if (!(node.clause.type instanceof R)){
-            String errorMsg = errorstart(node.getLine(), node.getCol()) + "The if clause is null";
             throw new Exception(errorMsg);
         } else {
             node.type = new Unit();
@@ -365,12 +356,6 @@ public class TypeChecker extends Visitor{
         if (!(node.condition.type instanceof Bool)){
             String errorMsg = errorstart(node.getLine(), node.getCol()) + "Expected condition is type Bool, but got" +
                     node.condition.type.tostr();
-            throw new Exception(errorMsg);
-        } else if (!(node.ifClause.type instanceof R)){
-            String errorMsg = errorstart(node.getLine(), node.getCol()) + "The if clause is null";
-            throw new Exception(errorMsg);
-        } else if (!(node.elseClause.type instanceof R)){
-            String errorMsg = errorstart(node.getLine(), node.getCol()) + "The else clause is null";
             throw new Exception(errorMsg);
         } else {
             node.type = lub(node.ifClause.type, node.elseClause.type);
@@ -391,9 +376,6 @@ public class TypeChecker extends Visitor{
         if (!(node.condition.type instanceof Bool)){
             String errorMsg = errorstart(node.getLine(), node.getCol()) + "Expected condition is type Bool, but got" +
                     node.condition.type.tostr();
-            throw new Exception(errorMsg);
-        } else if (!(node.loopBody.type instanceof R)){
-            String errorMsg = errorstart(node.getLine(), node.getCol()) + "The while loop body is null";
             throw new Exception(errorMsg);
         } else {
             node.type = new Unit();
@@ -614,7 +596,6 @@ public class TypeChecker extends Visitor{
 
     @Override
     public void visitVarDecl(VarDeclareStmt node) throws Exception{
-        // TODO: x:tau
         if(this.env.contains(node.identifier)){
             String res = errorstart(node.getLine(), node.getCol());
             throw new Exception(res+"variable already declared");
@@ -622,8 +603,8 @@ public class TypeChecker extends Visitor{
         else if (node.varType instanceof ArrayType) { // check array declaration
             checkArrayDecl(node);
         } else { // is it safe to use else here? Yes, it's var type already
-                node.type = new Unit();
-                env.add(node.identifier, new Var(typeToTau(node.varType)));
+            node.type = new Unit();
+            env.add(node.identifier, new Var(typeToTau(node.varType)));
         }
     }
 
