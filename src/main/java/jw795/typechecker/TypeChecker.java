@@ -46,44 +46,56 @@ public class TypeChecker extends Visitor{
     // there should not be any exception throw out from the upper 4 function, since they are basic type
 
 
-
-
     @Override
-    public void visitVar(VarExpr node) throws Exception {
+    public void visitVar(VarExpr node) throws SemanticErrorException {
         if (env.containsVar(node.identifier)) {
             node.type = (T) env.findTypeofVar(node.identifier);
         }
         else {
             String res = errorstart(node.getLine(), node.getCol());
             res += "Name " + node.identifier + " cannot be resolved";
-            throw new Exception(res);
+            throw new SemanticErrorException(res);
         }
     }
 
     @Override
-    public void visitIntNeg(IntNeg node) throws Exception {
+    public void visitIntNeg(IntNeg node) throws SemanticErrorException {
         if (node.expr.type instanceof Int) {
             node.type = new Int();
         } else {
             String res = errorstart(node.getLine(), node.getCol());
-            res += "Int negation cannot be apply to" + node.expr.type.tostr();
-            throw new Exception(res);
+            res += "Expected int, but fount " + node.expr.type.tostr();
+            throw new SemanticErrorException(res);
         }
     }
 
     /** helper to check the type of the subexpressions of algebraic and comparison binop */
-    private void setBinOpIntType(BinOpExpr node) {
+    private void setBinOpIntType(BinOpExpr node) throws SemanticErrorException{
         if ((node.expr1.type instanceof Int) && (node.expr2.type instanceof Int)) {
             node.type = new Int();
+        } else if (!(node.expr1.type instanceof Int)) {
+            String pos = errorstart(node.expr1.getLine(), node.expr1.getCol());
+            throw new SemanticErrorException(pos + "Expected int, but found " + node.expr1.type.tostr());
+        } else {
+            String pos = errorstart(node.expr2.getLine(), node.expr2.getCol());
+            throw new SemanticErrorException(pos + "Expected int, but found " + node.expr1.type.tostr());
         }
     }
 
     /** helper to check the type of the subexpressions of logical binop */
-    private void setBinOpBoolType(BinOpExpr node) {
+    private void setBinOpBoolType(BinOpExpr node) throws SemanticErrorException {
         if ((node.expr1.type instanceof Bool) && (node.expr2.type instanceof Bool)) {
             node.type = new Bool();
+        } else if (!(node.expr1.type instanceof Bool)) {
+            String pos = errorstart(node.expr1.getLine(), node.expr1.getCol());
+            throw new SemanticErrorException(pos + "Expected bool, but found " + node.expr1.type.tostr());
+        } else {
+            String pos = errorstart(node.expr2.getLine(), node.expr2.getCol());
+            throw new SemanticErrorException(pos + "Expected bool, but found " + node.expr1.type.tostr());
         }
     }
+
+    /** Helper to check if both expressions have the same type when being compared. */
     private void setArrayBoolType(BinOpExpr node){
         if(node.expr1.type instanceof  Tau){
             if(node.expr2.type instanceof  Tau) {
@@ -95,14 +107,14 @@ public class TypeChecker extends Visitor{
     }
 
     @Override
-    public void visitAdd(Add node) throws Exception {
+    public void visitAdd(Add node) throws SemanticErrorException {
         setBinOpIntType(node);
         setArrayBoolType(node);
 
         if(node.type == null) {
             String result = errorstart(node.getLine(), node.getCol());
             result += "Operand of + must be same type of tau";
-            throw new Exception(result);
+            throw new SemanticErrorException(result);
         }
     }
 
@@ -307,7 +319,7 @@ public class TypeChecker extends Visitor{
     private void checkLength(FunCallExpr node) throws Exception {
         if (node.arguments.size() != 1) {
             String pos = errorstart(node.getLine(), node.getCol());
-            throw new SemanticErrorException(pos + "Mismatch number of arguments");
+            throw new SemanticErrorException(pos + "Mismatched number of arguments");
         }
         Expr arg = node.arguments.get(0);
         if (arg.type instanceof Array) { // type checks as long as
@@ -352,7 +364,7 @@ public class TypeChecker extends Visitor{
             return true;
         }
         // number mismatch
-        String errMsg = "Mismatch number of arguments";
+        String errMsg = "Mismatched number of arguments";
         String pos = errorstart(nodeArgs.get(0).getLine(), nodeArgs.get(0).getCol());
         throw new SemanticErrorException(pos + errMsg);
     }
