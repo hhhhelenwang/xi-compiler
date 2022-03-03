@@ -666,42 +666,40 @@ public class TypeChecker extends Visitor{
 
     @Override
     public void visitFundef(FunctionDefine node){
-        T input;
-        T output;
-        if(node.arguments.size() == 0){
-            input = new Unit();
-        }else if(node.arguments.size() == 1){
-            input =  node.arguments.get(0).type;
-        }else{
-            List<Tau> eletype= new ArrayList<>();
-            for(FunProcArgs fp: node.arguments){
-                eletype.add(fp.type);
+        if (!env.contains(node.name)){
+            T input;
+            T output;
+            if (node.arguments.size() == 0) {
+                input = new Unit();
+            } else if (node.arguments.size() == 1) {
+                input = node.arguments.get(0).type;
+            } else {
+                List<Tau> eletype = new ArrayList<>();
+                for (FunProcArgs fp : node.arguments) {
+                    eletype.add(fp.type);
+                }
+                input = new Prod(eletype);
             }
-            input = new Prod(eletype);
+
+            if (node.returnTypes.size() == 1) {
+                output = typeToTau(node.returnTypes.get(0));
+            } else {
+                List<Tau> rettype = new ArrayList<>();
+                for (Type e : node.returnTypes) {
+                    rettype.add(typeToTau(e));
+                }
+                output = new Prod(rettype);
+            }
+
+            Fn result = new Fn(input, output);
+            this.env.add(node.name, result);
         }
 
-        if(node.returnTypes.size() == 0){
-            output =new Unit();
-        }else if(node.returnTypes.size() == 1){
-            output = typeToTau(node.returnTypes.get(0)) ;
-        }else{
-            List<Tau> rettype= new ArrayList<>();
-            for(Type e: node.returnTypes){
-                rettype.add(typeToTau(e));
-            }
-            output = new Prod(rettype);
-        }
-
-        Fn thetype = new Fn(input, output);
-        this.env.add(node.name, thetype);
-
-        this.env.leaveScope();
     }
 
     @Override
     public void visitPrdef(ProcedureDefine node){
         T input;
-        T output;
         if(node.arguments.size() == 0){
             input = new Unit();
         }else if(node.arguments.size() == 1){
@@ -714,12 +712,16 @@ public class TypeChecker extends Visitor{
             input = new Prod(eletype);
         }
 
-        Fn thetype = new Fn(input, new Unit());
-        this.env.add(node.name, thetype);
+        Fn result = new Fn(input, new Unit());
+        this.env.add(node.name, result);
 
         this.env.leaveScope();
     }
 
+    @Override
+    public void visitFunProcArgs(FunProcArgs node) {
+
+    }
 
     /** Build a Tau type from a Type AST node. */
     private Tau typeToTau(Type t) throws Exception {
