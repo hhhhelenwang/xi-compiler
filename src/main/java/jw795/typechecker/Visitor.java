@@ -71,7 +71,7 @@ public abstract class Visitor {
     public abstract void visitPrDecl(ProcedureDeclare node) throws Exception;
 
     // arguments
-    public abstract void visitFunProcArgs(FunProcArgs funProcArgs);
+    public abstract void visitFunProcArgs(FunProcArgs funProcArgs) throws Exception;
 
     // Use statements
     public abstract void visitUse(Use node) throws Exception;
