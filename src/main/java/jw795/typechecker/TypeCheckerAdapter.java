@@ -5,8 +5,11 @@ import jw795.typechecker.TypeChecker;
 import jw795.ast.*;
 import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 import util.edu.cornell.cs.cs4120.util.FileUtil;
+import util.edu.cornell.cs.cs4120.util.LexicalErrorException;
+import util.edu.cornell.cs.cs4120.util.SyntacticErrorException;
 import util.polyglot.util.CodeWriter;
 
+import javax.sound.midi.SysexMessage;
 import java.io.*;
 import java.util.*;
 
@@ -85,6 +88,10 @@ public class TypeCheckerAdapter {
             node.accept(visitor);
 
             printer.printAtom("Valid Xi Program");
+            printer.flush();
+            printer.close();
+        } catch (LexicalErrorException | SyntacticErrorException e){
+            System.out.println(e.getMessage());
             printer.flush();
             printer.close();
         } catch (Exception e) {
