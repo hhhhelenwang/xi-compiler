@@ -9,7 +9,7 @@ import java.io.FileWriter;
 import jw795.lexer.Lexer.TokenType;
 import java_cup.runtime.Symbol;
 
-import util.edu.cornell.cs.cs4120.util.FileUtil;
+import util.FileUtil;
 
 import jw795.parser.sym;
 

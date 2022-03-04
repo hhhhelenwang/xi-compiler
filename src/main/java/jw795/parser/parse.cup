@@ -21,7 +21,7 @@ parser code
         public void syntax_error(java_cup.runtime.Symbol cur) {
             String tokenType = LexerAdapter.tokenTypeToString(cur.sym);
             String errMsg = String.format("%d:%d error:Unexpected token `%s`", cur.left + 1, cur.right + 1, tokenType);
-            if (tokenType.equals("error"){
+            if (tokenType.equals("error")){
                 throw new LexicalErrorException(errMsg);
             } else {
                 throw new SyntacticErrorException(errMsg);

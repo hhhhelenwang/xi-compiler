@@ -18,9 +18,9 @@ import java.util.List;
  */
 public class Compiler {
     CommandLine cmd;
-    String destPath = ".";
-    String sourcePath = ".";
-    String libPath = ".";
+    String destPath = "./";
+    String sourcePath = "./";
+    String libPath = "./";
     List<String> files = new ArrayList<>();
     Options options;
 
@@ -64,9 +64,11 @@ public class Compiler {
     public void setPaths() {
         if (cmd.hasOption("D")) {
             this.destPath = cmd.getOptionValue("D");
-        } else if (cmd.hasOption("sourcepath")) {
+        }
+        if (cmd.hasOption("sourcepath")) {
             this.sourcePath = cmd.getOptionValue("sourcepath");
-        } else if (cmd.hasOption("libpath")) {
+        }
+        if (cmd.hasOption("libpath")) {
             this.libPath = cmd.getOptionValue("libpath");
         }
     }

@@ -91,7 +91,7 @@ public class TypeChecker extends Visitor{
             throw new SemanticErrorException(pos + "Expected int, but found " + node.expr1.type.tostr());
         } else {
             String pos = errorstart(node.expr2.getLine(), node.expr2.getCol());
-            throw new SemanticErrorException(pos + "Expected int, but found " + node.expr1.type.tostr());
+            throw new SemanticErrorException(pos + "Expected int, but found " + node.expr2.type.tostr());
         }
     }
 
@@ -104,7 +104,7 @@ public class TypeChecker extends Visitor{
             throw new SemanticErrorException(pos + "Expected bool, but found " + node.expr1.type.tostr());
         } else {
             String pos = errorstart(node.expr2.getLine(), node.expr2.getCol());
-            throw new SemanticErrorException(pos + "Expected bool, but found " + node.expr1.type.tostr());
+            throw new SemanticErrorException(pos + "Expected bool, but found " + node.expr2.type.tostr());
         }
     }
 

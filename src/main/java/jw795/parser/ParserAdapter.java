@@ -8,7 +8,7 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.Reader;
 import util.polyglot.util.CodeWriter;
-import util.edu.cornell.cs.cs4120.util.FileUtil;
+import util.FileUtil;
 import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 
 public class ParserAdapter {
