@@ -63,7 +63,7 @@ public class TypeCheckerAdapter {
                         // check for repeated use of interface
                         if (dependencies.containsKey(use.interfaceName)) {
                             String pos = visitor.errorstart(use.getLine(), use.getCol());
-                            throw new Exception(pos + "Interface already used");
+                            throw new SemanticErrorException(pos + "Interface already used");
                         }
                         String interfaceFileName = libPath + use.interfaceName + ".ixi";
                         Reader interfaceReader = new FileReader(interfaceFileName);
@@ -75,7 +75,7 @@ public class TypeCheckerAdapter {
                 } catch (FileNotFoundException e) {
                     String pos = visitor.errorstart(use.getLine(), use.getCol());
                     throw new Exception(pos + "Interface " + use.interfaceName + " not found");
-                } catch (Exception e) {
+                } catch (SemanticErrorException e) {
                     // interface used twice
                     throw e;
                 }
