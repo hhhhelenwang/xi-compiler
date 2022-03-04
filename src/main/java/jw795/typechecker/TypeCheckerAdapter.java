@@ -90,20 +90,35 @@ public class TypeCheckerAdapter {
             // type check the entire program
             node.accept(visitor);
 
-
-
             printer.printAtom("Valid Xi Program");
             printer.flush();
             printer.close();
-        } catch (LexicalErrorException | SyntacticErrorException e){
+        } catch (LexicalErrorException e){
+            // TODO: call stdOutError to get the std out message
             System.out.println(e.getMessage());
             printer.flush();
             printer.close();
+        } catch (SyntacticErrorException e) {
+            // TODO: call stdOutError to get the std out message
+            printer.flush();
+            printer.close();
+        } catch (SemanticErrorException e) {
+            // TODO: call stdOutError to get the std out message
+            printer.flush();
+            printer.close();
         } catch (Exception e) {
+            // no idea what error so just report
             printer.printAtom(e.getMessage());
             printer.flush();
             printer.close();
         }
+    }
+
+    /** Standard output error message */
+    private String stdOutError(String errorKind, String fileName, String error) {
+        // TODO: write this method to generate an standard output error message of this form:
+        //  <kind> error beginning at <filename>:<line>:<column>: <description>
+        return "";
     }
 
 

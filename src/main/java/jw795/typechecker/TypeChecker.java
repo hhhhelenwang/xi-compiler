@@ -58,6 +58,7 @@ public class TypeChecker extends Visitor{
         }
     }
 
+    // UnOps =================================
     @Override
     public void visitIntNeg(IntNeg node) throws SemanticErrorException {
         if (node.expr.type instanceof Int) {
@@ -69,6 +70,18 @@ public class TypeChecker extends Visitor{
         }
     }
 
+    @Override
+    public void visitNot(Not node) throws SemanticErrorException {
+        if(node.expr.type instanceof Bool){
+            node.type = new Bool();
+        } else {
+            String res = errorstart(node.getLine(), node.getCol());
+            res += "Expected bool, but fount " + node.expr.type.tostr();
+            throw new SemanticErrorException(res);
+        }
+    }
+
+    // BinOps =================================
     /** helper to check the type of the subexpressions of algebraic and int comparison binop */
     private void setBinOpIntType(BinOpExpr node, Tau type) throws SemanticErrorException{
         if ((node.expr1.type instanceof Int) && (node.expr2.type instanceof Int)) {
@@ -95,17 +108,6 @@ public class TypeChecker extends Visitor{
         }
     }
 
-    /** Helper to check if both expressions have the same type when being compared. */
-    private void setArrayBoolType(BinOpExpr node){
-        if(node.expr1.type instanceof Tau){
-            if(node.expr2.type instanceof Tau) {
-                if (((Tau) node.expr1.type).equals((Tau) node.expr2.type)) {
-                    node.type = new Bool();
-                }
-            }
-        }
-    }
-
     /** Helper to check the type of two array expressions are equal when they are compared.
      * If true, set node to bool type. */
     private void setArrayCompareType(BinOpExpr node) throws SemanticErrorException {
@@ -115,7 +117,6 @@ public class TypeChecker extends Visitor{
                     + "Expected " + node.expr1.type.tostr()
                     + ", but found " + node.expr2.type.tostr());
         }
-
         if (((Array) node.expr1.type).compare((Array) node.expr2.type)
                 || ((Array) node.expr2.type).compare((Array) node.expr1.type)) {
             // t1 <= t2 or t2 <= t1 so they can be compared
@@ -127,7 +128,6 @@ public class TypeChecker extends Visitor{
                     + "Expected " + node.expr1.type.tostr()
                     + ", but found " + node.expr2.type.tostr());
         }
-
     }
 
     /** Helper to check the type of two array expressions are equal when they are concatenated.
@@ -171,7 +171,6 @@ public class TypeChecker extends Visitor{
             String err = pos + "Operand of + must be int or array";
             throw new SemanticErrorException(err);
         }
-
     }
 
     @Override
@@ -210,7 +209,7 @@ public class TypeChecker extends Visitor{
     }
 
     /** */
-    private void checkEqCompareBinop(BinOpExpr node) throws SemanticErrorException {
+    private void checkEqCompareBinOp(BinOpExpr node) throws SemanticErrorException {
         // eq/neq allows int, bool, and array as operands
         // if the first operand is an int, treat it as an integer comparison
         if (node.expr1.type instanceof Int) {
@@ -231,12 +230,12 @@ public class TypeChecker extends Visitor{
 
     @Override
     public void visitEqual(Equal node) throws SemanticErrorException {
-        checkEqCompareBinop(node);
+        checkEqCompareBinOp(node);
     }
 
     @Override
     public void visitNotEqual(NotEqual node) throws SemanticErrorException {
-        checkEqCompareBinop(node);
+        checkEqCompareBinOp(node);
     }
 
     @Override
@@ -260,7 +259,7 @@ public class TypeChecker extends Visitor{
     }
 
     @Override
-    public void visitArrayExpr(ArrayExpr node) throws Exception {
+    public void visitArrayExpr(ArrayExpr node) throws SemanticErrorException {
         if (node.arrayElements.isEmpty()) {
             node.type = new EmptyArray();
         } else {
@@ -286,42 +285,30 @@ public class TypeChecker extends Visitor{
                 node.type = new TypedArray((Tau)t);
             }else{
                 String res = errorstart(node.getLine(), node.getCol());
-                throw new Exception(res + "The elements of this array have different types");
+                throw new SemanticErrorException(res + "The elements of this array have different types");
             }
         }
     }
 
     @Override
-    public void visitArrIndexExpr(ArrIndexExpr node) throws Exception {
+    public void visitArrIndexExpr(ArrIndexExpr node) throws SemanticErrorException {
         if (node.array.type instanceof TypedArray && node.index.type instanceof Int) {
             node.type = ((TypedArray) node.array.type).elementType;
         } else if (node.array.type instanceof EmptyArray && node.index.type instanceof Int) {
             node.type = new Unit();
         }else if(! (node.index.type instanceof Int)){
             String res = errorstart(node.getLine(), node.getCol());
-            throw new Exception(res + "Expected index as int but got"+ node.index.type.tostr());
+            throw new SemanticErrorException(res + "Expected index as int but got"+ node.index.type.tostr());
         }else{
             String res = errorstart(node.getLine(), node.getCol());
-            throw  new Exception(res + "Expected an array for indedxing but got "+ node.array.type);
+            throw  new SemanticErrorException(res + "Expected an array for indedxing but got "+ node.array.type);
         }
     }
 
-    @Override
-    public void visitNot(Not node) throws Exception {
-        if(node.expr.type instanceof Bool){
-            node.type = new Bool();
-        }
-        if(node.type == null) {
-            String result = errorstart(node.getLine(), node.getCol());
-            result += "bool negation cannot be applied " + node.expr.type.tostr();
-            throw new Exception(result);
-        }
-
-    }
 
     // ================================= Visit functions for Statements =================================
     @Override
-    public void visitPrCall(ProcCallStmt node) throws Exception {
+    public void visitPrCall(ProcCallStmt node) throws SemanticErrorException {
         // a procedure need to be fn T -> unit
         Sigma prType = this.env.findTypeofFun(node.name);
         try {
@@ -378,7 +365,7 @@ public class TypeChecker extends Visitor{
     }
 
     /** Checks if the types of arg passed in match the signature of declaration correspondingly*/
-    private boolean argsConform(List<Expr> nodeArgs, T declArgs) throws Exception {
+    private boolean argsConform(List<Expr> nodeArgs, T declArgs) throws SemanticErrorException {
         if (declArgs instanceof Unit && nodeArgs.size() == 0) {
             return true;
         } else if (declArgs instanceof Tau && nodeArgs.size() == 1){
@@ -431,37 +418,37 @@ public class TypeChecker extends Visitor{
     }
 
     @Override
-    public void visitBlockStmt(BlockStmt node) throws Exception {
+    public void visitBlockStmt(BlockStmt node) throws SemanticErrorException {
         int numArgs = node.statements.size();
         for (int i = 0; i < numArgs - 1; i++){
-            if (!(node.statements.get(i).type instanceof Unit)){
-                String errorMsg =  errorstart(node.getLine(), node.getCol()) +
-                        "Unexpected statement evaluation outcome void. Expected unit.";
-                throw new Exception(errorMsg);
+            Statement stmt = node.statements.get(i);
+            if (!(stmt.type instanceof Unit)){
+                String errorMsg =  errorstart(stmt.getLine(), stmt.getCol()) +
+                        "Expected unit, but found void.";
+                throw new SemanticErrorException(errorMsg);
             }
         }
         Statement lastStmt = node.statements.get(numArgs - 1);
         node.type = lastStmt.type;
     }
 
-
     @Override
-    public void visitIfStmt(IfStmt node) throws Exception {
+    public void visitIfStmt(IfStmt node) throws SemanticErrorException {
         if (!(node.condition.type instanceof Bool)) {
             String errorMsg = errorstart(node.getLine(), node.getCol()) + "Expected condition is type Bool, but got" +
                     node.condition.type.tostr();
-            throw new Exception(errorMsg);
+            throw new SemanticErrorException(errorMsg);
         } else {
             node.type = new Unit();
         }
     }
 
     @Override
-    public void visitIfElseStmt(IfElseStmt node) throws Exception {
+    public void visitIfElseStmt(IfElseStmt node) throws SemanticErrorException {
         if (!(node.condition.type instanceof Bool)){
             String errorMsg = errorstart(node.getLine(), node.getCol()) + "Expected condition is type Bool, but got" +
                     node.condition.type.tostr();
-            throw new Exception(errorMsg);
+            throw new SemanticErrorException(errorMsg);
         } else {
             node.type = lub(node.ifClause.type, node.elseClause.type);
         }
@@ -477,11 +464,11 @@ public class TypeChecker extends Visitor{
     }
 
     @Override
-    public void visitWhileStmt(WhileStmt node) throws Exception {
+    public void visitWhileStmt(WhileStmt node) throws SemanticErrorException {
         if (!(node.condition.type instanceof Bool)){
             String errorMsg = errorstart(node.getLine(), node.getCol()) + "Expected condition is type Bool, but got" +
                     node.condition.type.tostr();
-            throw new Exception(errorMsg);
+            throw new SemanticErrorException(errorMsg);
         } else {
             node.type = new Unit();
         }
@@ -489,7 +476,7 @@ public class TypeChecker extends Visitor{
 
 
     @Override
-    public void visitRet(ReturnStmt node) throws Exception {
+    public void visitRet(ReturnStmt node) throws SemanticErrorException {
         boolean isvalid =false;
         Sigma retarg = this.env.findTypeofVar("return");
         if(retarg instanceof  Prod){
@@ -515,12 +502,12 @@ public class TypeChecker extends Visitor{
         }else{
             String res= errorstart(node.getLine(), node.getCol());
             res += "invalid return";
-            throw new Exception(res);
+            throw new SemanticErrorException(res);
         }
     }
 
     @Override
-    public void visitAssign(AssignStmt node) throws Exception {
+    public void visitAssign(AssignStmt node) throws SemanticErrorException {
         // TODO:
         //  x = e,
         //  e1[e2] = e2,
@@ -533,7 +520,6 @@ public class TypeChecker extends Visitor{
             checkMultiAssign(node);
         } else if (node.leftVal instanceof VarExpr) {
             Sigma t = this.env.findTypeofVar(((VarExpr) node.leftVal).identifier);
-
             if (t instanceof Var) {
                 if (node.expr.type instanceof Tau) {
                     if (((Var) t).varType.equals((Tau)(node.expr.type))) {
@@ -544,7 +530,7 @@ public class TypeChecker extends Visitor{
             if(node.type == null){
                 String res = errorstart(node.getLine(), node.getCol());
                 res += "Cannot assign " +node.expr.type.tostr() +" to "+  ((ArrIndexExpr) node.leftVal).type.tostr();
-                throw new Exception( res);
+                throw new SemanticErrorException( res);
             }
         } else if (node.leftVal instanceof ArrIndexExpr) {
             if (node.expr.type instanceof Tau) {
@@ -555,14 +541,13 @@ public class TypeChecker extends Visitor{
             if(node.type == null){
                 String res = errorstart(node.getLine(), node.getCol());
                 res += "Cannot assign " +node.expr.type.tostr() +" to "+ ((ArrIndexExpr) node.leftVal).type.tostr();
-                throw new Exception( res);
+                throw new SemanticErrorException( res);
             }
         }
         else{
             String res = errorstart(node.getLine(), node.getCol());
-            throw new Exception(res + "invalid oject to assign to");
+            throw new SemanticErrorException(res + "invalid oject to assign to");
         }
-        // TODO: leave scope here?
     }
 
     @Override
@@ -571,18 +556,16 @@ public class TypeChecker extends Visitor{
     }
 
     /** Type check _ = e */
-    //Todo: we only allow wild car to be assign by a function
-    //yet currently it is unchecked
-    private void checkExprStmt(AssignStmt node) throws Exception{
+    private void checkExprStmt(AssignStmt node) throws SemanticErrorException{
         if (!(node.expr instanceof FunCallExpr)) {
             String pos = errorstart(node.expr.getLine(), node.expr.getCol());
-            throw new Exception(pos + "Expected function call");
+            throw new SemanticErrorException(pos + "Expected function call");
         }
         if (node.expr.type instanceof Tau) {
             node.type = new Unit();
         } else {
             String pos = errorstart(node.expr.getLine(), node.expr.getCol());
-            throw new Exception(pos + "Expected int, bool, or array, got " + node.expr.type.tostr());
+            throw new SemanticErrorException(pos + "Expected int, bool, or array, got " + node.expr.type.tostr());
         }
     }
 
@@ -592,19 +575,20 @@ public class TypeChecker extends Visitor{
      * - contains a list of declarations or wildcards on the left, checked in parsing
      * - a function call on the right, checked in parsing
      */
-    private void checkMultiAssign(AssignStmt node) throws Exception {
+    private void checkMultiAssign(AssignStmt node) throws SemanticErrorException {
         List<LValue> declares = ((LeftValueList) node.leftVal).declares;
         List<Tau> returnTypes = ((Prod) node.expr.type).elementTypes;
         if (declares.size() != returnTypes.size()) {
             String pos = errorstart(node.getLine(), node.getCol());
-            throw new Exception(pos + "Mismatched number of values");
+            throw new SemanticErrorException(pos + "Mismatched number of values");
         }
         // check dom(gamma) does not contains varsOf(d)
         for (LValue decl: declares) {
             // dom contains varsOf(decl)
             if (env.domVar().removeAll(varsOf(decl))) {
                 String pos = errorstart(decl.getLine(), decl.getCol());
-                throw new Exception(pos + "Variable " + ((VarDeclareStmt) decl).identifier + " already declared");
+                throw new SemanticErrorException(pos
+                        + "Variable " + ((VarDeclareStmt) decl).identifier + " already declared");
             }
         }
         // check no two declarations have same var
@@ -614,7 +598,7 @@ public class TypeChecker extends Visitor{
                 intersect.retainAll(varsOf(d2));
                 if (!d1.equals(d2) && !intersect.isEmpty()) {
                     String pos = errorstart(d1.getLine(), d1.getCol());
-                    throw new Exception(pos + "Repeated declarations of variables");
+                    throw new SemanticErrorException(pos + "Repeated declarations of variables");
                 }
             }
         }
@@ -625,12 +609,12 @@ public class TypeChecker extends Visitor{
             if (tau instanceof Array && typesOf(d) instanceof Array) {
                 if (!((Array) tau).compare((Array) typesOf(d))) {
                     String pos = errorstart(d.getLine(), d.getCol());
-                    throw new Exception(pos + "Expected " + typesOf(d).tostr() + " got" + tau.tostr());
+                    throw new SemanticErrorException(pos + "Expected " + typesOf(d).tostr() + " got" + tau.tostr());
                 }
             } else {
                 if (!tau.isSubOf(typesOf(d))) {
                     String pos = errorstart(d.getLine(), d.getCol());
-                    throw new Exception(pos + "Expected " + typesOf(d).tostr() + " got" + tau.tostr());
+                    throw new SemanticErrorException(pos + "Expected " + typesOf(d).tostr() + " got" + tau.tostr());
                 }
             }
         }
@@ -669,10 +653,10 @@ public class TypeChecker extends Visitor{
     }
 
     @Override
-    public void visitVarDecl(VarDeclareStmt node) throws Exception{
+    public void visitVarDecl(VarDeclareStmt node) throws SemanticErrorException{
         if(this.env.containsVar(node.identifier)){
             String res = errorstart(node.getLine(), node.getCol());
-            throw new Exception(res+"variable already declared");
+            throw new SemanticErrorException(res+"variable already declared");
         }
         else if (node.varType instanceof ArrayType) { // check array declaration
             Tau vat = checkArrayDecl((ArrayType) node.varType);
@@ -688,7 +672,7 @@ public class TypeChecker extends Visitor{
      *  - node is an array declaration (check when calling this method in visitVarDecl),
      *  - all dimensions are specified to the left-most (checked at parsing),
      */
-    public Tau checkArrayDecl(ArrayType arrType) throws Exception{
+    public Tau checkArrayDecl(ArrayType arrType) throws SemanticErrorException{
         Type next = arrType;
         // check type
         while (next instanceof ArrayType) {
@@ -699,7 +683,7 @@ public class TypeChecker extends Visitor{
                 T dimType = length.type;
                 if (!(dimType instanceof Int)) {
                     String pos = errorstart(length.getLine(), length.getLine());
-                    throw new Exception(pos + "Expected int, but found " + dimType.tostr());
+                    throw new SemanticErrorException(pos + "Expected int, but found " + dimType.tostr());
                 }
                 next = ((ArrayType) next).elemType;
             }
@@ -710,10 +694,10 @@ public class TypeChecker extends Visitor{
     }
 
     @Override
-    public void visitFunDef(FunctionDefine node) throws Exception{
+    public void visitFunDef(FunctionDefine node) throws SemanticErrorException{
         if (!(node.functionBody.type instanceof Void)) {
             String pos = errorstart(node.functionBody.getLine(), node.functionBody.getCol());
-            throw new Exception(pos + "Expected void, but found " + node.functionBody.type.tostr());
+            throw new SemanticErrorException(pos + "Expected void, but found " + node.functionBody.type.tostr());
         }
     }
 
@@ -723,7 +707,7 @@ public class TypeChecker extends Visitor{
     }
 
     @Override
-    public void visitFunDecl(FunctionDeclare node) throws Exception {
+    public void visitFunDecl(FunctionDeclare node) throws SemanticErrorException {
             T input;
             T output;
             if (node.arguments.size() == 0) {
@@ -752,14 +736,14 @@ public class TypeChecker extends Visitor{
             // check if function id already exist, check for type equivalence
             if (env.containsFun(node.name) && !result.equals(env.findTypeofFun(node.name))) {
                 String pos = errorstart(node.getLine(), node.getCol());
-                throw new Exception(pos + "Function " + node.name + " already exists");
+                throw new SemanticErrorException(pos + "Function " + node.name + " already exists");
             }
             env.addFun(node.name, result);
 
     }
 
     @Override
-    public void visitPrDecl(ProcedureDeclare node) throws Exception {
+    public void visitPrDecl(ProcedureDeclare node) throws SemanticErrorException {
         T input;
         if (node.arguments.size() == 0) {
             input = new Unit();
@@ -776,13 +760,13 @@ public class TypeChecker extends Visitor{
         // if procedure id already exist, check for type equivalence
         if (env.containsFun(node.name) && !result.equals(env.findTypeofFun(node.name))) {
             String pos = errorstart(node.getLine(), node.getCol());
-            throw new Exception(pos + "Function " + node.name + " already exists");
+            throw new SemanticErrorException(pos + "Function " + node.name + " already exists");
         }
         env.addFun(node.name, result);
     }
 
     @Override
-    public void visitGlobDecl(GlobDeclare node) throws Exception {
+    public void visitGlobDecl(GlobDeclare node) throws SemanticErrorException {
         if (node.varType instanceof ArrayType) { // check array declaration
             Tau vart = checkArrayDecl((ArrayType) node.varType);
             if(node.value.type.equals(vart)){
@@ -791,9 +775,9 @@ public class TypeChecker extends Visitor{
             else {
                 String res = errorstart(node.getLine(), node.getCol());
                 res+= "Cannot assign "+ node.value.type.tostr() + " to " + vart.tostr();
-                throw new Exception(res);
+                throw new SemanticErrorException(res);
             }
-        } else if (node.varType instanceof  IntType ||node.varType instanceof  BoolType ){
+        } else if (node.varType instanceof  IntType ||node.varType instanceof BoolType ){
             // is it safe to use else here? Yes, it's var type already
             Tau vart = typeToTau(node.varType);
             if(node.value.type.equals(vart)){
@@ -801,20 +785,20 @@ public class TypeChecker extends Visitor{
             }else{
                 String res = errorstart(node.getLine(), node.getCol());
                 res+= "Cannot assign "+ node.value.type.tostr() + " to " + vart.tostr();
-                throw new Exception(res);
+                throw new SemanticErrorException(res);
             }
         }else{
             String res = errorstart(node.getLine(), node.getCol());
             res+= "Invalid type";
-            throw new Exception(res);
+            throw new SemanticErrorException(res);
         }
     }
 
     @Override
-    public void visitFunProcArgs(FunProcArgs node) throws Exception {
+    public void visitFunProcArgs(FunProcArgs node) throws SemanticErrorException {
         if (this.env.containsVar(node.identifier)){
             String errorMsg = errorstart(node.getLine(), node.getCol()) + node.identifier + "is already defined.";
-            throw new Exception(errorMsg);
+            throw new SemanticErrorException(errorMsg);
         } else {
             env.addVar(node.identifier, new Var(typeToTau(node.argType)));
         }
@@ -837,7 +821,6 @@ public class TypeChecker extends Visitor{
     }
 
     // Helper functions ======================================================================================
-
     /** Build a Tau type from a Type AST node. */
     public Tau typeToTau(Type t) {
         if (t instanceof IntType){
@@ -859,20 +842,4 @@ public class TypeChecker extends Visitor{
     public String errorstart(int line, int colmn){
         return (line + ":" + colmn +" error: " );
     }
-//    private void errrorint (String operands, BinOpExpr node) throws Exception {
-//        if(node.type == null) {
-//            String result = errorstart(node.getLine(), node.getCol());
-//            result += "Operands of " + operands+ " must be int";
-//            throw new Exception(result);
-//        }
-//
-//    }
-//    private void errrorbool (String operands, BinOpExpr node) throws Exception {
-//        if(node.type == null) {
-//            String result = errorstart(node.getLine(), node.getCol());
-//            result += "Operands of " + operands+ " must be bool";
-//            throw new Exception(result);
-//        }
-//    }
-
 }
