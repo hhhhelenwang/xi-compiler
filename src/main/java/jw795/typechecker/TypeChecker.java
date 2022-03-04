@@ -547,7 +547,7 @@ public class TypeChecker extends Visitor{
             }
             if(node.type == null){
                 String res = errorstart(node.getLine(), node.getCol());
-                res += "Cannot assign " +node.expr.type.toStr() +" to "+  ((ArrIndexExpr) node.leftVal).type.toStr();
+                res += "Cannot assign " +node.expr.type.toStr() +" to "+  ((VarExpr) node.leftVal).type.toStr();
                 throw new SemanticErrorException( res);
             }
         } else if (node.leftVal instanceof ArrIndexExpr) {//e1[e2] = e
