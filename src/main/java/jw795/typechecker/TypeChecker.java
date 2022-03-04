@@ -160,7 +160,6 @@ public class TypeChecker extends Visitor{
     public void visitAdd(Add node) throws SemanticErrorException {
         // add allows both int and array as operands
         // if the first operand is an int, treat it as an integer add
-        System.out.println("get to add");
         if (node.expr1.type instanceof Int) {
             setBinOpIntType(node, new Int());
         } else if (node.expr1.type instanceof Array){
@@ -267,7 +266,6 @@ public class TypeChecker extends Visitor{
             T t = node.arrayElements.get(0).type;
             boolean validArray = true;
             for (Expr e: node.arrayElements) {
-                System.out.println("start look into elements");
                 T et = e.type;
                 if (!(et instanceof Tau)) {
                     validArray = false;
@@ -693,8 +691,8 @@ public class TypeChecker extends Visitor{
                     String pos = errorstart(length.getLine(), length.getLine());
                     throw new SemanticErrorException(pos + "Expected int, but found " + dimType.toStr());
                 }
-                next = ((ArrayType) next).elemType;
             }
+            next = ((ArrayType) next).elemType;
         }
         // if typeChecks, build an array type with m + n levels and primitive type = next
         return typeToTau(arrType);
