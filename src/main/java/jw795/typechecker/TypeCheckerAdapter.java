@@ -101,19 +101,19 @@ public class TypeCheckerAdapter {
             printer.flush();
             printer.close();
         } catch (LexicalErrorException e){
-            String errMsg = stdOutError("Lexical", curFile, e.getMessage());
+            String errMsg = stdOutError("Lexical ", curFile, e.getMessage());
             System.out.println(errMsg);
             printer.printAtom(errMsg);
             printer.flush();
             printer.close();
         } catch (SyntacticErrorException e) {
-            String errMsg = stdOutError("Syntax", curFile, e.getMessage());
+            String errMsg = stdOutError("Syntax ", curFile, e.getMessage());
             System.out.println(errMsg);
             printer.printAtom(errMsg);
             printer.flush();
             printer.close();
         } catch (SemanticErrorException e) {
-            String errMsg = stdOutError("Semantic", curFile, e.getMessage());
+            String errMsg = stdOutError("Semantic ", curFile, e.getMessage());
             System.out.println(errMsg);
             printer.printAtom(e.getMessage());
             printer.flush();
@@ -128,7 +128,7 @@ public class TypeCheckerAdapter {
 
     /** Standard output error message. <kind> error beginning at <filename>:<line>:<column>: <description> */
     private String stdOutError(String errorKind, String fileName, String error) {
-        return errorKind + "error beginning at" + fileName + ":" + error;
+        return errorKind + "error beginning at " + fileName + ": " + error;
     }
 
 

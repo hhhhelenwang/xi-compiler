@@ -61,7 +61,16 @@ public class FunctionDefine extends ASTNode implements Definition{
             for (Type retType : returnTypes) {
                 retTauList.add(((TypeChecker) visitor).typeToTau(retType));
             }
-            T returns = new Prod(retTauList);
+
+            // generate corresponding return type to put into symbol table
+            T returns;
+            if (retTauList.size() == 0){
+                returns = new Unit();
+            } else if (retTauList.size() == 1){
+                returns = retTauList.get(0);
+            } else {
+                returns = new Prod(retTauList);
+            }
             Sigma ret = new Ret(returns);
             ((TypeChecker) visitor).env.addVar("return", ret);
         }
