@@ -45,6 +45,9 @@ public class TypeCheckerAdapter {
         // build CodeWriter, default width 80 col
         CodeWriterSExpPrinter printer = new CodeWriterSExpPrinter(pw);
 
+        // Keep track of current file been processed
+        String curFile = fileName;
+
         // parse and type check program and interfaces
         try {
             // parse the program
@@ -63,8 +66,10 @@ public class TypeCheckerAdapter {
                         // check for repeated use of interface
                         if (dependencies.containsKey(use.interfaceName)) {
                             String pos = visitor.errorstart(use.getLine(), use.getCol());
+                            curFile = fileName;
                             throw new SemanticErrorException(pos + "Interface already used");
                         }
+                        curFile = use.interfaceName;
                         String interfaceFileName = libPath + use.interfaceName + ".ixi";
                         Reader interfaceReader = new FileReader(interfaceFileName);
                         Lexwrapper interfaceScanner = new Lexwrapper(interfaceReader, interfaceFileName);
@@ -83,6 +88,7 @@ public class TypeCheckerAdapter {
 
             // check all interfaces and add them to context
             for (Use use : node.uses) {
+                curFile = use.interfaceName;
                 Interface interfaceNode = dependencies.get(use.interfaceName);
                 interfaceNode.accept(visitor); // type check interface using the same visitor
             }
@@ -94,16 +100,21 @@ public class TypeCheckerAdapter {
             printer.flush();
             printer.close();
         } catch (LexicalErrorException e){
-            // TODO: call stdOutError to get the std out message
-            System.out.println(e.getMessage());
+            String errMsg = stdOutError("Lexical", curFile, e.getMessage());
+            System.out.println(errMsg);
+            printer.printAtom(errMsg);
             printer.flush();
             printer.close();
         } catch (SyntacticErrorException e) {
-            // TODO: call stdOutError to get the std out message
+            String errMsg = stdOutError("Syntax", curFile, e.getMessage());
+            System.out.println(errMsg);
+            printer.printAtom(errMsg);
             printer.flush();
             printer.close();
         } catch (SemanticErrorException e) {
-            // TODO: call stdOutError to get the std out message
+            String errMsg = stdOutError("Semantic", curFile, e.getMessage());
+            System.out.println(errMsg);
+            printer.printAtom(errMsg);
             printer.flush();
             printer.close();
         } catch (Exception e) {
@@ -114,11 +125,9 @@ public class TypeCheckerAdapter {
         }
     }
 
-    /** Standard output error message */
+    /** Standard output error message. <kind> error beginning at <filename>:<line>:<column>: <description> */
     private String stdOutError(String errorKind, String fileName, String error) {
-        // TODO: write this method to generate an standard output error message of this form:
-        //  <kind> error beginning at <filename>:<line>:<column>: <description>
-        return "";
+        return errorKind + "error beginning at" + fileName + ":" + error;
     }
 
 
