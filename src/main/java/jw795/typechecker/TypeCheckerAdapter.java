@@ -146,7 +146,7 @@ public class TypeCheckerAdapter {
     }
 
     /** First pass of function definition. */
-    private void funDefFirstPass(FunctionDefine node, TypeChecker visitor) {
+    private void funDefFirstPass(FunctionDefine node, TypeChecker visitor) throws SemanticErrorException {
         if (!visitor.env.containsFun(node.name)){
             T input;
             T output;
@@ -175,43 +175,43 @@ public class TypeCheckerAdapter {
             Fn result = new Fn(input, output);
             visitor.env.addFun(node.name, result);
         } else {
-            // TODO: error
+            throw new SemanticErrorException(visitor.errorstart(node.getLine(), node.getCol())
+                    + "function name " + node.name + " is already used.");
         }
-
     }
 
     /** First pass of procedure definition. */
-    private void procDefFirstPass(ProcedureDefine node, TypeChecker visitor) {
-        // TODO: check if procedure exist
-        T input;
-        if (node.arguments.size() == 0) {
-            input = new Unit();
-        } else if (node.arguments.size() == 1) {
-            input = visitor.typeToTau(node.arguments.get(0).argType);
-        } else {
-            List<Tau> eletype = new ArrayList<>();
-            for (FunProcArgs fp : node.arguments) {
-                eletype.add(visitor.typeToTau(fp.argType));
+    private void procDefFirstPass(ProcedureDefine node, TypeChecker visitor) throws SemanticErrorException {
+        if (!visitor.env.containsFun(node.name)) {
+            T input;
+            if (node.arguments.size() == 0) {
+                input = new Unit();
+            } else if (node.arguments.size() == 1) {
+                input = visitor.typeToTau(node.arguments.get(0).argType);
+            } else {
+                List<Tau> eletype = new ArrayList<>();
+                for (FunProcArgs fp : node.arguments) {
+                    eletype.add(visitor.typeToTau(fp.argType));
+                }
+                input = new Prod(eletype);
             }
-            input = new Prod(eletype);
-        }
 
-        Fn result = new Fn(input, new Unit());
-        visitor.env.addFun(node.name, result);
+            Fn result = new Fn(input, new Unit());
+            visitor.env.addFun(node.name, result);
+        } else {
+            throw new SemanticErrorException(visitor.errorstart(node.getLine(), node.getCol())
+                    + "function name " + node.name + " is already used.");
+        }
     }
 
     /** First pass of procedure definition. */
-    private void globDeclFirstPass(GlobDeclare globDecl, TypeChecker visitor) throws Exception {
+    private void globDeclFirstPass(GlobDeclare globDecl, TypeChecker visitor) throws SemanticErrorException {
         if(visitor.env.containsVar(globDecl.identifier)){
             String res = visitor.errorstart(globDecl.getLine(),globDecl.getCol());
-            res += "variable already been declared";
-            throw new Exception(res);
-        }else{
-            globDecl.value.accept(visitor);
-
+            res += "variable has already been declared";
+            throw new SemanticErrorException(res);
+        } else {
+            visitor.env.addVar(globDecl.identifier, new Var(visitor.typeToTau(globDecl.varType)));
         }
-
-
     }
-
 }
