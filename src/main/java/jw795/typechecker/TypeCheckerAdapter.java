@@ -63,13 +63,7 @@ public class TypeCheckerAdapter {
             HashMap<String, Interface> dependencies = new HashMap<>();
             for (Use use : node.uses) {
                 try {
-                    if (!use.interfaceName.equals("io")) {
-                        // check for repeated use of interface
-                        if (dependencies.containsKey(use.interfaceName)) {
-                            String pos = visitor.errorstart(use.getLine(), use.getCol());
-                            curFile = fileName;
-                            throw new SemanticErrorException(pos + "Interface already used");
-                        }
+                    if (!use.interfaceName.equals("io") && !dependencies.containsKey(use.interfaceName)) {
                         curFile = use.interfaceName;
                         String interfaceFileName = libPath + use.interfaceName + ".ixi";
                         Reader interfaceReader = new FileReader(interfaceFileName);
