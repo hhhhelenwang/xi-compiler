@@ -16,7 +16,7 @@ public class EmptyArray extends Array {
         return true;
     }
 
-    public String tostr(){
-        return "tau"+ "[]";
+    public String toStr(){
+        return "tau" + "[]";
     }
 }
