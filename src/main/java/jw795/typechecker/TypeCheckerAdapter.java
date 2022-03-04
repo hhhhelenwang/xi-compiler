@@ -59,33 +59,25 @@ public class TypeCheckerAdapter {
             // first pass of top level definitions
             programFirstPass(node, visitor);
 
-            // to resolve dependencies, find imported interface files, parse them, and type check them
-            HashMap<String, Interface> dependencies = new HashMap<>();
             for (Use use : node.uses) {
                 try {
-                    if (!use.interfaceName.equals("io") && !dependencies.containsKey(use.interfaceName)) {
+                    if (!use.interfaceName.equals("io")) {
                         curFile = use.interfaceName;
                         String interfaceFileName = libPath + use.interfaceName + ".ixi";
                         Reader interfaceReader = new FileReader(interfaceFileName);
                         Lexwrapper interfaceScanner = new Lexwrapper(interfaceReader, interfaceFileName);
                         parser interfaceParser = new parser(interfaceScanner);
                         Interface interfaceNode = (Interface) interfaceParser.parse().value;
-                        dependencies.put(use.interfaceName, interfaceNode);
+                        interfaceNode.accept(visitor);
                     }
                 } catch (FileNotFoundException e) {
                     curFile = fileName;
                     String pos = visitor.errorstart(use.getLine(), use.getCol());
                     throw new SemanticErrorException(pos + "Interface " + use.interfaceName + " not found");
                 } catch (Exception e) {
+                    System.out.println("inner try catch");
                     throw e; //
                 }
-            }
-
-            // check all interfaces and add them to context
-            for (Use use : node.uses) {
-                curFile = use.interfaceName;
-                Interface interfaceNode = dependencies.get(use.interfaceName);
-                interfaceNode.accept(visitor); // type check interface using the same visitor
             }
 
             // type check the entire program

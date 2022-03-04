@@ -350,7 +350,7 @@ public class TypeChecker extends Visitor{
     }
 
     /** Type check the function call of length(e) function */
-    private void checkLength(FunCallExpr node) throws Exception {
+    private void checkLength(FunCallExpr node) throws SemanticErrorException {
         if (node.arguments.size() != 1) {
             String pos = errorstart(node.getLine(), node.getCol());
             throw new SemanticErrorException(pos + "Mismatched number of arguments");
