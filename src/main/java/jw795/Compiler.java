@@ -18,7 +18,9 @@ import java.util.List;
  */
 public class Compiler {
     CommandLine cmd;
-    String path = ".";
+    String destPath = ".";
+    String sourcePath = ".";
+    String libPath = ".";
     List<String> files = new ArrayList<>();
     Options options;
 
@@ -34,8 +36,8 @@ public class Compiler {
         options.addOption("D", "destination", true, "set path for diagnostic files");
         options.addOption("parse", "parse", false, "generate output from syntactic analysis");
         options.addOption("typechecck", "typecheck", false, "generate output from semantic analysis");
-        options.addOption("sourcepath", "sourcepath", true, "Specify where to find input source files");
-        options.addOption("libpath", "libpath", true, "Specify where to find library interface files");
+        options.addOption("sourcepath", "sourcepath", true, "specify where to find input source files");
+        options.addOption("libpath", "libpath", true, "specify where to find library interface files");
 
         CommandLineParser parser = new DefaultParser();
         cmd = parser.parse(options, args);
@@ -59,9 +61,13 @@ public class Compiler {
     /**
      * Set the path to place the diagnostic files
      */
-    public void setDestPath() {
+    public void setPaths() {
         if (cmd.hasOption("D")) {
-            this.path = cmd.getOptionValue("D");
+            this.destPath = cmd.getOptionValue("D");
+        } else if (cmd.hasOption("sourcepath")) {
+            this.sourcePath = cmd.getOptionValue("sourcepath");
+        } else if (cmd.hasOption("libpath")) {
+            this.libPath = cmd.getOptionValue("libpath");
         }
     }
 
@@ -73,7 +79,7 @@ public class Compiler {
         try {
             // Generate token file
             Reader reader = new FileReader(fileName);
-            LexerAdapter lexerAdapt = new LexerAdapter(reader, fileName, path);
+            LexerAdapter lexerAdapt = new LexerAdapter(reader, fileName, destPath);
             lexerAdapt.generateTokens();
         } catch (FileNotFoundException e) {
             System.out.println(fileName + ": " + " " + "File not found.");
@@ -113,30 +119,30 @@ public class Compiler {
         try {
             // Generate token file
             Reader reader = new FileReader(fileName);
-            ParserAdapter parserAdapt = new ParserAdapter(reader, fileName, path);
+            ParserAdapter parserAdapt = new ParserAdapter(reader, fileName, destPath);
             parserAdapt.generateAST();
         } catch (FileNotFoundException e) {
             System.out.println(fileName + ": " + " " + "File not found.");
         }
     }
 
-    public void typecheck(){
+    public void typeCheck(){
         if (cmd.hasOption("typecheck")) {
             files = cmd.getArgList();
             for (String file : files) {
                 System.out.println(file);
                 if (file.endsWith(".xi")) {
-                    System.out.println(file);
-                    typecheckFile(file);
+                    System.out.println(sourcePath + file);
+                    typeCheckFile(sourcePath + file);
                 }
             }
         }
     }
-    public void typecheckFile(String fileName) {
+    public void typeCheckFile(String fileName) {
         try {
             // Generate token file
             Reader reader = new FileReader(fileName);
-            TypeCheckerAdapter typeAdapt = new TypeCheckerAdapter(reader, fileName, path);
+            TypeCheckerAdapter typeAdapt = new TypeCheckerAdapter(reader, fileName, destPath, libPath);
             typeAdapt.gentypecheck();
         } catch (FileNotFoundException e) {
             System.out.println(fileName + ": " + " " + "File not found.");
@@ -152,9 +158,9 @@ public class Compiler {
         }
         System.out.println("Started");
         compiler.help();
-        compiler.setDestPath();
+        compiler.setPaths();
         compiler.lex();
         compiler.parse();
-        compiler.typecheck();
+        compiler.typeCheck();
     }
 }

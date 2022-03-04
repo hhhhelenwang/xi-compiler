@@ -1,15 +1,14 @@
 package jw795.typechecker;
 import jw795.lexer.Lexwrapper;
 import jw795.parser.parser;
-import jw795.typechecker.TypeChecker;
 import jw795.ast.*;
 import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
-import util.edu.cornell.cs.cs4120.util.FileUtil;
-import util.edu.cornell.cs.cs4120.util.LexicalErrorException;
-import util.edu.cornell.cs.cs4120.util.SyntacticErrorException;
+import util.FileUtil;
+import util.LexicalErrorException;
+import util.SyntacticErrorException;
+import util.SemanticErrorException;
 import util.polyglot.util.CodeWriter;
 
-import javax.sound.midi.SysexMessage;
 import java.io.*;
 import java.util.*;
 
@@ -18,20 +17,24 @@ public class TypeCheckerAdapter {
     parser cup_parser;
     Lexwrapper scanner;
     CodeWriter writer;
-    String parsedPath; // the path to put the parsed file in
-    String fileName;
+    String destPath; // the path to put the typed file in
+    String libPath; // path to find the interface files in
+    String fileName; // already contains source dir + file name
 
-    public TypeCheckerAdapter(Reader reader, String name, String path){
+    public TypeCheckerAdapter(Reader reader, String name, String dest, String lib){
+        // paths and files
+        this.destPath = dest;
+        this.libPath = lib;
+        this.fileName = name;
+        // build parser
         this.scanner = new Lexwrapper(reader, name);
         this.cup_parser = new parser(scanner);
-        this.fileName = name;
-        this.parsedPath = path;
 
     }
 
     public void gentypecheck(){
         //generate the target .parsed file
-        File targetParsed = FileUtil.generateTargetFile(fileName, parsedPath, "typed");
+        File targetParsed = FileUtil.generateTargetFile(fileName, destPath, "typed");
         PrintWriter pw = null;
         try {
             pw = new PrintWriter(targetParsed);
@@ -56,13 +59,13 @@ public class TypeCheckerAdapter {
             HashMap<String, Interface> dependencies = new HashMap<>();
             for (Use use : node.uses) {
                 try {
-                    if (use.interfaceName != "io") {
+                    if (!use.interfaceName.equals("io")) {
                         // check for repeated use of interface
                         if (dependencies.containsKey(use.interfaceName)) {
                             String pos = visitor.errorstart(use.getLine(), use.getCol());
                             throw new Exception(pos + "Interface already used");
                         }
-                        String interfaceFileName = use.interfaceName + ".ixi";
+                        String interfaceFileName = libPath + use.interfaceName + ".ixi";
                         Reader interfaceReader = new FileReader(interfaceFileName);
                         Lexwrapper interfaceScanner = new Lexwrapper(interfaceReader, interfaceFileName);
                         parser interfaceParser = new parser(interfaceScanner);
@@ -90,15 +93,32 @@ public class TypeCheckerAdapter {
             printer.printAtom("Valid Xi Program");
             printer.flush();
             printer.close();
-        } catch (LexicalErrorException | SyntacticErrorException e){
+        } catch (LexicalErrorException e){
+            // TODO: call stdOutError to get the std out message
             System.out.println(e.getMessage());
             printer.flush();
             printer.close();
+        } catch (SyntacticErrorException e) {
+            // TODO: call stdOutError to get the std out message
+            printer.flush();
+            printer.close();
+        } catch (SemanticErrorException e) {
+            // TODO: call stdOutError to get the std out message
+            printer.flush();
+            printer.close();
         } catch (Exception e) {
+            // no idea what error so just report
             printer.printAtom(e.getMessage());
             printer.flush();
             printer.close();
         }
+    }
+
+    /** Standard output error message */
+    private String stdOutError(String errorKind, String fileName, String error) {
+        // TODO: write this method to generate an standard output error message of this form:
+        //  <kind> error beginning at <filename>:<line>:<column>: <description>
+        return "";
     }
 
 
