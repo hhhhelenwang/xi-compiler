@@ -76,7 +76,9 @@ public class FunctionDefine extends ASTNode implements Definition{
         }
 
         functionBody.accept(visitor);
-        visitor.visitFunDef(this);
         visitor.leaveScope();
+
+        visitor.visitFunDef(this);
+
     }
 }
