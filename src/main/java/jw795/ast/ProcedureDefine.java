@@ -43,7 +43,8 @@ public class ProcedureDefine extends ASTNode implements Definition{
             arg.accept(visitor);
         }
         procBody.accept(visitor);
-        visitor.visitPrDef(this);
         visitor.leaveScope();
+
+        visitor.visitPrDef(this);
     }
 }

@@ -29,9 +29,11 @@ public class IfStmt extends Statement {
     @Override
     public void accept(Visitor visitor) throws Exception {
         condition.accept(visitor);
+
         visitor.enterScope();
         clause.accept(visitor);
-        visitor.visitIfStmt(this);
         visitor.leaveScope();
+
+        visitor.visitIfStmt(this);
     }
 }
