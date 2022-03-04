@@ -49,7 +49,7 @@ public class TypeChecker extends Visitor{
     @Override
     public void visitVar(VarExpr node) throws SemanticErrorException {
         if (env.containsVar(node.identifier)) {
-            node.type = (T) env.findTypeofVar(node.identifier);
+            node.type = ((Var) env.findTypeofVar(node.identifier)).varType;
         }
         else {
             String res = errorstart(node.getLine(), node.getCol());
@@ -350,7 +350,7 @@ public class TypeChecker extends Visitor{
     }
 
     /** Type check the function call of length(e) function */
-    private void checkLength(FunCallExpr node) throws Exception {
+    private void checkLength(FunCallExpr node) throws SemanticErrorException {
         if (node.arguments.size() != 1) {
             String pos = errorstart(node.getLine(), node.getCol());
             throw new SemanticErrorException(pos + "Mismatched number of arguments");
@@ -428,8 +428,12 @@ public class TypeChecker extends Visitor{
                 throw new SemanticErrorException(errorMsg);
             }
         }
-        Statement lastStmt = node.statements.get(numArgs - 1);
-        node.type = lastStmt.type;
+        if(numArgs == 0){
+            node.type = new Unit();
+        }else{
+            Statement lastStmt = node.statements.get(numArgs - 1);
+            node.type = lastStmt.type;
+        }
     }
 
     @Override
@@ -515,11 +519,11 @@ public class TypeChecker extends Visitor{
         //  x:tau = e,
         //  _ = e -> done
         //  d1...dn = e
-        if (node.leftVal instanceof WildCard) {
+        if (node.leftVal instanceof WildCard) {//_ = e
             checkExprStmt(node);
-        } else if (node.leftVal instanceof LeftValueList) {
+        } else if (node.leftVal instanceof LeftValueList) {// d1..dn = e
             checkMultiAssign(node);
-        } else if (node.leftVal instanceof VarExpr) {
+        } else if (node.leftVal instanceof VarExpr) {//x = e
             Sigma t = this.env.findTypeofVar(((VarExpr) node.leftVal).identifier);
             if (t instanceof Var) {
                 if (node.expr.type instanceof Tau) {
@@ -533,7 +537,7 @@ public class TypeChecker extends Visitor{
                 res += "Cannot assign " +node.expr.type.tostr() +" to "+  ((ArrIndexExpr) node.leftVal).type.tostr();
                 throw new SemanticErrorException( res);
             }
-        } else if (node.leftVal instanceof ArrIndexExpr) {
+        } else if (node.leftVal instanceof ArrIndexExpr) {//e1[e2] = e
             if (node.expr.type instanceof Tau) {
                 if (((ArrIndexExpr) node.leftVal).type.equals(node.expr.type)) {
                     node.type = new Unit();
@@ -542,6 +546,15 @@ public class TypeChecker extends Visitor{
             if(node.type == null){
                 String res = errorstart(node.getLine(), node.getCol());
                 res += "Cannot assign " +node.expr.type.tostr() +" to "+ ((ArrIndexExpr) node.leftVal).type.tostr();
+                throw new SemanticErrorException( res);
+            }
+        }else if(node.leftVal instanceof VarDeclareStmt){ //x:tau = e
+            Tau lefttype = typeToTau(((VarDeclareStmt) node.leftVal).varType);
+            if(((Tau)node.expr.type).equals(lefttype)){
+                node.type = new Unit();
+            }else{
+                String res = errorstart(node.getLine(), node.getCol());
+                res += "Cannot assign " +node.expr.type.tostr() +" to "+ lefttype.tostr();
                 throw new SemanticErrorException( res);
             }
         }
@@ -852,6 +865,6 @@ public class TypeChecker extends Visitor{
     }
 
     public String errorstart(int line, int colmn){
-        return (line + ":" + colmn +" error: " );
+        return ((line+1) + ":" + (colmn+1) +" error:" );
     }
 }

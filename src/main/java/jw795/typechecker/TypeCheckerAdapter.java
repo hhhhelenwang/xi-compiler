@@ -59,39 +59,25 @@ public class TypeCheckerAdapter {
             // first pass of top level definitions
             programFirstPass(node, visitor);
 
-            // to resolve dependencies, find imported interface files, parse them, and type check them
-            HashMap<String, Interface> dependencies = new HashMap<>();
             for (Use use : node.uses) {
                 try {
                     if (!use.interfaceName.equals("io")) {
-                        // check for repeated use of interface
-                        if (dependencies.containsKey(use.interfaceName)) {
-                            String pos = visitor.errorstart(use.getLine(), use.getCol());
-                            curFile = fileName;
-                            throw new SemanticErrorException(pos + "Interface already used");
-                        }
                         curFile = use.interfaceName;
                         String interfaceFileName = libPath + use.interfaceName + ".ixi";
                         Reader interfaceReader = new FileReader(interfaceFileName);
                         Lexwrapper interfaceScanner = new Lexwrapper(interfaceReader, interfaceFileName);
                         parser interfaceParser = new parser(interfaceScanner);
                         Interface interfaceNode = (Interface) interfaceParser.parse().value;
-                        dependencies.put(use.interfaceName, interfaceNode);
+                        interfaceNode.accept(visitor);
                     }
                 } catch (FileNotFoundException e) {
+                    curFile = fileName;
                     String pos = visitor.errorstart(use.getLine(), use.getCol());
-                    throw new Exception(pos + "Interface " + use.interfaceName + " not found");
-                } catch (SemanticErrorException e) {
-                    // interface used twice
-                    throw e;
+                    throw new SemanticErrorException(pos + "Interface " + use.interfaceName + " not found");
+                } catch (Exception e) {
+                    System.out.println("inner try catch");
+                    throw e; //
                 }
-            }
-
-            // check all interfaces and add them to context
-            for (Use use : node.uses) {
-                curFile = use.interfaceName;
-                Interface interfaceNode = dependencies.get(use.interfaceName);
-                interfaceNode.accept(visitor); // type check interface using the same visitor
             }
 
             // type check the entire program
@@ -119,8 +105,8 @@ public class TypeCheckerAdapter {
             printer.flush();
             printer.close();
         } catch (Exception e) {
-            // no idea what error so just report
-            printer.printAtom(e.getMessage());
+            System.out.println("Unknown error while type checking " + fileName);
+            printer.printAtom("Unknown error");
             printer.flush();
             printer.close();
         }
@@ -128,12 +114,12 @@ public class TypeCheckerAdapter {
 
     /** Standard output error message. <kind> error beginning at <filename>:<line>:<column>: <description> */
     private String stdOutError(String errorKind, String fileName, String error) {
-        return errorKind + "error beginning at " + fileName + ": " + error;
+        return errorKind + " error beginning at" + fileName + ":" + error;
     }
 
 
     /** The first pass of type checking global definitions in a program. */
-    public void programFirstPass(Program node, TypeChecker visitor) throws Exception {
+    public void programFirstPass(Program node, TypeChecker visitor) throws SemanticErrorException {
         for (Definition def : node.definitions) {
             if (def instanceof FunctionDefine) {
                 funDefFirstPass((FunctionDefine) def, visitor);
