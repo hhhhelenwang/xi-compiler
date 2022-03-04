@@ -4,7 +4,12 @@ public class Tau implements T{
 
     public boolean equals (Tau type) {
         if (!(this instanceof Array)) {
-            return this.getClass() == type.getClass();  // first type is not an array
+
+            if ((this instanceof Int && type instanceof Int) || (this instanceof Bool && type instanceof Bool)){
+                return true;
+            } else {
+                return false;
+            }
         } else {
             if (!(type instanceof Array)) {
                 return false;   // first type is an array, second type is not an array

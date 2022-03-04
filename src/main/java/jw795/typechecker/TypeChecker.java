@@ -360,7 +360,7 @@ public class TypeChecker extends Visitor{
     }
 
     /** Type check the function call of length(e) function */
-    private void checkLength(FunCallExpr node) throws Exception {
+    private void checkLength(FunCallExpr node) throws SemanticErrorException {
         if (node.arguments.size() != 1) {
             String pos = errorstart(node.getLine(), node.getCol());
             throw new SemanticErrorException(pos + "Mismatched number of arguments");
@@ -492,12 +492,13 @@ public class TypeChecker extends Visitor{
     @Override
     public void visitRet(ReturnStmt node) throws SemanticErrorException {
         boolean isvalid =false;
-        Sigma retarg = this.env.findTypeofVar("return");
-        if(retarg instanceof  Prod){
+        T retarg = ((Ret)this.env.findTypeofVar("return")).retType; // variable with id return can only be type Ret
+
+        if(retarg instanceof Prod){
             isvalid = true;
             if (((Prod) retarg).elementTypes.size() == node.returnVals.size() ){
                 for (int i =0; i < node.returnVals.size(); i++){
-                    if(! ((Prod) retarg).elementTypes.get(i).equals(node.returnVals.get(i))){
+                    if(! ((Prod) retarg).elementTypes.get(i).equals((Tau) node.returnVals.get(i).type)){
                         isvalid = false;
                     }
                 }
@@ -507,7 +508,7 @@ public class TypeChecker extends Visitor{
                 isvalid = true;
             }
         }else if(retarg instanceof Tau){
-            if (node.returnVals.size() ==1 & ((Tau) retarg).equals(node.returnVals.get(0))){
+            if (node.returnVals.size() == 1 && ((Tau)retarg).equals((Tau)node.returnVals.get(0).type)){
                 isvalid = true;
             }
         }
