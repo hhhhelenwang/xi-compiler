@@ -73,6 +73,12 @@ public class TypeChecker extends Visitor{
     private void setBinOpIntType(BinOpExpr node) throws SemanticErrorException{
         if ((node.expr1.type instanceof Int) && (node.expr2.type instanceof Int)) {
             node.type = new Int();
+        } else if (!(node.expr1.type instanceof Int)) {
+            String pos = errorstart(node.expr1.getLine(), node.expr1.getCol());
+            throw new SemanticErrorException(pos + "Expected int, but found " + node.expr1.type.tostr());
+        } else {
+            String pos = errorstart(node.expr2.getLine(), node.expr2.getCol());
+            throw new SemanticErrorException(pos + "Expected int, but found " + node.expr1.type.tostr());
         }
     }
 
@@ -80,6 +86,12 @@ public class TypeChecker extends Visitor{
     private void setBinOpBoolType(BinOpExpr node) throws SemanticErrorException {
         if ((node.expr1.type instanceof Bool) && (node.expr2.type instanceof Bool)) {
             node.type = new Bool();
+        } else if (!(node.expr1.type instanceof Bool)) {
+            String pos = errorstart(node.expr1.getLine(), node.expr1.getCol());
+            throw new SemanticErrorException(pos + "Expected bool, but found " + node.expr1.type.tostr());
+        } else {
+            String pos = errorstart(node.expr2.getLine(), node.expr2.getCol());
+            throw new SemanticErrorException(pos + "Expected bool, but found " + node.expr1.type.tostr());
         }
     }
 
@@ -97,35 +109,51 @@ public class TypeChecker extends Visitor{
     /** Helper to check the type of two array expressions are equal when they are compared.
      * If true, set node to bool type. */
     private void setArrayCompareType(BinOpExpr node) {
-        if (node.expr1.type instanceof Array && node.expr2.type instanceof Array) {
-//            // t1 <= t2
-//            if (((Array) node.expr1.type).compare((Array) node.expr2.type)) {
-//                node.type = node.expr2.type;
-//            } else {
-//
-//            }
-            if (((Array) node.expr1.type).equals(node.expr2.type)) {
 
-            }
-        }
     }
 
     /** Helper to check the type of two array expressions are equal when they are concatenated.
      * If true, set node to the more restrictive array type between the two. */
-    private void setArrayConcateType(BinOpExpr node) {
-
+    private void setArrayConcateType(BinOpExpr node) throws SemanticErrorException {
+        // if the operand 2 is not an array then no
+        if (!(node.expr2.type instanceof Array)) {
+            String pos = errorstart(node.expr2.getLine(), node.expr2.getCol());
+            throw new SemanticErrorException(pos
+                    + "Expected " + node.expr1.type.tostr()
+                    + ", but found " + node.expr2.type.tostr());
+        }
+        // now that they are both arrays
+        if (((Array) node.expr1.type).compare((Array) node.expr2.type)) {
+            // t1 <= t2 so assign t2
+            node.type = node.expr2.type;
+        } else if (((Array) node.expr2.type).compare((Array) node.expr1.type)) {
+            // t2 <= t1
+            node.type = node.expr1.type;
+        } else {
+            // t1 != t2
+            String pos = errorstart(node.expr2.getLine(), node.expr2.getCol());
+            throw new SemanticErrorException(pos
+                    + "Expected " + node.expr1.type.tostr()
+                    + ", but found " + node.expr2.type.tostr());
+        }
     }
 
     @Override
     public void visitAdd(Add node) throws SemanticErrorException {
-        setBinOpIntType(node);
-        setArrayBoolType(node);
-
-        if(node.type == null) {
-            String result = errorstart(node.getLine(), node.getCol());
-            result += "Operand of + must be same type of tau";
-            throw new SemanticErrorException(result);
+        // add allows both int and array as operands
+        // if the first operand is an int, treat it as an integer add
+        if (node.expr1.type instanceof Int) {
+            setBinOpIntType(node);
+        } else if (node.expr1.type instanceof Array){
+            // if the first operand is an array, check for array concatenation
+            setArrayConcateType(node);
+        } else {
+            // definitely cannot add on operand 1 now so report!
+            String pos = errorstart(node.expr1.getLine(), node.expr1.getCol());
+            String err = pos + "Operand of + must be int or array";
+            throw new SemanticErrorException(err);
         }
+
     }
 
     @Override
