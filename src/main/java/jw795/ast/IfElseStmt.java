@@ -32,10 +32,15 @@ public class IfElseStmt extends Statement {
     @Override
     public void accept(Visitor visitor) throws Exception {
         condition.accept(visitor);
+
         visitor.enterScope();
         ifClause.accept(visitor);
-        elseClause.accept(visitor);
-        visitor.visitIfElseStmt(this);
         visitor.leaveScope();
+
+        visitor.enterScope();
+        elseClause.accept(visitor);
+        visitor.leaveScope();
+
+        visitor.visitIfElseStmt(this);
     }
 }
