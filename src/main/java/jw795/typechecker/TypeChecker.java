@@ -70,9 +70,9 @@ public class TypeChecker extends Visitor{
     }
 
     /** helper to check the type of the subexpressions of algebraic and int comparison binop */
-    private void setBinOpIntType(BinOpExpr node) throws SemanticErrorException{
+    private void setBinOpIntType(BinOpExpr node, Tau type) throws SemanticErrorException{
         if ((node.expr1.type instanceof Int) && (node.expr2.type instanceof Int)) {
-            node.type = new Int();
+            node.type = type;
         } else if (!(node.expr1.type instanceof Int)) {
             String pos = errorstart(node.expr1.getLine(), node.expr1.getCol());
             throw new SemanticErrorException(pos + "Expected int, but found " + node.expr1.type.tostr());
@@ -108,7 +108,25 @@ public class TypeChecker extends Visitor{
 
     /** Helper to check the type of two array expressions are equal when they are compared.
      * If true, set node to bool type. */
-    private void setArrayCompareType(BinOpExpr node) {
+    private void setArrayCompareType(BinOpExpr node) throws SemanticErrorException {
+        if (!(node.expr2.type instanceof Array)) {
+            String pos = errorstart(node.expr2.getLine(), node.expr2.getCol());
+            throw new SemanticErrorException(pos
+                    + "Expected " + node.expr1.type.tostr()
+                    + ", but found " + node.expr2.type.tostr());
+        }
+
+        if (((Array) node.expr1.type).compare((Array) node.expr2.type)
+                || ((Array) node.expr2.type).compare((Array) node.expr1.type)) {
+            // t1 <= t2 or t2 <= t1 so they can be compared
+            node.type = new Bool();
+        } else {
+            // t1 != t2
+            String pos = errorstart(node.expr2.getLine(), node.expr2.getCol());
+            throw new SemanticErrorException(pos
+                    + "Expected " + node.expr1.type.tostr()
+                    + ", but found " + node.expr2.type.tostr());
+        }
 
     }
 
@@ -143,7 +161,7 @@ public class TypeChecker extends Visitor{
         // add allows both int and array as operands
         // if the first operand is an int, treat it as an integer add
         if (node.expr1.type instanceof Int) {
-            setBinOpIntType(node);
+            setBinOpIntType(node, new Int());
         } else if (node.expr1.type instanceof Array){
             // if the first operand is an array, check for array concatenation
             setArrayConcateType(node);
@@ -157,97 +175,88 @@ public class TypeChecker extends Visitor{
     }
 
     @Override
-    public void visitSub(Sub node) throws Exception {
-        setBinOpIntType(node);
-        errrorint("-", node);
+    public void visitSub(Sub node) throws SemanticErrorException {
+        setBinOpIntType(node, new Int());
     }
 
     @Override
-    public void visitMult(Mult node) throws Exception {
-        setBinOpIntType(node);
-        errrorint("*", node);
+    public void visitMult(Mult node) throws SemanticErrorException {
+        setBinOpIntType(node, new Int());
     }
 
     @Override
-    public void visitHighMult(HighMult node) throws Exception {
-        setBinOpIntType(node);
-        errrorint("*>>", node);
+    public void visitHighMult(HighMult node) throws SemanticErrorException {
+        setBinOpIntType(node, new Int());
     }
 
     @Override
-    public void visitDiv(Div node) throws Exception {
-        setBinOpIntType(node);
-        errrorint("//", node);
+    public void visitDiv(Div node) throws SemanticErrorException {
+        setBinOpIntType(node, new Int());
     }
 
     @Override
-    public void visitMod(Mod node) throws Exception {
-        setBinOpIntType(node);
-        errrorint("%", node);
+    public void visitMod(Mod node) throws SemanticErrorException {
+        setBinOpIntType(node, new Int());
     }
 
     @Override
-    public void visitAnd(And node) throws Exception {
+    public void visitAnd(And node) throws SemanticErrorException {
         setBinOpBoolType(node);
-        errrorbool("&", node);
     }
 
     @Override
-    public void visitOr(Or node) throws Exception {
+    public void visitOr(Or node) throws SemanticErrorException {
         setBinOpBoolType(node);
-        errrorbool("|", node);
     }
 
-    @Override
-    public void visitEqual(Equal node) throws Exception {
-        setBinOpIntType(node);
-        setBinOpBoolType(node);
-        setArrayBoolType(node);
-
-        if(node.type == null) {
-            String result = errorstart(node.getLine(), node.getCol());
-            result += "Operands of = must be same type of tau";
-            throw new Exception(result);
-        }
-
-    }
-
-    @Override
-    public void visitNotEqual(NotEqual node) throws Exception {
-        setBinOpIntType(node);
-        setBinOpBoolType(node);
-        setArrayBoolType(node);
-
-        if(node.type == null) {
-            String result = errorstart(node.getLine(), node.getCol());
-            result += "Operands of != must be same type of tau";
-            throw new Exception(result);
+    /** */
+    private void checkEqCompareBinop(BinOpExpr node) throws SemanticErrorException {
+        // eq/neq allows int, bool, and array as operands
+        // if the first operand is an int, treat it as an integer comparison
+        if (node.expr1.type instanceof Int) {
+            setBinOpIntType(node, new Int());
+        } else if (node.expr1.type instanceof Bool){
+            // if the first operand is a bool, check for boolean comparison
+            setBinOpBoolType(node);
+        } else if (node.expr1.type instanceof Array){
+            // if the first operand is an array, check for array concatenation
+            setArrayCompareType(node);
+        } else {
+            // definitely cannot add on operand 1 now so report!
+            String pos = errorstart(node.expr1.getLine(), node.expr1.getCol());
+            String err = pos + "Operand of == must be int, bool, or array";
+            throw new SemanticErrorException(err);
         }
     }
 
     @Override
-    public void visitLessThan(LessThan node) throws Exception {
-        setBinOpIntType(node);
-        errrorint("<", node);
-
+    public void visitEqual(Equal node) throws SemanticErrorException {
+        checkEqCompareBinop(node);
     }
 
     @Override
-    public void visitLessEq(LessEq node) throws Exception {
-        setBinOpIntType(node);
-        errrorint("<=", node);
+    public void visitNotEqual(NotEqual node) throws SemanticErrorException {
+        checkEqCompareBinop(node);
     }
 
     @Override
-    public void visitGreaterThan(GreaterThan node) throws Exception {
-        setBinOpIntType(node);
-        errrorint(">", node);
+    public void visitLessThan(LessThan node) throws SemanticErrorException {
+        setBinOpIntType(node, new Bool());
     }
 
     @Override
-    public void visitGreaterEq(GreaterEq node) throws Exception {
-        setBinOpIntType(node);
-        errrorint(">=", node);
+    public void visitLessEq(LessEq node) throws SemanticErrorException {
+        setBinOpIntType(node, new Bool());
+    }
+
+    @Override
+    public void visitGreaterThan(GreaterThan node) throws SemanticErrorException {
+        setBinOpIntType(node, new Bool());
+    }
+
+    @Override
+    public void visitGreaterEq(GreaterEq node) throws SemanticErrorException {
+        setBinOpIntType(node, new Bool());
     }
 
     @Override
@@ -850,20 +859,20 @@ public class TypeChecker extends Visitor{
     public String errorstart(int line, int colmn){
         return (line + ":" + colmn +" error: " );
     }
-    private void errrorint (String operands, BinOpExpr node) throws Exception {
-        if(node.type == null) {
-            String result = errorstart(node.getLine(), node.getCol());
-            result += "Operands of " + operands+ " must be int";
-            throw new Exception(result);
-        }
-
-    }
-    private void errrorbool (String operands, BinOpExpr node) throws Exception {
-        if(node.type == null) {
-            String result = errorstart(node.getLine(), node.getCol());
-            result += "Operands of " + operands+ " must be bool";
-            throw new Exception(result);
-        }
-    }
+//    private void errrorint (String operands, BinOpExpr node) throws Exception {
+//        if(node.type == null) {
+//            String result = errorstart(node.getLine(), node.getCol());
+//            result += "Operands of " + operands+ " must be int";
+//            throw new Exception(result);
+//        }
+//
+//    }
+//    private void errrorbool (String operands, BinOpExpr node) throws Exception {
+//        if(node.type == null) {
+//            String result = errorstart(node.getLine(), node.getCol());
+//            result += "Operands of " + operands+ " must be bool";
+//            throw new Exception(result);
+//        }
+//    }
 
 }
