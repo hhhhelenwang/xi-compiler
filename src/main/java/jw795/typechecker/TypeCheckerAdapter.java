@@ -105,9 +105,10 @@ public class TypeCheckerAdapter {
                 targetWriter.write("Unknown error");
                 targetWriter.write("\n");
                 targetWriter.close();
+                e.printStackTrace();
             }
         } catch (Exception e) {
-            System.out.println(" printer file not found");
+            System.out.println("Compiler error: target file not found");
         }
     }
 
