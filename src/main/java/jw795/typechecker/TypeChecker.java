@@ -570,7 +570,7 @@ public class TypeChecker extends Visitor{
         }
         else{
             String res = errorstart(node.getLine(), node.getCol());
-            throw new SemanticErrorException(res + "invalid oject to assign to");
+            throw new SemanticErrorException(res + "invalid object to assign to");
         }
     }
 
@@ -721,7 +721,7 @@ public class TypeChecker extends Visitor{
     public void visitFunDef(FunctionDefine node) throws SemanticErrorException{
         if (!(node.functionBody.type instanceof Void)) {
             String pos = errorstart(node.functionBody.getLine(), node.functionBody.getCol());
-            throw new SemanticErrorException(pos + "Expected void, but found " + node.functionBody.type.tostr());
+            throw new SemanticErrorException(pos + "Missing return statement");
         }
     }
 
