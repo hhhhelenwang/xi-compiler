@@ -549,7 +549,7 @@ public class TypeChecker extends Visitor{
             }
         } else if (node.leftVal instanceof ArrIndexExpr) {//e1[e2] = e
             if (node.expr.type instanceof Tau) {
-                if (((ArrIndexExpr) node.leftVal).type.equals(node.expr.type)) {
+                if (((Tau)((ArrIndexExpr) node.leftVal).type).equals((Tau)node.expr.type)) {
                     node.type = new Unit();
                 }
             }
