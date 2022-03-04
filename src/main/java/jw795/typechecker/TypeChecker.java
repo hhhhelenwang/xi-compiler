@@ -69,16 +69,10 @@ public class TypeChecker extends Visitor{
         }
     }
 
-    /** helper to check the type of the subexpressions of algebraic and comparison binop */
+    /** helper to check the type of the subexpressions of algebraic and int comparison binop */
     private void setBinOpIntType(BinOpExpr node) throws SemanticErrorException{
         if ((node.expr1.type instanceof Int) && (node.expr2.type instanceof Int)) {
             node.type = new Int();
-        } else if (!(node.expr1.type instanceof Int)) {
-            String pos = errorstart(node.expr1.getLine(), node.expr1.getCol());
-            throw new SemanticErrorException(pos + "Expected int, but found " + node.expr1.type.tostr());
-        } else {
-            String pos = errorstart(node.expr2.getLine(), node.expr2.getCol());
-            throw new SemanticErrorException(pos + "Expected int, but found " + node.expr1.type.tostr());
         }
     }
 
@@ -86,24 +80,40 @@ public class TypeChecker extends Visitor{
     private void setBinOpBoolType(BinOpExpr node) throws SemanticErrorException {
         if ((node.expr1.type instanceof Bool) && (node.expr2.type instanceof Bool)) {
             node.type = new Bool();
-        } else if (!(node.expr1.type instanceof Bool)) {
-            String pos = errorstart(node.expr1.getLine(), node.expr1.getCol());
-            throw new SemanticErrorException(pos + "Expected bool, but found " + node.expr1.type.tostr());
-        } else {
-            String pos = errorstart(node.expr2.getLine(), node.expr2.getCol());
-            throw new SemanticErrorException(pos + "Expected bool, but found " + node.expr1.type.tostr());
         }
     }
 
     /** Helper to check if both expressions have the same type when being compared. */
     private void setArrayBoolType(BinOpExpr node){
-        if(node.expr1.type instanceof  Tau){
-            if(node.expr2.type instanceof  Tau) {
+        if(node.expr1.type instanceof Tau){
+            if(node.expr2.type instanceof Tau) {
                 if (((Tau) node.expr1.type).equals((Tau) node.expr2.type)) {
                     node.type = new Bool();
                 }
             }
         }
+    }
+
+    /** Helper to check the type of two array expressions are equal when they are compared.
+     * If true, set node to bool type. */
+    private void setArrayCompareType(BinOpExpr node) {
+        if (node.expr1.type instanceof Array && node.expr2.type instanceof Array) {
+//            // t1 <= t2
+//            if (((Array) node.expr1.type).compare((Array) node.expr2.type)) {
+//                node.type = node.expr2.type;
+//            } else {
+//
+//            }
+            if (((Array) node.expr1.type).equals(node.expr2.type)) {
+
+            }
+        }
+    }
+
+    /** Helper to check the type of two array expressions are equal when they are concatenated.
+     * If true, set node to the more restrictive array type between the two. */
+    private void setArrayConcateType(BinOpExpr node) {
+
     }
 
     @Override
