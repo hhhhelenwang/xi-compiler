@@ -65,7 +65,7 @@ public class TypeChecker extends Visitor{
             node.type = new Int();
         } else {
             String res = errorstart(node.getLine(), node.getCol());
-            res += "Expected int, but fount " + node.expr.type.tostr();
+            res += "Expected int, but fount " + node.expr.type.toStr();
             throw new SemanticErrorException(res);
         }
     }
@@ -76,7 +76,7 @@ public class TypeChecker extends Visitor{
             node.type = new Bool();
         } else {
             String res = errorstart(node.getLine(), node.getCol());
-            res += "Expected bool, but fount " + node.expr.type.tostr();
+            res += "Expected bool, but fount " + node.expr.type.toStr();
             throw new SemanticErrorException(res);
         }
     }
@@ -88,10 +88,10 @@ public class TypeChecker extends Visitor{
             node.type = type;
         } else if (!(node.expr1.type instanceof Int)) {
             String pos = errorstart(node.expr1.getLine(), node.expr1.getCol());
-            throw new SemanticErrorException(pos + "Expected int, but found " + node.expr1.type.tostr());
+            throw new SemanticErrorException(pos + "Expected int, but found " + node.expr1.type.toStr());
         } else {
             String pos = errorstart(node.expr2.getLine(), node.expr2.getCol());
-            throw new SemanticErrorException(pos + "Expected int, but found " + node.expr2.type.tostr());
+            throw new SemanticErrorException(pos + "Expected int, but found " + node.expr2.type.toStr());
         }
     }
 
@@ -101,10 +101,10 @@ public class TypeChecker extends Visitor{
             node.type = new Bool();
         } else if (!(node.expr1.type instanceof Bool)) {
             String pos = errorstart(node.expr1.getLine(), node.expr1.getCol());
-            throw new SemanticErrorException(pos + "Expected bool, but found " + node.expr1.type.tostr());
+            throw new SemanticErrorException(pos + "Expected bool, but found " + node.expr1.type.toStr());
         } else {
             String pos = errorstart(node.expr2.getLine(), node.expr2.getCol());
-            throw new SemanticErrorException(pos + "Expected bool, but found " + node.expr2.type.tostr());
+            throw new SemanticErrorException(pos + "Expected bool, but found " + node.expr2.type.toStr());
         }
     }
 
@@ -114,8 +114,8 @@ public class TypeChecker extends Visitor{
         if (!(node.expr2.type instanceof Array)) {
             String pos = errorstart(node.expr2.getLine(), node.expr2.getCol());
             throw new SemanticErrorException(pos
-                    + "Expected " + node.expr1.type.tostr()
-                    + ", but found " + node.expr2.type.tostr());
+                    + "Expected " + node.expr1.type.toStr()
+                    + ", but found " + node.expr2.type.toStr());
         }
         if (((Array) node.expr1.type).compare((Array) node.expr2.type)
                 || ((Array) node.expr2.type).compare((Array) node.expr1.type)) {
@@ -125,8 +125,8 @@ public class TypeChecker extends Visitor{
             // t1 != t2
             String pos = errorstart(node.expr2.getLine(), node.expr2.getCol());
             throw new SemanticErrorException(pos
-                    + "Expected " + node.expr1.type.tostr()
-                    + ", but found " + node.expr2.type.tostr());
+                    + "Expected " + node.expr1.type.toStr()
+                    + ", but found " + node.expr2.type.toStr());
         }
     }
 
@@ -137,8 +137,8 @@ public class TypeChecker extends Visitor{
         if (!(node.expr2.type instanceof Array)) {
             String pos = errorstart(node.expr2.getLine(), node.expr2.getCol());
             throw new SemanticErrorException(pos
-                    + "Expected " + node.expr1.type.tostr()
-                    + ", but found " + node.expr2.type.tostr());
+                    + "Expected " + node.expr1.type.toStr()
+                    + ", but found " + node.expr2.type.toStr());
         }
         // now that they are both arrays
         if (((Array) node.expr1.type).compare((Array) node.expr2.type)) {
@@ -151,8 +151,8 @@ public class TypeChecker extends Visitor{
             // t1 != t2
             String pos = errorstart(node.expr2.getLine(), node.expr2.getCol());
             throw new SemanticErrorException(pos
-                    + "Expected " + node.expr1.type.tostr()
-                    + ", but found " + node.expr2.type.tostr());
+                    + "Expected " + node.expr1.type.toStr()
+                    + ", but found " + node.expr2.type.toStr());
         }
     }
 
@@ -300,7 +300,7 @@ public class TypeChecker extends Visitor{
             node.type = new Unit();
         }else if(! (node.index.type instanceof Int)){
             String res = errorstart(node.getLine(), node.getCol());
-            throw new SemanticErrorException(res + "Expected index as int but got"+ node.index.type.tostr());
+            throw new SemanticErrorException(res + "Expected index as int but got"+ node.index.type.toStr());
         }else{
             String res = errorstart(node.getLine(), node.getCol());
             throw  new SemanticErrorException(res + "Expected an array for indedxing but got "+ node.array.type);
@@ -372,7 +372,7 @@ public class TypeChecker extends Visitor{
             node.type = new Int();
         } else {
             String pos = errorstart(node.getLine(), node.getCol());
-            throw new SemanticErrorException(pos + "Expected an array, but found " + arg.type.tostr());
+            throw new SemanticErrorException(pos + "Expected an array, but found " + arg.type.toStr());
         }
     }
 
@@ -385,8 +385,8 @@ public class TypeChecker extends Visitor{
                 return true;
             } else {
                 String pos = errorstart(nodeArgs.get(0).getLine(), nodeArgs.get(0).getCol());
-                String errMsg = pos + "Expected "+ declArgs.tostr() + ", but found " +
-                        nodeArgs.get(0).type.tostr();
+                String errMsg = pos + "Expected "+ declArgs.toStr() + ", but found " +
+                        nodeArgs.get(0).type.toStr();
                 throw new SemanticErrorException(errMsg);
             }
         } else if (declArgs instanceof Prod && nodeArgs.size() == ((Prod) declArgs).elementTypes.size()){
@@ -396,14 +396,14 @@ public class TypeChecker extends Visitor{
                 if (nodeArg.type instanceof Tau) {
                     if (!declArg.equals((Tau) nodeArg.type)){ // NOTE: checked that nodeArg is a Tau type
                         String pos = errorstart(nodeArg.getLine(), nodeArg.getCol());
-                        String errMsg = pos + "Expected "+ declArg.tostr() + ", but found " +
-                                nodeArg.type.toString();
+                        String errMsg = pos + "Expected "+ declArg.toStr() + ", but found " +
+                                nodeArg.type.toStr();
                         throw new SemanticErrorException(errMsg);
                     }
                 } else {
                     String pos = errorstart(nodeArg.getLine(), nodeArg.getCol());
-                    String errMsg = pos + "Expected "+ declArg.tostr() + ", but found " +
-                            nodeArg.type.toString();
+                    String errMsg = pos + "Expected "+ declArg.toStr() + ", but found " +
+                            nodeArg.type.toStr();
                     throw new SemanticErrorException(errMsg);
                 }
             }
@@ -418,7 +418,7 @@ public class TypeChecker extends Visitor{
     /** Helper for visitProCall and visitFunCall. It checks 1) f is type fn 2) outputType is correct */
     private void proFunCall(boolean isFun, Sigma prFnType, String fnPrName) throws Exception{
         if(!(prFnType instanceof Fn)){
-            String errorMsg = "Expected a function or procedure call, but found " + prFnType.toString();
+            String errorMsg = "Expected a function or procedure call, but found " + prFnType.toStr();
             throw new Exception(errorMsg);
         } else if(!isFun && !(((Fn) prFnType).outputType instanceof Unit)) {
             String errorMsg = fnPrName + " is not a procedure";
@@ -452,7 +452,7 @@ public class TypeChecker extends Visitor{
     public void visitIfStmt(IfStmt node) throws SemanticErrorException {
         if (!(node.condition.type instanceof Bool)) {
             String errorMsg = errorstart(node.getLine(), node.getCol()) + "Expected condition is type Bool, but got" +
-                    node.condition.type.tostr();
+                    node.condition.type.toStr();
             throw new SemanticErrorException(errorMsg);
         } else {
             node.type = new Unit();
@@ -463,7 +463,7 @@ public class TypeChecker extends Visitor{
     public void visitIfElseStmt(IfElseStmt node) throws SemanticErrorException {
         if (!(node.condition.type instanceof Bool)){
             String errorMsg = errorstart(node.getLine(), node.getCol()) + "Expected condition is type Bool, but got" +
-                    node.condition.type.tostr();
+                    node.condition.type.toStr();
             throw new SemanticErrorException(errorMsg);
         } else {
             node.type = lub(node.ifClause.type, node.elseClause.type);
@@ -483,7 +483,7 @@ public class TypeChecker extends Visitor{
     public void visitWhileStmt(WhileStmt node) throws SemanticErrorException {
         if (!(node.condition.type instanceof Bool)){
             String errorMsg = errorstart(node.getLine(), node.getCol()) + "Expected condition is type Bool, but got" +
-                    node.condition.type.tostr();
+                    node.condition.type.toStr();
             throw new SemanticErrorException(errorMsg);
         } else {
             node.type = new Unit();
@@ -546,18 +546,18 @@ public class TypeChecker extends Visitor{
             }
             if(node.type == null){
                 String res = errorstart(node.getLine(), node.getCol());
-                res += "Cannot assign " +node.expr.type.tostr() +" to "+  ((ArrIndexExpr) node.leftVal).type.tostr();
+                res += "Cannot assign " +node.expr.type.toStr() +" to "+  ((ArrIndexExpr) node.leftVal).type.toStr();
                 throw new SemanticErrorException( res);
             }
         } else if (node.leftVal instanceof ArrIndexExpr) {//e1[e2] = e
             if (node.expr.type instanceof Tau) {
-                if (((ArrIndexExpr) node.leftVal).type.equals(node.expr.type)) {
+                if (((Tau)((ArrIndexExpr) node.leftVal).type).equals((Tau)node.expr.type)) {
                     node.type = new Unit();
                 }
             }
             if(node.type == null){
                 String res = errorstart(node.getLine(), node.getCol());
-                res += "Cannot assign " +node.expr.type.tostr() +" to "+ ((ArrIndexExpr) node.leftVal).type.tostr();
+                res += "Cannot assign " +node.expr.type.toStr() +" to "+ ((ArrIndexExpr) node.leftVal).type.toStr();
                 throw new SemanticErrorException( res);
             }
         }else if(node.leftVal instanceof VarDeclareStmt){ //x:tau = e
@@ -566,7 +566,7 @@ public class TypeChecker extends Visitor{
                 node.type = new Unit();
             }else{
                 String res = errorstart(node.getLine(), node.getCol());
-                res += "Cannot assign " +node.expr.type.tostr() +" to "+ lefttype.tostr();
+                res += "Cannot assign " +node.expr.type.toStr() +" to "+ lefttype.toStr();
                 throw new SemanticErrorException( res);
             }
         }
@@ -591,7 +591,7 @@ public class TypeChecker extends Visitor{
             node.type = new Unit();
         } else {
             String pos = errorstart(node.expr.getLine(), node.expr.getCol());
-            throw new SemanticErrorException(pos + "Expected int, bool, or array, got " + node.expr.type.tostr());
+            throw new SemanticErrorException(pos + "Expected int, bool, or array, got " + node.expr.type.toStr());
         }
     }
 
@@ -616,12 +616,13 @@ public class TypeChecker extends Visitor{
             if (tau instanceof Array && typesOf(d) instanceof Array) {
                 if (!((Array) tau).compare((Array) typesOf(d))) {
                     String pos = errorstart(d.getLine(), d.getCol());
-                    throw new SemanticErrorException(pos + "Expected " + typesOf(d).tostr() + " got" + tau.tostr());
+                    // as function signature as expected value, rather than LValues
+                    throw new SemanticErrorException(pos + "Expected " + tau.toStr() + " got " + typesOf(d).toStr());
                 }
             } else {
                 if (!tau.isSubOf(typesOf(d))) {
                     String pos = errorstart(d.getLine(), d.getCol());
-                    throw new SemanticErrorException(pos + "Expected " + typesOf(d).tostr() + " got" + tau.tostr());
+                    throw new SemanticErrorException(pos + "Expected " + tau.toStr() + " got " + typesOf(d).toStr());
                 }
             }
         }
@@ -690,14 +691,14 @@ public class TypeChecker extends Visitor{
                 T dimType = length.type;
                 if (!(dimType instanceof Int)) {
                     String pos = errorstart(length.getLine(), length.getLine());
-                    throw new SemanticErrorException(pos + "Expected int, but found " + dimType.tostr());
+                    throw new SemanticErrorException(pos + "Expected int, but found " + dimType.toStr());
                 }
                 next = ((ArrayType) next).elemType;
             }
         }
         // if typeChecks, build an array type with m + n levels and primitive type = next
-        Tau type = typeToTau(arrType);
-        return type;
+        return typeToTau(arrType);
+
     }
 
     @Override
@@ -781,7 +782,7 @@ public class TypeChecker extends Visitor{
 //                }
 //                else {
 //                    String res = errorstart(node.getLine(), node.getCol());
-//                    res+= "Cannot assign "+ node.value.type.tostr() + " to " + vart.tostr();
+//                    res+= "Cannot assign "+ node.value.type.toStr() + " to " + vart.toStr();
 //                    throw new SemanticErrorException(res);
 //                }
 //            } else if (node.varType instanceof  IntType ||node.varType instanceof BoolType ){
@@ -791,7 +792,7 @@ public class TypeChecker extends Visitor{
 //                    env.addVar(node.identifier, new Var(vart));
 //                }else{
 //                    String res = errorstart(node.getLine(), node.getCol());
-//                    res+= "Cannot assign "+ node.value.type.tostr() + " to " + vart.tostr();
+//                    res+= "Cannot assign "+ node.value.type.toStr() + " to " + vart.toStr();
 //                    throw new SemanticErrorException(res);
 //                }
 //            }else{
@@ -806,7 +807,7 @@ public class TypeChecker extends Visitor{
                 } else {
                     String pos = errorstart(node.getLine(), node.getCol());
                     throw new SemanticErrorException(pos + "Cannot assign "
-                            + node.value.type.tostr() + " to " +  typeToTau(node.varType).tostr());
+                            + node.value.type.toStr() + " to " +  typeToTau(node.varType).toStr());
                 }
             }
         }

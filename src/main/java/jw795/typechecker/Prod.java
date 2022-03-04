@@ -10,10 +10,10 @@ public class Prod implements T{
     }
 
     @Override
-    public String tostr() {
+    public String toStr() {
         String result = "";
         for (Tau type: elementTypes){
-            result+= type.tostr() + " ";
+            result+= type.toStr() + " ";
         }
         return result;
     }

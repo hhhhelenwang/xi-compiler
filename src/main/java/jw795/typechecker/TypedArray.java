@@ -35,7 +35,7 @@ public class TypedArray extends Array {
     }
 
 
-    public String tostr(){
-        return elementType.tostr()+"[]";
+    public String toStr(){
+        return elementType.toStr()+"[]";
     }
 }

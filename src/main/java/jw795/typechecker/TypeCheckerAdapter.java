@@ -16,11 +16,9 @@ import java.util.*;
 public class TypeCheckerAdapter {
     parser cup_parser;
     Lexwrapper scanner;
-    CodeWriter writer;
     String destPath; // the path to put the typed file in
     String libPath; // path to find the interface files in
     String fileName; // already contains source dir + file name
-    String sourcepath;
 
     public TypeCheckerAdapter(Reader reader, String name, String dest, String lib){
         // paths and files
@@ -81,7 +79,12 @@ public class TypeCheckerAdapter {
             }
 
             // type check the entire program
-            node.accept(visitor);
+            try {
+                node.accept(visitor);
+            } catch (Exception e) {
+                System.out.println("error when node.accept");
+                throw e;
+            }
 
             printer.printAtom("Valid Xi Program");
             printer.flush();

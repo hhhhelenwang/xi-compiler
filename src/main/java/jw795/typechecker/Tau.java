@@ -23,7 +23,7 @@ public class Tau implements T{
         return ((this.getClass() == t.getClass()) || (t instanceof Unit));
     }
 
-    public String tostr(){
+    public String toStr(){
         return "tau";
     }
 }

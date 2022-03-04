@@ -29,6 +29,7 @@ public class VarDeclareStmt extends Statement implements LValue {
 
     @Override
     public void accept(Visitor visitor) throws Exception {
+        varType.accept(visitor);
         visitor.visitVarDecl(this);
     }
 }

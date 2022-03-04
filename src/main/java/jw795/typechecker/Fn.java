@@ -14,8 +14,7 @@ public class Fn implements Sigma{
                 && this.outputType.getClass() == t.outputType.getClass();
     }
 
-    @Override
-    public String toString() {
-        return "fn " + inputType.tostr() + " => " + outputType.tostr();
+    public String toStr() {
+        return "fn " + inputType.toStr() + " => " + outputType.toStr();
     }
 }
