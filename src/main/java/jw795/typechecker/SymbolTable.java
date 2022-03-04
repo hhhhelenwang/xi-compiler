@@ -53,7 +53,8 @@ public class SymbolTable {
      * @return the type of id, null if id is not found
      */
     public Sigma findTypeofVar(String id) {
-        for (HashMap<String, Sigma> context : variables) {
+        for (int i = variables.size() - 1; i >= 0; i--) {
+            HashMap<String, Sigma> context = variables.get(i);
             if (context.containsKey(id)) {
                 return context.get(id);
             }
@@ -67,7 +68,8 @@ public class SymbolTable {
      * @return true if context contains id, false otherwise
      */
     public boolean containsVar(String id) {
-        for (HashMap<String, Sigma> context : variables) {
+        for (int i = variables.size() - 1; i >= 0; i--) {
+            HashMap<String, Sigma> context = variables.get(i);
             if (context.containsKey(id)) {
                 return true;
             }
@@ -103,7 +105,8 @@ public class SymbolTable {
      * @return the type of id, null if id is not found
      */
     public Sigma findTypeofFun(String id) {
-        for (HashMap<String, Sigma> context : functions) {
+        for (int i = functions.size() - 1; i >= 0; i--) {
+            HashMap<String, Sigma> context = functions.get(i);
             if (context.containsKey(id)) {
                 return context.get(id);
             }
@@ -117,7 +120,8 @@ public class SymbolTable {
      * @return true if context contains id, false otherwise
      */
     public boolean containsFun(String id) {
-        for (HashMap<String, Sigma> context : functions) {
+        for (int i = functions.size() - 1; i >= 0; i--) {
+            HashMap<String, Sigma> context = functions.get(i);
             if (context.containsKey(id)) {
                 return true;
             }

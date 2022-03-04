@@ -37,10 +37,9 @@ public class GlobDeclare extends ASTNode implements Definition, LValue{
 
     @Override
     public void accept(Visitor visitor) throws Exception {
-        value.accept(visitor);
-
+        if (value != null) {
+            value.accept(visitor);
+        }
         visitor.visitGlobDecl(this);
-
-
     }
 }
