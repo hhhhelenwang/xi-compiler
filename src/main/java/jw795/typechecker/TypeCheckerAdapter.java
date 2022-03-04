@@ -79,11 +79,11 @@ public class TypeCheckerAdapter {
                         dependencies.put(use.interfaceName, interfaceNode);
                     }
                 } catch (FileNotFoundException e) {
+                    curFile = fileName;
                     String pos = visitor.errorstart(use.getLine(), use.getCol());
-                    throw new Exception(pos + "Interface " + use.interfaceName + " not found");
-                } catch (SemanticErrorException e) {
-                    // interface used twice
-                    throw e;
+                    throw new SemanticErrorException(pos + "Interface " + use.interfaceName + " not found");
+                } catch (Exception e) {
+                    throw e; //
                 }
             }
 
@@ -119,8 +119,8 @@ public class TypeCheckerAdapter {
             printer.flush();
             printer.close();
         } catch (Exception e) {
-            // no idea what error so just report
-            printer.printAtom(e.getMessage());
+            System.out.println("Unknown error while type checking " + fileName);
+            printer.printAtom("Unknown error");
             printer.flush();
             printer.close();
         }
@@ -128,12 +128,12 @@ public class TypeCheckerAdapter {
 
     /** Standard output error message. <kind> error beginning at <filename>:<line>:<column>: <description> */
     private String stdOutError(String errorKind, String fileName, String error) {
-        return errorKind + "error beginning at" + fileName + ":" + error;
+        return errorKind + " error beginning at" + fileName + ":" + error;
     }
 
 
     /** The first pass of type checking global definitions in a program. */
-    public void programFirstPass(Program node, TypeChecker visitor) throws Exception {
+    public void programFirstPass(Program node, TypeChecker visitor) throws SemanticErrorException {
         for (Definition def : node.definitions) {
             if (def instanceof FunctionDefine) {
                 funDefFirstPass((FunctionDefine) def, visitor);
