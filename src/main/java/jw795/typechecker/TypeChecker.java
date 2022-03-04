@@ -694,8 +694,8 @@ public class TypeChecker extends Visitor{
             }
         }
         // if typeChecks, build an array type with m + n levels and primitive type = next
-        Tau type = typeToTau(arrType);
-        return type;
+        return typeToTau(arrType);
+
     }
 
     @Override

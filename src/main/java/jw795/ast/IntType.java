@@ -21,5 +21,4 @@ public class IntType extends Type {
         // should not be called
     }
 
-
 }

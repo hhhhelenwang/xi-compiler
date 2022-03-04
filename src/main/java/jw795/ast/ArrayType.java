@@ -58,7 +58,9 @@ public class ArrayType extends Type {
     }
 
     @Override
-    public void accept(Visitor visitor) {
-        // should not be called
+    public void accept(Visitor visitor) throws Exception {
+        if (length.isPresent()) {
+            length.get().accept(visitor);
+        }
     }
 }
