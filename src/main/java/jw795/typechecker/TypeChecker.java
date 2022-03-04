@@ -213,7 +213,7 @@ public class TypeChecker extends Visitor{
         // eq/neq allows int, bool, and array as operands
         // if the first operand is an int, treat it as an integer comparison
         if (node.expr1.type instanceof Int) {
-            setBinOpIntType(node, new Int());
+            setBinOpIntType(node, new Bool());
         } else if (node.expr1.type instanceof Bool){
             // if the first operand is a bool, check for boolean comparison
             setBinOpBoolType(node);
@@ -311,6 +311,11 @@ public class TypeChecker extends Visitor{
     public void visitPrCall(ProcCallStmt node) throws SemanticErrorException {
         // a procedure need to be fn T -> unit
         Sigma prType = this.env.findTypeofFun(node.name);
+        if(prType == null){
+            String errorMsg = errorstart(node.getLine(), node.getCol());
+            errorMsg += "Name " + node.name + " cannot be resolved";
+            throw new SemanticErrorException(errorMsg);
+        }
         try {
             proFunCall(false, prType, node.name);
         } catch (Exception e) {
@@ -334,6 +339,11 @@ public class TypeChecker extends Visitor{
         } else {
             Sigma fnType = this.env.findTypeofFun(node.name);
             // check function types
+            if(fnType == null){
+                String errorMsg = errorstart(node.getLine(), node.getCol());
+                errorMsg += "Name " + node.name + " cannot be resolved";
+                throw new SemanticErrorException(errorMsg);
+            }
             try {
                 proFunCall(true, fnType, node.name);
             } catch (Exception e) {
