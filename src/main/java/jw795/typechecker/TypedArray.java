@@ -21,12 +21,12 @@ public class TypedArray extends Array {
         if (a instanceof EmptyArray) {
             return false;
         } else {
-            Tau t = ((TypedArray)a).elementType;
-            if (elementType instanceof EmptyArray && (t instanceof TypedArray || t instanceof EmptyArray)) {
+            Tau atype = ((TypedArray)a).elementType;
+            if (this.elementType instanceof EmptyArray && (atype instanceof TypedArray || atype instanceof EmptyArray)) {
                 return true;
-            } else if (elementType instanceof TypedArray && t instanceof TypedArray) {
-                return ((TypedArray)elementType).compare((TypedArray)t);
-            } else if (elementType.equals(t)){
+            } else if (elementType instanceof TypedArray && atype instanceof TypedArray) {
+                return ((TypedArray)elementType).compare(((TypedArray) atype));
+            } else if (elementType.equals(atype)){
                 return true;
             } else {
                 return false;
