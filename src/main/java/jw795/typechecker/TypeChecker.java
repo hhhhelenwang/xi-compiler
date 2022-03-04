@@ -570,7 +570,7 @@ public class TypeChecker extends Visitor{
         }
         else{
             String res = errorstart(node.getLine(), node.getCol());
-            throw new SemanticErrorException(res + "invalid oject to assign to");
+            throw new SemanticErrorException(res + "invalid object to assign to");
         }
     }
 
@@ -606,26 +606,7 @@ public class TypeChecker extends Visitor{
             String pos = errorstart(node.getLine(), node.getCol());
             throw new SemanticErrorException(pos + "Mismatched number of values");
         }
-        // check dom(gamma) does not contains varsOf(d)
-        for (LValue decl: declares) {
-            // dom contains varsOf(decl)
-            if (env.domVar().removeAll(varsOf(decl))) {
-                String pos = errorstart(decl.getLine(), decl.getCol());
-                throw new SemanticErrorException(pos
-                        + "Variable " + ((VarDeclareStmt) decl).identifier + " already declared");
-            }
-        }
-        // check no two declarations have same var
-        for (LValue d1 : declares) {
-            for (LValue d2: declares) {
-                Set<String> intersect = varsOf(d1);
-                intersect.retainAll(varsOf(d2));
-                if (!d1.equals(d2) && !intersect.isEmpty()) {
-                    String pos = errorstart(d1.getLine(), d1.getCol());
-                    throw new SemanticErrorException(pos + "Repeated declarations of variables");
-                }
-            }
-        }
+
         // check tau(i) <= typesOf(d(i))
         for (int i = 0; i < declares.size(); i++) {
             Tau tau = returnTypes.get(i);
@@ -721,7 +702,7 @@ public class TypeChecker extends Visitor{
     public void visitFunDef(FunctionDefine node) throws SemanticErrorException{
         if (!(node.functionBody.type instanceof Void)) {
             String pos = errorstart(node.functionBody.getLine(), node.functionBody.getCol());
-            throw new SemanticErrorException(pos + "Expected void, but found " + node.functionBody.type.toStr());
+            throw new SemanticErrorException(pos + "Missing return statement");
         }
     }
 
