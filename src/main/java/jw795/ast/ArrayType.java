@@ -59,6 +59,7 @@ public class ArrayType extends Type {
 
     @Override
     public void accept(Visitor visitor) throws Exception {
+        elemType.accept(visitor);
         if (length.isPresent()) {
             length.get().accept(visitor);
         }

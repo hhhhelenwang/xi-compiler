@@ -322,17 +322,17 @@ public class TypeChecker extends Visitor{
             String errorMsg = errorstart(node.getLine(), node.getCol()) + e.getMessage();
             throw new SemanticErrorException(errorMsg);
         }
-            List<Expr> nodeArgs = node.arguments;
-            T declArgs = ((Fn) prType).inputType;
-            // argsConform throws SemanticErrorException if there is a mismatch
-            if (argsConform(nodeArgs, declArgs)){
-                node.type = new Unit();
-            }
+        List<Expr> nodeArgs = node.arguments;
+        T declArgs = ((Fn) prType).inputType;
+        // argsConform throws SemanticErrorException if there is a mismatch
+        if (argsConform(nodeArgs, declArgs)) {
+            node.type = new Unit();
+        }
 
     }
 
     @Override
-    public void visitFunCallExpr(FunCallExpr node) throws Exception {
+    public void visitFunCallExpr(FunCallExpr node) throws SemanticErrorException {
         // special case for length
         if (node.name.equals("length"))  {
             checkLength(node);
@@ -615,12 +615,12 @@ public class TypeChecker extends Visitor{
                 if (!((Array) tau).compare((Array) typesOf(d))) {
                     String pos = errorstart(d.getLine(), d.getCol());
                     // as function signature as expected value, rather than LValues
-                    throw new SemanticErrorException(pos + "Expected " + tau.toStr() + " got " + typesOf(d).toStr());
+                    throw new SemanticErrorException(pos + "Expected " + tau.toStr() + " but got " + typesOf(d).toStr());
                 }
             } else {
                 if (!tau.isSubOf(typesOf(d))) {
                     String pos = errorstart(d.getLine(), d.getCol());
-                    throw new SemanticErrorException(pos + "Expected " + tau.toStr() + " got " + typesOf(d).toStr());
+                    throw new SemanticErrorException(pos + "Expected " + tau.toStr() + " but got " + typesOf(d).toStr());
                 }
             }
         }
@@ -666,6 +666,7 @@ public class TypeChecker extends Visitor{
         }
         else if (node.varType instanceof ArrayType) { // check array declaration
             Tau vat = checkArrayDecl((ArrayType) node.varType);
+            node.type = new Unit();
             this.env.addVar(node.identifier,new Var(vat));
         } else { // is it safe to use else here? Yes, it's var type already
             node.type = new Unit();
