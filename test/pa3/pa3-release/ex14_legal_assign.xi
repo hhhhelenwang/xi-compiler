@@ -28,16 +28,23 @@ b = true;
 b = false;
 c = {1, 2, 3}
 d = {}
+d[0] = b
 d = {true}
 e = {{1,2}}
 f = {{},{},{},{},{}}
 f = {{true,true},{true,false},{false,true},{true,false},{true,false}}
 
-s[1] = 3
+s[1] = a
 d[0] = false
 f[0] = {true,false}
 f[0][1] = false
 
 _ = single_return()
 _, x:int, y:bool, _ = multi_return()
+
+m: int[][]
+n: int[3][4]
+m = n
+k: int[3][]
+k[0] = n[0]; k[1] = n[1]; k[2] = n[2]
 }
