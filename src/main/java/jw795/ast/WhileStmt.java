@@ -30,7 +30,8 @@ public class WhileStmt extends Statement {
         condition.accept(visitor);
         visitor.enterScope();
         loopBody.accept(visitor);
-        visitor.visitWhileStmt(this);
         visitor.leaveScope();
+        visitor.visitWhileStmt(this);
+
     }
 }

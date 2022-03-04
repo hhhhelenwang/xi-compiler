@@ -22,8 +22,7 @@ public class Or extends BinOpExpr{
 
     @Override
     public void accept(Visitor visitor) throws Exception {
-        expr1.accept(visitor);
-        expr2.accept(visitor);
+        super.accept(visitor);
         visitor.visitOr(this);
     }
 }
