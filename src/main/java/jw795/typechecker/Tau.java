@@ -4,7 +4,6 @@ public class Tau implements T{
 
     public boolean equals (Tau type) {
         if (!(this instanceof Array)) {
-
             if ((this instanceof Int && type instanceof Int) || (this instanceof Bool && type instanceof Bool)){
                 return true;
             } else {

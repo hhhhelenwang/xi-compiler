@@ -804,7 +804,7 @@ public class TypeChecker extends Visitor{
 //            }
         if (node.value != null) {
             if (node.value.type instanceof Tau) {
-                if (node.value.type.equals(typeToTau(node.varType))) {
+                if (((Tau)node.value.type).equals(typeToTau(node.varType))) {
                     env.addVar(node.identifier, new Var((Tau) node.value.type));
                 } else {
                     String pos = errorstart(node.getLine(), node.getCol());
