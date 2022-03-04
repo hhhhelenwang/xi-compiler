@@ -52,6 +52,9 @@ public class TypeCheckerAdapter {
 
             TypeChecker visitor = new TypeChecker();
 
+            // first pass of top level definitions
+            programFirstPass(node, visitor);
+
             // to resolve dependencies, find imported interface files, parse them, and type check them
             HashMap<String, Interface> dependencies = new HashMap<>();
             for (Use use : node.uses) {
@@ -83,9 +86,6 @@ public class TypeCheckerAdapter {
                 Interface interfaceNode = dependencies.get(use.interfaceName);
                 interfaceNode.accept(visitor); // type check interface using the same visitor
             }
-
-            // first pass of top level definitions
-            programFirstPass(node, visitor);
 
             // type check the entire program
             node.accept(visitor);
