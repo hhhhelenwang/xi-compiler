@@ -241,6 +241,10 @@ global ::= ID:i COLON argRetType:t optSemi
     {:
         RESULT = new GlobDeclare(i, new IntType(tleft, tright), new IntLiteral(n, nleft, nright), ileft, iright);
     :}
+    | ID:i COLON INTTYPE:t ASSIGN CHARLIT:n optSemi
+    {:
+      RESULT = new GlobDeclare(i, new IntType(tleft, tright), new CharLiteral(n, nleft, nright), ileft, iright);
+    :}
     | ID:i COLON BOOLTYPE:t ASSIGN BOOL:b optSemi
     {:
         RESULT = new GlobDeclare(i, new BoolType(tleft, tright), new BoolLiteral(b, bleft, bright), ileft, iright);
