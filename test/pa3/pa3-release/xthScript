@@ -74,6 +74,7 @@ xic ("Test --typecheck") "-libpath $(testpath) --typecheck" {
     block01_legal.xi;
     block02_IllegalIfElseType.xi;
     block03_onlyLastStmtCanEvalToVoid.xi;
+    programWithoutRet.xi;
     ex01.xi;
     ex02.xi;
     ex03.xi;
