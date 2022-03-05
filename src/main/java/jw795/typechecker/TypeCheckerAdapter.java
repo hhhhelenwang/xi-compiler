@@ -115,7 +115,7 @@ public class TypeCheckerAdapter {
      * Standard output error message. <kind> error beginning at <filename>:<line>:<column>: <description>
      */
     private String stdOutError(String errorKind, String fileName, String error) {
-        return errorKind + "error beginning at" + fileName + ":" + error;
+        return errorKind + "error beginning at " + fileName + ":" + error;
     }
 
 
