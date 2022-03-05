@@ -8,7 +8,6 @@ import java.util.*;
 public class TypeChecker extends Visitor{
 
     public SymbolTable env;
-//    private HashMap<String, Interface> deps;
 
     @Override
     public void enterScope() {
