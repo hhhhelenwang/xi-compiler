@@ -46,4 +46,9 @@ xic ("Test --typecheck") ["./test/pa3/"]"-libpath $(testpath) --typecheck" {
     testprocedureret.xi;
     testscope.xi;
     testwrongscope.xi;
+    testinterfacesamedeclare.xi;
+    testintrange.xi;
+    teststringchar.xi;
+
+
 }
