@@ -69,4 +69,5 @@ xic ("Test --typecheck") ["./test/pa3/"]"-libpath $(testpath) --typecheck" {
     ex13_assign_illegal_intArrToInt.xi;
     ex14_legal_assign.xi;
     ex15_scope_legal.xi;
+    testinvalidlength.xi;
 }
