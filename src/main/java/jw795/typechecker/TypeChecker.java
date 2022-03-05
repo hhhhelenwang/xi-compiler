@@ -164,9 +164,7 @@ public class TypeChecker extends Visitor{
             setBinOpIntType(node, new Int());
         } else if (node.expr1.type instanceof Array){
             // if the first operand is an array, check for array concatenation
-            System.out.println("try to add array");
             setArrayConcateType(node);
-            System.out.println("finish add array");
         } else {
             // definitely cannot add on operand 1 now so report!
             String pos = errorstart(node.expr1.getLine(), node.expr1.getCol());
