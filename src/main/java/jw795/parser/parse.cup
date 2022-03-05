@@ -22,7 +22,8 @@ parser code
             String tokenType = LexerAdapter.tokenTypeToString(cur.sym);
             String errMsg = String.format("%d:%d error:Unexpected token `%s`", cur.left + 1, cur.right + 1, tokenType);
             if (tokenType.equals("error")){
-                throw new LexicalErrorException(errMsg);
+                String lexerr = String.format("%d:%d error:", cur.left + 1, cur.right + 1);
+                throw new LexicalErrorException(lexerr + cur.value);
             } else {
                 throw new SyntacticErrorException(errMsg);
             }
