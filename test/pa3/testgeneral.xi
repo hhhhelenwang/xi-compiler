@@ -1,6 +1,14 @@
 use io
 foo(){
 }
+
+foo2():bool{
+    doo()
+    a6:int = length({})
+    a7:int = length({{true},{false}})
+    return true
+}
+
 doo(){
     a:int
     a = -1
@@ -33,12 +41,7 @@ doo(){
 
     a = a2[3][4]
 }
-foo2():bool{
-    doo()
-    a6:int = length({})
-    a7:int = length({{true},{false}})
-    return true
-}
+
 foo3(){
     thebool:bool = foo2()
     if(true){

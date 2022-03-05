@@ -615,12 +615,12 @@ public class TypeChecker extends Visitor{
                 if (!((Array) tau).compare((Array) typesOf(d))) {
                     String pos = errorstart(d.getLine(), d.getCol());
                     // as function signature as expected value, rather than LValues
-                    throw new SemanticErrorException(pos + "Expected " + tau.toStr() + " but got " + typesOf(d).toStr());
+                    throw new SemanticErrorException(pos + "Expected " + typesOf(d).toStr() + " but got " + tau.toStr());
                 }
             } else {
                 if (!tau.isSubOf(typesOf(d))) {
                     String pos = errorstart(d.getLine(), d.getCol());
-                    throw new SemanticErrorException(pos + "Expected " + tau.toStr() + " but got " + typesOf(d).toStr());
+                    throw new SemanticErrorException(pos + "Expected " + typesOf(d).toStr() + " but got " + tau.toStr());
                 }
             }
         }
