@@ -5,4 +5,9 @@ public class Unit implements T, R {
     public String toStr() {
         return "unit";
     }
+
+    @Override
+    public boolean equals(T t) {
+        return (t instanceof Unit);
+    }
 }

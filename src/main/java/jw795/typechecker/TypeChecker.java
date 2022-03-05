@@ -742,7 +742,7 @@ public class TypeChecker extends Visitor{
 
             Fn result = new Fn(input, output);
             // check if function id already exist, check for type equivalence
-            if (env.containsFun(node.name) && !result.equals(env.findTypeofFun(node.name))) {
+            if (env.containsFun(node.name) && !result.functionEquals((Fn) env.findTypeofFun(node.name))) {
                 String pos = errorstart(node.getLine(), node.getCol());
                 throw new SemanticErrorException(pos + "Function " + node.name + " already exists");
             }
