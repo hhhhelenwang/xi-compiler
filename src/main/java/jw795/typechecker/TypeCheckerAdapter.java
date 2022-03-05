@@ -55,12 +55,12 @@ public class TypeCheckerAdapter {
                 for (Use use : node.uses) {
                     try {
                         if (!use.interfaceName.equals("io")) {
-                            curFile = use.interfaceName;
                             String interfaceFileName = libPath + use.interfaceName + ".ixi";
+                            curFile = interfaceFileName;
                             Reader interfaceReader = new FileReader(interfaceFileName);
                             Lexwrapper interfaceScanner = new Lexwrapper(interfaceReader, interfaceFileName);
                             parser interfaceParser = new parser(interfaceScanner);
-                            Interface interfaceNode = (Interface) interfaceParser.parse().value;
+                            ASTNode interfaceNode = (ASTNode) interfaceParser.parse().value;
                             interfaceNode.accept(visitor);
                         }
                     } catch (FileNotFoundException e) {
@@ -71,13 +71,8 @@ public class TypeCheckerAdapter {
                         throw e;
                     }
                 }
-
-                // type check the entire program
-                try {
-                    node.accept(visitor);
-                } catch (Exception e) {
-                    throw e;
-                }
+                curFile = fileName;
+                node.accept(visitor);
 
                 targetWriter.write("Valid Xi Program" + "\n");
                 targetWriter.close();
@@ -88,6 +83,7 @@ public class TypeCheckerAdapter {
                 targetWriter.write("\n");
                 targetWriter.close();
             } catch (SyntacticErrorException e) {
+                e.printStackTrace();
                 String errMsg = stdOutError("Syntax ", curFile, e.getMessage());
                 System.out.println(errMsg);
                 targetWriter.write(errMsg);

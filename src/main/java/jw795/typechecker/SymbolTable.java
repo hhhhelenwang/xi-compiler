@@ -26,6 +26,7 @@ public class SymbolTable {
         initialMap.put("println", new Fn(new TypedArray(new Int()), new Unit()));
         initialMap.put("readln", new Fn(new Unit(), new TypedArray(new Int())));
         initialMap.put("getchar", new Fn(new Unit(), new Int()));
+        initialMap.put("eof", new Fn(new Unit(), new Bool()));
 
         functions.add(initialMap);
     }

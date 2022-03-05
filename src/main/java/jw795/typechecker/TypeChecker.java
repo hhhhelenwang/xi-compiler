@@ -775,31 +775,6 @@ public class TypeChecker extends Visitor{
 
     @Override
     public void visitGlobDecl(GlobDeclare node) throws SemanticErrorException {
-//            if (node.varType instanceof ArrayType) { // check array declaration
-//                Tau vart = checkArrayDecl((ArrayType) node.varType);
-//                if(node.value.type.equals(vart)){
-//                    this.env.addVar(node.identifier, new Var(checkArrayDecl((ArrayType) node.varType)));
-//                }
-//                else {
-//                    String res = errorstart(node.getLine(), node.getCol());
-//                    res+= "Cannot assign "+ node.value.type.toStr() + " to " + vart.toStr();
-//                    throw new SemanticErrorException(res);
-//                }
-//            } else if (node.varType instanceof  IntType ||node.varType instanceof BoolType ){
-//                // is it safe to use else here? Yes, it's var type already
-//                Tau vart = typeToTau(node.varType);
-//                if(node.value.type.equals(vart)){
-//                    env.addVar(node.identifier, new Var(vart));
-//                }else{
-//                    String res = errorstart(node.getLine(), node.getCol());
-//                    res+= "Cannot assign "+ node.value.type.toStr() + " to " + vart.toStr();
-//                    throw new SemanticErrorException(res);
-//                }
-//            }else{
-//                String res = errorstart(node.getLine(), node.getCol());
-//                res+= "Invalid type";
-//                throw new SemanticErrorException(res);
-//            }
         if (node.value != null) {
             if (node.value.type instanceof Tau) {
                 if (((Tau)node.value.type).equals(typeToTau(node.varType))) {
