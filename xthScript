@@ -46,4 +46,28 @@ xic ("Test --typecheck") ["./test/pa3/"]"-libpath $(testpath) --typecheck" {
     testprocedureret.xi;
     testscope.xi;
     testwrongscope.xi;
+    testinterfacesamedeclare.xi;
+    testintrange.xi;
+    teststringchar.xi;
+    test_interface.xi;
+    testaddmessage.xi;
+    testarraytype.xi;
+    testgeneral.xi;
+    testinterfacedifdeclare.xi;
+    testinterfacesamedeclare.xi;
+    testintrange.xi;
+    testinvalidarray1.xi;
+    testmultiassign.xi;
+    testprocedureret.xi;
+    testprocewrongret.xi;
+    testscope.xi;
+    teststringchar.xi;
+    testwrongscope.xi;
+    arrayinit_illegal_mismatchType.xi;
+    block01_legal.xi;
+    block02_IllegalIfElseType.xi;
+    block03_onlyLastStmtCanEvalToVoid.xi;
+    ex13_assign_illegal_intArrToInt.xi;
+    ex14_legal_assign.xi;
+    ex15_scope_legal.xi;
 }

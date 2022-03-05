@@ -9,9 +9,9 @@ public class Fn implements Sigma{
         this.outputType = outputType;
     }
 
-    public boolean equals(Fn t) {
-        return this.inputType.getClass() == t.inputType.getClass()
-                && this.outputType.getClass() == t.outputType.getClass();
+    public boolean functionEquals(Fn t) {
+        return this.inputType.equals(t.inputType)
+                && this.outputType.equals(t.outputType);
     }
 
     public String toStr() {

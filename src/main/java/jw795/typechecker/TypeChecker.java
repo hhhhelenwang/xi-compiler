@@ -8,7 +8,6 @@ import java.util.*;
 public class TypeChecker extends Visitor{
 
     public SymbolTable env;
-//    private HashMap<String, Interface> deps;
 
     @Override
     public void enterScope() {
@@ -271,7 +270,7 @@ public class TypeChecker extends Visitor{
                 if (!(et instanceof Tau)) {
                     validArray = false;
                     break;
-                } else if (((Tau) et).equals((Tau) t)) {
+                } else if ((et).equals(t)) {
                     if (et instanceof Array) {
                         if (((Array)t).compare((Array)et)) {
                             t = et;
@@ -380,7 +379,7 @@ public class TypeChecker extends Visitor{
         if (declArgs instanceof Unit && nodeArgs.size() == 0) {
             return true;
         } else if (declArgs instanceof Tau && nodeArgs.size() == 1){
-            if (((Tau)declArgs).equals((Tau)nodeArgs.get(0).type)) {
+            if ((declArgs).equals(nodeArgs.get(0).type)) {
                 return true;
             } else {
                 String pos = errorstart(nodeArgs.get(0).getLine(), nodeArgs.get(0).getCol());
@@ -393,7 +392,7 @@ public class TypeChecker extends Visitor{
                 Tau declArg = ((Prod) declArgs).elementTypes.get(i);
                 Expr nodeArg = nodeArgs.get(i);
                 if (nodeArg.type instanceof Tau) {
-                    if (!declArg.equals((Tau) nodeArg.type)){ // NOTE: checked that nodeArg is a Tau type
+                    if (!declArg.equals(nodeArg.type)){ // NOTE: checked that nodeArg is a Tau type
                         String pos = errorstart(nodeArg.getLine(), nodeArg.getCol());
                         String errMsg = pos + "Expected "+ declArg.toStr() + ", but found " +
                                 nodeArg.type.toStr();
@@ -499,7 +498,7 @@ public class TypeChecker extends Visitor{
             isvalid = true;
             if (((Prod) retarg).elementTypes.size() == node.returnVals.size() ){
                 for (int i =0; i < node.returnVals.size(); i++){
-                    if(! ((Prod) retarg).elementTypes.get(i).equals((Tau) node.returnVals.get(i).type)){
+                    if(! ((Prod) retarg).elementTypes.get(i).equals(node.returnVals.get(i).type)){
                         isvalid = false;
                     }
                 }
@@ -509,7 +508,7 @@ public class TypeChecker extends Visitor{
                 isvalid = true;
             }
         }else if(retarg instanceof Tau){
-            if (node.returnVals.size() == 1 && ((Tau)retarg).equals((Tau)node.returnVals.get(0).type)){
+            if (node.returnVals.size() == 1 && (retarg).equals(node.returnVals.get(0).type)){
                 isvalid = true;
             }
         }
@@ -538,7 +537,7 @@ public class TypeChecker extends Visitor{
             Sigma t = this.env.findTypeofVar(((VarExpr) node.leftVal).identifier);
             if (t instanceof Var) {
                 if (node.expr.type instanceof Tau) {
-                    if (((Var) t).varType.equals((Tau)(node.expr.type))) {
+                    if (((Var) t).varType.equals(node.expr.type)) {
                         node.type = new Unit();
                     }
                 }
@@ -550,7 +549,7 @@ public class TypeChecker extends Visitor{
             }
         } else if (node.leftVal instanceof ArrIndexExpr) {//e1[e2] = e
             if (node.expr.type instanceof Tau) {
-                if (((Tau)((ArrIndexExpr) node.leftVal).type).equals((Tau)node.expr.type)) {
+                if ((((ArrIndexExpr) node.leftVal).type).equals(node.expr.type)) {
                     node.type = new Unit();
                 }
             }
@@ -561,7 +560,7 @@ public class TypeChecker extends Visitor{
             }
         }else if(node.leftVal instanceof VarDeclareStmt){ //x:tau = e
             Tau lefttype = typeToTau(((VarDeclareStmt) node.leftVal).varType);
-            if(((Tau)node.expr.type).equals(lefttype)){
+            if((node.expr.type).equals(lefttype)){
                 node.type = new Unit();
             }else{
                 String res = errorstart(node.getLine(), node.getCol());
@@ -742,7 +741,7 @@ public class TypeChecker extends Visitor{
 
             Fn result = new Fn(input, output);
             // check if function id already exist, check for type equivalence
-            if (env.containsFun(node.name) && !result.equals(env.findTypeofFun(node.name))) {
+            if (env.containsFun(node.name) && !result.functionEquals((Fn) env.findTypeofFun(node.name))) {
                 String pos = errorstart(node.getLine(), node.getCol());
                 throw new SemanticErrorException(pos + "Function " + node.name + " already exists");
             }
@@ -777,7 +776,7 @@ public class TypeChecker extends Visitor{
     public void visitGlobDecl(GlobDeclare node) throws SemanticErrorException {
         if (node.value != null) {
             if (node.value.type instanceof Tau) {
-                if (((Tau)node.value.type).equals(typeToTau(node.varType))) {
+                if ((node.value.type).equals(typeToTau(node.varType))) {
                     env.addVar(node.identifier, new Var((Tau) node.value.type));
                 } else {
                     String pos = errorstart(node.getLine(), node.getCol());
