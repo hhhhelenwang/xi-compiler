@@ -1,3 +1,6 @@
+
+
+
 fun():bool{
 _ = fun()
 return true;
@@ -6,4 +9,10 @@ return true;
 pro() {
 pro()
 return
+}
+
+ifloop(){
+x:int
+
+
 }
