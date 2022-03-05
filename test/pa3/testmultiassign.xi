@@ -1,12 +1,9 @@
-foo3() : int, int, int {
-    return 1, 2, 3
+foo1():int{
+    return 3
 }
-
-foo2(): int[], bool[] {
-    return {1, 2}, {true, false}
+foo2():int,int,int[]{
+    return 3,4,{}
 }
-
-foo() {
-    a:int, b:int, c:int = foo3()
-    arr1:int[], arr2:bool[] = foo2()
+foo3(){
+    a:int, _, c:int[] = foo2()
 }
