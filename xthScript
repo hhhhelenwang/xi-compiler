@@ -33,3 +33,17 @@ xic ("Test --parse") "--parse" {
 
 }
 
+xic ("Test --parse") ["../pa2/pa2-failed"]"--parse" {
+    assign02.xi;
+    assign04.xi;
+
+}
+
+xic ("Test --typecheck") ["../pa3"]"-libpath $(testpath)--typecheck" {
+    testaddmessage.xi;
+    testarraytype.xi;
+    testgeneral.xi;
+    testmultiassign.xi;
+    testscope.xi;
+}
+
