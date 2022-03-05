@@ -5,7 +5,7 @@ xic ("Test --help") "--help" {
     ;
 }
 
-xic ("Test --lex") ["../pa1"]"--lex" {
+xic ("Test --lex") ["./test/pa1"]"--lex" {
     test1.xi;
     test2.xi;
     testcomment.xi;
@@ -21,7 +21,7 @@ xic ("Test --lex") ["../pa1"]"--lex" {
     testtype.xi;
 }
 
-xic ("Test --parse") "--parse" {
+xic ("Test --parse") ["./test/pa2/"]"--parse" {
     test_declare_assign.xi;
     test_func_no_arg_type.xi;
     test_function_definition.xi;
@@ -30,20 +30,19 @@ xic ("Test --parse") "--parse" {
     test_arr_init1.xi;
     test_arr_init2.xi;
     test_arr_init3.xi;
-
 }
 
-xic ("Test --parse") ["../pa2/pa2-failed"]"--parse" {
+xic ("Test --parse") ["./test/pa2/pa2-failed"]"--parse" {
     assign02.xi;
     assign04.xi;
-
 }
 
-xic ("Test --typecheck") ["../pa3"]"-libpath $(testpath)--typecheck" {
+xic ("Test --typecheck") ["./test/pa3"]"-libpath $(testpath) --typecheck" {
     testaddmessage.xi;
     testarraytype.xi;
     testgeneral.xi;
     testmultiassign.xi;
+    testprocedureret.xi;
     testscope.xi;
+    testwrongscope.xi;
 }
-

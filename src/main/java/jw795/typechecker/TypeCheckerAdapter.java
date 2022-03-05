@@ -68,8 +68,7 @@ public class TypeCheckerAdapter {
                         String pos = visitor.errorstart(use.getLine(), use.getCol());
                         throw new SemanticErrorException(pos + "Interface " + use.interfaceName + " not found");
                     } catch (Exception e) {
-                        System.out.println("inner try catch");
-                        throw e; //
+                        throw e;
                     }
                 }
 
@@ -116,7 +115,7 @@ public class TypeCheckerAdapter {
      * Standard output error message. <kind> error beginning at <filename>:<line>:<column>: <description>
      */
     private String stdOutError(String errorKind, String fileName, String error) {
-        return errorKind + " error beginning at" + fileName + ":" + error;
+        return errorKind + "error beginning at" + fileName + ":" + error;
     }
 
 
