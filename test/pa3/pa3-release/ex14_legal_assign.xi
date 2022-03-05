@@ -4,7 +4,7 @@
 //  _ = e -> done
 //  d1...dn = e
 a:int = 2
-b:bool
+b:bool = false
 c:int[]
 d:bool[]
 arr:int[][][]
@@ -13,34 +13,42 @@ multi_return(): int, int, bool, bool{
     return 1, a, b, true
 }
 
-single_return():int{
+single_int_return():int{
     return 100;
+}
+
+single_bool_return():bool{
+    return true;
 }
 
 foo(){
 e:int[1][2]
 f:bool[5][]
 s: int[] = "Hello";
+q:int = -single_int_return()
+p:bool = single_bool_return()
 
 a = 1;
-a = single_return();
+a = single_int_return();
 b = true;
 b = false;
 c = {1, 2, 3}
 d = {}
 d[0] = b
 d = {true}
+o:bool = d[0]
 e = {{1,2}}
 f = {{},{},{},{},{}}
-f = {{true,true},{true,false},{false,true},{true,false},{true,false}}
+f = {{b,o},{true,false},{false,true},{true,false},{true,false}}
 
 s[1] = a
 d[0] = false
 f[0] = {true,false}
 f[0][1] = false
 
-_ = single_return()
+_ = single_int_return()
 _, x:int, y:bool, _ = multi_return()
+_, _, _, _ = multi_return()
 
 m: int[][]
 n: int[3][4]
