@@ -96,7 +96,6 @@ public class Compiler {
         if (cmd.hasOption("lex")) {
             for (String file : files) {
                 if (file.endsWith("xi")) {
-                    System.out.println(file);
                     lexFile(file);
                 }
             }
@@ -111,12 +110,12 @@ public class Compiler {
             files = cmd.getArgList();
             for (String file : files) {
                 if (file.endsWith("xi")) {
-                    System.out.println(file);
                     parseFile(file);
                 }
             }
         }
     }
+
     public void parseFile(String fileName) {
         try {
             // Generate token file
@@ -132,9 +131,7 @@ public class Compiler {
         if (cmd.hasOption("typecheck")) {
             files = cmd.getArgList();
             for (String file : files) {
-                System.out.println(file);
                 if (file.endsWith(".xi")) {
-                    System.out.println(sourcePath + file);
                     typeCheckFile(sourcePath + file);
                 }
             }
@@ -158,7 +155,6 @@ public class Compiler {
         } catch (ParseException e){
             System.out.println(e.getMessage());
         }
-        System.out.println("Started");
         compiler.help();
         compiler.setPaths();
         compiler.lex();
