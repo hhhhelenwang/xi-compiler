@@ -145,7 +145,7 @@ interface ::= procFuncDeclLst:f
 // procedure or function declaration non empty list
 procFuncDeclLst ::= procFuncDecl:f optSemi procFuncDeclLst:d
     {: d.add(0, f); RESULT = d; :}
-    | procFuncDecl:f
+    | procFuncDecl:f optSemi
     {: ArrayList<ProcFuncDecl> lst = new ArrayList<ProcFuncDecl>(); lst.add(f); RESULT = lst; :}
     ;
 

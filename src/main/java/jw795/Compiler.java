@@ -92,8 +92,9 @@ public class Compiler {
      * Produce lexical analysis on all input source files.
      */
     public void lex(){
-        files = cmd.getArgList();
         if (cmd.hasOption("lex")) {
+            System.out.println("Lexing >>");
+            files = cmd.getArgList();
             for (String file : files) {
                 if (file.endsWith("xi")) {
                     lexFile(file);
@@ -107,6 +108,7 @@ public class Compiler {
      */
     public void parse(){
         if (cmd.hasOption("parse")) {
+            System.out.println("Parsing >>");
             files = cmd.getArgList();
             for (String file : files) {
                 if (file.endsWith("xi")) {
@@ -155,6 +157,7 @@ public class Compiler {
         } catch (ParseException e){
             System.out.println(e.getMessage());
         }
+        System.out.println("Started >>>");
         compiler.help();
         compiler.setPaths();
         compiler.lex();
