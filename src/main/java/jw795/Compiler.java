@@ -157,7 +157,7 @@ public class Compiler {
         } catch (ParseException e){
             System.out.println(e.getMessage());
         }
-        System.out.println("Started >>>");
+//        System.out.println("Started >>>");
         compiler.help();
         compiler.setPaths();
         compiler.lex();
