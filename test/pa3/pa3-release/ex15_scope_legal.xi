@@ -4,6 +4,7 @@ hello(){
 }
 
 str:int[]
+
 fun():bool{
 _ = fun()
 return true;
@@ -29,6 +30,30 @@ ifloop(){
 x:int
 b:bool
 if(b){
-
+    y:int = 0;
 }
+y:int = 1;
+}
+
+whileloop(){
+b:bool
+while(b){
+    b = true
+    str = {1,2,3}
+    y:int = 0;
+}
+y:int = 1;
+}
+
+ifElse(){
+b:bool
+if(b){
+    b = true
+    str = {1,2,3}
+    y:int = 0;
+} else {
+    b = false;
+    str = {4,5,6}
+}
+y:int = 1;
 }
