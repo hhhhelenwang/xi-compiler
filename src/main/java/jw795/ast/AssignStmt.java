@@ -30,6 +30,5 @@ public class AssignStmt extends Statement implements Definition {
         leftVal.accept(visitor);
         expr.accept(visitor);
         visitor.visitAssign(this);
-        System.out.println("get to the line "+ this.getLine());
     }
 }

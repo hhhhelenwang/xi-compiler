@@ -42,6 +42,10 @@ public class ProcedureDefine extends ASTNode implements Definition{
         for (FunProcArgs arg : arguments) {
             arg.accept(visitor);
         }
+        if (visitor instanceof TypeChecker) {
+            Sigma ret = new Ret(new Unit());
+            ((TypeChecker) visitor).env.addVar("return", ret);
+        }
         procBody.accept(visitor);
         visitor.leaveScope();
 
