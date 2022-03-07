@@ -79,14 +79,14 @@ public class TypeCheckerAdapter {
             } catch (LexicalErrorException e) {
                 String errMsg = stdOutError("Lexical ", curFile, e.getMessage());
                 System.out.println(errMsg);
-                targetWriter.write(errMsg);
+                targetWriter.write(e.getMessage());
                 targetWriter.write("\n");
                 targetWriter.close();
             } catch (SyntacticErrorException e) {
                 e.printStackTrace();
                 String errMsg = stdOutError("Syntax ", curFile, e.getMessage());
                 System.out.println(errMsg);
-                targetWriter.write(errMsg);
+                targetWriter.write(e.getMessage());
                 targetWriter.write("\n");
                 targetWriter.close();
             } catch (SemanticErrorException e) {

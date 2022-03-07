@@ -217,7 +217,6 @@ public class TypeChecker extends Visitor{
             // if the first operand is a bool, check for boolean comparison
             setBinOpBoolType(node);
         } else if (node.expr1.type instanceof Array){
-            System.out.println("equal at line");
             // if the first operand is an array, check for array concatenation
             setArrayCompareType(node);
         } else {
