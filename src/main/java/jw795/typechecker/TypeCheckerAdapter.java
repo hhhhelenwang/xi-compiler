@@ -1,14 +1,17 @@
 package jw795.typechecker;
 
+import jw795.ast.*;
 import jw795.lexer.Lexwrapper;
 import jw795.parser.parser;
-import jw795.ast.*;
-import edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
-import jw795.util.*;
-import polyglot.util.CodeWriter;
+import jw795.util.LexicalErrorException;
+import jw795.util.SemanticErrorException;
+import jw795.util.SyntacticErrorException;
 
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import static jw795.util.FileUtil.generateTargetFile;
 
 
 public class TypeCheckerAdapter {
@@ -17,8 +20,9 @@ public class TypeCheckerAdapter {
     String destPath; // the path to put the typed file in
     String libPath; // path to find the interface files in
     String fileName; // already contains source dir + file name
+    boolean genFile; // if a type check diagnostic file need to be generated
 
-    public TypeCheckerAdapter(Reader reader, String name, String dest, String lib) {
+    public TypeCheckerAdapter(Reader reader, String name, String dest, String lib, boolean gen) {
         // paths and files
         this.destPath = dest;
         this.libPath = lib;
@@ -26,15 +30,18 @@ public class TypeCheckerAdapter {
         // build parser
         this.scanner = new Lexwrapper(reader, name);
         this.cup_parser = new parser(scanner);
+        genFile = gen;
 
     }
 
-    public void gentypecheck() {
+    public ASTNode gentypecheck() {
         //generate the target .parsed file
-        File targetParsed = FileUtil.generateTargetFile(fileName, destPath, "typed");
         FileWriter targetWriter = null;
         try {
-            targetWriter = new FileWriter(targetParsed);
+            if (genFile) {
+                File targetParsed = generateTargetFile(fileName, destPath, "typed");
+                targetWriter = new FileWriter(targetParsed);
+            }
 
             // Keep track of current file been processed
             String curFile = fileName;
@@ -70,38 +77,49 @@ public class TypeCheckerAdapter {
                 }
                 curFile = fileName;
                 node.accept(visitor);
-
-                targetWriter.write("Valid Xi Program" + "\n");
-                targetWriter.close();
+                if (genFile) {
+                    targetWriter.write("Valid Xi Program" + "\n");
+                    targetWriter.close();
+                }
+                return node;
             } catch (LexicalErrorException e) {
                 String errMsg = stdOutError("Lexical ", curFile, e.getMessage());
                 System.out.println(errMsg);
-                targetWriter.write(e.getMessage());
-                targetWriter.write("\n");
-                targetWriter.close();
+                if (genFile) {
+                    targetWriter.write(e.getMessage());
+                    targetWriter.write("\n");
+                    targetWriter.close();
+                }
             } catch (SyntacticErrorException e) {
                 e.printStackTrace();
                 String errMsg = stdOutError("Syntax ", curFile, e.getMessage());
                 System.out.println(errMsg);
-                targetWriter.write(e.getMessage());
-                targetWriter.write("\n");
-                targetWriter.close();
+                if (genFile) {
+                    targetWriter.write(e.getMessage());
+                    targetWriter.write("\n");
+                    targetWriter.close();
+                }
             } catch (SemanticErrorException e) {
                 String errMsg = stdOutError("Semantic ", curFile, e.getMessage());
                 System.out.println(errMsg);
-                targetWriter.write(e.getMessage());
-                targetWriter.write("\n");
-                targetWriter.close();
+                if (genFile) {
+                    targetWriter.write(e.getMessage());
+                    targetWriter.write("\n");
+                    targetWriter.close();
+                }
             } catch (Exception e) {
                 System.out.println("Unknown error while type checking " + fileName);
-                targetWriter.write("Unknown error");
-                targetWriter.write("\n");
-                targetWriter.close();
+                if (genFile) {
+                    targetWriter.write("Unknown error");
+                    targetWriter.write("\n");
+                    targetWriter.close();
+                }
                 e.printStackTrace();
             }
         } catch (Exception e) {
             System.out.println("Compiler error: target file not found");
         }
+        return null; // should not reach here
     }
 
     /**
