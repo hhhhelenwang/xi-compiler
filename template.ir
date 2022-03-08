@@ -22,7 +22,7 @@
 
       (LABEL lok)
       (MOVE (MEM(ADD(TEMP ta) (MUL (TEMP ti) (CONST 8)))) (MUL (TEMP i) (TEMP i)))
-      (MOVE (TEMP i) (ADD (TEMP i) (CONST 1)))
+      (MOVE (TEMP ti) (ADD (TEMP ti) (CONST 1)))
 
       (LABEL lerr)
 
