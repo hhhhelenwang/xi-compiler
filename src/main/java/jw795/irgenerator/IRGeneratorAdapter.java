@@ -21,11 +21,11 @@ public class IRGeneratorAdapter {
     }
 
     public IRCompUnit generateIR() {
-        // first type check the input file,
+        // first parse + type check the input file
         // this should report any lexical, syntactic, and semantic errors
         ASTNode checkedProgram = typeCheckerAdapter.gentypecheck();
 
-        // generate IR for the AST node;
+        // after the program type-checks, generate IR for the AST node;
 
         return null;
     }
