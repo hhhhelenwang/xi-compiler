@@ -27,7 +27,6 @@ public class BlockStmt extends Statement {
 
     @Override
     public void accept(Visitor visitor) throws Exception {
-        // TODO: do we need to remove enter and leave scope here?
         visitor.enterScope();
         for(Statement s: statements){
             s.accept(visitor);

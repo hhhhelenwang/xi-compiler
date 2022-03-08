@@ -522,12 +522,6 @@ public class TypeChecker extends Visitor{
 
     @Override
     public void visitAssign(AssignStmt node) throws SemanticErrorException {
-        // TODO:
-        //  x = e,
-        //  e1[e2] = e2,
-        //  x:tau = e,
-        //  _ = e -> done
-        //  d1...dn = e
         if (node.leftVal instanceof WildCard) {//_ = e
             checkExprStmt(node);
         } else if (node.leftVal instanceof LeftValueList) {// d1..dn = e
