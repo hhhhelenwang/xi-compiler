@@ -2,7 +2,7 @@ package jw795.ast;
 
 import jw795.typechecker.Tau;
 import jw795.typechecker.Visitor;
-import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
+import edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 
 /**
  * Represent a parameter in function/procedure definition.

@@ -1,8 +1,7 @@
 package jw795.ast;
 
-import jw795.typechecker.T;
+import edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 import jw795.typechecker.Visitor;
-import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 
 public class StringLit extends Expr{
     String str;

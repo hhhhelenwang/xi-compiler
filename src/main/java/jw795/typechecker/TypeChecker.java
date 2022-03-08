@@ -1,7 +1,7 @@
 package jw795.typechecker;
 
 import jw795.ast.*;
-import util.SemanticErrorException;
+import jw795.util.SemanticErrorException;
 
 import java.util.*;
 

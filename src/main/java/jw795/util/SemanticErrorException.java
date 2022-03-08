@@ -1,4 +1,4 @@
-package util;
+package jw795.util;
 
 /** Signals that a semantic error appears when type checking the file. */
 public class SemanticErrorException extends RuntimeException{

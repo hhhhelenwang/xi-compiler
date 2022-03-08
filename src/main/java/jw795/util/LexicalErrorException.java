@@ -1,4 +1,4 @@
-package util;
+package jw795.util;
 
 /** Signals that a lexical error appears while lexing the file. */
 public class LexicalErrorException extends RuntimeException{

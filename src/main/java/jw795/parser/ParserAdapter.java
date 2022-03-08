@@ -1,15 +1,15 @@
 package jw795.parser;
 
+import edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 import jw795.ast.ASTNode;
 import jw795.lexer.Lexwrapper;
+import jw795.util.FileUtil;
+import polyglot.util.CodeWriter;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.Reader;
-import util.polyglot.util.CodeWriter;
-import util.FileUtil;
-import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 
 public class ParserAdapter {
     parser cup_parser;

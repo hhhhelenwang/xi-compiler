@@ -1,7 +1,7 @@
 package jw795.ast;
 
 import jw795.typechecker.*;
-import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
+import edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 
 public class WildCard extends ASTNode implements LValue{
     public Unit type;

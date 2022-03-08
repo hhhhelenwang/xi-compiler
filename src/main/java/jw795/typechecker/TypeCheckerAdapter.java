@@ -3,12 +3,9 @@ package jw795.typechecker;
 import jw795.lexer.Lexwrapper;
 import jw795.parser.parser;
 import jw795.ast.*;
-import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
-import util.FileUtil;
-import util.LexicalErrorException;
-import util.SyntacticErrorException;
-import util.SemanticErrorException;
-import util.polyglot.util.CodeWriter;
+import edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
+import jw795.util.*;
+import polyglot.util.CodeWriter;
 
 import java.io.*;
 import java.util.*;

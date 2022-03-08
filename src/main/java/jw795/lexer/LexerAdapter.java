@@ -1,17 +1,14 @@
 package jw795.lexer;
+import java_cup.runtime.Symbol;
+import jw795.parser.sym;
+import jw795.util.FileUtil;
+
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
-import java.io.File;
-import java.io.FileWriter;
-
-import jw795.lexer.Lexer.TokenType;
-import java_cup.runtime.Symbol;
-
-import util.FileUtil;
-
-import jw795.parser.sym;
 
 /**
  * An adapter class that connects the main class Compiler.class the Lexer.class generated using JFlex. Takes

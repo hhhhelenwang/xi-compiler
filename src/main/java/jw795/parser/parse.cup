@@ -7,8 +7,8 @@ import jw795.ast.*;
 import jw795.lexer.Lexer;
 import jw795.lexer.LexerAdapter;
 import java.math.BigInteger;
-import util.LexicalErrorException;
-import util.SyntacticErrorException;
+import jw795.util.LexicalErrorException;
+import jw795.util.SyntacticErrorException;
 
 
 

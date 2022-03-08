@@ -1,9 +1,8 @@
 package jw795.ast;
 
+import edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 import jw795.typechecker.*;
-import util.edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ProcedureDefine extends ASTNode implements Definition{
