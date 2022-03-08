@@ -1,5 +1,6 @@
 package jw795.ast;
 
+import jw795.Visitor;
 import jw795.typechecker.*;
 import edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 

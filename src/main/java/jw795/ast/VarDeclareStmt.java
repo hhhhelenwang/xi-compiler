@@ -1,7 +1,7 @@
 package jw795.ast;
 
 import edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
-import jw795.typechecker.Visitor;
+import jw795.Visitor;
 
 /**
  * Representation of a variable declaration.

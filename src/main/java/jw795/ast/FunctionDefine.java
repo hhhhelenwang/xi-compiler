@@ -1,11 +1,11 @@
 package jw795.ast;
 
+import jw795.Visitor;
 import jw795.typechecker.*;
 import edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Representation of a function or procedure definition in AST.

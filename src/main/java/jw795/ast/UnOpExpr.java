@@ -1,6 +1,6 @@
 package jw795.ast;
 
-import jw795.typechecker.Visitor;
+import jw795.Visitor;
 
 /**
  * Representation of unary operations in AST.

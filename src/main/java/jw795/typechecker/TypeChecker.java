@@ -1,11 +1,12 @@
 package jw795.typechecker;
 
+import jw795.Visitor;
 import jw795.ast.*;
 import jw795.util.SemanticErrorException;
 
 import java.util.*;
 
-public class TypeChecker extends Visitor{
+public class TypeChecker extends Visitor {
 
     public SymbolTable env;
 

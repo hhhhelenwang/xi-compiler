@@ -1,4 +1,4 @@
-package jw795.typechecker;
+package jw795;
 import jw795.ast.*;
 
 public abstract class Visitor {
