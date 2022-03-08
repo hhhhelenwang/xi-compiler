@@ -1,5 +1,10 @@
 (COMPUNIT irchallenge
-  (FUNC _Isqarray_aii (...add_ir_code_here...))
+  (FUNC _Isqarray_aii
+    (SEQ
+      (MOVE (TEMP x1) (TEMP n))
+
+    )
+  )
   (DATA string_const1 ( 1 10 )) 
   (FUNC _Imain_paai
     (SEQ
