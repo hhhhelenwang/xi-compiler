@@ -1,17 +1,20 @@
 package jw795.irgenerator;
 
-import edu.cornell.cs.cs4120.xic.ir.IRNodeFactory_c;
-import edu.cornell.cs.cs4120.xic.ir.IRSeq;
-import edu.cornell.cs.cs4120.xic.ir.IRStmt;
-import edu.cornell.cs.cs4120.xic.ir.IRTemp;
+import edu.cornell.cs.cs4120.xic.ir.*;
 import jw795.Visitor;
 import jw795.ast.*;
+import jw795.typechecker.Int;
 
+import javax.naming.ldap.HasControls;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
 public class IRGenerator extends Visitor {
     IRNodeFactory_c irFactory;
+    HashMap<String,String> globalvar;
+    LinkedList<IRData> memory;
 
     public IRGenerator(){
         this.irFactory = new IRNodeFactory_c();
@@ -59,6 +62,10 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitVar(VarExpr node) throws Exception {
+        //TODO: what is memtype for this ir mem
+        if(globalvar.containsKey(node.identifier)){
+            node.ir = irFactory.IRMem(irFactory.IRName(node.identifier));
+        }
 
     }
 
@@ -189,6 +196,7 @@ public class IRGenerator extends Visitor {
     @Override
     public void visitAssign(AssignStmt node) throws Exception {
 
+
     }
 
     @Override
@@ -249,6 +257,7 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitProgram(Program node) throws Exception {
+        //TODO: loop over memory to add static data
         node.ir = irFactory.IRCompUnit("example");
         for (Definition d: node.definitions) {
             if (d instanceof GlobDeclare) {
@@ -266,6 +275,21 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitGlobDecl(GlobDeclare node) throws Exception {
-
+        this.globalvar.put(node.identifier, "_" + node.identifier);
+        if (node.value != null) {
+            if (node.value instanceof IntLiteral) {
+                long[] singleval = {((IntLiteral) node.value).value.longValue()};
+                node.ir = new IRData("_" + node.identifier, singleval);
+            } else if (node.value instanceof BoolLiteral) {
+                if (((BoolLiteral) node.value).value) {
+                    node.ir = new IRData("_" + node.identifier, new long[]{1});
+                } else {
+                    node.ir = new IRData("_" + node.identifier, new long[]{0});
+                }
+            }
+        } else{
+            node.ir = new IRData("_" + node.identifier, new long[]{});
+        }
+        this.memory.add(node.ir);
     }
 }

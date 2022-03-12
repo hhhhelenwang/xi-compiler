@@ -4,7 +4,7 @@ import jw795.Visitor;
 import edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 
 public class BoolLiteral extends Expr{
-    boolean value;
+    public boolean value;
 
     public BoolLiteral(boolean val, int line, int col) {
         super(line, col);
