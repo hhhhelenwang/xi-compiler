@@ -1,9 +1,22 @@
 package jw795.irgenerator;
 
+import edu.cornell.cs.cs4120.xic.ir.IRNodeFactory_c;
+import edu.cornell.cs.cs4120.xic.ir.IRSeq;
+import edu.cornell.cs.cs4120.xic.ir.IRStmt;
+import edu.cornell.cs.cs4120.xic.ir.IRTemp;
 import jw795.Visitor;
 import jw795.ast.*;
 
+import java.util.LinkedList;
+import java.util.List;
+
 public class IRGenerator extends Visitor {
+    IRNodeFactory_c irFactory;
+
+    public IRGenerator(){
+        this.irFactory = new IRNodeFactory_c();
+    }
+
     @Override
     public void enterScope() {
 
@@ -141,7 +154,16 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitBlockStmt(BlockStmt node) throws Exception {
-
+        //Require: when an AST node translate to multiple IRStmts, make its ir an IRSeq
+        LinkedList<IRStmt> seq = new LinkedList<>();
+        for (Statement s: node.statements) {
+            if (s.ir instanceof IRSeq) {
+                seq.addAll(((IRSeq) s.ir).stmts());
+            } else {
+                seq.add(s.ir);
+            }
+        }
+        node.ir = irFactory.IRSeq(seq);
     }
 
     @Override
@@ -181,12 +203,28 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitFunDef(FunctionDefine node) throws Exception {
+        List<IRStmt> irBody = ((IRSeq)node.functionBody.ir).stmts();
+        IRSeq bodyWithArgs = moveArgument(irBody, node.arguments);
+        node.ir = irFactory.IRFuncDecl(node.name,bodyWithArgs);
 
     }
 
     @Override
     public void visitPrDef(ProcedureDefine node) throws Exception {
+        List<IRStmt> irBody = ((IRSeq)node.procBody.ir).stmts();
+        IRSeq bodyWithArgs = moveArgument(irBody, node.arguments);
+        node.ir = irFactory.IRFuncDecl(node.name,bodyWithArgs);
+    }
 
+    public IRSeq moveArgument(List<IRStmt> origin, List<FunProcArgs> args){
+        IRTemp tar;
+        IRTemp val;
+        for (int i = 0; i< args.size();i++){
+            tar = irFactory.IRTemp(args.get(i).identifier);
+            val = irFactory.IRTemp("_ARG"+i);
+            origin.add(i, irFactory.IRMove(tar,val));
+        }
+        return irFactory.IRSeq(origin);
     }
 
     @Override
@@ -211,7 +249,14 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitProgram(Program node) throws Exception {
-
+        node.ir = irFactory.IRCompUnit("example");
+        for (Definition d: node.definitions) {
+            if (d instanceof GlobDeclare) {
+                node.ir.appendData(((GlobDeclare) d).ir);
+            } else if (d instanceof FunctionDefine) {
+                node.ir.appendFunc(((FunctionDefine) d).ir);
+            }
+        }
     }
 
     @Override

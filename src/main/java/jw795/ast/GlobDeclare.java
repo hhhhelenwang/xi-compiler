@@ -1,5 +1,6 @@
 package jw795.ast;
 
+import edu.cornell.cs.cs4120.xic.ir.IRData;
 import jw795.Visitor;
 import edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 
@@ -7,6 +8,7 @@ public class GlobDeclare extends ASTNode implements Definition, LValue{
     public String identifier;
     public Type varType;
     public Expr value;
+    public IRData ir;
 
     public GlobDeclare(String id, Type t, int li, int co) {
         super(li, co);

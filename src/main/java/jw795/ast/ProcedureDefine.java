@@ -1,6 +1,7 @@
 package jw795.ast;
 
 import edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
+import edu.cornell.cs.cs4120.xic.ir.IRFuncDecl;
 import jw795.Visitor;
 import jw795.typechecker.*;
 
@@ -10,6 +11,7 @@ public class ProcedureDefine extends ASTNode implements Definition{
     public String name;
     public List<FunProcArgs> arguments;
     public BlockStmt procBody;
+    public IRFuncDecl ir;
 
     public ProcedureDefine(String n, List<FunProcArgs> args, BlockStmt body, int li, int co) {
         super(li, co);

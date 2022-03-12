@@ -1,5 +1,6 @@
 package jw795.ast;
 
+import edu.cornell.cs.cs4120.xic.ir.IRFuncDecl;
 import jw795.Visitor;
 import jw795.typechecker.*;
 import edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
@@ -15,6 +16,7 @@ public class FunctionDefine extends ASTNode implements Definition{
     public List<Type> returnTypes; // procedure does not have return values
     public List<FunProcArgs> arguments;
     public BlockStmt functionBody;
+    public IRFuncDecl ir;
 
     public FunctionDefine(String n, List<Type> types, List<FunProcArgs> args, BlockStmt body, int line, int col) {
         super(line, col);

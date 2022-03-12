@@ -1,6 +1,7 @@
 package jw795.irgenerator;
 
 import edu.cornell.cs.cs4120.xic.ir.IRCompUnit;
+import jw795.Visitor;
 import jw795.ast.ASTNode;
 import jw795.typechecker.TypeCheckerAdapter;
 
@@ -24,6 +25,7 @@ public class IRGeneratorAdapter {
         // first parse + type check the input file
         // this should report any lexical, syntactic, and semantic errors
         ASTNode checkedProgram = typeCheckerAdapter.gentypecheck();
+        Visitor irVis = new IRGenerator();
 
         // after the program type-checks, generate IR for the AST node;
 

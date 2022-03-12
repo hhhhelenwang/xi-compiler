@@ -1,5 +1,6 @@
 package jw795.ast;
 
+import edu.cornell.cs.cs4120.xic.ir.IRStmt;
 import jw795.typechecker.R;
 
 /**
@@ -8,6 +9,7 @@ import jw795.typechecker.R;
  */
 public abstract class Statement extends ASTNode{
     public R type;
+    public IRStmt ir;
 
     public Statement(int li, int co) {
         super(li, co);

@@ -1,5 +1,6 @@
 package jw795.ast;
 
+import edu.cornell.cs.cs4120.xic.ir.IRCompUnit;
 import jw795.Visitor;
 import edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 
@@ -12,6 +13,7 @@ import java.util.List;
 public class Program extends ASTNode {
     public List<Use> uses;
     public List<Definition> definitions;
+    public IRCompUnit ir;
 
     public Program(List<Use> us,
             List<Definition> defs,

@@ -1,5 +1,6 @@
 package jw795.ast;
 
+import edu.cornell.cs.cs4120.xic.ir.IRStmt;
 import jw795.Visitor;
 import edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 
