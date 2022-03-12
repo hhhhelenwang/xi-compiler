@@ -181,6 +181,12 @@ public class Compiler {
 
     // TODO: generate IR
     public void generateIR() {
+        if (cmd.hasOption("irgen")) {
+            this.files = cmd.getArgList();
+            for (String file : files) {
+                generateIRForFile(file);
+            }
+        }
 
     }
 
@@ -216,5 +222,7 @@ public class Compiler {
         compiler.lex();
         compiler.parse();
         compiler.typeCheck();
+        compiler.generateIR();
+        compiler.runIR();
     }
 }
