@@ -8,7 +8,7 @@ import java.math.BigInteger;
  * Representation of an integer in AST.
  */
 public class IntLiteral extends Expr{
-    BigInteger value;
+    public BigInteger value;
 
     public IntLiteral(BigInteger val, int line, int col) {
         super(line, col);
