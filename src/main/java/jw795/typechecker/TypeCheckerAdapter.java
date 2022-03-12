@@ -30,7 +30,7 @@ public class TypeCheckerAdapter {
         // build parser
         this.scanner = new Lexwrapper(reader, name);
         this.cup_parser = new parser(scanner);
-        genFile = gen;
+        this.genFile = gen;
 
     }
 
