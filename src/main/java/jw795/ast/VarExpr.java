@@ -1,5 +1,7 @@
 package jw795.ast;
 
+import edu.cornell.cs.cs4120.xic.ir.IRExp;
+import edu.cornell.cs.cs4120.xic.ir.IRExpr_c;
 import jw795.Visitor;
 import edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 
@@ -8,6 +10,7 @@ import edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
  */
 public class VarExpr extends Expr implements LValue{
     public String identifier;
+    public IRExpr_c ir;
 
     public VarExpr(String id, int line, int col) {
         super(line, col);

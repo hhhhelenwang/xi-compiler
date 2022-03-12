@@ -1,5 +1,6 @@
 package jw795.ast;
 
+import edu.cornell.cs.cs4120.xic.ir.IRMove;
 import jw795.Visitor;
 import edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 
@@ -9,6 +10,7 @@ import edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 public class AssignStmt extends Statement implements Definition {
     public LValue leftVal;
     public Expr expr;
+    public IRMove ir;
 
     public AssignStmt(LValue left, Expr e, int line, int col) {
         super(line, col);
