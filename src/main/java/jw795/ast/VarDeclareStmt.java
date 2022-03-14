@@ -1,6 +1,7 @@
 package jw795.ast;
 
 import edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
+import edu.cornell.cs.cs4120.xic.ir.IRExpr;
 import jw795.Visitor;
 
 /**
@@ -28,5 +29,11 @@ public class VarDeclareStmt extends Statement implements LValue {
     public void accept(Visitor visitor) throws Exception {
         varType.accept(visitor);
         visitor.visitVarDecl(this);
+    }
+
+    @Override
+    //implement this
+    public IRExpr getir() {
+        return null;
     }
 }

@@ -32,6 +32,7 @@ public class IRGeneratorAdapter {
 
     public IRCompUnit generateIR() {
         // typeCheckAdapter.gentypecheck() will print Lexical, Syntax, or Semantic if exist
+        System.out.println("start generating ir");
         Program checkedProgram = (Program) typeCheckerAdapter.gentypecheck();
 
         // create irVisitor

@@ -1,5 +1,7 @@
 package jw795.ast;
 
+import edu.cornell.cs.cs4120.xic.ir.IRConst;
+import edu.cornell.cs.cs4120.xic.ir.IRExpr;
 import jw795.Visitor;
 import edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 import java.math.BigInteger;
@@ -9,6 +11,7 @@ import java.math.BigInteger;
  */
 public class IntLiteral extends Expr{
     public BigInteger value;
+    public IRConst ir;
 
     public IntLiteral(BigInteger val, int line, int col) {
         super(line, col);
@@ -23,5 +26,10 @@ public class IntLiteral extends Expr{
     @Override
     public void accept(Visitor visitor) {
         visitor.visitIntLiteral(this);
+    }
+
+    @Override
+    public IRExpr getir() {
+        return ir;
     }
 }

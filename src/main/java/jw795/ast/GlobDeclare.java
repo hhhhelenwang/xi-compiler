@@ -1,10 +1,11 @@
 package jw795.ast;
 
 import edu.cornell.cs.cs4120.xic.ir.IRData;
+import edu.cornell.cs.cs4120.xic.ir.IRExpr;
 import jw795.Visitor;
 import edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 
-public class GlobDeclare extends ASTNode implements Definition, LValue{
+public class GlobDeclare extends ASTNode implements Definition{
     public String identifier;
     public Type varType;
     public Expr value;

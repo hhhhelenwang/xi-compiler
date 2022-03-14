@@ -1,6 +1,7 @@
 package jw795.ast;
 
 import edu.cornell.cs.cs4120.xic.ir.IRExp;
+import edu.cornell.cs.cs4120.xic.ir.IRExpr;
 import edu.cornell.cs.cs4120.xic.ir.IRExpr_c;
 import jw795.Visitor;
 import edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
@@ -25,5 +26,10 @@ public class VarExpr extends Expr implements LValue{
     @Override
     public void accept(Visitor visitor) throws Exception {
         visitor.visitVar(this);
+    }
+
+    @Override
+    public IRExpr getir() {
+        return this.ir;
     }
 }

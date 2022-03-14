@@ -1,5 +1,6 @@
 package jw795.ast;
 
+import edu.cornell.cs.cs4120.xic.ir.IRExpr;
 import jw795.Visitor;
 import edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 
@@ -33,5 +34,11 @@ public class LeftValueList extends ASTNode implements LValue{
         for (LValue declare : declares) {
             declare.accept(visitor);
         }
+    }
+
+    @Override
+    //TODO:implement this
+    public IRExpr getir() {
+        return null;
     }
 }

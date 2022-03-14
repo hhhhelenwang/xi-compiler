@@ -1,5 +1,6 @@
 package jw795.ast;
 
+import edu.cornell.cs.cs4120.xic.ir.IRExpr;
 import jw795.Visitor;
 import edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 
@@ -30,5 +31,11 @@ public class ArrIndexExpr extends Expr implements LValue{
         array.accept(visitor);
         index.accept(visitor);
         visitor.visitArrIndexExpr(this);
+    }
+
+    @Override
+    //TODO: implement this
+    public IRExpr getir() {
+        return null;
     }
 }

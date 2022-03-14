@@ -42,6 +42,7 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitIntLiteral(IntLiteral node) {
+        node.ir = irFactory.IRConst(node.value.longValue());
 
     }
 
@@ -195,7 +196,9 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitAssign(AssignStmt node) throws Exception {
-
+        IRExpr left = node.leftVal.getir();
+        IRExpr right = node.expr.getir();
+        node.ir = irFactory.IRMove(left, right);
 
     }
 
