@@ -64,8 +64,10 @@ public class IRGenerator extends Visitor {
     @Override
     public void visitVar(VarExpr node) throws Exception {
         //TODO: what is memtype for this ir mem
-        if(globalvar.containsKey(node.identifier)){
-            node.ir = irFactory.IRMem(irFactory.IRName(node.identifier));
+        if(globalvar.containsKey("_" + node.identifier)){
+            node.ir = irFactory.IRMem(irFactory.IRName("_" + node.identifier));
+        }else{
+            node.ir = irFactory.IRTemp(node.identifier);
         }
 
     }
@@ -199,7 +201,6 @@ public class IRGenerator extends Visitor {
         IRExpr left = node.leftVal.getir();
         IRExpr right = node.expr.getir();
         node.ir = irFactory.IRMove(left, right);
-
     }
 
     @Override
