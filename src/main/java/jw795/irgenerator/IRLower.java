@@ -1,9 +1,42 @@
 package jw795.irgenerator;
 
+import edu.cornell.cs.cs4120.util.SExpPrinter;
 import edu.cornell.cs.cs4120.xic.ir.*;
 import jw795.ast.Statement;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class IRLower {
+
+    /**
+     * An intermediate data structure to represent the pair S;e, where S is a vector of statements that
+     * captures the side effect of evaluating e. All IR expression lowers to an SEPair.
+     */
+    class SEPair extends IRExpr_c {
+        public List<IRStmt> sideEffects;
+        public IRExpr value;
+
+        public SEPair(List<IRStmt> s, IRExpr val) {
+            sideEffects = s;
+            value = val;
+        }
+        @Override
+        public String label() {
+            return null;
+        }
+
+        @Override
+        public void printSExp(SExpPrinter p) {
+            // nothing to print
+        }
+    }
+
+    public IRNodeFactory_c irFactory;
+
+    public IRLower() {
+        irFactory = new IRNodeFactory_c();
+    }
 
     /**
      * Lower an IR node.
@@ -19,13 +52,27 @@ public class IRLower {
      * @param node not lowered IR expression
      * @return lowered IR expression
      */
-    public IRExpr lowerExpr(IRExpr node) {
+    public SEPair lowerExpr(IRExpr node) {
         // match the node against all IR expressions
-        // TODO: binop, const, call, mem, eseq, name, temp
-        if (node instanceof IRBinOp) {
-            return lowerBiNop((IRBinOp) node);
+        if (node instanceof IRConst) {
+            return lowerConst((IRConst) node);
+        } else if (node instanceof IRName) {
+            return lowerName((IRName) node);
+        } else if (node instanceof IRTemp) {
+            return lowerTemp((IRTemp) node);
         }
-        return null;
+        // other expressions
+        else if (node instanceof IRBinOp) {
+            return lowerBiNop((IRBinOp) node);
+        } else if (node instanceof IRCall) {
+            return lowerCall((IRCall) node);
+        } else if (node instanceof IRMem) {
+            return lowerMem((IRMem) node);
+        } else if (node instanceof IRESeq) {
+            return lowerESeq((IRESeq) node);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -41,22 +88,45 @@ public class IRLower {
     // Expressions ======================================================================
 
     /**
-     * L[e1 op e2]: lower an BinOp expression.
-     * @param node not-lowered IR BiNop expression
-     * @return lowered IR BiNop expression
-     */
-    public IRExpr lowerBiNop(IRBinOp node) {
-        return new IRBinOp(node.opType(), lowerExpr(node.left()), lowerExpr(node.right()));
-    }
-
-    /**
      * L[CONST(n)]: lower an IR constant expression
      * @param node IR const
      * @return lowered IR const
      */
-    public IRExpr lowerConst(IRConst node) {
+    public SEPair lowerConst(IRConst node) {
+        return new SEPair(new ArrayList<>(), node);
+    }
+
+    /**
+     * L[Name(e)]: lower name expression
+     * @param node name expression
+     * @return lowered name expression
+     */
+    public SEPair lowerName(IRName node) {
+        return new SEPair(new ArrayList<>(), node);
+    }
+
+    /**
+     * L[Temp(e)]: lower temporary variable expression
+     * @param node temp node
+     * @return lowered temp node
+     */
+    public SEPair lowerTemp(IRTemp node) {
+        return new SEPair(new ArrayList<>(), node);
+    }
+
+    /**
+     * L[e1 op e2]: lower an BinOp expression.
+     * @param node not-lowered IR BiNop expression
+     * @return lowered IR BiNop expression
+     */
+    public SEPair lowerBiNop(IRBinOp node) {
+        SEPair pair1 = lowerExpr(node.left());
+        SEPair pair2 = lowerExpr(node.right());
+        // TODO: how to determine if e1 and e2 commutes?
         return null;
     }
+
+
 
     /**
      * L[Call(f, e1, ..., en)]: lower an IR function call expression. Evaluates to the pair (S; e) where
@@ -81,8 +151,28 @@ public class IRLower {
     //      sn,
     //      move (Temp a, e)
     //     )
-    public IRExpr lowerCall(IRCall node) {
-        return null;
+    public SEPair lowerCall(IRCall node) {
+        SEPair lowerArg;
+        List<IRStmt> sideOfArg; // side effect of an argument
+        IRExpr valOfArg; // the value expression of the argument, without side effects
+
+        List<IRStmt> sideOfCall = new ArrayList<>(); // all of the side effects of the call
+        List<IRExpr> argTemps = new ArrayList<>();
+        int i = 1;
+        for (IRExpr arg : node.args()) {
+            lowerArg = lowerExpr(arg);
+            sideOfArg = lowerArg.sideEffects;
+            valOfArg = lowerArg.value;
+            sideOfCall.addAll(sideOfArg); // add side effect of argument to the overall side effects
+
+            IRTemp argTemp = irFactory.IRTemp("t" + i);
+            argTemps.add(argTemp);
+            sideOfCall.add(irFactory.IRMove(argTemp, valOfArg)); // add MOVE(ti, e') as a side effect
+            i ++;
+        }
+        IRCall call = irFactory.IRCall(node.target(), argTemps);
+
+        return new SEPair(sideOfCall, call);
     }
 
     /**
@@ -90,8 +180,12 @@ public class IRLower {
      * @param node not lowered IR mem expression
      * @return lowered mem expression
      */
-    public IRExpr lowerMem(IRMem node) {
-        return null;
+    public SEPair lowerMem(IRMem node) {
+        SEPair lowerE = lowerExpr(node.expr()); // returns an SEPair
+        List<IRStmt> sideEffects = lowerE.sideEffects;
+        IRExpr value = lowerE.value;
+
+        return new SEPair(sideEffects, value);
     }
 
     /**
@@ -99,26 +193,16 @@ public class IRLower {
      * @param node ESeq expression
      * @return pair of s and e (probably?)
      */
-    public IRExpr lowerESeq(IRESeq node) {
-        return null;
+    public SEPair lowerESeq(IRESeq node) {
+        IRStmt sideOfESeq = node.stmt();
+        SEPair lowerESeq = lowerExpr(node.expr());
+        List<IRStmt> sideOfE= lowerESeq.sideEffects;
+        IRExpr exprVal = lowerESeq.value;
+        sideOfE.add(sideOfESeq);
+
+        return new SEPair(sideOfE, exprVal);
     }
 
-    /**
-     * L[Name(e)]: lower name expression
-     * @param node name expression
-     * @return lowered name expression
-     */
-    public IRExpr lowerName(IRName node) {
-        return null;
-    }
 
-    /**
-     * L[Temp(e)]: lower temporary variable expression
-     * @param node temp node
-     * @return lowered temp node
-     */
-    public IRExpr lowerTemp(IRTemp node) {
-        return null;
-    }
 
 }

@@ -4,7 +4,6 @@ import edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 import edu.cornell.cs.cs4120.util.SExpPrinter;
 import edu.cornell.cs.cs4120.xic.ir.IRCompUnit;
 import jw795.Visitor;
-import jw795.ast.ASTNode;
 import jw795.ast.Program;
 import jw795.typechecker.TypeCheckerAdapter;
 
@@ -31,16 +30,15 @@ public class IRGeneratorAdapter {
     }
 
     public IRCompUnit generateIR() {
-        // typeCheckAdapter.gentypecheck() will print Lexical, Syntax, or Semantic if exist
+        // typeCheckAdapter.gentypecheck() will print Lexical, Syntax, or Semantic errors if those errors exist
         System.out.println("start generating ir");
         Program checkedProgram = (Program) typeCheckerAdapter.gentypecheck();
 
         // create irVisitor
         Visitor irVisitor = new IRGenerator();
-
+        IRCompUnit lowerIR = null;
         // generate the target .irsol file
         FileWriter targetWriter = null;
-
         try{
             File targetIrsol = generateTargetFile(fileName, destPath, "irsol");
             targetWriter = new FileWriter(targetIrsol);
@@ -48,6 +46,8 @@ public class IRGeneratorAdapter {
             // Generating IR
             checkedProgram.accept(irVisitor);
             IRCompUnit root = checkedProgram.ir;
+            IRLower lirTranslator = new IRLower();
+            lowerIR = (IRCompUnit) lirTranslator.lower(root); //TODO: cast directly?
 
             // Writing to target file, adapted from IRNode_c.java
             StringWriter sw = new StringWriter();
@@ -64,6 +64,6 @@ public class IRGeneratorAdapter {
             System.out.println("unknown error while generating IR: "+ e.getMessage());
         }
 
-        return checkedProgram.ir;
+        return lowerIR;
     }
 }
