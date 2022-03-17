@@ -11,6 +11,8 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
+import static edu.cornell.cs.cs4120.xic.ir.IRBinOp.OpType.*;
+
 public class IRGenerator extends Visitor {
     IRNodeFactory_c irFactory;
     HashMap<String,String> globalvar;
@@ -74,81 +76,99 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitIntNeg(IntNeg node) throws Exception {
+        IRExpr val = node.expr.getir();
+        node.ir = irFactory.IRBinOp(SUB, irFactory.IRConst(0), val);
 
     }
 
     @Override
+    //not equate to XOR True
     public void visitNot(Not node) throws Exception {
-
+        IRExpr val = node.expr.getir();
+        node.ir = irFactory.IRBinOp(XOR, val, irFactory.IRConst(1));
     }
 
     @Override
     public void visitAdd(Add node) throws Exception {
+        node.ir = irFactory.IRBinOp(ADD,node.expr1.getir(),node.expr2.getir());
 
     }
 
     @Override
     public void visitSub(Sub node) throws Exception {
+        node.ir = irFactory.IRBinOp(SUB,node.expr1.getir(),node.expr2.getir());
 
     }
 
     @Override
     public void visitMult(Mult node) throws Exception {
+        node.ir = irFactory.IRBinOp(MUL,node.expr1.getir(),node.expr2.getir());
 
     }
 
     @Override
     public void visitHighMult(HighMult node) throws Exception {
+        node.ir = irFactory.IRBinOp(HMUL,node.expr1.getir(),node.expr2.getir());
 
     }
 
     @Override
     public void visitDiv(Div node) throws Exception {
+        node.ir = irFactory.IRBinOp(DIV,node.expr1.getir(),node.expr2.getir());
 
     }
 
     @Override
     public void visitMod(Mod node) throws Exception {
+        node.ir = irFactory.IRBinOp(MOD,node.expr1.getir(),node.expr2.getir());
 
     }
 
     @Override
     public void visitAnd(And node) throws Exception {
+        node.ir = irFactory.IRBinOp(AND,node.expr1.getir(),node.expr2.getir());
 
     }
 
     @Override
     public void visitOr(Or node) throws Exception {
+        node.ir = irFactory.IRBinOp(OR,node.expr1.getir(),node.expr2.getir());
 
     }
 
     @Override
     public void visitEqual(Equal node) throws Exception {
+        node.ir = irFactory.IRBinOp(EQ,node.expr1.getir(),node.expr2.getir());
 
     }
 
     @Override
     public void visitNotEqual(NotEqual node) throws Exception {
+        node.ir = irFactory.IRBinOp(NEQ,node.expr1.getir(),node.expr2.getir());
 
     }
 
     @Override
     public void visitLessThan(LessThan node) throws Exception {
+        node.ir = irFactory.IRBinOp(LT,node.expr1.getir(),node.expr2.getir());
 
     }
 
     @Override
     public void visitLessEq(LessEq node) throws Exception {
+        node.ir = irFactory.IRBinOp(LEQ,node.expr1.getir(),node.expr2.getir());
 
     }
 
     @Override
     public void visitGreaterThan(GreaterThan node) throws Exception {
+        node.ir = irFactory.IRBinOp(GT,node.expr1.getir(),node.expr2.getir());
 
     }
 
     @Override
     public void visitGreaterEq(GreaterEq node) throws Exception {
+        node.ir = irFactory.IRBinOp(GEQ,node.expr1.getir(),node.expr2.getir());
 
     }
 

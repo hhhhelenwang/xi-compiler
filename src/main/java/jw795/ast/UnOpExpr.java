@@ -1,5 +1,6 @@
 package jw795.ast;
 
+import edu.cornell.cs.cs4120.xic.ir.IRExpr;
 import jw795.Visitor;
 
 /**
@@ -7,6 +8,7 @@ import jw795.Visitor;
  */
 public abstract class UnOpExpr extends Expr{
     public Expr expr;
+    public IRExpr ir;
 
     UnOpExpr(Expr e, int line, int col) {
         super(line, col);

@@ -1,5 +1,6 @@
 package jw795.ast;
 
+import edu.cornell.cs.cs4120.xic.ir.IRNode;
 import jw795.Visitor;
 
 /**
@@ -8,6 +9,7 @@ import jw795.Visitor;
 public abstract class BinOpExpr extends Expr{
     public Expr expr1;
     public Expr expr2;
+    public IRNode ir;
 
     BinOpExpr(Expr e1, Expr e2, int line, int col) {
         super(line, col);
