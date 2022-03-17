@@ -14,6 +14,10 @@ public class IRGenerator extends Visitor {
     IRNodeFactory_c irFactory;
     HashMap<String,String> globalvar;
     LinkedList<IRData> memory;
+    //TODO: find out where to store definition of function, and also give a way to find it's return type
+    //currently make it a hashmap, but should it?
+    HashMap<String, String> funcname;
+    HashMap<String, Long> funcretlength;
 
     public IRGenerator(){
         this.irFactory = new IRNodeFactory_c();
@@ -192,7 +196,20 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitFunCallExpr(FunCallExpr node) throws Exception {
-
+        if(node.arguments.size() == 1){
+            String ret = this.funcname.get(node.name);
+            IRName name = irFactory.IRName(ret);
+            node.ir = irFactory.IRCall(name,node.arguments.get(0).ir);
+        }else{
+            String ret = this.funcname.get(node.name);
+            IRName name = irFactory.IRName(ret);
+            LinkedList<IRExpr> args = new LinkedList<>();
+            long length = (long)node.arguments.size();
+            for(Expr e: node.arguments){
+                args.add(e.ir);
+            }
+            node.ir = irFactory.IRCall(name,args);
+        }
     }
 
     @Override
@@ -231,9 +248,16 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitAssign(AssignStmt node) throws Exception {
-        IRExpr left = node.leftVal.getir();
-        IRExpr right = node.expr.getir();
-        node.ir = irFactory.IRMove(left, right);
+
+        if (node.leftVal instanceof LeftValueList) {//_ = e;
+//            long length = this.funcretlength.get(node.expr.);
+//            IRCallStmt firstst = node.expr.ir;
+//            node.ir = irFactory.IRCallStmt(funaddr, );
+        } else if(node.leftVal instanceof WildCard) {
+            node.ir = irFactory.IRMove(irFactory.IRTemp("_"), node.expr.ir);
+        } else {
+
+        }
     }
 
     @Override
