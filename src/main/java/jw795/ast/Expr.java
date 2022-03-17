@@ -1,6 +1,6 @@
 package jw795.ast;
 
-import edu.cornell.cs.cs4120.xic.ir.IRExpr;
+import edu.cornell.cs.cs4120.xic.ir.IRExpr_c;
 import jw795.typechecker.T;
 
 /**
@@ -9,10 +9,7 @@ import jw795.typechecker.T;
  */
 public abstract class Expr extends ASTNode {
     public T type;
-
-    public IRExpr getir(){
-        return null;
-    };
+    public IRExpr_c ir;
 
     Expr(int li, int co) {
         super(li, co);
