@@ -2,7 +2,6 @@ package jw795.irgenerator;
 
 import edu.cornell.cs.cs4120.util.SExpPrinter;
 import edu.cornell.cs.cs4120.xic.ir.*;
-import jw795.ast.Statement;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,9 +32,13 @@ public class IRLower {
     }
 
     public IRNodeFactory_c irFactory;
+    // a counter to track all the temps that have been used.
+    // Suppose tempCounter = n, then tn is the last temp used.
+    public int tempCounter;
 
     public IRLower() {
         irFactory = new IRNodeFactory_c();
+        tempCounter = 0;
     }
 
     /**
@@ -44,9 +47,16 @@ public class IRLower {
      * @return lowered IR node
      */
     public IRNode lower(IRNode node) {
-        return null;
+        if (node instanceof IRExpr) {
+            return lowerExpr((IRExpr) node);
+        } else if (node instanceof IRStmt) {
+            return lowerStmt((IRStmt) node);
+        } else {
+            return null;
+        }
     }
 
+    // Expressions ======================================================================
     /**
      * L[e]: lower an IR expression.
      * @param node not lowered IR expression
@@ -74,18 +84,6 @@ public class IRLower {
             return null;
         }
     }
-
-    /**
-     * L[s]: lower an IR statement.
-     * @param node not lowered IR statement
-     * @return lowered IR statement
-     */
-    public IRStmt lowerStmt(Statement node) {
-        return null;
-    }
-
-
-    // Expressions ======================================================================
 
     /**
      * L[CONST(n)]: lower an IR constant expression
@@ -122,7 +120,11 @@ public class IRLower {
     public SEPair lowerBiNop(IRBinOp node) {
         SEPair pair1 = lowerExpr(node.left());
         SEPair pair2 = lowerExpr(node.right());
-        // TODO: how to determine if e1 and e2 commutes?
+        if (commute(node.left(), node.right())) {
+
+        } else {
+
+        }
         return null;
     }
 
@@ -134,23 +136,6 @@ public class IRLower {
      * @param node
      * @return
      */
-    // TODO: ?? should evaluate to a pair (S; e) where S = vector of s_i that captures the side-effect of
-    //  the function call. But this kinda mess up the return types for expression lowerers.
-    //  !! Possible solution: our implementation for pair(S; e) should extend IRExpr
-
-    // TODO: !!!! Note on how (S; e) should be handled:
-    //  suppose we have an assign statement a = foo(2), we will call lowerStmt(this node). a = foo(2) is an instance
-    //  of IRMove, so lowerStmt(this node) should recursively call lowerMove() which will then call lowerExpr(a) and
-    //  lowerExpr(foo(2)). The result of lowerExpr(foo(2)) should be the pair (S; e). Then lowerMove() should take S,
-    //  make it into multiple statements, and shove it in front of the actual move statement. i.e. lowerMove() should
-    //  return:
-    //  Seq(
-    //      s1,
-    //      s2,
-    //      ...,
-    //      sn,
-    //      move (Temp a, e)
-    //     )
     public SEPair lowerCall(IRCall node) {
         SEPair lowerArg;
         List<IRStmt> sideOfArg; // side effect of an argument
@@ -158,18 +143,18 @@ public class IRLower {
 
         List<IRStmt> sideOfCall = new ArrayList<>(); // all of the side effects of the call
         List<IRExpr> argTemps = new ArrayList<>();
-        int i = 1;
         for (IRExpr arg : node.args()) {
             lowerArg = lowerExpr(arg);
             sideOfArg = lowerArg.sideEffects;
             valOfArg = lowerArg.value;
             sideOfCall.addAll(sideOfArg); // add side effect of argument to the overall side effects
 
-            IRTemp argTemp = irFactory.IRTemp("t" + i);
+            tempCounter ++;
+            IRTemp argTemp = irFactory.IRTemp("t" + tempCounter);
             argTemps.add(argTemp);
             sideOfCall.add(irFactory.IRMove(argTemp, valOfArg)); // add MOVE(ti, e') as a side effect
-            i ++;
         }
+        //TODO: this is wrong!!! lowered IR does not have Call expression
         IRCall call = irFactory.IRCall(node.target(), argTemps);
 
         return new SEPair(sideOfCall, call);
@@ -203,6 +188,161 @@ public class IRLower {
         return new SEPair(sideOfE, exprVal);
     }
 
+    // Statements ======================================================================
+    /**
+     * L[s]: lower an IR statement into a sequence of statements.
+     * @param node not lowered IR statement
+     * @return an IRSeq that represent the lowered statement
+     */
+    public IRSeq lowerStmt(IRStmt node) {
+        // TODO: SEQ, EXP, JUMP, CJump, label, move, return, call_stmt?
+        if (node instanceof IRSeq) {
+            return lowerSeq((IRSeq) node);
+        } else if (node instanceof IRExp) {
+            return lowerExp((IRExp) node);
+        } else if (node instanceof IRJump) {
+            return lowerJump((IRJump) node);
+        } else if (node instanceof IRCJump) {
+            return lowerCJump((IRCJump) node);
+        } else if (node instanceof IRLabel) {
+            return lowerLabel((IRLabel) node);
+        } else if (node instanceof IRMove) {
+            return lowerMove((IRMove) node);
+        } else if (node instanceof IRReturn) {
+            return lowerReturn((IRReturn) node);
+        } else if (node instanceof IRCallStmt) {
+            return lowerCallStmt((IRCallStmt) node);
+        }
+        return null;
+    }
+
+    /**
+     * L[Seq(s1, ..., sn)]: lower an IR sequence. Lowers s1, .., sn into sequences and flattens
+     * them into a large top-level sequence.
+     * @param node an IRSeq sequence
+     * @return a single IRSeq node that contains all statements resulted from lowering s1, ..., s2
+     */
+    public IRSeq lowerSeq(IRSeq node) {
+        List<IRStmt> sequence = new ArrayList<>(); // the list of stmts that form the one large result sequence
+        IRSeq lowerStmt;
+        for (IRStmt stmt : node.stmts()) {
+            lowerStmt = lowerStmt(stmt);
+            sequence.addAll(lowerStmt.stmts());
+        }
+        return irFactory.IRSeq(sequence);
+    }
+
+    /**
+     * L[EXP(e)]: lower an IR Exp to extract the statement and throw away the expression.
+     * @param node IRExp node
+     * @return IRSeq that contains the statement in node
+     */
+    public IRSeq lowerExp(IRExp node) {
+        SEPair lowerE = lowerExpr(node.expr()); // get the side effect of evaluating e
+        return irFactory.IRSeq(lowerE.sideEffects);
+
+    }
+
+    /**
+     * L[Jump(e)]: lower an IRJump stmt into a sequence of side effects of e followed by a Jump to the lowered e'
+     * @param node IRJump stmt
+     * @return lowered Jump stmt
+     */
+    public IRSeq lowerJump(IRJump node) {
+        SEPair lowerE = lowerExpr(node.target());
+        List<IRStmt> seq = lowerE.sideEffects;
+        seq.add(irFactory.IRJump(lowerE.value));
+        return irFactory.IRSeq(seq);
+    }
+
+    /**
+     * L[CJump(e)]: lower an IRCJump stmt into a sequence of side effects of e followed by a CJump to the lowered e'
+     * @param node IRCJump node
+     * @return lowered CJump stmt
+     */
+    public IRSeq lowerCJump(IRCJump node) {
+        SEPair lowerE = lowerExpr(node.cond());
+        List<IRStmt> seq = lowerE.sideEffects;
+        seq.add(irFactory.IRCJump(lowerE.value, node.trueLabel(), node.falseLabel()));
+        return irFactory.IRSeq(seq);
+    }
+
+    /**
+     * L[Label(l)]: lower an IRLabel stmt by giving back the same stmt and wrapping the stmt into an IRSeq.
+     * @param node IRLabel node
+     * @return lowered IRLabel
+     */
+    public IRSeq lowerLabel(IRLabel node) {
+        return irFactory.IRSeq(node);
+    }
+
+    /**
+     *
+     * @param node
+     * @return
+     */
+    public IRSeq lowerMove(IRMove node) {
+        // if the target is a temp, hoist out the side effect s and append it in front of a Move to e'
+        if (node.target() instanceof IRTemp) {
+            SEPair lowerE = lowerExpr(node.source());
+            List<IRStmt> seq = lowerE.sideEffects;
+            seq.add(irFactory.IRMove(node.target(), lowerE.value));
+            return irFactory.IRSeq(seq);
+        } else {
+            // otherwise, estimate if e1 and e2 commute in Move(e1, e2)
+            // TODO: lower Move(e1, e2)
+            // lower
+
+        }
+        return null;
+    }
+
+    /**
+     * L[Return(e1, ..., en)]: lower IRReturn by hoisting out side effects of e1, ..., en and append
+     * a new Return(e1', ..., en')
+     * @param node IRReturn node
+     * @return lowered return stmt
+     */
+    public IRSeq lowerReturn(IRReturn node) {
+        List<IRStmt> sequence = new ArrayList<>();
+        List<IRExpr> returns = new ArrayList<>();
+        SEPair lowerRet;
+        for (IRExpr ret : node.rets()) {
+            lowerRet = lowerExpr(ret);
+            sequence.addAll(lowerRet.sideEffects);
+            // move value of ei into a temp to avoid later side effects affecting the value of ei
+            tempCounter ++;
+            IRTemp temp = irFactory.IRTemp("t" + tempCounter);
+            sequence.add(irFactory.IRMove(temp, lowerRet.value));
+            // gather the lowered ei'
+            returns.add(lowerRet.value);
+        }
+        // add the return stmt that returns the lowered expressions
+        sequence.add(irFactory.IRReturn(returns));
+
+        return irFactory.IRSeq(sequence);
+    }
+
+    /**
+     * L[Call_m(f, e1, ..., e2)]:
+     * @param node
+     * @return
+     */
+    public IRSeq lowerCallStmt(IRCallStmt node) {
+        // TODO
+        return null;
+    }
 
 
+    // Helper functions ================================================================
+
+    /**
+     * Decides whether e1 and e2 commute.
+     * @param e1 the first expression e1
+     * @param e2 the second expression e2
+     * @return if e1 and e2 commute.
+     */
+    private boolean commute(IRExpr e1, IRExpr e2) {
+        return false;
+    }
 }
