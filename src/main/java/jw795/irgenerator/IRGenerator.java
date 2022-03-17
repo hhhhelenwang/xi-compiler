@@ -57,8 +57,13 @@ public class IRGenerator extends Visitor {
     }
 
     @Override
+    //1 for true and 0 for false
     public void visitBoolLiteral(BoolLiteral node) {
-
+        if(node.value == true){
+            node.ir = irFactory.IRConst(1);
+        }else{
+            node.ir = irFactory.IRConst(0);
+        }
     }
 
     @Override
@@ -84,7 +89,7 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitIntNeg(IntNeg node) throws Exception {
-        IRExpr val = node.expr.getir();
+        IRExpr val = node.expr.ir;
         node.ir = irFactory.IRBinOp(SUB, irFactory.IRConst(0), val);
 
     }
@@ -92,91 +97,91 @@ public class IRGenerator extends Visitor {
     @Override
     //not equate to XOR True
     public void visitNot(Not node) throws Exception {
-        IRExpr val = node.expr.getir();
+        IRExpr val = node.expr.ir;
         node.ir = irFactory.IRBinOp(XOR, val, irFactory.IRConst(1));
     }
 
     @Override
     public void visitAdd(Add node) throws Exception {
-        node.ir = irFactory.IRBinOp(ADD,node.expr1.getir(),node.expr2.getir());
+        node.ir = irFactory.IRBinOp(ADD,node.expr1.ir,node.expr2.ir);
 
     }
 
     @Override
     public void visitSub(Sub node) throws Exception {
-        node.ir = irFactory.IRBinOp(SUB,node.expr1.getir(),node.expr2.getir());
+        node.ir = irFactory.IRBinOp(SUB,node.expr1.ir,node.expr2.ir);
 
     }
 
     @Override
     public void visitMult(Mult node) throws Exception {
-        node.ir = irFactory.IRBinOp(MUL,node.expr1.getir(),node.expr2.getir());
+        node.ir = irFactory.IRBinOp(MUL,node.expr1.ir,node.expr2.ir);
 
     }
 
     @Override
     public void visitHighMult(HighMult node) throws Exception {
-        node.ir = irFactory.IRBinOp(HMUL,node.expr1.getir(),node.expr2.getir());
+        node.ir = irFactory.IRBinOp(HMUL,node.expr1.ir,node.expr2.ir);
 
     }
 
     @Override
     public void visitDiv(Div node) throws Exception {
-        node.ir = irFactory.IRBinOp(DIV,node.expr1.getir(),node.expr2.getir());
+        node.ir = irFactory.IRBinOp(DIV,node.expr1.ir,node.expr2.ir);
 
     }
 
     @Override
     public void visitMod(Mod node) throws Exception {
-        node.ir = irFactory.IRBinOp(MOD,node.expr1.getir(),node.expr2.getir());
+        node.ir = irFactory.IRBinOp(MOD,node.expr1.ir,node.expr2.ir);
 
     }
 
     @Override
     public void visitAnd(And node) throws Exception {
-        node.ir = irFactory.IRBinOp(AND,node.expr1.getir(),node.expr2.getir());
+        node.ir = irFactory.IRBinOp(AND,node.expr1.ir,node.expr2.ir);
 
     }
 
     @Override
     public void visitOr(Or node) throws Exception {
-        node.ir = irFactory.IRBinOp(OR,node.expr1.getir(),node.expr2.getir());
+        node.ir = irFactory.IRBinOp(OR,node.expr1.ir,node.expr2.ir);
 
     }
 
     @Override
     public void visitEqual(Equal node) throws Exception {
-        node.ir = irFactory.IRBinOp(EQ,node.expr1.getir(),node.expr2.getir());
+        node.ir = irFactory.IRBinOp(EQ,node.expr1.ir,node.expr2.ir);
 
     }
 
     @Override
     public void visitNotEqual(NotEqual node) throws Exception {
-        node.ir = irFactory.IRBinOp(NEQ,node.expr1.getir(),node.expr2.getir());
+        node.ir = irFactory.IRBinOp(NEQ,node.expr1.ir,node.expr2.ir);
 
     }
 
     @Override
     public void visitLessThan(LessThan node) throws Exception {
-        node.ir = irFactory.IRBinOp(LT,node.expr1.getir(),node.expr2.getir());
+        node.ir = irFactory.IRBinOp(LT,node.expr1.ir,node.expr2.ir);
 
     }
 
     @Override
     public void visitLessEq(LessEq node) throws Exception {
-        node.ir = irFactory.IRBinOp(LEQ,node.expr1.getir(),node.expr2.getir());
+        node.ir = irFactory.IRBinOp(LEQ,node.expr1.ir,node.expr2.ir);
 
     }
 
     @Override
     public void visitGreaterThan(GreaterThan node) throws Exception {
-        node.ir = irFactory.IRBinOp(GT,node.expr1.getir(),node.expr2.getir());
+        node.ir = irFactory.IRBinOp(GT,node.expr1.ir,node.expr2.ir);
 
     }
 
     @Override
     public void visitGreaterEq(GreaterEq node) throws Exception {
-        node.ir = irFactory.IRBinOp(GEQ,node.expr1.getir(),node.expr2.getir());
+        node.ir = irFactory.IRBinOp(GEQ,node.expr1.ir,node.expr2.ir);
 
     }
 
