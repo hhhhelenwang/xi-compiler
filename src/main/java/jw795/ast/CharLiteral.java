@@ -7,7 +7,7 @@ import edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
  * Representation of character literal in AST.
  */
 public class CharLiteral extends Expr{
-    char value;
+    public char value;
 
     public CharLiteral(char val, int line, int col) {
         super(line, col);
