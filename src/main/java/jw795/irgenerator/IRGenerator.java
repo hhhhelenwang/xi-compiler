@@ -36,12 +36,23 @@ public class IRGenerator extends Visitor {
         long n = node.arrayElements.size();
         args.add(this.irFactory.IRConst(n * 8 + 8));
         l.add(this.irFactory.IRCallStmt(this.irFactory.IRName("_xi_alloc"), 1L, args));
-        l.add(this.irFactory.IRMove(this.irFactory.IRMem()))
-        for (Expr e : node.arrayElements) {
-            l.add()
+        IRTemp m = this.irFactory.IRTemp("_RV1");
+        l.add(this.irFactory.IRMove(
+                m,
+                this.irFactory.IRConst(n))
+        );
+        for (int i = 0; i < n; i++) {
+            Expr e = node.arrayElements.get(i);
+            l.add(this.irFactory.IRMove(
+                    this.irFactory.IRMem(
+                            this.irFactory.IRBinOp(
+                                    IRBinOp.OpType.ADD,
+                                    m,
+                                    this.irFactory.IRConst((i + 1) * 8))),
+                    e.ir));
         }
-        IRSeq s = this.irFactory.IRSeq();
-        IRBinOp a = this.irFactory.IRBinOp();
+        IRSeq s = this.irFactory.IRSeq(l);
+        IRBinOp a = this.irFactory.IRBinOp(IRBinOp.OpType.ADD, m, this.irFactory.IRConst( 8));
         node.ir = this.irFactory.IRESeq(s, a);
     }
 
