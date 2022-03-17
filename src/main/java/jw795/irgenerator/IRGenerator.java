@@ -292,15 +292,25 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitAssign(AssignStmt node) throws Exception {
+        //TODO: implement arrayindex related assingn
+        if(node.leftVal instanceof LeftValueList){
+            //gaurantee to be multiple return
+            long length = this.funcretlength.get(node.expr);
+            IRCall func = (IRCall) node.expr.ir;
+            LinkedList<IRStmt> lst = new LinkedList<>();
 
-        if (node.leftVal instanceof LeftValueList) {//_ = e;
-//            long length = this.funcretlength.get(node.expr.);
-//            IRCallStmt firstst = node.expr.ir;
-//            node.ir = irFactory.IRCallStmt(funaddr, );
-        } else if(node.leftVal instanceof WildCard) {
+            lst.add(irFactory.IRCallStmt(func.target(),length, func.args()));
+            for(int i = 0; i< length;i++){
+                IRExpr e = ((LeftValueList) node.leftVal).declares.get(i).getir();
+                lst.add(irFactory.IRMove(e, irFactory.IRTemp("_RV" + i)));
+            }
+            node.ir = irFactory.IRSeq(lst);
+
+        }
+        else if(node.leftVal instanceof WildCard) {
             node.ir = irFactory.IRMove(irFactory.IRTemp("_"), node.expr.ir);
         } else {
-
+            node.ir = irFactory.IRMove(node.leftVal.getir(), node.expr.ir);
         }
     }
 

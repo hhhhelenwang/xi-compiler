@@ -7,4 +7,5 @@ import edu.cornell.cs.cs4120.xic.ir.IRExpr;
  * LValue = RValue
  */
 public interface LValue extends Node{
+    IRExpr getir();
 }
