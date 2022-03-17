@@ -50,19 +50,53 @@ public class IRGenerator extends Visitor {
             l.add(this.irFactory.IRMove(
                     this.irFactory.IRMem(
                             this.irFactory.IRBinOp(
-                                    IRBinOp.OpType.ADD,
+                                    ADD,
                                     m,
                                     this.irFactory.IRConst((i + 1) * 8))),
                     e.ir));
         }
         IRSeq s = this.irFactory.IRSeq(l);
-        IRBinOp a = this.irFactory.IRBinOp(IRBinOp.OpType.ADD, m, this.irFactory.IRConst( 8));
+        IRBinOp a = this.irFactory.IRBinOp(ADD, m, this.irFactory.IRConst( 8));
         node.ir = this.irFactory.IRESeq(s, a);
     }
 
     @Override
     public void visitArrIndexExpr(ArrIndexExpr node) throws Exception {
-
+        ArrayList<IRStmt> l = new ArrayList<>();
+        IRTemp t_a = this.irFactory.IRTemp("t_a");
+        l.add(this.irFactory.IRMove(t_a, node.array.ir));
+        IRTemp t_i = this.irFactory.IRTemp("t_i");
+        l.add(this.irFactory.IRMove(t_i, node.index.ir));
+        l.add(this.irFactory.IRCJump(
+                this.irFactory.IRBinOp(
+                        ULT,
+                        t_i,
+                        this.irFactory.IRMem(
+                                this.irFactory.IRBinOp(
+                                        SUB,
+                                        t_a,
+                                        this.irFactory.IRConst(8)
+                                )
+                        )
+                ),
+                "ok",
+                "indexOutOfBound"
+            )
+        );
+        l.add(this.irFactory.IRLabel("ok"));
+        IRSeq s = this.irFactory.IRSeq(l);
+        IRMem a = this.irFactory.IRMem(
+                this.irFactory.IRBinOp(
+                        ADD,
+                        t_a,
+                        this.irFactory.IRBinOp(
+                                MUL,
+                                t_i,
+                                this.irFactory.IRConst(8)
+                        )
+                )
+        );
+        node.ir = this.irFactory.IRESeq(s, a);
     }
 
     @Override

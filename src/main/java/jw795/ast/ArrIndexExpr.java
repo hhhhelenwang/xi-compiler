@@ -32,10 +32,4 @@ public class ArrIndexExpr extends Expr implements LValue{
         index.accept(visitor);
         visitor.visitArrIndexExpr(this);
     }
-
-    @Override
-    //TODO: implement this
-    public IRExpr getir() {
-        return null;
-    }
 }
