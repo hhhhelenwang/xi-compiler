@@ -28,8 +28,4 @@ public class IntLiteral extends Expr{
         visitor.visitIntLiteral(this);
     }
 
-    @Override
-    public IRExpr getir() {
-        return ir;
-    }
 }

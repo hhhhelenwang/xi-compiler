@@ -325,7 +325,8 @@ public class TypeChecker extends Visitor {
         List<Expr> nodeArgs = node.arguments;
         T declArgs = ((Fn) prType).inputType;
         // argsConform throws SemanticErrorException if there is a mismatch
-        if (argsConform(nodeArgs, declArgs)) {
+        String prStart = errorstart(node.getLine(), node.getCol());
+        if (argsConform(nodeArgs, declArgs, prStart)) {
             node.type = new Unit();
         }
 
@@ -353,7 +354,8 @@ public class TypeChecker extends Visitor {
             List<Expr> nodeArgs = node.arguments;
             T declArgs = ((Fn) fnType).inputType;
             // check for argument types, argsConform throws SemanticErrorException if premise fails
-            if (argsConform(nodeArgs, declArgs)) {
+            String fnStart = errorstart(node.getLine(), node.getCol());
+            if (argsConform(nodeArgs, declArgs, fnStart)) {
                 node.type = ((Fn) fnType).outputType;
             }
         }
@@ -375,9 +377,16 @@ public class TypeChecker extends Visitor {
     }
 
     /** Checks if the types of arg passed in match the signature of declaration correspondingly*/
-    private boolean argsConform(List<Expr> nodeArgs, T declArgs) throws SemanticErrorException {
+    private boolean argsConform(List<Expr> nodeArgs, T declArgs, String fnPrStart) throws SemanticErrorException {
         if (declArgs instanceof Unit && nodeArgs.size() == 0) {
             return true;
+//            if (nodeArgs.size() == 0){
+//                return true;
+//            } else {
+//                String pos = errorstart(nodeArgs.get(0).getLine(), nodeArgs.get(0).getCol());
+//                String errorMsg = "Unmatched number of arguments. Expected Unit but got "+nodeArgs.size() + " args.";
+//                throw new SemanticErrorException(pos + errorMsg);
+//            }
         } else if (declArgs instanceof Tau && nodeArgs.size() == 1){
             if ((declArgs).equals(nodeArgs.get(0).type)) {
                 return true;
@@ -409,8 +418,12 @@ public class TypeChecker extends Visitor {
         }
         // number mismatch
         String errMsg = "Mismatched number of arguments";
-        String pos = errorstart(nodeArgs.get(0).getLine(), nodeArgs.get(0).getCol());
-        throw new SemanticErrorException(pos + errMsg);
+        if (nodeArgs.size() > 0){
+            errMsg = errorstart(nodeArgs.get(0).getLine(), nodeArgs.get(0).getCol()) + errMsg;
+        } else {
+            errMsg = fnPrStart + errMsg;
+        }
+        throw new SemanticErrorException(errMsg);
     }
 
     /** Helper for visitProCall and visitFunCall. It checks 1) f is type fn 2) outputType is correct */
