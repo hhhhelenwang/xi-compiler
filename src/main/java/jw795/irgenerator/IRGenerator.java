@@ -6,10 +6,7 @@ import jw795.ast.*;
 import jw795.typechecker.Int;
 
 import javax.naming.ldap.HasControls;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class IRGenerator extends Visitor {
     IRNodeFactory_c irFactory;
@@ -32,7 +29,18 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitArrayExpr(ArrayExpr node) throws Exception {
-
+        ArrayList<IRStmt> l = new ArrayList<>();
+        ArrayList<IRExpr> args = new ArrayList<>();
+        long n = node.arrayElements.size();
+        args.add(this.irFactory.IRConst(n * 8 + 8));
+        l.add(this.irFactory.IRCallStmt(this.irFactory.IRName("_xi_alloc"), 1L, args));
+        l.add(this.irFactory.IRMove(this.irFactory.IRMem()))
+        for (Expr e : node.arrayElements) {
+            l.add()
+        }
+        IRSeq s = this.irFactory.IRSeq();
+        IRBinOp a = this.irFactory.IRBinOp();
+        node.ir = this.irFactory.IRESeq(s, a);
     }
 
     @Override
