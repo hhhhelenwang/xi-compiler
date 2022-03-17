@@ -287,7 +287,11 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitRet(ReturnStmt node) throws Exception {
-
+        ArrayList<IRExpr> l = new ArrayList<>();
+        for (Expr e : node.returnVals) {
+            l.add(e.ir);
+        }
+        node.ir = this.irFactory.IRReturn(l);
     }
 
     @Override
