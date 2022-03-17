@@ -83,6 +83,8 @@ public class IRGenerator extends Visitor {
                 "indexOutOfBound"
             )
         );
+        l.add(this.irFactory.IRLabel("indexOutOfBound"));
+        l.add(this.irFactory.IRCallStmt(this.irFactory.IRName("_xi_out_of_bound"), 0L, new ArrayList<>()));
         l.add(this.irFactory.IRLabel("ok"));
         IRSeq s = this.irFactory.IRSeq(l);
         IRMem a = this.irFactory.IRMem(
