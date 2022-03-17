@@ -4,7 +4,7 @@ import edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 import jw795.Visitor;
 
 public class StringLit extends Expr{
-    String str;
+    public String str;
 
     public StringLit(String s, int li, int co) {
         super(li, co);
