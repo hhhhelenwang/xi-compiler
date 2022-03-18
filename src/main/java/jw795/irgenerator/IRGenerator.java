@@ -4,6 +4,7 @@ import edu.cornell.cs.cs4120.xic.ir.*;
 import jw795.Visitor;
 import jw795.ast.*;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -14,7 +15,7 @@ import static edu.cornell.cs.cs4120.xic.ir.IRBinOp.OpType.*;
 public class IRGenerator extends Visitor {
     IRNodeFactory_c irFactory;
     //use for global data and string
-    HashMap<String,IRData> globalVars;
+    HashMap<String,IRData> globalData;
     //TODO: find out where to store definition of function, and also give a way to find it's return type
     //currently make it a hashmap, but should it?
     HashMap<String, String> funcNames;
@@ -27,7 +28,7 @@ public class IRGenerator extends Visitor {
         this.irFactory = new IRNodeFactory_c();
         this.funcNames = funcNames;
         this.funcRetLengths = funcRetLengths;
-        this.globalVars = new HashMap<>();
+        this.globalData = new HashMap<>();
         this.stringcounter = 1;
         this.labelcounter = 1;
     }
@@ -61,7 +62,7 @@ public class IRGenerator extends Visitor {
                             irFactory.IRBinOp(
                                     ADD,
                                     m,
-                                    irFactory.IRConst((i + 1) * 8))),
+                                    irFactory.IRConst((i + 1) * 8L))),
                     e.ir));
         }
         IRSeq s = irFactory.IRSeq(l);
@@ -117,7 +118,7 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitBoolLiteral(BoolLiteral node) {
-        if(node.value == true){
+        if(node.value){
             node.ir = irFactory.IRConst(1);
         }else{
             node.ir = irFactory.IRConst(0);
@@ -126,7 +127,7 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitStringLit(StringLit node) {
-        globalVars.put("string_const"+ this.stringcounter, new IRData("string_const"+this.stringcounter, exprtoval(node)));
+        globalData.put("string_const"+ this.stringcounter, new IRData("string_const"+this.stringcounter, exprtoval(node)));
         node.ir = irFactory.IRName("string_const"+ this.stringcounter);
         stringcounter +=1;
     }
@@ -139,7 +140,7 @@ public class IRGenerator extends Visitor {
     @Override
     public void visitVar(VarExpr node) throws Exception {
         //TODO: what is memtype for this ir mem
-        if(globalVars.containsKey(node.identifier)){
+        if(globalData.containsKey(node.identifier)){
             node.ir = irFactory.IRMem(irFactory.IRName("_" + node.identifier));
         } else {
             node.ir = irFactory.IRTemp(node.identifier);
@@ -461,7 +462,7 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitGlobDecl(GlobDeclare node) throws Exception {
-        this.globalVars.put(node.identifier, new IRData("_" + node.identifier, exprtoval(node.value)));
+        this.globalData.put(node.identifier, new IRData("_" + node.identifier, exprtoval(node.value)));
         if (node.value != null) {
             if (node.value instanceof IntLiteral) {
                 long[] singleval = {((IntLiteral) node.value).value.longValue()};
@@ -478,11 +479,23 @@ public class IRGenerator extends Visitor {
         }
     }
 
-    //TODO:implement this helper to make constant
-    // int -> long
-    // bool -> long
-    // string -> long[]
+    /**
+     * convert a IntLiteral, a BoolLiteral, or a StringLiteral to a long array, used for putting data into globalData
+     * @param e the intput Expr that should be a IntLiteral, a BoolLiteral, or a StringLiteral
+     * @return long array representation of e
+     */
     private long[] exprtoval(Expr e){
+        if (e instanceof IntLiteral) {
+            return new long[] {((IntLiteral) e).value.longValue()};
+        } else if (e instanceof BoolLiteral) {
+            return new long[] {((BoolLiteral) e).value? 1L:0L};
+        } else if (e instanceof StringLit) {
+            int n = ((StringLit) e).str.length();
+            long[] result = new long[n];
+            for (int i = 0; i < n; i++) {
+                result[i] = Character.getNumericValue(((StringLit) e).str.charAt(i));
+            }
+        }
         return null;
     }
 }
