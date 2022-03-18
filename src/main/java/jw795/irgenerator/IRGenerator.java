@@ -288,6 +288,7 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitIfStmt(IfStmt node) throws Exception {
+        // labelcounter for ifclause, labelcounter+1 for skip the ifclause
         //use a label counter to generate a freshlabel
         LinkedList<IRStmt> lst = new LinkedList<>();
         //first put the branch
@@ -305,6 +306,7 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitIfElseStmt(IfElseStmt node) throws Exception {
+        // labelcounter for ifclause, labelcounter+1 for skip the elseclause, labelcounter+2 for the end
         LinkedList<IRStmt> lst = new LinkedList<>();
         //first put the branch
         lst.add(irFactory.IRCJump(node.condition.ir,"l"+labelcounter,"l"+(labelcounter+1)));
@@ -329,7 +331,20 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitWhileStmt(WhileStmt node) throws Exception {
+        LinkedList<IRStmt> lst = new LinkedList<>();
+        lst.add(irFactory.IRLabel("l"+labelcounter));
+        lst.add(irFactory.IRCJump(node.condition.ir,"l"+(labelcounter+1),"l"+(labelcounter+2)));
 
+        lst.add(irFactory.IRLabel("l"+(labelcounter+1)));
+        if(node.loopBody.ir instanceof IRStmt){
+            lst.add((IRStmt) node.loopBody.ir);
+        }
+        lst.add(irFactory.IRJump(irFactory.IRName("l"+labelcounter)));
+
+        lst.add(irFactory.IRLabel("l"+(labelcounter+2)));
+
+        node.ir = irFactory.IRSeq(lst);
+        this.labelcounter +=3;
     }
 
     @Override
