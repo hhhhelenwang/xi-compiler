@@ -421,12 +421,12 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitFunDecl(FunctionDeclare node) throws Exception {
-
+        //do nothing
     }
 
     @Override
     public void visitPrDecl(ProcedureDeclare node) throws Exception {
-
+        //do nothing
     }
 
     @Override
