@@ -18,8 +18,8 @@ public class IRGeneratorAdapter {
     String destPath; // the path to put the typed file in
     String libPath; // path to find the interface files in
     String fileName; // already contains source dir + file name
-    HashMap<String, String> funcNames;
-    HashMap<String, Long> funcRetLengths;
+    HashMap<String, String> funcNames = new HashMap<>();
+    HashMap<String, Long> funcRetLengths = new HashMap<>();
 
     public IRGeneratorAdapter(String fileName, String dest, String lib) {
         this.destPath = dest;
