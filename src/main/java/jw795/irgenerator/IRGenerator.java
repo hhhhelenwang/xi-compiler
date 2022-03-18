@@ -4,7 +4,6 @@ import edu.cornell.cs.cs4120.xic.ir.*;
 import jw795.Visitor;
 import jw795.ast.*;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -524,6 +523,7 @@ public class IRGenerator extends Visitor {
             for (int i = 0; i < n; i++) {
                 result[i] = Character.getNumericValue(((StringLit) e).str.charAt(i));
             }
+            return result;
         }
         return null;
     }
