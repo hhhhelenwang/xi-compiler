@@ -372,6 +372,35 @@ public class IRGenerator extends Visitor {
             node.ir = irFactory.IRSeq(lst);
         } else if(node.leftVal instanceof WildCard) {
             node.ir = irFactory.IRMove(irFactory.IRTemp("_"), node.expr.ir);
+        } else if(node.leftVal instanceof ArrIndexExpr) {
+            LinkedList<IRStmt> lst = new LinkedList<>();
+            IRTemp t_a = irFactory.IRTemp("t_a");
+            IRTemp t_i = irFactory.IRTemp("t_i");
+            lst.add(irFactory.IRMove(irFactory.IRTemp("t_a"), ((ArrIndexExpr) node.leftVal).array.ir));
+            lst.add(irFactory.IRMove(irFactory.IRTemp("t_i"), ((ArrIndexExpr) node.leftVal).index.ir));
+            node.ir = irFactory.IRMove(irFactory.IRTemp("_"), node.expr.ir);
+            lst.add(irFactory.IRCJump(
+                irFactory.IRBinOp(
+                    ULT,
+                    t_i,
+                    irFactory.IRMem(
+                            irFactory.IRBinOp(
+                                    SUB,
+                                    t_a,
+                                    irFactory.IRConst(8)
+                            )
+                    )
+            ),
+                    "ok",
+                    "indexOutOfBound"
+            ));
+            lst.add(irFactory.IRLabel("indexOutOfBound"));
+            lst.add(irFactory.IRCallStmt(this.irFactory.IRName("_xi_out_of_bound"), 0L, new ArrayList<>()));
+            lst.add(irFactory.IRLabel("ok"));
+            IRMem a = irFactory.IRMem(irFactory.IRBinOp(ADD, t_a, irFactory.IRBinOp(MUL, t_i, irFactory.IRConst(8))));
+            lst.add(irFactory.IRMove(a, node.expr.ir));
+
+            node.ir = irFactory.IRSeq(lst);
         } else {
             node.ir = irFactory.IRMove(node.leftVal.getir(), node.expr.ir);
         }
