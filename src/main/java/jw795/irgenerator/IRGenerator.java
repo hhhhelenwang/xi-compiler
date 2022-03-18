@@ -21,6 +21,7 @@ public class IRGenerator extends Visitor {
     HashMap<String, Long> funcRetLengths;
 
     int stringcounter;
+    int labelcounter;
 
     public IRGenerator(){
         this.irFactory = new IRNodeFactory_c();
@@ -28,6 +29,7 @@ public class IRGenerator extends Visitor {
         this.stringcounter = 1;
         this.funcNames = new HashMap<>();
         this.funcRetLengths = new HashMap<>();
+        this.labelcounter = 1;
     }
 
     @Override
@@ -286,7 +288,19 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitIfStmt(IfStmt node) throws Exception {
+        //use a label counter to generate a freshlabel
+        LinkedList<IRStmt> lst = new LinkedList<>();
+        //first put the branch
+        lst.add(irFactory.IRCJump(node.condition.ir,"l"+labelcounter,"l"+(labelcounter+1)));
+        lst.add(irFactory.IRLabel("l" +labelcounter));
+        if(node.clause.ir instanceof IRStmt){
+            //avoid the edge case where the stmt is a single valdeclare stmt and therefore just an irexpr
+            lst.add((IRStmt) node.clause.ir);
+        }
+        lst.add(irFactory.IRLabel("l" +(labelcounter+1)));
+        node.ir = irFactory.IRSeq(lst);
 
+        labelcounter += 2;
     }
 
     @Override
