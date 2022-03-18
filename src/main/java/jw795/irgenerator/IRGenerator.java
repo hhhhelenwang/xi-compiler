@@ -125,8 +125,6 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitStringLit(StringLit node) {
-        //TODO: we also need to store it memory
-
         globalVars.put("string_const"+ this.stringcounter, new IRData("string_const"+this.stringcounter, exprtoval(node)));
         node.ir = irFactory.IRName("string_const"+ this.stringcounter);
         stringcounter +=1;
@@ -277,8 +275,10 @@ public class IRGenerator extends Visitor {
         for (Statement s: node.statements) {
             if (s.ir instanceof IRSeq) {
                 seq.addAll(((IRSeq) s.ir).stmts());
-            } else {
-                seq.add(s.ir);
+            } else if(s.ir instanceof IRStmt) {
+                seq.add((IRStmt) s.ir);
+            }else{
+                //the left out case is vardeclarstmt, and it should not be print
             }
         }
         node.ir = irFactory.IRSeq(seq);
@@ -334,12 +334,13 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitWildCard(WildCard node) {
-
+        //no need to do anything and should not be called
     }
 
     @Override
     public void visitVarDecl(VarDeclareStmt node) throws Exception {
-
+        //this ir should only be use when see as Lvalue
+        node.ir = irFactory.IRTemp(node.identifier);
     }
 
     @Override
