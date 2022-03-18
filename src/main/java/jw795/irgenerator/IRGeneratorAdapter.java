@@ -33,7 +33,12 @@ public class IRGeneratorAdapter {
         }
     }
 
-    /** generateIR generates IR codes from specified file and write IR to the target file*/
+
+    /**
+     * Generate IR code for the file specified for adaptor, and write generated IR code to target file
+     * @param
+     * @return
+     */
     public IRCompUnit generateIR() {
         // typeCheckAdapter.gentypecheck() will print Lexical, Syntax, or Semantic errors if those errors exist
         System.out.println("start generating ir");
@@ -68,7 +73,11 @@ public class IRGeneratorAdapter {
         return lowerIR;
     }
 
-    // Helper function prettyPrint is adapted from given code, start recursively print
+    /**
+     * Helper function prettyPrint is adapted from given code
+     * @param compUnit The root IR node of the program
+     * @return a string representation of all IR code in compUnit
+     */
     private static String prettyPrint(IRCompUnit compUnit) {
         StringWriter sw = new StringWriter();
         try (PrintWriter pw = new PrintWriter(sw);

@@ -139,7 +139,6 @@ public class IRGenerator extends Visitor {
     @Override
     public void visitVar(VarExpr node) throws Exception {
         //TODO: what is memtype for this ir mem
-        //I guess default type is fine
         if(globalVars.containsKey(node.identifier)){
             node.ir = irFactory.IRMem(irFactory.IRName("_" + node.identifier));
         } else {
@@ -248,24 +247,25 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitPrCall(ProcCallStmt node) throws Exception {
-
+        node.ir = FunProcCall(node.name, node.arguments);
     }
 
     @Override
     public void visitFunCallExpr(FunCallExpr node) throws Exception {
-        if(node.arguments.size() == 1){
-            String ret = this.funcNames.get(node.name);
-            IRName name = irFactory.IRName(ret);
-            node.ir = irFactory.IRCall(name,node.arguments.get(0).ir);
-        }else{
-            String ret = this.funcNames.get(node.name);
-            IRName name = irFactory.IRName(ret);
-            LinkedList<IRExpr> args = new LinkedList<>();
-            long length = (long)node.arguments.size();
-            for(Expr e: node.arguments){
-                args.add(e.ir);
+        node.ir = FunProcCall(node.name, node.arguments);
+    }
+
+    /** Helper function to generate IRCall for functions and procedures */
+    private IRCall FunProcCall(String name, List<Expr> args){
+        String funcName = this.funcNames.get(name);
+        if (args.size() == 1) {
+            return irFactory.IRCall(irFactory.IRName(funcName),args.get(0).ir);
+        } else {
+            LinkedList<IRExpr> argsIR = new LinkedList<>();
+            for(Expr e: args){
+                argsIR.add(e.ir);
             }
-            node.ir = irFactory.IRCall(name,args);
+            return irFactory.IRCall(irFactory.IRName(funcName),argsIR);
         }
     }
 
@@ -293,7 +293,7 @@ public class IRGenerator extends Visitor {
         //first put the branch
         lst.add(irFactory.IRCJump(node.condition.ir,"l"+labelcounter,"l"+(labelcounter+1)));
         lst.add(irFactory.IRLabel("l" +labelcounter));
-        if(node.clause.ir instanceof IRStmt){
+        if (node.clause.ir instanceof IRStmt) {
             //avoid the edge case where the stmt is a single valdeclare stmt and therefore just an irexpr
             lst.add((IRStmt) node.clause.ir);
         }
@@ -370,7 +370,7 @@ public class IRGenerator extends Visitor {
                 lst.add(irFactory.IRMove(e, irFactory.IRTemp("_RV" + i)));
             }
             node.ir = irFactory.IRSeq(lst);
-        } else if(node.leftVal instanceof WildCard) {
+        } else if (node.leftVal instanceof WildCard) {
             node.ir = irFactory.IRMove(irFactory.IRTemp("_"), node.expr.ir);
         } else {
             node.ir = irFactory.IRMove(node.leftVal.getir(), node.expr.ir);
@@ -407,7 +407,7 @@ public class IRGenerator extends Visitor {
         node.ir = irFactory.IRFuncDecl(node.name, bodyWithArgs);
     }
 
-    /** The helper function moveArgument returns irSeq including arg preparation moves and IRs in function body  */
+    /** Helper function to return a irSeq object that includes arg preparation moves and IRs in function body. */
     public IRSeq moveArgument(List<IRStmt> irBody, List<FunProcArgs> args){
         IRTemp tar;
         IRTemp val;
