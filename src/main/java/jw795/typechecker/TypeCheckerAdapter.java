@@ -9,6 +9,7 @@ import jw795.util.SyntacticErrorException;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import static jw795.util.FileUtil.generateTargetFile;
@@ -220,7 +221,7 @@ public class TypeCheckerAdapter {
         }
     }
 
-    public SymbolTable symbolTableGetter() {
-        return visitor.env;
+    public HashMap<String, Sigma> getFunctions() {
+        return visitor.env.getFunctions();
     }
 }

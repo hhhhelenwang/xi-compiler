@@ -21,13 +21,15 @@ public class IRGenerator extends Visitor {
     HashMap<String, Long> funcRetLengths;
 
     int stringcounter;
+    int labelcounter;
 
-    public IRGenerator(){
+    public IRGenerator(HashMap<String, String> funcNames, HashMap<String, Long> funcRetLengths){
         this.irFactory = new IRNodeFactory_c();
+        this.funcNames = funcNames;
+        this.funcRetLengths = funcRetLengths;
         this.globalVars = new HashMap<>();
         this.stringcounter = 1;
-        this.funcNames = new HashMap<>();
-        this.funcRetLengths = new HashMap<>();
+        this.labelcounter = 1;
     }
 
     @Override
@@ -124,7 +126,6 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitStringLit(StringLit node) {
-        //TODO: we also need to store it memory
         globalVars.put("string_const"+ this.stringcounter, new IRData("string_const"+this.stringcounter, exprtoval(node)));
         node.ir = irFactory.IRName("string_const"+ this.stringcounter);
         stringcounter +=1;
@@ -275,8 +276,10 @@ public class IRGenerator extends Visitor {
         for (Statement s: node.statements) {
             if (s.ir instanceof IRSeq) {
                 seq.addAll(((IRSeq) s.ir).stmts());
-            } else {
-                seq.add(s.ir);
+            } else if(s.ir instanceof IRStmt) {
+                seq.add((IRStmt) s.ir);
+            }else{
+                //the left out case is vardeclarstmt, and it should not be print
             }
         }
         node.ir = irFactory.IRSeq(seq);
@@ -284,17 +287,63 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitIfStmt(IfStmt node) throws Exception {
+        // labelcounter for ifclause, labelcounter+1 for skip the ifclause
+        //use a label counter to generate a freshlabel
+        LinkedList<IRStmt> lst = new LinkedList<>();
+        //first put the branch
+        lst.add(irFactory.IRCJump(node.condition.ir,"l"+labelcounter,"l"+(labelcounter+1)));
+        lst.add(irFactory.IRLabel("l" +labelcounter));
+        if(node.clause.ir instanceof IRStmt){
+            //avoid the edge case where the stmt is a single valdeclare stmt and therefore just an irexpr
+            lst.add((IRStmt) node.clause.ir);
+        }
+        lst.add(irFactory.IRLabel("l" +(labelcounter+1)));
+        node.ir = irFactory.IRSeq(lst);
 
+        labelcounter += 2;
     }
 
     @Override
     public void visitIfElseStmt(IfElseStmt node) throws Exception {
+        // labelcounter for ifclause, labelcounter+1 for skip the elseclause, labelcounter+2 for the end
+        LinkedList<IRStmt> lst = new LinkedList<>();
+        //first put the branch
+        lst.add(irFactory.IRCJump(node.condition.ir,"l"+labelcounter,"l"+(labelcounter+1)));
+        lst.add(irFactory.IRLabel("l" +labelcounter));
+        if(node.ifClause.ir instanceof IRStmt){
+            //avoid the edge case where the stmt is a single valdeclare stmt and therefore just an irexpr
+            lst.add((IRStmt) node.ifClause.ir);
+        }
+        lst.add(irFactory.IRJump(irFactory.IRName("l"+(labelcounter+2))));
 
+        lst.add(irFactory.IRLabel("l" +(labelcounter+1)));
+        if(node.elseClause.ir instanceof IRStmt){
+            //avoid the edge case where the stmt is a single valdeclare stmt and therefore just an irexpr
+            lst.add((IRStmt) node.ifClause.ir);
+        }
+
+        lst.add(irFactory.IRLabel("l" +(labelcounter+2)));
+        node.ir = irFactory.IRSeq(lst);
+
+        labelcounter += 3;
     }
 
     @Override
     public void visitWhileStmt(WhileStmt node) throws Exception {
+        LinkedList<IRStmt> lst = new LinkedList<>();
+        lst.add(irFactory.IRLabel("l"+labelcounter));
+        lst.add(irFactory.IRCJump(node.condition.ir,"l"+(labelcounter+1),"l"+(labelcounter+2)));
 
+        lst.add(irFactory.IRLabel("l"+(labelcounter+1)));
+        if(node.loopBody.ir instanceof IRStmt){
+            lst.add((IRStmt) node.loopBody.ir);
+        }
+        lst.add(irFactory.IRJump(irFactory.IRName("l"+labelcounter)));
+
+        lst.add(irFactory.IRLabel("l"+(labelcounter+2)));
+
+        node.ir = irFactory.IRSeq(lst);
+        this.labelcounter +=3;
     }
 
     @Override
@@ -330,12 +379,13 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitWildCard(WildCard node) {
-
+        //no need to do anything and should not be called
     }
 
     @Override
     public void visitVarDecl(VarDeclareStmt node) throws Exception {
-
+        //this ir should only be use when see as Lvalue
+        node.ir = irFactory.IRTemp(node.identifier);
     }
 
     @Override
