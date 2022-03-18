@@ -11,7 +11,6 @@ import java.math.BigInteger;
  */
 public class IntLiteral extends Expr{
     public BigInteger value;
-    public IRConst ir;
 
     public IntLiteral(BigInteger val, int line, int col) {
         super(line, col);

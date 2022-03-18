@@ -114,7 +114,6 @@ public class IRGenerator extends Visitor {
     }
 
     @Override
-    //1 for true and 0 for false
     public void visitBoolLiteral(BoolLiteral node) {
         if(node.value == true){
             node.ir = irFactory.IRConst(1);
@@ -126,7 +125,6 @@ public class IRGenerator extends Visitor {
     @Override
     public void visitStringLit(StringLit node) {
         //TODO: we also need to store it memory
-
         globalVars.put("string_const"+ this.stringcounter, new IRData("string_const"+this.stringcounter, exprtoval(node)));
         node.ir = irFactory.IRName("string_const"+ this.stringcounter);
         stringcounter +=1;
@@ -143,7 +141,7 @@ public class IRGenerator extends Visitor {
         //I guess default type is fine
         if(globalVars.containsKey(node.identifier)){
             node.ir = irFactory.IRMem(irFactory.IRName("_" + node.identifier));
-        }else{
+        } else {
             node.ir = irFactory.IRTemp(node.identifier);
         }
 
@@ -311,21 +309,19 @@ public class IRGenerator extends Visitor {
     @Override
     public void visitAssign(AssignStmt node) throws Exception {
         //TODO: implement array index related assign
-        if(node.leftVal instanceof LeftValueList){
+        if (node.leftVal instanceof LeftValueList) {
             //guarantee to be multiple return
             long length = this.funcRetLengths.get(node.expr);
             IRCall func = (IRCall) node.expr.ir;
             LinkedList<IRStmt> lst = new LinkedList<>();
 
-            lst.add(irFactory.IRCallStmt(func.target(),length, func.args()));
-            for(int i = 0; i< length;i++){
+            lst.add(irFactory.IRCallStmt(func.target(), length, func.args()));
+            for (int i = 0; i < length; i++) {
                 IRExpr e = ((LeftValueList) node.leftVal).declares.get(i).getir();
                 lst.add(irFactory.IRMove(e, irFactory.IRTemp("_RV" + i)));
             }
             node.ir = irFactory.IRSeq(lst);
-
-        }
-        else if(node.leftVal instanceof WildCard) {
+        } else if(node.leftVal instanceof WildCard) {
             node.ir = irFactory.IRMove(irFactory.IRTemp("_"), node.expr.ir);
         } else {
             node.ir = irFactory.IRMove(node.leftVal.getir(), node.expr.ir);
@@ -349,26 +345,28 @@ public class IRGenerator extends Visitor {
         //TODO: use that helper function for name generating
         List<IRStmt> irBody = ((IRSeq)node.functionBody.ir).stmts();
         IRSeq bodyWithArgs = moveArgument(irBody, node.arguments);
-        node.ir = irFactory.IRFuncDecl(node.name,bodyWithArgs);
+        node.ir = irFactory.IRFuncDecl(node.name, bodyWithArgs);
 
     }
 
     @Override
     public void visitPrDef(ProcedureDefine node) throws Exception {
         List<IRStmt> irBody = ((IRSeq)node.procBody.ir).stmts();
+        irBody.add(irFactory.IRReturn());
         IRSeq bodyWithArgs = moveArgument(irBody, node.arguments);
-        node.ir = irFactory.IRFuncDecl(node.name,bodyWithArgs);
+        node.ir = irFactory.IRFuncDecl(node.name, bodyWithArgs);
     }
 
-    public IRSeq moveArgument(List<IRStmt> origin, List<FunProcArgs> args){
+    /** The helper function moveArgument returns irSeq including arg preparation moves and IRs in function body  */
+    public IRSeq moveArgument(List<IRStmt> irBody, List<FunProcArgs> args){
         IRTemp tar;
         IRTemp val;
-        for (int i = 0; i< args.size();i++){
+        for (int i = 0; i< args.size(); i++){
             tar = irFactory.IRTemp(args.get(i).identifier);
-            val = irFactory.IRTemp("_ARG"+i);
-            origin.add(i, irFactory.IRMove(tar,val));
+            val = irFactory.IRTemp("_ARG"+ (i+1));
+            irBody.add(i, irFactory.IRMove(tar, val));
         }
-        return irFactory.IRSeq(origin);
+        return irFactory.IRSeq(irBody);
     }
 
     @Override
@@ -400,6 +398,8 @@ public class IRGenerator extends Visitor {
                 node.ir.appendData(((GlobDeclare) d).ir);
             } else if (d instanceof FunctionDefine) {
                 node.ir.appendFunc(((FunctionDefine) d).ir);
+            } else if (d instanceof ProcedureDefine){
+                node.ir.appendFunc(((ProcedureDefine) d).ir);
             }
         }
     }

@@ -11,7 +11,6 @@ import edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 public class AssignStmt extends Statement implements Definition {
     public LValue leftVal;
     public Expr expr;
-    public IRStmt ir;
 
     public AssignStmt(LValue left, Expr e, int line, int col) {
         super(line, col);

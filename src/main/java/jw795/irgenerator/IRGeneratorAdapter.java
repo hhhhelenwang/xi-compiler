@@ -40,7 +40,7 @@ public class IRGeneratorAdapter {
         // generate the target .irsol file
         FileWriter targetWriter = null;
         try{
-            File targetIrsol = generateTargetFile(fileName, destPath, "irsol");
+            File targetIrsol = generateTargetFile(fileName, destPath, "ir");
             targetWriter = new FileWriter(targetIrsol);
 
             // Generating IR
@@ -50,20 +50,27 @@ public class IRGeneratorAdapter {
             lowerIR = (IRCompUnit) lirTranslator.lower(root); //TODO: cast directly?
 
             // Writing to target file, adapted from IRNode_c.java
-            StringWriter sw = new StringWriter();
-            try (PrintWriter pw = new PrintWriter(sw);
-                 SExpPrinter sp = new CodeWriterSExpPrinter(pw)) {
-                root.printSExp(sp);
-                targetWriter.write(sw.toString());
-                targetWriter.close();
-            } catch (Exception e){
-                System.out.println("Printer initialization error");
-                targetWriter.close();
-            }
+            System.out.println("trying to write to the file!!");
+            System.out.println(root == null);
+
+            targetWriter.write(prettyPrint(root));
+            targetWriter.close();
         } catch (Exception e) {
             System.out.println("unknown error while generating IR: "+ e.getMessage());
         }
 
         return lowerIR;
     }
+
+    // Helper function adapted from given code, start recursively print
+    private static String prettyPrint(IRCompUnit compUnit) {
+        StringWriter sw = new StringWriter();
+        try (PrintWriter pw = new PrintWriter(sw);
+             SExpPrinter sp = new CodeWriterSExpPrinter(pw)) {
+            compUnit.printSExp(sp);
+        }
+        return sw.toString();
+    }
 }
+
+
