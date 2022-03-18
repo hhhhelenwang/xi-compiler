@@ -72,6 +72,9 @@ public class IRGeneratorAdapter {
         return lowerIR;
     }
 
+    /**
+     * fill up funcNames and funcRetLengths after typechecking
+     */
     private void funProcess() {
         HashMap<String, Sigma> funs = typeCheckerAdapter.getFunctions();
         for (Map.Entry<String, Sigma> entry : funs.entrySet()) {
@@ -82,11 +85,22 @@ public class IRGeneratorAdapter {
         }
     }
 
+    /**
+     * build the name of a function following the abi naming convention for a function
+     * @param funcName the original name of the function
+     * @param type the type of the function
+     * @return the name of the function following the abi naming convention
+     */
     private String funNameBuild(String funcName, Fn type) {
         String newName = funcName.replaceAll("_", "__");
         return "_I" + newName + "_" + outputNameBuild(type.outputType) + inputNameBuild(type.inputType);
     }
 
+    /**
+     * generate the input part of the function name building
+     * @param inputType the input type of the function
+     * @return the input part of the function name building
+     */
     private String inputNameBuild(T inputType) {
         if (inputType instanceof Int) {
             return "i";
@@ -106,6 +120,11 @@ public class IRGeneratorAdapter {
         return null;
     }
 
+    /**
+     * generate the output part of the function name building
+     * @param outputType the output type of the function
+     * @return the output part of the function name building
+     */
     private String outputNameBuild(T outputType) {
         if (outputType instanceof Int) {
             return "i";
@@ -125,6 +144,11 @@ public class IRGeneratorAdapter {
         return null;
     }
 
+    /**
+     * generate the output length of a function with output type outputType
+     * @param outputType the output type of the function
+     * @return output length of a function with output type outputType
+     */
     private Long retLength(T outputType) {
         if (outputType instanceof Int) {
             return 1L;
