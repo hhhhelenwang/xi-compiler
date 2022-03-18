@@ -336,7 +336,7 @@ public class IRLower {
      */
     public IRSeq lowerCallStmt(IRCallStmt node) {
         List<IRStmt> sequence = new ArrayList<>();
-
+        List<IRExpr> resultArgs = new ArrayList<>();
         SEPair lowerArg;
         for (IRExpr arg: node.args()) {
             lowerArg = lowerExpr(arg);
@@ -344,12 +344,12 @@ public class IRLower {
             sequence.addAll(lowerArg.sideEffects);
             // move the value into a temp
             tempCounter ++;
-
-
-
-
+            IRTemp temp_i = irFactory.IRTemp("t" + tempCounter);
+            sequence.add(irFactory.IRMove(temp_i, lowerArg.value));
+            resultArgs.add(temp_i); // new call_stmt should pass in the temps
         }
-        return null;
+        sequence.add(irFactory.IRCallStmt(node.target(), node.n_returns(), resultArgs));
+        return irFactory.IRSeq(sequence);
     }
 
 
