@@ -161,7 +161,7 @@ public class Compiler {
             // Generate token file
             Reader reader = new FileReader(fileName);
             TypeCheckerAdapter typeAdapt = new TypeCheckerAdapter(reader, fileName, destPath, libPath, true);
-            typeAdapt.gentypecheck();
+            typeAdapt.generateTypeCheck();
         } catch (FileNotFoundException e) {
             System.out.println(fileName + ": " + " " + "File not found.");
         }

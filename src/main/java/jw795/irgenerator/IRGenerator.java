@@ -3,21 +3,22 @@ package jw795.irgenerator;
 import edu.cornell.cs.cs4120.xic.ir.*;
 import jw795.Visitor;
 import jw795.ast.*;
-import jw795.typechecker.Int;
 
-import javax.naming.ldap.HasControls;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 
 import static edu.cornell.cs.cs4120.xic.ir.IRBinOp.OpType.*;
 
 public class IRGenerator extends Visitor {
     IRNodeFactory_c irFactory;
-    HashMap<String,String> globalvar;
+    HashMap<String,String> globalVars;
     LinkedList<IRData> memory;
     //TODO: find out where to store definition of function, and also give a way to find it's return type
     //currently make it a hashmap, but should it?
-    HashMap<String, String> funcname;
-    HashMap<String, Long> funcretlength;
+    HashMap<String, String> funcNames;
+    HashMap<String, Long> funcRetLengths;
 
     public IRGenerator(){
         this.irFactory = new IRNodeFactory_c();
@@ -129,7 +130,7 @@ public class IRGenerator extends Visitor {
     @Override
     public void visitVar(VarExpr node) throws Exception {
         //TODO: what is memtype for this ir mem
-        if(globalvar.containsKey("_" + node.identifier)){
+        if(globalVars.containsKey("_" + node.identifier)){
             node.ir = irFactory.IRMem(irFactory.IRName("_" + node.identifier));
         }else{
             node.ir = irFactory.IRTemp(node.identifier);
@@ -243,11 +244,11 @@ public class IRGenerator extends Visitor {
     @Override
     public void visitFunCallExpr(FunCallExpr node) throws Exception {
         if(node.arguments.size() == 1){
-            String ret = this.funcname.get(node.name);
+            String ret = this.funcNames.get(node.name);
             IRName name = irFactory.IRName(ret);
             node.ir = irFactory.IRCall(name,node.arguments.get(0).ir);
         }else{
-            String ret = this.funcname.get(node.name);
+            String ret = this.funcNames.get(node.name);
             IRName name = irFactory.IRName(ret);
             LinkedList<IRExpr> args = new LinkedList<>();
             long length = (long)node.arguments.size();
@@ -298,10 +299,10 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitAssign(AssignStmt node) throws Exception {
-        //TODO: implement arrayindex related assingn
+        //TODO: implement array index related assign
         if(node.leftVal instanceof LeftValueList){
-            //gaurantee to be multiple return
-            long length = this.funcretlength.get(node.expr);
+            //guarantee to be multiple return
+            long length = this.funcRetLengths.get(node.expr);
             IRCall func = (IRCall) node.expr.ir;
             LinkedList<IRStmt> lst = new LinkedList<>();
 
@@ -396,7 +397,7 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitGlobDecl(GlobDeclare node) throws Exception {
-        this.globalvar.put(node.identifier, "_" + node.identifier);
+        this.globalVars.put(node.identifier, "_" + node.identifier);
         if (node.value != null) {
             if (node.value instanceof IntLiteral) {
                 long[] singleval = {((IntLiteral) node.value).value.longValue()};

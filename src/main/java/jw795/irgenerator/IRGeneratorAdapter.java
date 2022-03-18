@@ -32,7 +32,7 @@ public class IRGeneratorAdapter {
     public IRCompUnit generateIR() {
         // typeCheckAdapter.gentypecheck() will print Lexical, Syntax, or Semantic errors if those errors exist
         System.out.println("start generating ir");
-        Program checkedProgram = (Program) typeCheckerAdapter.gentypecheck();
+        Program checkedProgram = (Program) typeCheckerAdapter.generateTypeCheck();
 
         // create irVisitor
         Visitor irVisitor = new IRGenerator();

@@ -34,7 +34,7 @@ public class TypeCheckerAdapter {
 
     }
 
-    public ASTNode gentypecheck() {
+    public ASTNode generateTypeCheck() {
         //generate the target .parsed file
         FileWriter targetWriter = null;
         try {

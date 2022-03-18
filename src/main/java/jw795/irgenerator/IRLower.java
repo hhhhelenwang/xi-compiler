@@ -132,7 +132,8 @@ public class IRLower {
 
     /**
      * L[Call(f, e1, ..., en)]: lower an IR function call expression. Evaluates to the pair (S; e) where
-     * S = vector of s_i that captures the side-effect of the function call.
+     * S = vector of s_i that captures the side-effect of the function call. Call(f, e1, ..., en) should
+     * only has one return value.
      * @param node
      * @return
      */
@@ -154,10 +155,15 @@ public class IRLower {
             argTemps.add(argTemp);
             sideOfCall.add(irFactory.IRMove(argTemp, valOfArg)); // add MOVE(ti, e') as a side effect
         }
-        //TODO: this is wrong!!! lowered IR does not have Call expression
-        IRCall call = irFactory.IRCall(node.target(), argTemps);
 
-        return new SEPair(sideOfCall, call);
+        IRCallStmt callStmt = irFactory.IRCallStmt(node.target(), (long) 1, argTemps);
+        tempCounter ++;
+        IRTemp temp_t = irFactory.IRTemp("t" + tempCounter);
+        IRMove moveRetVal = irFactory.IRMove(temp_t, irFactory.IRTemp("_RV1"));
+        sideOfCall.add(callStmt);
+        sideOfCall.add(moveRetVal);
+
+        return new SEPair(sideOfCall, temp_t);
     }
 
     /**
@@ -195,7 +201,7 @@ public class IRLower {
      * @return an IRSeq that represent the lowered statement
      */
     public IRSeq lowerStmt(IRStmt node) {
-        // TODO: SEQ, EXP, JUMP, CJump, label, move, return, call_stmt?
+        // TODO: SEQ, EXP, JUMP, CJump, label, move, return, call_stmt
         if (node instanceof IRSeq) {
             return lowerSeq((IRSeq) node);
         } else if (node instanceof IRExp) {
@@ -324,12 +330,25 @@ public class IRLower {
     }
 
     /**
-     * L[Call_m(f, e1, ..., e2)]:
+     * L[Call_m(f, e1, ..., e2)]: lower a call_stmt. This should hoist out the side effects of evaluating its
      * @param node
      * @return
      */
     public IRSeq lowerCallStmt(IRCallStmt node) {
-        // TODO
+        List<IRStmt> sequence = new ArrayList<>();
+
+        SEPair lowerArg;
+        for (IRExpr arg: node.args()) {
+            lowerArg = lowerExpr(arg);
+            // add the side effect of evaluating a function argument
+            sequence.addAll(lowerArg.sideEffects);
+            // move the value into a temp
+            tempCounter ++;
+
+
+
+
+        }
         return null;
     }
 
