@@ -21,6 +21,7 @@ public class TypeCheckerAdapter {
     String libPath; // path to find the interface files in
     String fileName; // already contains source dir + file name
     boolean genFile; // if a type check diagnostic file need to be generated
+    TypeChecker visitor;
 
     public TypeCheckerAdapter(Reader reader, String name, String dest, String lib, boolean gen) {
         // paths and files
@@ -31,7 +32,7 @@ public class TypeCheckerAdapter {
         this.scanner = new Lexwrapper(reader, name);
         this.cup_parser = new parser(scanner);
         this.genFile = gen;
-
+        this.visitor = new TypeChecker();
     }
 
     public ASTNode generateTypeCheck() {
@@ -50,8 +51,6 @@ public class TypeCheckerAdapter {
             try {
                 // parse the program
                 Program node = (Program) cup_parser.parse().value;
-
-                TypeChecker visitor = new TypeChecker();
 
                 // first pass of top level definitions
                 programFirstPass(node, visitor);
@@ -219,5 +218,9 @@ public class TypeCheckerAdapter {
         } else {
             visitor.env.addVar(globDecl.identifier, new Var(visitor.typeToTau(globDecl.varType)));
         }
+    }
+
+    public SymbolTable symbolTableGetter() {
+        return visitor.env;
     }
 }

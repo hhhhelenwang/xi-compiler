@@ -31,6 +31,22 @@ public class SymbolTable {
         functions.add(initialMap);
     }
 
+    public HashMap<String, Sigma> getVariables() {
+        HashMap<String, Sigma> result = new HashMap<>();
+        for (HashMap<String, Sigma> map : variables) {
+            result.putAll(map);
+        }
+        return result;
+    }
+
+    public HashMap<String, Sigma> getFunctions() {
+        HashMap<String, Sigma> result = new HashMap<>();
+        for (HashMap<String, Sigma> map : functions) {
+            result.putAll(map);
+        }
+        return result;
+    }
+
     /**
      * Enter a new level of scope.
      */
