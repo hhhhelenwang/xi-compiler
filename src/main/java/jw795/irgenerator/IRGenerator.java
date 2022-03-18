@@ -47,44 +47,44 @@ public class IRGenerator extends Visitor {
         ArrayList<IRStmt> l = new ArrayList<>();
         ArrayList<IRExpr> args = new ArrayList<>();
         long n = node.arrayElements.size();
-        args.add(this.irFactory.IRConst(n * 8 + 8));
-        l.add(this.irFactory.IRCallStmt(this.irFactory.IRName("_xi_alloc"), 1L, args));
-        IRTemp m = this.irFactory.IRTemp("_RV1");
-        l.add(this.irFactory.IRMove(
+        args.add(irFactory.IRConst(n * 8 + 8));
+        l.add(irFactory.IRCallStmt(this.irFactory.IRName("_xi_alloc"), 1L, args)); //1L = new Long (1)
+        IRTemp m = irFactory.IRTemp("_RV1");
+        l.add(irFactory.IRMove(
                 m,
-                this.irFactory.IRConst(n))
+                irFactory.IRConst(n))
         );
         for (int i = 0; i < n; i++) {
             Expr e = node.arrayElements.get(i);
-            l.add(this.irFactory.IRMove(
-                    this.irFactory.IRMem(
-                            this.irFactory.IRBinOp(
+            l.add(irFactory.IRMove(
+                    irFactory.IRMem(
+                            irFactory.IRBinOp(
                                     ADD,
                                     m,
-                                    this.irFactory.IRConst((i + 1) * 8))),
+                                    irFactory.IRConst((i + 1) * 8))),
                     e.ir));
         }
-        IRSeq s = this.irFactory.IRSeq(l);
-        IRBinOp a = this.irFactory.IRBinOp(ADD, m, this.irFactory.IRConst( 8));
-        node.ir = this.irFactory.IRESeq(s, a);
+        IRSeq s = irFactory.IRSeq(l);
+        IRBinOp a = irFactory.IRBinOp(ADD, m, irFactory.IRConst( 8));
+        node.ir = irFactory.IRESeq(s, a);
     }
 
     @Override
     public void visitArrIndexExpr(ArrIndexExpr node) throws Exception {
         ArrayList<IRStmt> l = new ArrayList<>();
-        IRTemp t_a = this.irFactory.IRTemp("t_a");
-        l.add(this.irFactory.IRMove(t_a, node.array.ir));
-        IRTemp t_i = this.irFactory.IRTemp("t_i");
-        l.add(this.irFactory.IRMove(t_i, node.index.ir));
-        l.add(this.irFactory.IRCJump(
-                this.irFactory.IRBinOp(
+        IRTemp t_a = irFactory.IRTemp("t_a");
+        l.add(irFactory.IRMove(t_a, node.array.ir));
+        IRTemp t_i = irFactory.IRTemp("t_i");
+        l.add(irFactory.IRMove(t_i, node.index.ir));
+        l.add(irFactory.IRCJump(
+                irFactory.IRBinOp(
                         ULT,
                         t_i,
-                        this.irFactory.IRMem(
-                                this.irFactory.IRBinOp(
+                        irFactory.IRMem(
+                                irFactory.IRBinOp(
                                         SUB,
                                         t_a,
-                                        this.irFactory.IRConst(8)
+                                        irFactory.IRConst(8)
                                 )
                         )
                 ),
@@ -92,22 +92,22 @@ public class IRGenerator extends Visitor {
                 "indexOutOfBound"
             )
         );
-        l.add(this.irFactory.IRLabel("indexOutOfBound"));
-        l.add(this.irFactory.IRCallStmt(this.irFactory.IRName("_xi_out_of_bound"), 0L, new ArrayList<>()));
-        l.add(this.irFactory.IRLabel("ok"));
-        IRSeq s = this.irFactory.IRSeq(l);
-        IRMem a = this.irFactory.IRMem(
-                this.irFactory.IRBinOp(
+        l.add(irFactory.IRLabel("indexOutOfBound"));
+        l.add(irFactory.IRCallStmt(this.irFactory.IRName("_xi_out_of_bound"), 0L, new ArrayList<>()));
+        l.add(irFactory.IRLabel("ok"));
+        IRSeq s = irFactory.IRSeq(l);
+        IRMem a = irFactory.IRMem(
+                irFactory.IRBinOp(
                         ADD,
                         t_a,
-                        this.irFactory.IRBinOp(
+                        irFactory.IRBinOp(
                                 MUL,
                                 t_i,
-                                this.irFactory.IRConst(8)
+                                irFactory.IRConst(8)
                         )
                 )
         );
-        node.ir = this.irFactory.IRESeq(s, a);
+        node.ir = irFactory.IRESeq(s, a);
     }
 
     @Override
@@ -116,7 +116,6 @@ public class IRGenerator extends Visitor {
     }
 
     @Override
-    //1 for true and 0 for false
     public void visitBoolLiteral(BoolLiteral node) {
         if(node.value == true){
             node.ir = irFactory.IRConst(1);
@@ -143,7 +142,7 @@ public class IRGenerator extends Visitor {
         //I guess default type is fine
         if(globalVars.containsKey(node.identifier)){
             node.ir = irFactory.IRMem(irFactory.IRName("_" + node.identifier));
-        }else{
+        } else {
             node.ir = irFactory.IRTemp(node.identifier);
         }
 
@@ -359,21 +358,19 @@ public class IRGenerator extends Visitor {
     @Override
     public void visitAssign(AssignStmt node) throws Exception {
         //TODO: implement array index related assign
-        if(node.leftVal instanceof LeftValueList){
+        if (node.leftVal instanceof LeftValueList) {
             //guarantee to be multiple return
             long length = this.funcRetLengths.get(node.expr);
             IRCall func = (IRCall) node.expr.ir;
             LinkedList<IRStmt> lst = new LinkedList<>();
 
-            lst.add(irFactory.IRCallStmt(func.target(),length, func.args()));
-            for(int i = 0; i< length;i++){
+            lst.add(irFactory.IRCallStmt(func.target(), length, func.args()));
+            for (int i = 0; i < length; i++) {
                 IRExpr e = ((LeftValueList) node.leftVal).declares.get(i).getir();
                 lst.add(irFactory.IRMove(e, irFactory.IRTemp("_RV" + i)));
             }
             node.ir = irFactory.IRSeq(lst);
-
-        }
-        else if(node.leftVal instanceof WildCard) {
+        } else if(node.leftVal instanceof WildCard) {
             node.ir = irFactory.IRMove(irFactory.IRTemp("_"), node.expr.ir);
         } else {
             node.ir = irFactory.IRMove(node.leftVal.getir(), node.expr.ir);
@@ -398,26 +395,28 @@ public class IRGenerator extends Visitor {
         //TODO: use that helper function for name generating
         List<IRStmt> irBody = ((IRSeq)node.functionBody.ir).stmts();
         IRSeq bodyWithArgs = moveArgument(irBody, node.arguments);
-        node.ir = irFactory.IRFuncDecl(node.name,bodyWithArgs);
+        node.ir = irFactory.IRFuncDecl(node.name, bodyWithArgs);
 
     }
 
     @Override
     public void visitPrDef(ProcedureDefine node) throws Exception {
         List<IRStmt> irBody = ((IRSeq)node.procBody.ir).stmts();
+        irBody.add(irFactory.IRReturn());
         IRSeq bodyWithArgs = moveArgument(irBody, node.arguments);
-        node.ir = irFactory.IRFuncDecl(node.name,bodyWithArgs);
+        node.ir = irFactory.IRFuncDecl(node.name, bodyWithArgs);
     }
 
-    public IRSeq moveArgument(List<IRStmt> origin, List<FunProcArgs> args){
+    /** The helper function moveArgument returns irSeq including arg preparation moves and IRs in function body  */
+    public IRSeq moveArgument(List<IRStmt> irBody, List<FunProcArgs> args){
         IRTemp tar;
         IRTemp val;
-        for (int i = 0; i< args.size();i++){
+        for (int i = 0; i< args.size(); i++){
             tar = irFactory.IRTemp(args.get(i).identifier);
-            val = irFactory.IRTemp("_ARG"+i);
-            origin.add(i, irFactory.IRMove(tar,val));
+            val = irFactory.IRTemp("_ARG"+ (i+1));
+            irBody.add(i, irFactory.IRMove(tar, val));
         }
-        return irFactory.IRSeq(origin);
+        return irFactory.IRSeq(irBody);
     }
 
     @Override
@@ -449,6 +448,8 @@ public class IRGenerator extends Visitor {
                 node.ir.appendData(((GlobDeclare) d).ir);
             } else if (d instanceof FunctionDefine) {
                 node.ir.appendFunc(((FunctionDefine) d).ir);
+            } else if (d instanceof ProcedureDefine){
+                node.ir.appendFunc(((ProcedureDefine) d).ir);
             }
         }
     }
