@@ -4,15 +4,17 @@ import edu.cornell.cs.cs4120.util.SExpPrinter;
 import edu.cornell.cs.cs4120.xic.ir.*;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class IRLower {
 
     /**
-     * An intermediate data structure to represent the pair S;e, where S is a vector of statements that
-     * captures the side effect of evaluating e. All IR expression lowers to an SEPair.
+     * An intermediate data structure to represent the pair S;e, where S is a vector of *canonical* IR
+     * statements that captures the side effect of evaluating e. All IR expression lowers to an SEPair.
      */
-    class SEPair extends IRExpr_c {
+    static class SEPair extends IRExpr_c {
         public List<IRStmt> sideEffects;
         public IRExpr value;
 
@@ -31,14 +33,30 @@ public class IRLower {
         }
     }
 
+    class TempGenerator {
+        int tempCounter;
+        String name;
+
+        TempGenerator() {
+            tempCounter = 0;
+            name = "t_lower";
+        }
+
+        String newTemp() {
+            tempCounter ++;
+            return name + tempCounter;
+        }
+
+    }
+
     public IRNodeFactory_c irFactory;
     // a counter to track all the temps that have been used.
     // Suppose tempCounter = n, then tn is the last temp used.
-    public int tempCounter;
+    public TempGenerator tempGenerator;
 
     public IRLower() {
         irFactory = new IRNodeFactory_c();
-        tempCounter = 0;
+        tempGenerator = new TempGenerator();
     }
 
     /**
@@ -120,22 +138,29 @@ public class IRLower {
     public SEPair lowerBiNop(IRBinOp node) {
         SEPair pair1 = lowerExpr(node.left());
         SEPair pair2 = lowerExpr(node.right());
-        if (commute(node.left(), node.right())) {
-
+        List<IRStmt> sides = new ArrayList<>();
+        if (commute(pair1, pair2)) {
+            sides.addAll(pair1.sideEffects);
+            sides.addAll(pair2.sideEffects);
+            return new SEPair(sides, irFactory.IRBinOp(node.opType(), pair1.value, pair2.value));
         } else {
+            sides.addAll(pair1.sideEffects);
 
+            IRTemp temp = irFactory.IRTemp(tempGenerator.newTemp());
+            sides.add(irFactory.IRMove(temp, pair1.value));
+            sides.addAll(pair2.sideEffects);
+
+            return new SEPair(sides, irFactory.IRBinOp(node.opType(), temp, pair2.value));
         }
-        return null;
     }
-
 
 
     /**
      * L[Call(f, e1, ..., en)]: lower an IR function call expression. Evaluates to the pair (S; e) where
      * S = vector of s_i that captures the side-effect of the function call. Call(f, e1, ..., en) should
      * only has one return value.
-     * @param node
-     * @return
+     * @param node IRCall node
+     * @return lowered IRCall with side effects hoisted out and e' = the returned value
      */
     public SEPair lowerCall(IRCall node) {
         SEPair lowerArg;
@@ -150,15 +175,13 @@ public class IRLower {
             valOfArg = lowerArg.value;
             sideOfCall.addAll(sideOfArg); // add side effect of argument to the overall side effects
 
-            tempCounter ++;
-            IRTemp argTemp = irFactory.IRTemp("t" + tempCounter);
+            IRTemp argTemp = irFactory.IRTemp(tempGenerator.newTemp());
             argTemps.add(argTemp);
             sideOfCall.add(irFactory.IRMove(argTemp, valOfArg)); // add MOVE(ti, e') as a side effect
         }
 
         IRCallStmt callStmt = irFactory.IRCallStmt(node.target(), (long) 1, argTemps);
-        tempCounter ++;
-        IRTemp temp_t = irFactory.IRTemp("t" + tempCounter);
+        IRTemp temp_t = irFactory.IRTemp(tempGenerator.newTemp());
         IRMove moveRetVal = irFactory.IRMove(temp_t, irFactory.IRTemp("_RV1"));
         sideOfCall.add(callStmt);
         sideOfCall.add(moveRetVal);
@@ -174,9 +197,8 @@ public class IRLower {
     public SEPair lowerMem(IRMem node) {
         SEPair lowerE = lowerExpr(node.expr()); // returns an SEPair
         List<IRStmt> sideEffects = lowerE.sideEffects;
-        IRExpr value = lowerE.value;
 
-        return new SEPair(sideEffects, value);
+        return new SEPair(sideEffects, irFactory.IRMem(lowerE.value));
     }
 
     /**
@@ -201,7 +223,6 @@ public class IRLower {
      * @return an IRSeq that represent the lowered statement
      */
     public IRSeq lowerStmt(IRStmt node) {
-        // TODO: SEQ, EXP, JUMP, CJump, label, move, return, call_stmt
         if (node instanceof IRSeq) {
             return lowerSeq((IRSeq) node);
         } else if (node instanceof IRExp) {
@@ -283,9 +304,9 @@ public class IRLower {
     }
 
     /**
-     *
-     * @param node
-     * @return
+     * L[Move(dest, e)]: lower the move statement
+     * @param node Move node
+     * @return lowered move
      */
     public IRSeq lowerMove(IRMove node) {
         // if the target is a temp, hoist out the side effect s and append it in front of a Move to e'
@@ -294,13 +315,31 @@ public class IRLower {
             List<IRStmt> seq = lowerE.sideEffects;
             seq.add(irFactory.IRMove(node.target(), lowerE.value));
             return irFactory.IRSeq(seq);
-        } else {
-            // otherwise, estimate if e1 and e2 commute in Move(e1, e2)
-            // TODO: lower Move(e1, e2)
-            // lower
-
+        } else { // target is a memory location
+            // otherwise, check if e2's side effects can affect dest in Move(dest, e2)
+            SEPair destPair = lowerExpr(node.target());
+            SEPair exprPair = lowerExpr(node.source());
+            if (commute(destPair, exprPair)) { // move-commuting
+                List<IRStmt> seq = new ArrayList<>();
+                seq.addAll(destPair.sideEffects);
+                seq.addAll(exprPair.sideEffects);
+                seq.add(irFactory.IRMove(destPair.value, exprPair.value));
+                return irFactory.IRSeq(seq);
+            } else {
+                SEPair e1 = lowerExpr(((IRMem) node.target()).expr());
+                SEPair e2 = lowerExpr(node.source());
+                List<IRStmt> seq = new ArrayList<>();
+                seq.addAll(e1.sideEffects);
+                // new temp to store e1'
+                IRTemp temp = irFactory.IRTemp(tempGenerator.newTemp());
+                seq.add(irFactory.IRMove(temp, e1.value));
+                seq.addAll(e2.sideEffects);
+                // create new move statement
+                IRMem mem = irFactory.IRMem(temp); // memory location represented by e1
+                seq.add(irFactory.IRMove(mem, e2.value));
+                return irFactory.IRSeq(seq);
+            }
         }
-        return null;
     }
 
     /**
@@ -317,8 +356,7 @@ public class IRLower {
             lowerRet = lowerExpr(ret);
             sequence.addAll(lowerRet.sideEffects);
             // move value of ei into a temp to avoid later side effects affecting the value of ei
-            tempCounter ++;
-            IRTemp temp = irFactory.IRTemp("t" + tempCounter);
+            IRTemp temp = irFactory.IRTemp(tempGenerator.newTemp());
             sequence.add(irFactory.IRMove(temp, lowerRet.value));
             // gather the lowered ei'
             returns.add(lowerRet.value);
@@ -331,8 +369,8 @@ public class IRLower {
 
     /**
      * L[Call_m(f, e1, ..., e2)]: lower a call_stmt. This should hoist out the side effects of evaluating its
-     * @param node
-     * @return
+     * @param node IRCallStmt node
+     * @return lowered Call_Stmt sequence
      */
     public IRSeq lowerCallStmt(IRCallStmt node) {
         List<IRStmt> sequence = new ArrayList<>();
@@ -343,8 +381,7 @@ public class IRLower {
             // add the side effect of evaluating a function argument
             sequence.addAll(lowerArg.sideEffects);
             // move the value into a temp
-            tempCounter ++;
-            IRTemp temp_i = irFactory.IRTemp("t" + tempCounter);
+            IRTemp temp_i = irFactory.IRTemp(tempGenerator.newTemp());
             sequence.add(irFactory.IRMove(temp_i, lowerArg.value));
             resultArgs.add(temp_i); // new call_stmt should pass in the temps
         }
@@ -353,15 +390,107 @@ public class IRLower {
     }
 
 
-    // Helper functions ================================================================
+    // Helper functions for deciding if e1 and e2 commute ==========================================================
 
     /**
      * Decides whether e1 and e2 commute.
-     * @param e1 the first expression e1
+     * @param e1 the first expression after being lowered into its side effects + value
      * @param e2 the second expression e2
-     * @return if e1 and e2 commute.
+     * @return true if e1 and e2 commute, false otherwise.
      */
-    private boolean commute(IRExpr e1, IRExpr e2) {
+    private boolean commute(SEPair e1, SEPair e2) {
+        IRExpr e1Prime = e1.value;
+        List<IRStmt> e2Sides = e2.sideEffects;
+        Set<String> tempsUpdated = getTemps(e2Sides); // the temps that are updated by e2's side effects
+        boolean hasMem = containsMem(e2Sides);
+
+        return checkCommute(e1Prime, tempsUpdated, hasMem);
+    }
+
+    /**
+     * Check if e is affected by side effects from another expression, given a set of temporaries updated
+     * by those side effects. This is a conservative approximation. If e involves a mem operation then return false.
+     * @param e a lowered expression
+     * @param temps temporaries updated
+     * @param hasMem if the stmt being checked against has memory access
+     * @return true if commute, false otherwise.
+     */
+    private boolean checkCommute(IRExpr e, Set<String> temps, boolean hasMem) {
+        if (e instanceof IRConst | e instanceof IRName) {
+            return true;
+        } else if (e instanceof IRTemp) {
+            return temps.contains(((IRTemp) e).name());
+        } else if (e instanceof IRBinOp) {
+            return checkCommute(((IRBinOp) e).left(), temps, hasMem)
+                    || checkCommute(((IRBinOp) e).right(), temps, hasMem);
+        } else if (e instanceof IRMem) {
+            return hasMem;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Find all the temporaries updated by a list of statements.
+     * @param stmts the list of stmts
+     * @return a list that contains all the temporaries updated.
+     */
+    private Set<String> getTemps(List<IRStmt> stmts) {
+        Set<String> temps = new HashSet<>();
+        for (IRStmt stmt : stmts) {
+            if (stmt instanceof IRMove) {
+                if (((IRMove) stmt).target() instanceof IRTemp) {
+                    temps.add(((IRTemp) ((IRMove) stmt).target()).name());
+                }
+            }
+        }
+
+        return temps;
+    }
+
+    /**
+     * Decides if a list of stmts contains a mem node.
+     * @param stmts the list of stmts
+     * @return true if stmts uses a Mem as a destination, false otherwise
+     */
+    private boolean containsMem(List<IRStmt> stmts) {
+        for (IRStmt stmt : stmts) {
+            if (stmt instanceof IRMove) {
+                return containsMemExpr(((IRMove) stmt).target())
+                        || containsMemExpr(((IRMove) stmt).source());
+            } else if (stmt instanceof IRCallStmt) {
+                for (IRExpr arg : ((IRCallStmt) stmt).args()) {
+                    return containsMemExpr(arg);
+                }
+                return false;
+            } else if (stmt instanceof IRJump) {
+                return containsMemExpr(((IRJump) stmt).target());
+            } else if (stmt instanceof IRCJump) {
+                return containsMemExpr(((IRCJump) stmt).cond());
+            } else if (stmt instanceof IRReturn) {
+                for (IRExpr ret : ((IRReturn) stmt).rets()) {
+                    return containsMemExpr(ret);
+                }
+                return false;
+            } else {
+                return false;
+            }
+        }
         return false;
     }
+
+    /**
+     * Decides if an expression contains a Mem node.
+     * @param e the expression, should be a lowered expression
+     * @return true if e contains Mem node, false otherwise
+     */
+    private boolean containsMemExpr(IRExpr e) {
+        if (e instanceof IRBinOp) {
+            return containsMemExpr(((IRBinOp) e).left())
+                    || containsMemExpr(((IRBinOp) e).right());
+        } else {
+            return e instanceof IRMem;
+        }
+    }
+
 }
