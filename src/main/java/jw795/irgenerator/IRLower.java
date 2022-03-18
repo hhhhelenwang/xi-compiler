@@ -12,7 +12,7 @@ public class IRLower {
 
     /**
      * An intermediate data structure to represent the pair S;e, where S is a vector of *canonical* IR
-     * statements that captures the side effect of evaluating e. All IR expression lowers to an SEPair.
+     * statements that captures the side effects of evaluating e. All IR expression lowers to an SEPair.
      */
     static class SEPair extends IRExpr_c {
         public List<IRStmt> sideEffects;
@@ -33,15 +33,21 @@ public class IRLower {
         }
     }
 
-    class TempGenerator {
+    /**
+     * A tool to generate a name for a fresh temporary.
+     */
+    static class TempGenerator {
         int tempCounter;
         String name;
 
         TempGenerator() {
-            tempCounter = 0;
+            tempCounter = -1;
             name = "t_lower";
         }
 
+        /**
+         * @return a name for a fresh temp
+         */
         String newTemp() {
             tempCounter ++;
             return name + tempCounter;
@@ -50,8 +56,6 @@ public class IRLower {
     }
 
     public IRNodeFactory_c irFactory;
-    // a counter to track all the temps that have been used.
-    // Suppose tempCounter = n, then tn is the last temp used.
     public TempGenerator tempGenerator;
 
     public IRLower() {
@@ -204,7 +208,7 @@ public class IRLower {
     /**
      * L[ESeq(s, e)]: lower an IR ESeq expression.
      * @param node ESeq expression
-     * @return pair of s and e (probably?)
+     * @return pair of s and e
      */
     public SEPair lowerESeq(IRESeq node) {
         IRStmt sideOfESeq = node.stmt();
@@ -328,8 +332,7 @@ public class IRLower {
             } else {
                 SEPair e1 = lowerExpr(((IRMem) node.target()).expr());
                 SEPair e2 = lowerExpr(node.source());
-                List<IRStmt> seq = new ArrayList<>();
-                seq.addAll(e1.sideEffects);
+                List<IRStmt> seq = new ArrayList<>(e1.sideEffects);
                 // new temp to store e1'
                 IRTemp temp = irFactory.IRTemp(tempGenerator.newTemp());
                 seq.add(irFactory.IRMove(temp, e1.value));
