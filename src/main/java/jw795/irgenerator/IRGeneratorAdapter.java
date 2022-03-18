@@ -33,6 +33,7 @@ public class IRGeneratorAdapter {
         }
     }
 
+    /** generateIR generates IR codes from specified file and write IR to the target file*/
     public IRCompUnit generateIR() {
         // typeCheckAdapter.gentypecheck() will print Lexical, Syntax, or Semantic errors if those errors exist
         System.out.println("start generating ir");
@@ -67,7 +68,7 @@ public class IRGeneratorAdapter {
         return lowerIR;
     }
 
-    // Helper function adapted from given code, start recursively print
+    // Helper function prettyPrint is adapted from given code, start recursively print
     private static String prettyPrint(IRCompUnit compUnit) {
         StringWriter sw = new StringWriter();
         try (PrintWriter pw = new PrintWriter(sw);
