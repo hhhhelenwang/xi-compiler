@@ -305,7 +305,26 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitIfElseStmt(IfElseStmt node) throws Exception {
+        LinkedList<IRStmt> lst = new LinkedList<>();
+        //first put the branch
+        lst.add(irFactory.IRCJump(node.condition.ir,"l"+labelcounter,"l"+(labelcounter+1)));
+        lst.add(irFactory.IRLabel("l" +labelcounter));
+        if(node.ifClause.ir instanceof IRStmt){
+            //avoid the edge case where the stmt is a single valdeclare stmt and therefore just an irexpr
+            lst.add((IRStmt) node.ifClause.ir);
+        }
+        lst.add(irFactory.IRJump(irFactory.IRName("l"+(labelcounter+2))));
 
+        lst.add(irFactory.IRLabel("l" +(labelcounter+1)));
+        if(node.elseClause.ir instanceof IRStmt){
+            //avoid the edge case where the stmt is a single valdeclare stmt and therefore just an irexpr
+            lst.add((IRStmt) node.ifClause.ir);
+        }
+
+        lst.add(irFactory.IRLabel("l" +(labelcounter+2)));
+        node.ir = irFactory.IRSeq(lst);
+
+        labelcounter += 3;
     }
 
     @Override
