@@ -13,12 +13,14 @@ import static edu.cornell.cs.cs4120.xic.ir.IRBinOp.OpType.*;
 
 public class IRGenerator extends Visitor {
     IRNodeFactory_c irFactory;
-    HashMap<String,String> globalVars;
-    LinkedList<IRData> memory;
+    //use for global data and string
+    HashMap<String,IRData> globalVars = new HashMap<>();
     //TODO: find out where to store definition of function, and also give a way to find it's return type
     //currently make it a hashmap, but should it?
     HashMap<String, String> funcNames;
     HashMap<String, Long> funcRetLengths;
+
+    int stringcounter = 1;
 
     public IRGenerator(){
         this.irFactory = new IRNodeFactory_c();
@@ -120,7 +122,10 @@ public class IRGenerator extends Visitor {
     @Override
     public void visitStringLit(StringLit node) {
         //TODO: we also need to store it memory
-        node.ir = irFactory.IRConst(Long. valueOf(node.str));
+
+        globalVars.put("string_const"+ this.stringcounter, new IRData("string_const"+this.stringcounter, exprtoval(node)));
+        node.ir = irFactory.IRName("string_const"+ this.stringcounter);
+        stringcounter +=1;
     }
 
     @Override
@@ -131,7 +136,8 @@ public class IRGenerator extends Visitor {
     @Override
     public void visitVar(VarExpr node) throws Exception {
         //TODO: what is memtype for this ir mem
-        if(globalVars.containsKey("_" + node.identifier)){
+        //I guess default type is fine
+        if(globalVars.containsKey(node.identifier)){
             node.ir = irFactory.IRMem(irFactory.IRName("_" + node.identifier));
         }else{
             node.ir = irFactory.IRTemp(node.identifier);
@@ -401,7 +407,7 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitGlobDecl(GlobDeclare node) throws Exception {
-        this.globalVars.put(node.identifier, "_" + node.identifier);
+        this.globalVars.put(node.identifier, new IRData("_" + node.identifier, exprtoval(node.value)));
         if (node.value != null) {
             if (node.value instanceof IntLiteral) {
                 long[] singleval = {((IntLiteral) node.value).value.longValue()};
@@ -416,6 +422,13 @@ public class IRGenerator extends Visitor {
         } else{
             node.ir = new IRData("_" + node.identifier, new long[]{});
         }
-        this.memory.add(node.ir);
+    }
+
+    //TODO:implement this helper to make constant
+    // int -> long
+    // bool -> long
+    // string -> long[]
+    private long[] exprtoval(Expr e){
+        return null;
     }
 }
