@@ -60,10 +60,7 @@ public class IRGeneratorAdapter {
             IRLower lirTranslator = new IRLower();
             lowerIR = (IRCompUnit) lirTranslator.lower(root); //TODO: cast directly?
 
-            // Writing to target file, adapted from IRNode_c.java
-            System.out.println("trying to write to the file!!");
-            System.out.println(root == null);
-
+            // Writing to target file
             targetWriter.write(prettyPrint(root));
             targetWriter.close();
         } catch (Exception e) {
