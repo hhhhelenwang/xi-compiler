@@ -20,16 +20,18 @@ public class IRGenerator extends Visitor {
     HashMap<String, String> funcNames;
     HashMap<String, Long> funcRetLengths;
 
-    int stringcounter;
-    int labelcounter;
+    int stringCounter;
+    int labelCounter;
+    int tempCounter;
 
     public IRGenerator(HashMap<String, String> funcNames, HashMap<String, Long> funcRetLengths){
         this.irFactory = new IRNodeFactory_c();
         this.funcNames = funcNames;
         this.funcRetLengths = funcRetLengths;
         this.globalData = new HashMap<>();
-        this.stringcounter = 1;
-        this.labelcounter = 1;
+        this.stringCounter = 1;
+        this.labelCounter = 1;
+        this.tempCounter = 1;
     }
 
     @Override
@@ -126,9 +128,22 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitStringLit(StringLit node) {
-        globalData.put("string_const"+ this.stringcounter, new IRData("string_const"+this.stringcounter, exprtoval(node)));
-        node.ir = irFactory.IRName("string_const"+ this.stringcounter);
-        stringcounter +=1;
+        globalData.put("string_const"+ this.stringCounter,
+                new IRData("string_const"+this.stringCounter, exportVal(node)));
+
+        List<IRStmt> stmts = new ArrayList<>();
+        IRTemp strWithLen = irFactory.IRTemp("t" + tempCounter );
+        stmts.add(irFactory.IRMove(strWithLen, irFactory.IRName("string_const"+ this.stringCounter)));
+        tempCounter++; //TODO: does this make sense?
+        // use tempCounter to make sure we are using new temp every time we see a new move
+
+        IRConst skipLength = irFactory.IRConst(8);
+        IRTemp strBegin = irFactory.IRTemp("t" + tempCounter);
+        stmts.add(irFactory.IRMove(strBegin, irFactory.IRBinOp(ADD, strWithLen, skipLength)));
+
+        IRSeq stmtSeq = irFactory.IRSeq(stmts);
+        node.ir = irFactory.IRESeq(stmtSeq, strBegin);
+        stringCounter++;
     }
 
     @Override
@@ -247,25 +262,30 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitPrCall(ProcCallStmt node) throws Exception {
-        node.ir = FunProcCall(node.name, node.arguments);
+        String procName = this.funcNames.get(node.name);
+        ArrayList<IRExpr> argsIR = new ArrayList<>();
+        if (node.arguments.size() == 1) {
+            argsIR.add(node.arguments.get(0).ir);
+        } else {
+            for (Expr arg: node.arguments){
+                argsIR.add(arg.ir);
+            }
+        }
+        node.ir = irFactory.IRCallStmt(irFactory.IRName(procName), 1L,argsIR);
     }
 
     @Override
     public void visitFunCallExpr(FunCallExpr node) throws Exception {
-        node.ir = FunProcCall(node.name, node.arguments);
-    }
-
-    /** Helper function to generate IRCall for functions and procedures */
-    private IRCall FunProcCall(String name, List<Expr> args){
-        String funcName = this.funcNames.get(name);
+        List<Expr> args = node.arguments;
+        String funcName = this.funcNames.get(node.name);
         if (args.size() == 1) {
-            return irFactory.IRCall(irFactory.IRName(funcName),args.get(0).ir);
+            node.ir = irFactory.IRCall(irFactory.IRName(funcName),args.get(0).ir);
         } else {
             LinkedList<IRExpr> argsIR = new LinkedList<>();
             for(Expr e: args){
                 argsIR.add(e.ir);
             }
-            return irFactory.IRCall(irFactory.IRName(funcName),argsIR);
+            node.ir =  irFactory.IRCall(irFactory.IRName(funcName),argsIR);
         }
     }
 
@@ -291,16 +311,16 @@ public class IRGenerator extends Visitor {
         //use a label counter to generate a freshlabel
         LinkedList<IRStmt> lst = new LinkedList<>();
         //first put the branch
-        lst.add(irFactory.IRCJump(node.condition.ir,"l"+labelcounter,"l"+(labelcounter+1)));
-        lst.add(irFactory.IRLabel("l" +labelcounter));
+        lst.add(irFactory.IRCJump(node.condition.ir,"l"+ labelCounter,"l"+(labelCounter +1)));
+        lst.add(irFactory.IRLabel("l" + labelCounter));
         if (node.clause.ir instanceof IRStmt) {
             //avoid the edge case where the stmt is a single valdeclare stmt and therefore just an irexpr
             lst.add((IRStmt) node.clause.ir);
         }
-        lst.add(irFactory.IRLabel("l" +(labelcounter+1)));
+        lst.add(irFactory.IRLabel("l" +(labelCounter +1)));
         node.ir = irFactory.IRSeq(lst);
 
-        labelcounter += 2;
+        labelCounter += 2;
     }
 
     @Override
@@ -308,42 +328,42 @@ public class IRGenerator extends Visitor {
         // labelcounter for ifclause, labelcounter+1 for skip the elseclause, labelcounter+2 for the end
         LinkedList<IRStmt> lst = new LinkedList<>();
         //first put the branch
-        lst.add(irFactory.IRCJump(node.condition.ir,"l"+labelcounter,"l"+(labelcounter+1)));
-        lst.add(irFactory.IRLabel("l" +labelcounter));
+        lst.add(irFactory.IRCJump(node.condition.ir,"l"+ labelCounter,"l"+(labelCounter +1)));
+        lst.add(irFactory.IRLabel("l" + labelCounter));
         if(node.ifClause.ir instanceof IRStmt){
             //avoid the edge case where the stmt is a single valdeclare stmt and therefore just an irexpr
             lst.add((IRStmt) node.ifClause.ir);
         }
-        lst.add(irFactory.IRJump(irFactory.IRName("l"+(labelcounter+2))));
+        lst.add(irFactory.IRJump(irFactory.IRName("l"+(labelCounter +2))));
 
-        lst.add(irFactory.IRLabel("l" +(labelcounter+1)));
+        lst.add(irFactory.IRLabel("l" +(labelCounter +1)));
         if(node.elseClause.ir instanceof IRStmt){
             //avoid the edge case where the stmt is a single valdeclare stmt and therefore just an irexpr
             lst.add((IRStmt) node.ifClause.ir);
         }
 
-        lst.add(irFactory.IRLabel("l" +(labelcounter+2)));
+        lst.add(irFactory.IRLabel("l" +(labelCounter +2)));
         node.ir = irFactory.IRSeq(lst);
 
-        labelcounter += 3;
+        labelCounter += 3;
     }
 
     @Override
     public void visitWhileStmt(WhileStmt node) throws Exception {
         LinkedList<IRStmt> lst = new LinkedList<>();
-        lst.add(irFactory.IRLabel("l"+labelcounter));
-        lst.add(irFactory.IRCJump(node.condition.ir,"l"+(labelcounter+1),"l"+(labelcounter+2)));
+        lst.add(irFactory.IRLabel("l"+ labelCounter));
+        lst.add(irFactory.IRCJump(node.condition.ir,"l"+(labelCounter +1),"l"+(labelCounter +2)));
 
-        lst.add(irFactory.IRLabel("l"+(labelcounter+1)));
+        lst.add(irFactory.IRLabel("l"+(labelCounter +1)));
         if(node.loopBody.ir instanceof IRStmt){
             lst.add((IRStmt) node.loopBody.ir);
         }
-        lst.add(irFactory.IRJump(irFactory.IRName("l"+labelcounter)));
+        lst.add(irFactory.IRJump(irFactory.IRName("l"+ labelCounter)));
 
-        lst.add(irFactory.IRLabel("l"+(labelcounter+2)));
+        lst.add(irFactory.IRLabel("l"+(labelCounter +2)));
 
         node.ir = irFactory.IRSeq(lst);
-        this.labelcounter +=3;
+        this.labelCounter +=3;
     }
 
     @Override
@@ -473,13 +493,14 @@ public class IRGenerator extends Visitor {
         //TODO: loop over memory to add static data
         node.ir = irFactory.IRCompUnit("example");
         for (Definition d: node.definitions) {
-            if (d instanceof GlobDeclare) {
-                node.ir.appendData(((GlobDeclare) d).ir);
-            } else if (d instanceof FunctionDefine) {
+            if (d instanceof FunctionDefine) {
                 node.ir.appendFunc(((FunctionDefine) d).ir);
             } else if (d instanceof ProcedureDefine){
                 node.ir.appendFunc(((ProcedureDefine) d).ir);
             }
+        }
+        for (IRData value : globalData.values()) {
+            node.ir.appendData(value);
         }
     }
 
@@ -490,7 +511,7 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitGlobDecl(GlobDeclare node) throws Exception {
-        this.globalData.put(node.identifier, new IRData("_" + node.identifier, exprtoval(node.value)));
+        this.globalData.put(node.identifier, new IRData("_" + node.identifier, exportVal(node.value)));
         if (node.value != null) {
             if (node.value instanceof IntLiteral) {
                 long[] singleval = {((IntLiteral) node.value).value.longValue()};
@@ -512,16 +533,17 @@ public class IRGenerator extends Visitor {
      * @param e the intput Expr that should be a IntLiteral, a BoolLiteral, or a StringLiteral
      * @return long array representation of e
      */
-    private long[] exprtoval(Expr e){
+    private long[] exportVal(Expr e){
         if (e instanceof IntLiteral) {
             return new long[] {((IntLiteral) e).value.longValue()};
         } else if (e instanceof BoolLiteral) {
             return new long[] {((BoolLiteral) e).value? 1L:0L};
         } else if (e instanceof StringLit) {
             int n = ((StringLit) e).str.length();
-            long[] result = new long[n];
+            long[] result = new long[n+1];
+            result[0] = 12; //TODO: should insert length
             for (int i = 0; i < n; i++) {
-                result[i] = Character.getNumericValue(((StringLit) e).str.charAt(i));
+                result[i+1] = (int) ((StringLit) e).str.charAt(i);
             }
             return result;
         }
