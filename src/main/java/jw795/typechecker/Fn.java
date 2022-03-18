@@ -1,8 +1,8 @@
 package jw795.typechecker;
 
 public class Fn implements Sigma{
-    T inputType;
-    T outputType;
+    public T inputType;
+    public T outputType;
 
     public Fn(T inputType, T outputType) {
         this.inputType = inputType;

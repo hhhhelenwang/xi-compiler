@@ -23,12 +23,12 @@ public class IRGenerator extends Visitor {
     int stringcounter;
     int labelcounter;
 
-    public IRGenerator(){
+    public IRGenerator(HashMap<String, String> funcNames, HashMap<String, Long> funcRetLengths){
         this.irFactory = new IRNodeFactory_c();
+        this.funcNames = funcNames;
+        this.funcRetLengths = funcRetLengths;
         this.globalVars = new HashMap<>();
         this.stringcounter = 1;
-        this.funcNames = new HashMap<>();
-        this.funcRetLengths = new HashMap<>();
         this.labelcounter = 1;
     }
 
