@@ -119,6 +119,7 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitStringLit(StringLit node) {
+        //TODO: we also need to store it memory
         node.ir = irFactory.IRConst(Long. valueOf(node.str));
     }
 
@@ -333,6 +334,9 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitFunDef(FunctionDefine node) throws Exception {
+        //use abi convention to generate a name
+        // also manually save args
+        //TODO: use that helper function for name generating
         List<IRStmt> irBody = ((IRSeq)node.functionBody.ir).stmts();
         IRSeq bodyWithArgs = moveArgument(irBody, node.arguments);
         node.ir = irFactory.IRFuncDecl(node.name,bodyWithArgs);
@@ -369,12 +373,12 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitFunProcArgs(FunProcArgs funProcArgs) throws Exception {
-
+        // see example, we only print funcname, but not args
     }
 
     @Override
     public void visitUse(Use node) throws Exception {
-
+        //do nothing
     }
 
     @Override
@@ -392,7 +396,7 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitInterface(Interface node) throws Exception {
-
+        //do nothing, since we don't print stuff in ixi file
     }
 
     @Override
