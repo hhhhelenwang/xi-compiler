@@ -408,6 +408,13 @@ public class IRGenerator extends Visitor {
 
             node.ir = irFactory.IRSeq(lst);
         } else {
+
+            if(node.leftVal.getir() == null){
+                System.out.println("left is null");
+            }if(node.expr.ir == null ){
+                System.out.println("expr is null");
+            }
+
             node.ir = irFactory.IRMove(node.leftVal.getir(), node.expr.ir);
         }
     }

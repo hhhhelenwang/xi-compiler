@@ -34,6 +34,6 @@ public class VarDeclareStmt extends Statement implements LValue {
     @Override
     //implement this
     public IRExpr getir() {
-        return null;
+        return (IRExpr) this.ir;
     }
 }
