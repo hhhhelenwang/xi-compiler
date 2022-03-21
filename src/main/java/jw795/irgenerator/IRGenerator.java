@@ -177,6 +177,9 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitAdd(Add node) throws Exception {
+        if(node.expr1.ir == null){
+            System.out.println("expr1 is null");
+        }
         node.ir = irFactory.IRBinOp(ADD,node.expr1.ir,node.expr2.ir);
     }
 
@@ -413,6 +416,7 @@ public class IRGenerator extends Visitor {
                 System.out.println("left is null");
             }if(node.expr.ir == null ){
                 System.out.println("expr is null");
+                System.out.println(node.expr.toString());
             }
 
             node.ir = irFactory.IRMove(node.leftVal.getir(), node.expr.ir);
