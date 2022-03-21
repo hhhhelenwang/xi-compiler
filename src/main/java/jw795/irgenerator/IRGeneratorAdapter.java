@@ -63,6 +63,7 @@ public class IRGeneratorAdapter {
             targetWriter.write(prettyPrint(lowerIR));
             targetWriter.close();
         } catch (Exception e) {
+            e.printStackTrace();
             System.out.println("unknown error while generating IR: "+ e.getMessage());
             e.printStackTrace();
         }

@@ -9,7 +9,6 @@ import jw795.Visitor;
 public abstract class BinOpExpr extends Expr{
     public Expr expr1;
     public Expr expr2;
-    public IRNode ir;
 
     BinOpExpr(Expr e1, Expr e2, int line, int col) {
         super(line, col);

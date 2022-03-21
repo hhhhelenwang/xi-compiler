@@ -78,13 +78,13 @@ public class Compiler {
      */
     public void setPaths() {
         if (cmd.hasOption("D")) {
-            this.destPath = cmd.getOptionValue("D");
+            this.destPath = cmd.getOptionValue("D")+"/";
         }
         if (cmd.hasOption("sourcepath")) {
-            this.sourcePath = cmd.getOptionValue("sourcepath");
+            this.sourcePath = cmd.getOptionValue("sourcepath")+"/";
         }
         if (cmd.hasOption("libpath")) {
-            this.libPath = cmd.getOptionValue("libpath");
+            this.libPath = cmd.getOptionValue("libpath")+ "/";
         }
     }
 
