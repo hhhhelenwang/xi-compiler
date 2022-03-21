@@ -279,10 +279,8 @@ public class IRLower {
      */
     public IRSeq lowerSeq(IRSeq node) {
         List<IRStmt> sequence = new ArrayList<>(); // the list of stmts that form the one large result sequence
-        IRSeq lowerStmt;
         for (IRStmt stmt : node.stmts()) {
-            lowerStmt = lowerStmt(stmt);
-            sequence.addAll(lowerStmt.stmts());
+            sequence.addAll(flattenSeq(lowerStmt(stmt)));
         }
         return irFactory.IRSeq(sequence);
     }
@@ -416,12 +414,22 @@ public class IRLower {
         return irFactory.IRSeq(sequence);
     }
 
-//    // Helper for flattening nested sequence ===============================================================
-//    public List<IRStmt> flattenSeq(IRStmt node) {
-//        if (node instanceof IRSeq) {
-//
-//        }
-//    }
+    // Helper for flattening nested sequence ===============================================================
+    public List<IRStmt> flattenSeq(IRSeq node) {
+        List<IRStmt> stmts = new ArrayList<>();
+        flattenSeqRec(node, stmts);
+        return stmts;
+    }
+
+    public void flattenSeqRec(IRSeq node, List<IRStmt> stmts) {
+        for (IRStmt stmt : node.stmts()) {
+            if (stmt instanceof IRSeq) {
+                flattenSeqRec((IRSeq) stmt, stmts);
+            } else {
+                stmts.add(stmt);
+            }
+        }
+    }
 
 
     // Helper functions for deciding if e1 and e2 commute ==========================================================
