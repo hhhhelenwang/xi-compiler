@@ -74,7 +74,7 @@ public class IRSeq extends IRStmt {
         p.startUnifiedList();
         p.printAtom("SEQ");
         for (IRStmt stmt : stmts) {
-            System.out.println(stmt.toString()); // Added here for debugging purpose
+//            System.out.println(stmt.toString()); // Added here for debugging purpose
             stmt.printSExp(p);
         }
         p.endList();

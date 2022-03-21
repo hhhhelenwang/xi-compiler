@@ -128,14 +128,13 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitStringLit(StringLit node) {
-        globalData.put("string_const"+ this.stringCounter,
-                new IRData("string_const"+this.stringCounter, exportVal(node)));
+        globalData.put("string_const" + this.stringCounter,
+                new IRData("string_const" + this.stringCounter, exportVal(node)));
 
         List<IRStmt> stmts = new ArrayList<>();
         IRTemp strWithLen = irFactory.IRTemp("t" + tempCounter );
-        stmts.add(irFactory.IRMove(strWithLen, irFactory.IRName("string_const"+ this.stringCounter)));
-        tempCounter++; //TODO: does this make sense?
-        // use tempCounter to make sure we are using new temp every time we see a new move
+        stmts.add(irFactory.IRMove(strWithLen, irFactory.IRName("string_const" + this.stringCounter)));
+        tempCounter++;
 
         IRConst skipLength = irFactory.IRConst(8);
         IRTemp strBegin = irFactory.IRTemp("t" + tempCounter);
@@ -180,73 +179,73 @@ public class IRGenerator extends Visitor {
         if(node.expr1.ir == null){
             System.out.println("expr1 is null");
         }
-        node.ir = irFactory.IRBinOp(ADD,node.expr1.ir,node.expr2.ir);
+        node.ir = irFactory.IRBinOp(ADD, node.expr1.ir, node.expr2.ir);
     }
 
     @Override
     public void visitSub(Sub node) throws Exception {
-        node.ir = irFactory.IRBinOp(SUB,node.expr1.ir,node.expr2.ir);
+        node.ir = irFactory.IRBinOp(SUB, node.expr1.ir, node.expr2.ir);
     }
 
     @Override
     public void visitMult(Mult node) throws Exception {
-        node.ir = irFactory.IRBinOp(MUL,node.expr1.ir,node.expr2.ir);
+        node.ir = irFactory.IRBinOp(MUL, node.expr1.ir, node.expr2.ir);
     }
 
     @Override
     public void visitHighMult(HighMult node) throws Exception {
-        node.ir = irFactory.IRBinOp(HMUL,node.expr1.ir,node.expr2.ir);
+        node.ir = irFactory.IRBinOp(HMUL, node.expr1.ir, node.expr2.ir);
     }
 
     @Override
     public void visitDiv(Div node) throws Exception {
-        node.ir = irFactory.IRBinOp(DIV,node.expr1.ir,node.expr2.ir);
+        node.ir = irFactory.IRBinOp(DIV, node.expr1.ir, node.expr2.ir);
     }
 
     @Override
     public void visitMod(Mod node) throws Exception {
-        node.ir = irFactory.IRBinOp(MOD,node.expr1.ir,node.expr2.ir);
+        node.ir = irFactory.IRBinOp(MOD, node.expr1.ir, node.expr2.ir);
     }
 
     @Override
     public void visitAnd(And node) throws Exception {
-        node.ir = irFactory.IRBinOp(AND,node.expr1.ir,node.expr2.ir);
+        node.ir = irFactory.IRBinOp(AND, node.expr1.ir, node.expr2.ir);
     }
 
     @Override
     public void visitOr(Or node) throws Exception {
-        node.ir = irFactory.IRBinOp(OR,node.expr1.ir,node.expr2.ir);
+        node.ir = irFactory.IRBinOp(OR, node.expr1.ir, node.expr2.ir);
     }
 
     @Override
     public void visitEqual(Equal node) throws Exception {
-        node.ir = irFactory.IRBinOp(EQ,node.expr1.ir,node.expr2.ir);
+        node.ir = irFactory.IRBinOp(EQ, node.expr1.ir, node.expr2.ir);
     }
 
     @Override
     public void visitNotEqual(NotEqual node) throws Exception {
-        node.ir = irFactory.IRBinOp(NEQ,node.expr1.ir,node.expr2.ir);
+        node.ir = irFactory.IRBinOp(NEQ, node.expr1.ir, node.expr2.ir);
 
     }
 
     @Override
     public void visitLessThan(LessThan node) throws Exception {
-        node.ir = irFactory.IRBinOp(LT,node.expr1.ir,node.expr2.ir);
+        node.ir = irFactory.IRBinOp(LT, node.expr1.ir, node.expr2.ir);
     }
 
     @Override
     public void visitLessEq(LessEq node) throws Exception {
-        node.ir = irFactory.IRBinOp(LEQ,node.expr1.ir,node.expr2.ir);
+        node.ir = irFactory.IRBinOp(LEQ, node.expr1.ir, node.expr2.ir);
     }
 
     @Override
     public void visitGreaterThan(GreaterThan node) throws Exception {
-        node.ir = irFactory.IRBinOp(GT,node.expr1.ir,node.expr2.ir);
+        node.ir = irFactory.IRBinOp(GT, node.expr1.ir, node.expr2.ir);
     }
 
     @Override
     public void visitGreaterEq(GreaterEq node) throws Exception {
-        node.ir = irFactory.IRBinOp(GEQ,node.expr1.ir,node.expr2.ir);
+        node.ir = irFactory.IRBinOp(GEQ, node.expr1.ir, node.expr2.ir);
     }
 
     @Override
@@ -260,7 +259,7 @@ public class IRGenerator extends Visitor {
                 argsIR.add(arg.ir);
             }
         }
-        node.ir = irFactory.IRCallStmt(irFactory.IRName(procName), 1L,argsIR);
+        node.ir = irFactory.IRCallStmt(irFactory.IRName(procName), 1L, argsIR);
     }
 
     @Override
@@ -268,13 +267,13 @@ public class IRGenerator extends Visitor {
         List<Expr> args = node.arguments;
         String funcName = this.funcNames.get(node.name);
         if (args.size() == 1) {
-            node.ir = irFactory.IRCall(irFactory.IRName(funcName),args.get(0).ir);
+            node.ir = irFactory.IRCall(irFactory.IRName(funcName), args.get(0).ir);
         } else {
             LinkedList<IRExpr> argsIR = new LinkedList<>();
             for(Expr e: args){
                 argsIR.add(e.ir);
             }
-            node.ir =  irFactory.IRCall(irFactory.IRName(funcName),argsIR);
+            node.ir =  irFactory.IRCall(irFactory.IRName(funcName), argsIR);
         }
     }
 
@@ -300,13 +299,13 @@ public class IRGenerator extends Visitor {
         //use a label counter to generate a freshlabel
         LinkedList<IRStmt> lst = new LinkedList<>();
         //first put the branch
-        lst.add(irFactory.IRCJump(node.condition.ir,"l"+ labelCounter,"l"+(labelCounter +1)));
+        lst.add(irFactory.IRCJump(node.condition.ir,"l" + labelCounter,"l" + (labelCounter + 1)));
         lst.add(irFactory.IRLabel("l" + labelCounter));
         if (node.clause.ir instanceof IRStmt) {
             //avoid the edge case where the stmt is a single valdeclare stmt and therefore just an irexpr
             lst.add((IRStmt) node.clause.ir);
         }
-        lst.add(irFactory.IRLabel("l" +(labelCounter +1)));
+        lst.add(irFactory.IRLabel("l" +(labelCounter + 1)));
         node.ir = irFactory.IRSeq(lst);
 
         labelCounter += 2;
@@ -317,21 +316,21 @@ public class IRGenerator extends Visitor {
         // labelcounter for ifclause, labelcounter+1 for skip the elseclause, labelcounter+2 for the end
         LinkedList<IRStmt> lst = new LinkedList<>();
         //first put the branch
-        lst.add(irFactory.IRCJump(node.condition.ir,"l"+ labelCounter,"l"+(labelCounter +1)));
+        lst.add(irFactory.IRCJump(node.condition.ir,"l" + labelCounter,"l" + (labelCounter + 1)));
         lst.add(irFactory.IRLabel("l" + labelCounter));
         if(node.ifClause.ir instanceof IRStmt){
             //avoid the edge case where the stmt is a single valdeclare stmt and therefore just an irexpr
             lst.add((IRStmt) node.ifClause.ir);
         }
-        lst.add(irFactory.IRJump(irFactory.IRName("l"+(labelCounter +2))));
+        lst.add(irFactory.IRJump(irFactory.IRName("l"+(labelCounter + 2))));
 
-        lst.add(irFactory.IRLabel("l" +(labelCounter +1)));
+        lst.add(irFactory.IRLabel("l" +(labelCounter + 1)));
         if(node.elseClause.ir instanceof IRStmt){
             //avoid the edge case where the stmt is a single valdeclare stmt and therefore just an irexpr
             lst.add((IRStmt) node.ifClause.ir);
         }
 
-        lst.add(irFactory.IRLabel("l" +(labelCounter +2)));
+        lst.add(irFactory.IRLabel("l" +(labelCounter + 2)));
         node.ir = irFactory.IRSeq(lst);
 
         labelCounter += 3;
@@ -340,19 +339,19 @@ public class IRGenerator extends Visitor {
     @Override
     public void visitWhileStmt(WhileStmt node) throws Exception {
         LinkedList<IRStmt> lst = new LinkedList<>();
-        lst.add(irFactory.IRLabel("l"+ labelCounter));
-        lst.add(irFactory.IRCJump(node.condition.ir,"l"+(labelCounter +1),"l"+(labelCounter +2)));
+        lst.add(irFactory.IRLabel("l" + labelCounter));
+        lst.add(irFactory.IRCJump(node.condition.ir,"l" + (labelCounter + 1),"l" + (labelCounter + 2)));
 
-        lst.add(irFactory.IRLabel("l"+(labelCounter +1)));
+        lst.add(irFactory.IRLabel("l" + (labelCounter + 1)));
         if(node.loopBody.ir instanceof IRStmt){
             lst.add((IRStmt) node.loopBody.ir);
         }
-        lst.add(irFactory.IRJump(irFactory.IRName("l"+ labelCounter)));
+        lst.add(irFactory.IRJump(irFactory.IRName("l" + labelCounter)));
 
-        lst.add(irFactory.IRLabel("l"+(labelCounter +2)));
+        lst.add(irFactory.IRLabel("l"+(labelCounter + 2)));
 
         node.ir = irFactory.IRSeq(lst);
-        this.labelCounter +=3;
+        this.labelCounter += 3;
     }
 
     @Override
@@ -406,7 +405,8 @@ public class IRGenerator extends Visitor {
             lst.add(irFactory.IRLabel("indexOutOfBound"));
             lst.add(irFactory.IRCallStmt(this.irFactory.IRName("_xi_out_of_bound"), 0L, new ArrayList<>()));
             lst.add(irFactory.IRLabel("ok"));
-            IRMem a = irFactory.IRMem(irFactory.IRBinOp(ADD, t_a, irFactory.IRBinOp(MUL, t_i, irFactory.IRConst(8))));
+            IRMem a = irFactory.IRMem(irFactory.IRBinOp(ADD, t_a,
+                    irFactory.IRBinOp(MUL, t_i, irFactory.IRConst(8))));
             lst.add(irFactory.IRMove(a, node.expr.ir));
 
             node.ir = irFactory.IRSeq(lst);
@@ -441,8 +441,8 @@ public class IRGenerator extends Visitor {
         //TODO: use that helper function for name generating
         List<IRStmt> irBody = ((IRSeq)node.functionBody.ir).stmts();
         IRSeq bodyWithArgs = moveArgument(irBody, node.arguments);
-        node.ir = irFactory.IRFuncDecl(node.name, bodyWithArgs);
-
+        String name = funcNames.get(node.name);
+        node.ir = irFactory.IRFuncDecl(name, bodyWithArgs);
     }
 
     @Override
@@ -450,7 +450,8 @@ public class IRGenerator extends Visitor {
         List<IRStmt> irBody = ((IRSeq)node.procBody.ir).stmts();
         irBody.add(irFactory.IRReturn());
         IRSeq bodyWithArgs = moveArgument(irBody, node.arguments);
-        node.ir = irFactory.IRFuncDecl(node.name, bodyWithArgs);
+        String name = funcNames.get(node.name);
+        node.ir = irFactory.IRFuncDecl(name, bodyWithArgs);
     }
 
     /** Helper function to return a irSeq object that includes arg preparation moves and IRs in function body. */
@@ -459,7 +460,7 @@ public class IRGenerator extends Visitor {
         IRTemp val;
         for (int i = 0; i< args.size(); i++){
             tar = irFactory.IRTemp(args.get(i).identifier);
-            val = irFactory.IRTemp("_ARG"+ (i+1));
+            val = irFactory.IRTemp("_ARG" + (i + 1));
             irBody.add(i, irFactory.IRMove(tar, val));
         }
         return irFactory.IRSeq(irBody);
@@ -477,7 +478,7 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitFunProcArgs(FunProcArgs funProcArgs) throws Exception {
-        // see example, we only print funcname, but not args
+        //do nothing, see example, we only print funcname, but not args
     }
 
     @Override
