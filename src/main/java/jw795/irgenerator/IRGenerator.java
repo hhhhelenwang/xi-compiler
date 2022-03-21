@@ -441,7 +441,8 @@ public class IRGenerator extends Visitor {
         //TODO: use that helper function for name generating
         List<IRStmt> irBody = ((IRSeq)node.functionBody.ir).stmts();
         IRSeq bodyWithArgs = moveArgument(irBody, node.arguments);
-        node.ir = irFactory.IRFuncDecl(node.name, bodyWithArgs);
+        String name = funcNames.get(node.name);
+        node.ir = irFactory.IRFuncDecl(name, bodyWithArgs);
 
     }
 
@@ -450,7 +451,8 @@ public class IRGenerator extends Visitor {
         List<IRStmt> irBody = ((IRSeq)node.procBody.ir).stmts();
         irBody.add(irFactory.IRReturn());
         IRSeq bodyWithArgs = moveArgument(irBody, node.arguments);
-        node.ir = irFactory.IRFuncDecl(node.name, bodyWithArgs);
+        String name = funcNames.get(node.name);
+        node.ir = irFactory.IRFuncDecl(name, bodyWithArgs);
     }
 
     /** Helper function to return a irSeq object that includes arg preparation moves and IRs in function body. */
