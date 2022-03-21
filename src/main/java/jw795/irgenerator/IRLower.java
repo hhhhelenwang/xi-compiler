@@ -3,10 +3,7 @@ package jw795.irgenerator;
 import edu.cornell.cs.cs4120.util.SExpPrinter;
 import edu.cornell.cs.cs4120.xic.ir.*;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class IRLower {
 
@@ -22,6 +19,7 @@ public class IRLower {
             sideEffects = s;
             value = val;
         }
+
         @Override
         public String label() {
             return null;
@@ -64,19 +62,45 @@ public class IRLower {
     }
 
     /**
-     * Lower an IR node.
-     * @param node not lowered IR node
-     * @return lowered IR node
+     * Lower a program in High-level IR into low-level IR.
+     * @param node the program/interface in HIR
+     * @return program in LIR
      */
-    public IRNode lower(IRNode node) {
-        if (node instanceof IRExpr) {
-            return lowerExpr((IRExpr) node);
-        } else if (node instanceof IRStmt) {
-            return lowerStmt((IRStmt) node);
-        } else {
-            return null;
+    public IRCompUnit lower(IRCompUnit node) {
+        Map<String, IRFuncDecl> functions = node.functions();
+        Map<String, IRFuncDecl> loweredFunctions = new HashMap<>();
+        // lower functions
+        for (Map.Entry<String, IRFuncDecl> entry : functions.entrySet()) {
+            IRFuncDecl function = entry.getValue();
+            IRStmt lowerdBody = lowerStmt(function.body());
+            IRFuncDecl loweredFunction = irFactory.IRFuncDecl(function.name(), lowerdBody);
+            loweredFunctions.put(entry.getKey(), loweredFunction);
         }
+        // put the data defined in the original IR program into the lowered program
+        IRCompUnit loweredProgram = irFactory.IRCompUnit(node.name(), loweredFunctions);
+        for (Map.Entry<String, IRData> dataEntry: node.dataMap().entrySet()) {
+            loweredProgram.appendData(dataEntry.getValue());
+        }
+
+        return loweredProgram;
     }
+
+//
+//
+//    /**
+//     * Lower an IR node.
+//     * @param node not lowered IR node
+//     * @return lowered IR node
+//     */
+//    public IRNode lowerHelper(IRNode node) {
+//        if (node instanceof IRExpr) {
+//            return lowerExpr((IRExpr) node);
+//        } else if (node instanceof IRStmt) {
+//            return lowerStmt((IRStmt) node);
+//        } else {
+//            return null;
+//        }
+//    }
 
     // Expressions ======================================================================
     /**
@@ -211,7 +235,7 @@ public class IRLower {
      * @return pair of s and e
      */
     public SEPair lowerESeq(IRESeq node) {
-        IRStmt sideOfESeq = node.stmt();
+        IRStmt sideOfESeq = lowerStmt(node.stmt());
         SEPair lowerESeq = lowerExpr(node.expr());
         List<IRStmt> sideOfE= lowerESeq.sideEffects;
         IRExpr exprVal = lowerESeq.value;
@@ -391,6 +415,13 @@ public class IRLower {
         sequence.add(irFactory.IRCallStmt(node.target(), node.n_returns(), resultArgs));
         return irFactory.IRSeq(sequence);
     }
+
+//    // Helper for flattening nested sequence ===============================================================
+//    public List<IRStmt> flattenSeq(IRStmt node) {
+//        if (node instanceof IRSeq) {
+//
+//        }
+//    }
 
 
     // Helper functions for deciding if e1 and e2 commute ==========================================================

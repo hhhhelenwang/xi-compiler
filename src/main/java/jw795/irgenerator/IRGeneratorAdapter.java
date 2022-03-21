@@ -36,8 +36,7 @@ public class IRGeneratorAdapter {
 
     /**
      * Generate IR code for the file specified for adaptor, and write generated IR code to target file
-     * @param
-     * @return
+     * @return a root node for the lowered IR ast
      */
     public IRCompUnit generateIR() {
         // typeCheckAdapter.gentypecheck() will print Lexical, Syntax, or Semantic errors if those errors exist
@@ -61,10 +60,11 @@ public class IRGeneratorAdapter {
             lowerIR = (IRCompUnit) lirTranslator.lower(root); //TODO: cast directly?
 
             // Writing to target file
-            targetWriter.write(prettyPrint(root));
+            targetWriter.write(prettyPrint(lowerIR));
             targetWriter.close();
         } catch (Exception e) {
             System.out.println("unknown error while generating IR: "+ e.getMessage());
+            e.printStackTrace();
         }
 
         return lowerIR;
