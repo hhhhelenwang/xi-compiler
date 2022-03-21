@@ -375,11 +375,13 @@ public class IRGenerator extends Visitor {
             lst.add(irFactory.IRCallStmt(func.target(), length, func.args()));
             for (int i = 0; i < length; i++) {
                 IRExpr e = ((LeftValueList) node.leftVal).declares.get(i).getir();
-                lst.add(irFactory.IRMove(e, irFactory.IRTemp("_RV" + i)));
+                if (e != null){
+                    lst.add(irFactory.IRMove(e, irFactory.IRTemp("_RV" + i)));
+                }
             }
             node.ir = irFactory.IRSeq(lst);
         } else if (node.leftVal instanceof WildCard) {
-            node.ir = irFactory.IRMove(irFactory.IRTemp("_"), node.expr.ir);
+            node.ir = irFactory.IRExp(node.expr.ir);
         } else if(node.leftVal instanceof ArrIndexExpr) {
             LinkedList<IRStmt> lst = new LinkedList<>();
             IRTemp t_a = irFactory.IRTemp("t_a");
