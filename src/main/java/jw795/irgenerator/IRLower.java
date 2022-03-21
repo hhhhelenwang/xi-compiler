@@ -168,10 +168,13 @@ public class IRLower {
         SEPair pair2 = lowerExpr(node.right());
         List<IRStmt> sides = new ArrayList<>();
         if (commute(pair1, pair2)) {
+//            System.out.println("commute");
             sides.addAll(pair1.sideEffects);
             sides.addAll(pair2.sideEffects);
             return new SEPair(sides, irFactory.IRBinOp(node.opType(), pair1.value, pair2.value));
         } else {
+//            System.out.println(node.opType());
+//            System.out.println("does not commute");
             sides.addAll(pair1.sideEffects);
 
             IRTemp temp = irFactory.IRTemp(tempGenerator.newTemp());
@@ -414,13 +417,31 @@ public class IRLower {
         return irFactory.IRSeq(sequence);
     }
 
-    // Helper for flattening nested sequence ===============================================================
+    // Helpers =================================================================================
+
+    /**
+     * If an expression has side effects.
+     * @param pair lowered expression
+     * @return true if pair has side effects, false otherwise.
+     */
+    public boolean hasSideEffects(SEPair pair) {
+        return !pair.sideEffects.isEmpty();
+    }
+
+    // Helpers for flattening nested sequence ===============================================================
+
+    /**
+     * Flatten a possibly nested IRSeq
+     * @param node IRSeq
+     * @return flattened IRSeq
+     */
     public List<IRStmt> flattenSeq(IRSeq node) {
         List<IRStmt> stmts = new ArrayList<>();
         flattenSeqRec(node, stmts);
         return stmts;
     }
 
+    /** a recursive helper for flattenSeq(node). */
     public void flattenSeqRec(IRSeq node, List<IRStmt> stmts) {
         for (IRStmt stmt : node.stmts()) {
             if (stmt instanceof IRSeq) {
