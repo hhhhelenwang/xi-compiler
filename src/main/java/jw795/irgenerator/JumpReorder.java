@@ -12,7 +12,7 @@ public class JumpReorder {
     static class BasicBlock {
         //TODO: have zero idea how this would work
         List<IRStmt> statements;
-        Optional<IRStmt> endingStatement;
+        Optional<IRStmt> endingStatement; // An endingStatement is either CJUMP, JUMP or RETURN
         Optional<String> nextBlockLabel;
         boolean visited = false;
         List<BasicBlock> children = new ArrayList<>();
@@ -37,7 +37,7 @@ public class JumpReorder {
     //  3. and then connect the basic block into cfg according to their control flow
     //      -> how to decides which block should connect to which other blocks?
 
-    HashMap<String, BasicBlock> basicBlocksMap = new HashMap<>();// basicBlocksMap maps Label string to its basicBlock
+    HashMap<String, BasicBlock> basicBlocksMap;// basicBlocksMap maps Label string to its basicBlock
 
     IRCompUnit ir; // the ir to reorder
     BasicBlock cfg; // the control flow graph built from ir
@@ -54,16 +54,40 @@ public class JumpReorder {
     public IRCompUnit reorder(IRCompUnit node) {
         // TODO: go through all functions in node, build cfg for each function body, and generate a new
         //  IRCompUnit from the new reordered function body
-        return null;
+        Map<String, IRFuncDecl> reorderedFunDecl = new HashMap<>();
+        for (IRFuncDecl function : node.functions().values()){
+            IRStmt body = function.body();
+            if ( body instanceof IRSeq){
+                basicBlocksMap = new HashMap<>();
+                BasicBlock root = buildCFG(((IRSeq)function.body()));
+                List<BasicBlock> trace = buildTrace(root);
+                body = fixJumps(trace);
+            }
+            reorderedFunDecl.put(function.name(), new IRFuncDecl(function.name(), body));
+            //TODO: double check if this is function.name() OR function.label()
+        }
+
+        return new IRCompUnit(node.name(), reorderedFunDecl, node.ctors(), node.dataMap());
     }
 
     /**
-     * Construct a CFG from the given IRSeq node
-     * @param ir sequence
-     * @return cfg
+     * Fix the jumps in given trace
+     * @param trace A trace of basic blocks
+     * @return IRSeq with jumps between blocks fixed according to the given trace
      */
+    public IRSeq fixJumps (List<BasicBlock> trace) {
+        List<IRStmt> stmts = new ArrayList<>();
+        //TODO: follow https://www.cs.cornell.edu/courses/cs4120/2022sp/notes.html?id=traces
+
+        return new IRSeq(stmts);
+    }
+
+        /**
+         * Construct a CFG from the given IRSeq node
+         * @param ir sequence
+         * @return cfg
+         */
     public BasicBlock buildCFG(IRSeq ir){
-        //TODO: call getBasicBlocks and connectBlocks
         List<BasicBlock> basicBlocks = getBasicBlocks(ir);
         BasicBlock root = connectBlocks(basicBlocks);
         return root;
@@ -109,7 +133,6 @@ public class JumpReorder {
      * @return the root node for the connected CFG
      */
     public BasicBlock connectBlocks(List<BasicBlock> blocks) {
-        // TODO
         for (BasicBlock block: blocks) {
             Optional<IRStmt> endingStmt = block.endingStatement;
             if (endingStmt.isPresent()){
@@ -136,8 +159,22 @@ public class JumpReorder {
      * @return the trace
      */
     public List<BasicBlock> buildTrace(BasicBlock root) {
-        //TODO
-        return null;
+        //TODO: optimize traces around loops?
+        List<BasicBlock> trace = new ArrayList<>();
+        BasicBlock cur = root;
+        if (cur == null) { return trace; }
+
+        if (!cur.visited){
+            cur.visited = true;
+            trace.add(cur);
+            if (cur.children.size() != 0){
+                for (BasicBlock child : cur.children){
+                    trace.addAll(buildTrace(child));
+                }
+            }
+        }
+
+        return trace;
     }
 
 }
