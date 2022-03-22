@@ -168,13 +168,10 @@ public class IRLower {
         SEPair pair2 = lowerExpr(node.right());
         List<IRStmt> sides = new ArrayList<>();
         if (commute(pair1, pair2)) {
-//            System.out.println("commute");
             sides.addAll(pair1.sideEffects);
             sides.addAll(pair2.sideEffects);
             return new SEPair(sides, irFactory.IRBinOp(node.opType(), pair1.value, pair2.value));
         } else {
-//            System.out.println(node.opType());
-//            System.out.println("does not commute");
             sides.addAll(pair1.sideEffects);
 
             IRTemp temp = irFactory.IRTemp(tempGenerator.newTemp());
@@ -482,7 +479,7 @@ public class IRLower {
         if (e instanceof IRConst | e instanceof IRName) {
             return true;
         } else if (e instanceof IRTemp) {
-            return temps.contains(((IRTemp) e).name());
+            return !temps.contains(((IRTemp) e).name());
         } else if (e instanceof IRBinOp) {
             return checkCommute(((IRBinOp) e).left(), temps, hasMem)
                     || checkCommute(((IRBinOp) e).right(), temps, hasMem);
