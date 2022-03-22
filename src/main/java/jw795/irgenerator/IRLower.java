@@ -484,7 +484,7 @@ public class IRLower {
             return checkCommute(((IRBinOp) e).left(), temps, hasMem)
                     || checkCommute(((IRBinOp) e).right(), temps, hasMem);
         } else if (e instanceof IRMem) {
-            return hasMem;
+            return !hasMem;
         } else {
             return false;
         }
