@@ -1,8 +1,6 @@
 package jw795.irgenerator;
 
-import edu.cornell.cs.cs4120.xic.ir.IRCompUnit;
-import edu.cornell.cs.cs4120.xic.ir.IRSeq;
-import edu.cornell.cs.cs4120.xic.ir.IRStmt;
+import edu.cornell.cs.cs4120.xic.ir.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,9 +13,11 @@ public class JumpReorder {
     static class BasicBlock {
         //TODO: have zero idea how this would work
         List<IRStmt> statements;
+
         int index;
         boolean visited;
         List<BasicBlock> children;
+
 
 
         public BasicBlock(List<IRStmt> stmts, int idx) {
@@ -67,7 +67,28 @@ public class JumpReorder {
      * @return a list of basic blocks
      */
     public List<BasicBlock> getBasicBlocks(IRSeq node) {
-        return null;
+        List<BasicBlock> blocks = new ArrayList<>();
+        List<IRStmt> block = new ArrayList<>();
+        int counter = 0;
+        for (IRStmt stmt : node.stmts()){
+            if (stmt instanceof IRCJump || stmt instanceof IRJump || stmt instanceof IRReturn){
+                //always end a block
+                block.add(stmt);
+                blocks.add(new BasicBlock(block, counter));
+                counter++;
+            } else if (stmt instanceof IRLabel) {
+                // always start a block && end previous block if not ended by jump/return
+                if (block.size() != 0){
+                    blocks.add(new BasicBlock(block, counter));
+                    counter++;
+                }
+                block = new ArrayList<>();
+                block.add(stmt);
+            } else {
+                block.add(stmt);
+            }
+        }
+        return blocks;
     }
 
     /**
