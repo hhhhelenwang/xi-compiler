@@ -24,29 +24,65 @@ public class ConstantFolding {
             foldedFunctions.put(entry.getKey(), loweredFunction);
         }
 
-        return null;
+        return irFactory.IRCompUnit(node.name(),foldedFunctions);
     }
 
     public IRStmt foldStmt(IRStmt node){
-//        if (node instanceof IRSeq) {
-//            return foldSeq((IRSeq) node);
-//        } else if (node instanceof IRExp) {
-//            return foldExp((IRExp) node);
-//        } else if (node instanceof IRJump) {
-//            return foldJump((IRJump) node);
-//        } else if (node instanceof IRCJump) {
-//            return foldCJump((IRCJump) node);
-//        } else if (node instanceof IRLabel) {
-//            return foldLabel((IRLabel) node);
-//        } else if (node instanceof IRMove) {
-//            return foldMove((IRMove) node);
-//        } else if (node instanceof IRReturn) {
-//            return foldReturn((IRReturn) node);
-//        } else if (node instanceof IRCallStmt) {
-//            return foldCallStmt((IRCallStmt) node);
-//        }
-        return null;
+        if (node instanceof IRSeq) {
+            return foldSeq((IRSeq) node);
+        } else if (node instanceof IRExp) {
+            return irFactory.IRExp(foldExpr(((IRExp) node).expr()));
+        } else if (node instanceof IRCJump) {
+            return foldCJump((IRCJump) node);
+        } else if (node instanceof IRLabel) {
+            return node;
+        } else if (node instanceof IRMove) {
+            return irFactory.IRMove(foldExpr(((IRMove) node).target()), foldExpr(((IRMove) node).source()));
+        } else if (node instanceof IRReturn) {
+            return foldReturn((IRReturn) node);
+        } else if (node instanceof IRCallStmt) {
+            return foldCallStmt((IRCallStmt) node);
+        }else if (node instanceof IRJump) {
+            return node;
+        }
+        System.out.print("sth is left in constantfold ir");
+        return node;
     }
+
+    public IRStmt foldSeq(IRSeq node){
+        LinkedList<IRStmt> lst = new LinkedList<>();
+        for (IRStmt s: node.stmts()){
+            lst.add(foldStmt(s));
+        }
+        return irFactory.IRSeq(lst);
+    }
+    public IRStmt foldReturn(IRReturn node){
+        LinkedList<IRExpr> lst = new LinkedList<>();
+        for (IRExpr e: node.rets()){
+            lst.add(foldExpr(e));
+        }
+        return irFactory.IRReturn(lst);
+    }
+    public IRStmt foldCallStmt(IRCallStmt node){
+        LinkedList<IRExpr> lst = new LinkedList<>();
+        for (IRExpr e: node.args()){
+            lst.add(foldExpr(e));
+        }
+        return irFactory.IRCallStmt(node.target(),node.n_returns(),lst);
+    }
+
+    public IRStmt foldCJump(IRCJump node){
+        IRExpr e = foldExpr(node.cond());
+        if(e instanceof IRConst){
+            if ( ((IRConst) e).value() == 0){
+                return irFactory.IRJump(irFactory.IRName(node.falseLabel()));
+            }else{
+                return irFactory.IRJump(irFactory.IRName(node.trueLabel()));
+            }
+        }
+        return node;
+    }
+
 
     public IRExpr foldExpr(IRExpr node){
         // match the node against all IR expressions
@@ -61,15 +97,17 @@ public class ConstantFolding {
         else if (node instanceof IRBinOp) {
             return foldBiNop((IRBinOp) node);
         } else if (node instanceof IRCall) {
-//            return foldCall((IRCall) node);
-//        } else if (node instanceof IRMem) {
-//            return foldMem((IRMem) node);
-//        } else if (node instanceof IRESeq) {
-//            return foldESeq((IRESeq) node);
-        } else {
-            return null;
+            List<IRExpr> lst = new LinkedList<>();
+            for(IRExpr e : ((IRCall) node).args()) {
+                lst.add(foldExpr(e));
+            }
+            return irFactory.IRCall(((IRCall) node).target(),lst);
+        } else if (node instanceof IRMem) {
+            return node;
+        } else if (node instanceof IRESeq) {
+            System.out.println("we should not see eseq at IR lower right?");
         }
-        return  null;
+        return  node;
     }
 
     public IRExpr foldBiNop(IRBinOp node) {
@@ -173,57 +211,34 @@ public class ConstantFolding {
         }
         return null;
     }
-    public IRExpr foldoneconst (long cons, IRExpr node, IRBinOp.OpType type) {
-
+    public IRExpr foldoneconst (long cons, IRExpr expr, IRBinOp.OpType type) {
         switch (type) {
             case ADD:
                 if(cons == 0){
-                    return node;
+                    return expr;
                 }
             case SUB:
                 if(cons == 0){
-                    return node;
+                    return expr;
                 }
             case MUL:
                 if(cons == 0){
-
+                    return irFactory.IRConst(0);
                 }else if(cons == 1){
-
+                    return expr;
                 }
-
-            case HMUL:
-
-            case DIV:
-
-            case MOD:
-
             case AND:
-
+                if(cons == 0){
+                    return irFactory.IRConst(0);
+                }else{
+                    return expr;
+                }
             case OR:
-
-            case XOR:
-
-            case LSHIFT:
-
-            case RSHIFT:
-
-            case ARSHIFT:
-
-            case EQ:
-
-            case NEQ:
-
-            case LT:
-
-            case ULT:
-                //TODO: what is ULT
-                return null;
-            case GT:
-
-            case LEQ:
-
-            case GEQ:
-
+                if(cons == 1){
+                    return irFactory.IRConst(1);
+                }else{
+                    return expr;
+                }
         }
         return null;
     }
