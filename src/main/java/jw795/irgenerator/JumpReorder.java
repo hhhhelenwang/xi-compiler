@@ -84,7 +84,13 @@ public class JumpReorder {
             reorderedFunDecl.put(function.name(), irFactory.IRFuncDecl(function.name(), body));
         }
 
-        return irFactory.IRCompUnit(node.name(), reorderedFunDecl);
+        //restore Data
+        IRCompUnit unit = irFactory.IRCompUnit(node.name(), reorderedFunDecl);
+        for (IRData value : node.dataMap().values()) {
+            unit.appendData(value);
+        }
+
+        return unit;
     }
 
     /**
