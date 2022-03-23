@@ -42,11 +42,13 @@ public class IRGeneratorAdapter {
         // typeCheckAdapter.gentypecheck() will print Lexical, Syntax, or Semantic errors if those errors exist
         System.out.println("start generating ir");
         Program checkedProgram = (Program) typeCheckerAdapter.generateTypeCheck();
+        //TODO: ast level constant folding
         funProcess();
 
         // create irVisitor
         Visitor irVisitor = new IRGenerator(funcNames, funcRetLengths);
         IRCompUnit lowerIR = null;
+        IRCompUnit reorderedIR = null;
         // generate the target .irsol file
         FileWriter targetWriter = null;
         try{
@@ -57,10 +59,13 @@ public class IRGeneratorAdapter {
             checkedProgram.accept(irVisitor);
             IRCompUnit root = checkedProgram.ir;
             IRLower lirTranslator = new IRLower();
-            lowerIR = (IRCompUnit) lirTranslator.lower(root); //TODO: cast directly?
+            lowerIR = lirTranslator.lower(root);
+            //TODO: IR level constant folding
+            JumpReorder jumpReorder = new JumpReorder();
+            reorderedIR = jumpReorder.reorder(lowerIR);
 
             // Writing to target file
-            targetWriter.write(prettyPrint(lowerIR));
+            targetWriter.write(prettyPrint(reorderedIR));
             targetWriter.close();
         } catch (Exception e) {
             e.printStackTrace();
@@ -68,7 +73,7 @@ public class IRGeneratorAdapter {
             e.printStackTrace();
         }
 
-        return lowerIR;
+        return reorderedIR;
     }
 
     /**
