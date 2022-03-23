@@ -23,8 +23,10 @@ public class ConstantFolding {
             IRFuncDecl loweredFunction = irFactory.IRFuncDecl(function.name(), lowerdBody);
             foldedFunctions.put(entry.getKey(), loweredFunction);
         }
+        IRCompUnit result =  new IRCompUnit(original.name(),foldedFunctions,
+                                            original.ctors(),original.dataMap());
 
-        return irFactory.IRCompUnit(this.original.name(),foldedFunctions);
+        return result;
     }
 
     public IRStmt foldStmt(IRStmt node){
