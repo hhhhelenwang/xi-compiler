@@ -45,11 +45,12 @@ public class IRGeneratorAdapter {
         System.out.println("start generating ir");
         Program checkedProgram = (Program) typeCheckerAdapter.generateTypeCheck();
         //TODO: ast level constant folding
-        funProcess();
         if(this.optimize){
             ConstantFoldingAst confold= new ConstantFoldingAst(checkedProgram);
             checkedProgram = confold.fold();
         }
+        funProcess();
+
 
         // create irVisitor
         String[] name = fileName.split("/");

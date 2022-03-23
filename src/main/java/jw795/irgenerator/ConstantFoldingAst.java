@@ -19,7 +19,7 @@ public class ConstantFoldingAst {
         for(Definition d : node.definitions){
             result.add(foldDefinition(d));
         }
-        return new Program(node.uses,result,node.getLine(), node.getCol());
+        return new Program(node.uses,node.definitions,node.getLine(), node.getCol());
     }
 
     public Definition foldDefinition(Definition def){
