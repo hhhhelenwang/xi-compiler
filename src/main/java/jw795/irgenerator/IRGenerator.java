@@ -617,10 +617,12 @@ public class IRGenerator extends Visitor {
                 return new long[] {((BoolLiteral) e).value? 1L:0L};
             } else if (e instanceof StringLit) {
                 int n = ((StringLit) e).str.length();
+                System.out.println(n);
                 long[] result = new long[n+1];
+                char[] ch=((StringLit) e).str.toCharArray();
                 result[0] = n;
                 for (int i = 0; i < n; i++) {
-                    result[i+1] = ((StringLit) e).str.charAt(i);
+                    result[i+1] = ch[i];
                 }
                 return result;
             }
