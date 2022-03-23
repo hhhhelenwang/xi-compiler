@@ -434,7 +434,7 @@ public class IRGenerator extends Visitor {
         } else if (node.leftVal instanceof WildCard) {
             node.ir = irFactory.IRExp(node.expr.ir);
         } else if(node.leftVal instanceof ArrIndexExpr) {
-            LinkedList<IRStmt> lst = new LinkedList<>();
+            List<IRStmt> lst = new ArrayList<>();
             IRTemp t_a = irFactory.IRTemp(nextTemp());
             IRTemp t_i = irFactory.IRTemp(nextTemp());
             lst.add(irFactory.IRMove(t_a, ((ArrIndexExpr) node.leftVal).array.ir));
@@ -479,7 +479,7 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitWildCard(WildCard node) {
-        //no need to do anything and should not be called
+        //no need to do anything
     }
 
     @Override
@@ -490,34 +490,37 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitFunDef(FunctionDefine node) throws Exception {
-        //use abi convention to generate a name
-        // also manually save args
-        //TODO: use that helper function for name generating
-        List<IRStmt> irBody = ((IRSeq)node.functionBody.ir).stmts();
-        IRSeq bodyWithArgs = moveArgument(irBody, node.arguments);
+        List<IRStmt> irBody = new ArrayList<>();
+        List<IRStmt> saveArgs = moveArgument(node.arguments);
+        irBody.addAll(saveArgs);
+        irBody.add((IRStmt) node.functionBody.ir);
         String name = funcNames.get(node.name);
-        node.ir = irFactory.IRFuncDecl(name, bodyWithArgs);
+        node.ir = irFactory.IRFuncDecl(name, irFactory.IRSeq(irBody));
     }
 
     @Override
     public void visitPrDef(ProcedureDefine node) throws Exception {
-        List<IRStmt> irBody = ((IRSeq)node.procBody.ir).stmts();
+        List<IRStmt> irBody = new ArrayList<>();
+        List<IRStmt> saveArgs = moveArgument(node.arguments);
+        irBody.addAll(saveArgs);
+        irBody.add((IRStmt) node.procBody.ir);
         irBody.add(irFactory.IRReturn());
-        IRSeq bodyWithArgs = moveArgument(irBody, node.arguments);
+
         String name = funcNames.get(node.name);
-        node.ir = irFactory.IRFuncDecl(name, bodyWithArgs);
+        node.ir = irFactory.IRFuncDecl(name, irFactory.IRSeq(irBody));
     }
 
     /** Helper function to return a irSeq object that includes arg preparation moves and IRs in function body. */
-    public IRSeq moveArgument(List<IRStmt> irBody, List<FunProcArgs> args){
+    public List<IRStmt> moveArgument(List<FunProcArgs> args){
+        List<IRStmt> stmts = new ArrayList<>();
         IRTemp tar;
         IRTemp val;
         for (int i = 0; i< args.size(); i++){
             tar = irFactory.IRTemp(args.get(i).identifier);
             val = irFactory.IRTemp("_ARG" + (i + 1));
-            irBody.add(i, irFactory.IRMove(tar, val));
+            stmts.add(i, irFactory.IRMove(tar, val));
         }
-        return irFactory.IRSeq(irBody);
+        return stmts;
     }
 
     @Override
