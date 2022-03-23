@@ -3,6 +3,7 @@ package jw795.irgenerator;
 import edu.cornell.cs.cs4120.xic.ir.*;
 import jw795.Visitor;
 import jw795.ast.*;
+import jw795.typechecker.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,10 +51,13 @@ public class IRGenerator extends Visitor {
         ArrayList<IRExpr> args = new ArrayList<>();
         long n = node.arrayElements.size();
         args.add(irFactory.IRConst(n * 8 + 8));
-        l.add(irFactory.IRCallStmt(irFactory.IRName("_xi_alloc"), 1L, args)); //1L = new Long (1)
-        IRTemp m = irFactory.IRTemp("_RV1");
+        IRTemp arrayStart = irFactory.IRTemp(nextTemp());
         l.add(irFactory.IRMove(
-                m,
+                arrayStart,
+                irFactory.IRCall(irFactory.IRName("_xi_alloc"), args)
+        ));
+        l.add(irFactory.IRMove(
+                irFactory.IRMem(arrayStart),
                 irFactory.IRConst(n))
         );
         for (int i = 0; i < n; i++) {
@@ -62,12 +66,12 @@ public class IRGenerator extends Visitor {
                     irFactory.IRMem(
                             irFactory.IRBinOp(
                                     ADD,
-                                    m,
+                                    arrayStart,
                                     irFactory.IRConst((i + 1) * 8L))),
                     e.ir));
         }
         IRSeq s = irFactory.IRSeq(l);
-        IRBinOp a = irFactory.IRBinOp(ADD, m, irFactory.IRConst( 8));
+        IRBinOp a = irFactory.IRBinOp(ADD, arrayStart, irFactory.IRConst( 8));
         node.ir = irFactory.IRESeq(s, a);
     }
 
@@ -163,7 +167,6 @@ public class IRGenerator extends Visitor {
     public void visitIntNeg(IntNeg node) throws Exception {
         IRExpr val = node.expr.ir;
         node.ir = irFactory.IRBinOp(SUB, irFactory.IRConst(0), val);
-
     }
 
     @Override
@@ -175,10 +178,63 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitAdd(Add node) throws Exception {
-        if(node.expr1.ir == null){
-            System.out.println("expr1 is null");
+        if (node.type instanceof TypedArray || node.type instanceof EmptyArray) {
+            node.ir = arrayConcat(node);
+        } else {
+            node.ir = irFactory.IRBinOp(ADD, node.expr1.ir, node.expr2.ir);
         }
-        node.ir = irFactory.IRBinOp(ADD, node.expr1.ir, node.expr2.ir);
+    }
+
+    private IRESeq arrayConcat (Add node) {
+        IRExpr_c a1 = node.expr1.ir;
+        IRExpr_c a2 = node.expr2.ir;
+        IRMem a1L = irFactory.IRMem(irFactory.IRBinOp(SUB, a1, irFactory.IRConst(8L)));
+        IRMem a2L = irFactory.IRMem(irFactory.IRBinOp(SUB, a2, irFactory.IRConst(8L)));
+        IRBinOp totalL = irFactory.IRBinOp(ADD, a1L, a2L);
+        IRBinOp space = irFactory.IRBinOp(ADD, irFactory.IRBinOp(MUL, totalL, irFactory.IRConst(8L)), irFactory.IRConst(8L));
+        IRTemp arrayStart = irFactory.IRTemp(nextTemp());
+        IRTemp i = irFactory.IRTemp(nextTemp());
+        IRTemp j = irFactory.IRTemp(nextTemp());
+        String lh1 = nextLabel();
+        String l11 = nextLabel();
+        String le1 = nextLabel();
+        String lh2 = nextLabel();
+        String l12 = nextLabel();
+        String le2 = nextLabel();
+        List<IRStmt> stmts = new ArrayList<>();
+        stmts.add(irFactory.IRMove(
+                arrayStart,
+                irFactory.IRCall(irFactory.IRName("_xi_alloc"), space)
+        ));
+        stmts.add(irFactory.IRMove(
+                irFactory.IRMem(arrayStart),
+                totalL)
+        );
+        stmts.add(irFactory.IRMove(arrayStart, irFactory.IRBinOp(ADD, arrayStart, irFactory.IRConst(8L))));
+        stmts.add(irFactory.IRMove(i, irFactory.IRConst(0L)));
+        stmts.add(irFactory.IRMove(j, irFactory.IRConst(0L)));
+
+        stmts.add(irFactory.IRLabel(lh1));
+        stmts.add(C(irFactory.IRBinOp(LT, i, a1L), l11, le1));
+        stmts.add(irFactory.IRLabel(l11));
+        IRBinOp cur = irFactory.IRBinOp(ADD, arrayStart, irFactory.IRBinOp(MUL, i, irFactory.IRConst(8L)));
+        IRBinOp cur1 = irFactory.IRBinOp(ADD, a1, irFactory.IRBinOp(MUL, i, irFactory.IRConst(8L)));
+        stmts.add(irFactory.IRMove(irFactory.IRMem(cur), irFactory.IRMem(cur1)));
+        stmts.add(irFactory.IRMove(i, irFactory.IRBinOp(ADD, i, irFactory.IRConst(1L))));
+        stmts.add(irFactory.IRJump(irFactory.IRName(lh1)));
+        stmts.add(irFactory.IRLabel(le1));
+
+        stmts.add(irFactory.IRLabel(lh2));
+        stmts.add(C(irFactory.IRBinOp(LT, j, a2L), l12, le2));
+        stmts.add(irFactory.IRLabel(l12));
+        cur = irFactory.IRBinOp(ADD, arrayStart, irFactory.IRBinOp(ADD, a2L, irFactory.IRBinOp(MUL, j, irFactory.IRConst(8L))));
+        IRBinOp cur2 = irFactory.IRBinOp(ADD, a2, irFactory.IRBinOp(MUL, j, irFactory.IRConst(8L)));
+        stmts.add(irFactory.IRMove(irFactory.IRMem(cur), irFactory.IRMem(cur2)));
+        stmts.add(irFactory.IRMove(j, irFactory.IRBinOp(ADD, j, irFactory.IRConst(1L))));
+        stmts.add(irFactory.IRJump(irFactory.IRName(lh2)));
+        stmts.add(irFactory.IRLabel(le2));
+
+        return irFactory.IRESeq(irFactory.IRSeq(stmts), arrayStart);
     }
 
     @Override
