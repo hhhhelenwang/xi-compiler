@@ -80,8 +80,8 @@ public class JumpReorder {
                 basicBlocksMap = new HashMap<>();
                 BasicBlock root = buildCFG(((IRSeq)function.body()));
                 List<BasicBlock> trace = buildTrace(root);
-//                System.out.println("===THIS IS TRACE===");
-//                printBlocks(trace);
+                System.out.println("===THIS IS TRACE===");
+                printBlocks(trace);
                 body = fixJumps(trace);
             }
             reorderedFunDecl.put(function.name(), irFactory.IRFuncDecl(function.name(), body));
@@ -115,12 +115,13 @@ public class JumpReorder {
             curBlock = trace.get(i);
             nxtBlock = trace.get(i+1);
 
+            if (prevIsCjump){
+                curBlock.statements.remove(0); //remove first stmt (LABEL)
+                prevIsCjump = false;
+            }
+
             if (curBlock.endingStatement.isPresent()){
                 IRStmt curEndingStmt = curBlock.endingStatement.get();
-                if (prevIsCjump){
-                    curBlock.statements.remove(0); //remove first stmt (LABEL)
-                    prevIsCjump = false;
-                }
                 if (curEndingStmt instanceof IRCJump){
                     // check if the following block's label is a true label, if so, invert e
                     String curTrueLabel = ((IRCJump) curEndingStmt).trueLabel();
@@ -217,8 +218,8 @@ public class JumpReorder {
             blocks.add(block);
         }
 
-//        System.out.println("===THIS IS BASICBLOCKS===");
-//        printBlocks(blocks);
+        System.out.println("===THIS IS BASICBLOCKS===");
+        printBlocks(blocks);
         return blocks;
     }
 

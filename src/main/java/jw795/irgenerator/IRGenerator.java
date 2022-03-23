@@ -48,13 +48,12 @@ public class IRGenerator extends Visitor {
     @Override
     public void visitArrayExpr(ArrayExpr node) throws Exception {
         ArrayList<IRStmt> l = new ArrayList<>();
-        ArrayList<IRExpr> args = new ArrayList<>();
         long n = node.arrayElements.size();
-        args.add(irFactory.IRConst(n * 8 + 8));
+        IRConst arg = irFactory.IRConst(n * 8 + 8);
         IRTemp arrayStart = irFactory.IRTemp(nextTemp());
         l.add(irFactory.IRMove(
                 arrayStart,
-                irFactory.IRCall(irFactory.IRName("_xi_alloc"), args)
+                irFactory.IRCall(irFactory.IRName("_xi_alloc"), arg)
         ));
         l.add(irFactory.IRMove(
                 irFactory.IRMem(arrayStart),
@@ -307,24 +306,22 @@ public class IRGenerator extends Visitor {
     public void visitPrCall(ProcCallStmt node) throws Exception {
         String procName = funcNames.get(node.name);
         ArrayList<IRExpr> argsIR = new ArrayList<>();
-        if (node.arguments.size() == 1) {
-            argsIR.add(node.arguments.get(0).ir);
-        } else {
-            for (Expr arg: node.arguments){
-                argsIR.add(arg.ir);
-            }
+        for (Expr arg: node.arguments){
+            argsIR.add(arg.ir);
         }
-        node.ir = irFactory.IRCallStmt(irFactory.IRName(procName), 1L, argsIR);
+        node.ir = irFactory.IRCallStmt(irFactory.IRName(procName), 0L, argsIR);
     }
 
     @Override
     public void visitFunCallExpr(FunCallExpr node) throws Exception {
-        List<Expr> args = node.arguments;
-        String funcName = funcNames.get(node.name);
-        if (args.size() == 1) {
-            node.ir = irFactory.IRCall(irFactory.IRName(funcName), args.get(0).ir);
+        if (node.name == "length") {
+            IRTemp len = irFactory.IRTemp(nextTemp());
+            IRMove stmt = irFactory.IRMove(len, irFactory.IRBinOp(SUB, node.arguments.get(0).ir, irFactory.IRConst(8L)));
+            node.ir = irFactory.IRESeq(stmt, irFactory.IRMem(len));
         } else {
-            LinkedList<IRExpr> argsIR = new LinkedList<>();
+            List<Expr> args = node.arguments;
+            String funcName = funcNames.get(node.name);
+            List<IRExpr> argsIR = new ArrayList<>();
             for(Expr e: args){
                 argsIR.add(e.ir);
             }
