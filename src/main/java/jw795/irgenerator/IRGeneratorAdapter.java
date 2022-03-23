@@ -52,7 +52,10 @@ public class IRGeneratorAdapter {
         }
 
         // create irVisitor
-        Visitor irVisitor = new IRGenerator(funcNames, funcRetLengths);
+        String[] name = fileName.split("/");
+        String dotXiName = name[name.length - 1];
+        String finalName = dotXiName.split("\\.")[0];
+        Visitor irVisitor = new IRGenerator(finalName, funcNames, funcRetLengths);
         IRCompUnit lowerIR = null;
         IRCompUnit reorderedIR = null;
         // generate the target .irsol file
