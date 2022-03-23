@@ -42,6 +42,7 @@ public class IRGeneratorAdapter {
         // typeCheckAdapter.gentypecheck() will print Lexical, Syntax, or Semantic errors if those errors exist
         System.out.println("start generating ir");
         Program checkedProgram = (Program) typeCheckerAdapter.generateTypeCheck();
+        //TODO: ast level constant folding
         funProcess();
 
         // create irVisitor
@@ -58,7 +59,8 @@ public class IRGeneratorAdapter {
             checkedProgram.accept(irVisitor);
             IRCompUnit root = checkedProgram.ir;
             IRLower lirTranslator = new IRLower();
-            lowerIR = lirTranslator.lower(root); //TODO: cast directly?
+            lowerIR = lirTranslator.lower(root);
+            //TODO: IR level constant folding
             JumpReorder jumpReorder = new JumpReorder();
             reorderedIR = jumpReorder.reorder(lowerIR);
 
