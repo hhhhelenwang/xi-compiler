@@ -60,6 +60,19 @@ public class JumpReorder {
         }
     }
 
+    public void printBlock(BasicBlock block){
+        for (IRStmt stmt : block.statements) {
+            System.out.println(stmt);
+        }
+    }
+
+    public void printBlocks(List<BasicBlock> blocks){
+        for (BasicBlock block: blocks) {
+            System.out.println("======new block=======");
+            printBlock(block);
+        }
+    }
+
     /**
      * Reorder the given IR. Call this function to reorder a lowered IR.
      * @param node IR
@@ -76,9 +89,8 @@ public class JumpReorder {
                 basicBlocksMap = new HashMap<>();
                 BasicBlock root = buildCFG(((IRSeq)function.body()));
                 List<BasicBlock> trace = buildTrace(root);
-
-                System.out.println(trace.size());
-
+                System.out.println("===THIS IS TRACE===");
+                printBlocks(trace);
                 body = fixJumps(trace);
             }
             reorderedFunDecl.put(function.name(), irFactory.IRFuncDecl(function.name(), body));
@@ -132,27 +144,28 @@ public class JumpReorder {
                     prevIsCjump = true;
                     // update block with correct ending stmt
                     curBlock.statements.remove(curBlock.statements.size()-1); //remove last stmt
-//                    System.out.println();
                     stmts.addAll(curBlock.statements);
                     stmts.add(newCjump);
                 } else if (curEndingStmt instanceof IRJump){
+                    if (prevIsCjump){
 
+                    }
                     //check if the next basic block has same label, if so, remove the jump
                     String nxtLabel = ((IRLabel) nxtBlock.statements.get(0)).name();
                     if (nxtLabel.equals(((IRJump) curEndingStmt).target())){
                         curBlock.statements.remove((curBlock.statements.size()-1));
-                        stmts.addAll(curBlock.statements);
                     }
-
+                    stmts.addAll(curBlock.statements);
 
                 } else {
+                    System.out.println("enter return branch");
                     stmts.addAll(curBlock.statements);
                 }
 
-                // do nothing for IRReturn
             } else {
                 if (prevIsCjump){
                     curBlock.statements.remove(0); //remove first stmt (LABEL)
+                    prevIsCjump = false;
                 } else {
                     // check if we need to add JUMP if does not transfer control && not followed by next label
                     String nxtLabel = ((IRLabel) nxtBlock.statements.get(0)).name();
@@ -161,6 +174,7 @@ public class JumpReorder {
                         curBlock.statements.add(irFactory.IRJump(irFactory.IRName(expectedNxt)));
                     }
                 }
+                System.out.println("enter no ending Stmt");
                 stmts.addAll(curBlock.statements);
             }
         }
@@ -183,6 +197,7 @@ public class JumpReorder {
 
     /**
      * Break an IR Sequence into a list of basic blocks.
+     * @param node the IRSeq in a function/procedure body
      * @return a list of basic blocks
      */
     private List<BasicBlock> getBasicBlocks(IRSeq node) {
@@ -191,13 +206,14 @@ public class JumpReorder {
         String curLabel = "L0";
 
         for (IRStmt stmt : node.stmts()){
-            if (stmt instanceof IRCJump || stmt instanceof IRJump || stmt instanceof IRReturn){
+            if (stmt instanceof IRCJump || stmt instanceof IRJump){
                 //always end a block
                 stmts.add(stmt);
                 BasicBlock block = new BasicBlock(stmts, stmt);
                 //populate basicBlocksMap for connectBlocks() to use
                 basicBlocksMap.put(curLabel, block);
                 blocks.add(block);
+                stmts = new ArrayList<>();
             } else if (stmt instanceof IRLabel) {
                 // always start a block && end previous block if not ended by jump/return
                 if (stmts.size() != 0){
@@ -212,6 +228,17 @@ public class JumpReorder {
                 stmts.add(stmt);
             }
         }
+
+        if (stmts.size() !=0){
+            curLabel = ((IRLabel) stmts.get(0)).name();
+            BasicBlock block = new BasicBlock(stmts, curLabel);
+            basicBlocksMap.put(curLabel, block);
+            blocks.add(block);
+        }
+
+        System.out.println("===========");
+        System.out.println("got "+ blocks.size() + " blocks");
+        printBlocks(blocks);
         return blocks;
     }
 
