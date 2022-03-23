@@ -1,0 +1,65 @@
+(COMPUNIT
+ example
+ (DATA string_const3
+  (12 41 58 32))
+ (DATA string_const4 (12))
+ (DATA
+  string_const1
+  (12 80 108 101 97 115 101 32 115 112 101 99 105 102 121 32 116 104 101 32 105
+   110 112 117 116 32 115 105 122 101))
+ (DATA string_const2 (12 65 99 107 40 50 44))
+ (FUNC
+  _Iusage_p
+  (SEQ
+   (MOVE (TEMP t1) (NAME string_const1))
+   (MOVE (TEMP t2) (ADD (TEMP t1) (CONST 8)))
+   (MOVE (TEMP t_lower0) (TEMP t2))
+   (CALL_STMT 1 (NAME _Iprintln_pai) (TEMP t_lower0))
+   (RETURN)))
+ (FUNC
+  _Imain_paai
+  (SEQ
+   (MOVE (TEMP args) (TEMP _ARG1))
+   (MOVE (TEMP n) (CONST 11))
+   (MOVE (TEMP t_lower1) (CONST 2))
+   (MOVE (TEMP t_lower2) (TEMP n))
+   (CALL_STMT 1 (NAME _IAck_i) (TEMP t_lower1) (TEMP t_lower2))
+   (MOVE (TEMP t_lower3) (TEMP _RV1))
+   (MOVE (TEMP r) (TEMP t_lower3))
+   (MOVE (TEMP t3) (NAME string_const2))
+   (MOVE (TEMP t4) (ADD (TEMP t3) (CONST 8)))
+   (MOVE (TEMP t_lower4) (TEMP t4))
+   (CALL_STMT 1 (NAME _Iprint_pai) (TEMP t_lower4))
+   (MOVE (TEMP t_lower5) (TEMP n))
+   (CALL_STMT 1 (NAME _IunparseInt_aii) (TEMP t_lower5))
+   (MOVE (TEMP t_lower6) (TEMP _RV1))
+   (MOVE (TEMP t_lower7) (TEMP t_lower6))
+   (CALL_STMT 1 (NAME _Iprint_pai) (TEMP t_lower7))
+   (MOVE (TEMP t5) (NAME string_const3))
+   (MOVE (TEMP t6) (ADD (TEMP t5) (CONST 8)))
+   (MOVE (TEMP t_lower8) (TEMP t6))
+   (CALL_STMT 1 (NAME _Iprint_pai) (TEMP t_lower8))
+   (MOVE (TEMP t_lower9) (TEMP r))
+   (CALL_STMT 1 (NAME _IunparseInt_aii) (TEMP t_lower9))
+   (MOVE (TEMP t_lower10) (TEMP _RV1))
+   (MOVE (TEMP t_lower11) (TEMP t_lower10))
+   (CALL_STMT 1 (NAME _Iprint_pai) (TEMP t_lower11))
+   (MOVE (TEMP t7) (NAME string_const4))
+   (MOVE (TEMP t8) (ADD (TEMP t7) (CONST 8)))
+   (MOVE (TEMP t_lower12) (TEMP t8))
+   (CALL_STMT 1 (NAME _Iprintln_pai) (TEMP t_lower12))
+   (RETURN)))
+ (FUNC
+  _IAck_i
+  (SEQ
+   (MOVE (TEMP m) (TEMP _ARG1))
+   (MOVE (TEMP n) (TEMP _ARG2))
+   (CJUMP (EQ (TEMP m) (CONST 0)) l4 l5)
+   (LABEL l4)
+   (MOVE (TEMP t_lower13) (ADD (TEMP n) (CONST 1)))
+   (RETURN (ADD (TEMP n) (CONST 1)))
+   (JUMP (NAME l6))
+   (LABEL l5)
+   (MOVE (TEMP t_lower14) (ADD (TEMP n) (CONST 1)))
+   (RETURN (ADD (TEMP n) (CONST 1)))
+   (LABEL l6))))
