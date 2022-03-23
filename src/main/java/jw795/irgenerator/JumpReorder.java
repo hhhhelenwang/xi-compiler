@@ -52,14 +52,6 @@ public class JumpReorder {
         this.basicBlocksMap = new HashMap<>();
     }
 
-    public void printSeq(IRSeq seq) {
-        List<IRStmt> stmts = seq.stmts();
-        for (IRStmt stmt : stmts) {
-            System.out.println(stmt.toString()); // Added here for debugging purpose
-//            stmt.printSExp(p);
-        }
-    }
-
     public void printBlock(BasicBlock block){
         for (IRStmt stmt : block.statements) {
             System.out.println(stmt);
@@ -85,7 +77,6 @@ public class JumpReorder {
         for (IRFuncDecl function : node.functions().values()){
             IRStmt body = function.body();
             if ( body instanceof IRSeq){
-//                printSeq((IRSeq)body);
                 basicBlocksMap = new HashMap<>();
                 BasicBlock root = buildCFG(((IRSeq)function.body()));
                 List<BasicBlock> trace = buildTrace(root);
@@ -119,8 +110,8 @@ public class JumpReorder {
 
         // only need to worry about fixing jumps if there exist a next block
         for (int i = 0; i < trace.size()-1; i++){
-            System.out.println("enter block " + i);
-            System.out.println("block size " + trace.get(i).statements.size());
+//            System.out.println("enter block " + i);
+//            System.out.println("block size " + trace.get(i).statements.size());
             curBlock = trace.get(i);
             nxtBlock = trace.get(i+1);
 
@@ -227,8 +218,7 @@ public class JumpReorder {
             blocks.add(block);
         }
 
-        System.out.println("===========");
-        System.out.println("got "+ blocks.size() + " blocks");
+        System.out.println("===THIS IS BASICBLOCKS===");
         printBlocks(blocks);
         return blocks;
     }
@@ -265,7 +255,6 @@ public class JumpReorder {
      * @return the trace
      */
     private List<BasicBlock> buildTrace(BasicBlock root) {
-        //TODO: optimize traces around loops?
         List<BasicBlock> trace = new ArrayList<>();
         BasicBlock cur = root;
         if (cur == null) { return trace; }
@@ -279,7 +268,6 @@ public class JumpReorder {
                 }
             }
         }
-
         return trace;
     }
 
