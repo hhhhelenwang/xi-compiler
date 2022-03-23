@@ -174,7 +174,12 @@ public class Compiler {
      */
     // TODO: produce IR for one file
     public IRCompUnit generateIRForFile(String fileName) {
-        IRGeneratorAdapter irGeneratorAdapter = new IRGeneratorAdapter(fileName, this.destPath, this.libPath);
+        IRGeneratorAdapter irGeneratorAdapter;
+        if(cmd.hasOption("O")){
+            irGeneratorAdapter = new IRGeneratorAdapter(fileName, this.destPath, this.libPath, false);
+        }else{
+            irGeneratorAdapter = new IRGeneratorAdapter(fileName, this.destPath, this.libPath, true);
+        }
         IRCompUnit ir = irGeneratorAdapter.generateIR();
         return ir;
     }

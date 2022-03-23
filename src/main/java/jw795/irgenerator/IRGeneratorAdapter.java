@@ -20,11 +20,13 @@ public class IRGeneratorAdapter {
     String fileName; // already contains source dir + file name
     HashMap<String, String> funcNames = new HashMap<>();
     HashMap<String, Long> funcRetLengths = new HashMap<>();
+    boolean optimize;
 
-    public IRGeneratorAdapter(String fileName, String dest, String lib) {
+    public IRGeneratorAdapter(String fileName, String dest, String lib, boolean opt) {
         this.destPath = dest;
         this.libPath = lib;
         this.fileName = fileName;
+        this.optimize = opt;
         try {
             FileReader fr = new FileReader(fileName);
             typeCheckerAdapter = new TypeCheckerAdapter(fr, fileName, dest, lib, false);
@@ -44,6 +46,10 @@ public class IRGeneratorAdapter {
         Program checkedProgram = (Program) typeCheckerAdapter.generateTypeCheck();
         //TODO: ast level constant folding
         funProcess();
+        if(this.optimize){
+            ConstantFoldingAst confold= new ConstantFoldingAst(checkedProgram);
+            checkedProgram = confold.fold();
+        }
 
         // create irVisitor
         Visitor irVisitor = new IRGenerator(funcNames, funcRetLengths);
@@ -55,12 +61,17 @@ public class IRGeneratorAdapter {
             File targetIrsol = generateTargetFile(fileName, destPath, "ir");
             targetWriter = new FileWriter(targetIrsol);
 
+
             // Generating IR
             checkedProgram.accept(irVisitor);
             IRCompUnit root = checkedProgram.ir;
             IRLower lirTranslator = new IRLower();
             lowerIR = lirTranslator.lower(root);
             //TODO: IR level constant folding
+            if(this.optimize){
+                ConstantFolding confold = new ConstantFolding(lowerIR);
+                lowerIR = confold.foldComp();
+            }
             JumpReorder jumpReorder = new JumpReorder();
             reorderedIR = jumpReorder.reorder(lowerIR);
 
