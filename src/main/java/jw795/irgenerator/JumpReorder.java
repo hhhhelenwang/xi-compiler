@@ -126,10 +126,12 @@ public class JumpReorder {
 
             if (curBlock.endingStatement.isPresent()){
                 IRStmt curEndingStmt = curBlock.endingStatement.get();
-
+                if (prevIsCjump){
+                    curBlock.statements.remove(0); //remove first stmt (LABEL)
+                    prevIsCjump = false;
+                }
                 if (curEndingStmt instanceof IRCJump){
                     // check if the following block's label is a true label, if so, invert e
-
                     String curTrueLabel = ((IRCJump) curEndingStmt).trueLabel();
                     String nxtLabel = ((IRLabel) nxtBlock.statements.get(0)).name();
 
@@ -140,41 +142,30 @@ public class JumpReorder {
                     } else {
                         newCjump = new IRCJump(((IRCJump) curEndingStmt).cond(), ((IRCJump) curEndingStmt).trueLabel());
                     }
-
                     prevIsCjump = true;
                     // update block with correct ending stmt
                     curBlock.statements.remove(curBlock.statements.size()-1); //remove last stmt
                     stmts.addAll(curBlock.statements);
                     stmts.add(newCjump);
                 } else if (curEndingStmt instanceof IRJump){
-                    if (prevIsCjump){
-
-                    }
                     //check if the next basic block has same label, if so, remove the jump
                     String nxtLabel = ((IRLabel) nxtBlock.statements.get(0)).name();
                     if (nxtLabel.equals(((IRJump) curEndingStmt).target())){
                         curBlock.statements.remove((curBlock.statements.size()-1));
                     }
                     stmts.addAll(curBlock.statements);
-
                 } else {
-                    System.out.println("enter return branch");
                     stmts.addAll(curBlock.statements);
                 }
 
             } else {
-                if (prevIsCjump){
-                    curBlock.statements.remove(0); //remove first stmt (LABEL)
-                    prevIsCjump = false;
-                } else {
-                    // check if we need to add JUMP if does not transfer control && not followed by next label
-                    String nxtLabel = ((IRLabel) nxtBlock.statements.get(0)).name();
-                    String expectedNxt = curBlock.nextBlockLabel.get();
-                    if (!nxtLabel.equals(expectedNxt)) {
-                        curBlock.statements.add(irFactory.IRJump(irFactory.IRName(expectedNxt)));
-                    }
+                // check if we need to add JUMP if does not transfer control && not followed by next label
+                String nxtLabel = ((IRLabel) nxtBlock.statements.get(0)).name();
+                String expectedNxt = curBlock.nextBlockLabel.get();
+                if (!nxtLabel.equals(expectedNxt)) {
+                    curBlock.statements.add(irFactory.IRJump(irFactory.IRName(expectedNxt)));
                 }
-                System.out.println("enter no ending Stmt");
+
                 stmts.addAll(curBlock.statements);
             }
         }
