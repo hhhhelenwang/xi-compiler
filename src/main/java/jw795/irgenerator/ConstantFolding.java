@@ -13,8 +13,8 @@ public class ConstantFolding {
         this.irFactory = new IRNodeFactory_c();
     }
 
-    IRCompUnit foldComp(IRCompUnit node){
-        Map<String, IRFuncDecl> functions = node.functions();
+    public IRCompUnit foldComp(){
+        Map<String, IRFuncDecl> functions = this.original.functions();
         Map<String, IRFuncDecl> foldedFunctions = new HashMap<>();
 
         for (Map.Entry<String, IRFuncDecl> entry : functions.entrySet()) {
@@ -24,7 +24,7 @@ public class ConstantFolding {
             foldedFunctions.put(entry.getKey(), loweredFunction);
         }
 
-        return irFactory.IRCompUnit(node.name(),foldedFunctions);
+        return irFactory.IRCompUnit(this.original.name(),foldedFunctions);
     }
 
     public IRStmt foldStmt(IRStmt node){

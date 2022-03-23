@@ -13,6 +13,7 @@ import java.util.List;
 import static edu.cornell.cs.cs4120.xic.ir.IRBinOp.OpType.*;
 
 public class IRGenerator extends Visitor {
+    String filename;
     IRNodeFactory_c irFactory;
     //use for global data and string
     HashMap<String,IRData> globalData;
@@ -25,7 +26,8 @@ public class IRGenerator extends Visitor {
     int labelCounter;
     int tempCounter;
 
-    public IRGenerator(HashMap<String, String> funcNames, HashMap<String, Long> funcRetLengths){
+    public IRGenerator(String filename, HashMap<String, String> funcNames, HashMap<String, Long> funcRetLengths){
+        this.filename = filename;
         this.irFactory = new IRNodeFactory_c();
         this.funcNames = funcNames;
         this.funcRetLengths = funcRetLengths;
@@ -416,7 +418,6 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitAssign(AssignStmt node) throws Exception {
-        //TODO: implement array index related assign
         if (node.leftVal instanceof LeftValueList) {
             //guarantee to be multiple return
             long length = funcRetLengths.get(node.expr);
@@ -434,7 +435,7 @@ public class IRGenerator extends Visitor {
         } else if (node.leftVal instanceof WildCard) {
             node.ir = irFactory.IRExp(node.expr.ir);
         } else if(node.leftVal instanceof ArrIndexExpr) {
-            LinkedList<IRStmt> lst = new LinkedList<>();
+            List<IRStmt> lst = new ArrayList<>();
             IRTemp t_a = irFactory.IRTemp(nextTemp());
             IRTemp t_i = irFactory.IRTemp(nextTemp());
             lst.add(irFactory.IRMove(t_a, ((ArrIndexExpr) node.leftVal).array.ir));
@@ -479,7 +480,7 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitWildCard(WildCard node) {
-        //no need to do anything and should not be called
+        //no need to do anything
     }
 
     @Override
@@ -490,34 +491,37 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitFunDef(FunctionDefine node) throws Exception {
-        //use abi convention to generate a name
-        // also manually save args
-        //TODO: use that helper function for name generating
-        List<IRStmt> irBody = ((IRSeq)node.functionBody.ir).stmts();
-        IRSeq bodyWithArgs = moveArgument(irBody, node.arguments);
+        List<IRStmt> irBody = new ArrayList<>();
+        List<IRStmt> saveArgs = moveArgument(node.arguments);
+        irBody.addAll(saveArgs);
+        irBody.add((IRStmt) node.functionBody.ir);
         String name = funcNames.get(node.name);
-        node.ir = irFactory.IRFuncDecl(name, bodyWithArgs);
+        node.ir = irFactory.IRFuncDecl(name, irFactory.IRSeq(irBody));
     }
 
     @Override
     public void visitPrDef(ProcedureDefine node) throws Exception {
-        List<IRStmt> irBody = ((IRSeq)node.procBody.ir).stmts();
+        List<IRStmt> irBody = new ArrayList<>();
+        List<IRStmt> saveArgs = moveArgument(node.arguments);
+        irBody.addAll(saveArgs);
+        irBody.add((IRStmt) node.procBody.ir);
         irBody.add(irFactory.IRReturn());
-        IRSeq bodyWithArgs = moveArgument(irBody, node.arguments);
+
         String name = funcNames.get(node.name);
-        node.ir = irFactory.IRFuncDecl(name, bodyWithArgs);
+        node.ir = irFactory.IRFuncDecl(name, irFactory.IRSeq(irBody));
     }
 
     /** Helper function to return a irSeq object that includes arg preparation moves and IRs in function body. */
-    public IRSeq moveArgument(List<IRStmt> irBody, List<FunProcArgs> args){
+    public List<IRStmt> moveArgument(List<FunProcArgs> args){
+        List<IRStmt> stmts = new ArrayList<>();
         IRTemp tar;
         IRTemp val;
         for (int i = 0; i< args.size(); i++){
             tar = irFactory.IRTemp(args.get(i).identifier);
             val = irFactory.IRTemp("_ARG" + (i + 1));
-            irBody.add(i, irFactory.IRMove(tar, val));
+            stmts.add(i, irFactory.IRMove(tar, val));
         }
-        return irFactory.IRSeq(irBody);
+        return stmts;
     }
 
     @Override
@@ -542,7 +546,6 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitProgram(Program node) throws Exception {
-        //TODO: loop over memory to add static data
         node.ir = irFactory.IRCompUnit("example");
         for (Definition d: node.definitions) {
             if (d instanceof FunctionDefine) {
@@ -563,21 +566,8 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitGlobDecl(GlobDeclare node) throws Exception {
-        globalData.put(node.identifier, new IRData("_" + node.identifier, exportVal(node.value)));
-        if (node.value != null) {
-            if (node.value instanceof IntLiteral) {
-                long[] singleval = {((IntLiteral) node.value).value.longValue()};
-                node.ir = new IRData("_" + node.identifier, singleval);
-            } else if (node.value instanceof BoolLiteral) {
-                if (((BoolLiteral) node.value).value) {
-                    node.ir = new IRData("_" + node.identifier, new long[]{1});
-                } else {
-                    node.ir = new IRData("_" + node.identifier, new long[]{0});
-                }
-            }
-        } else{
-            node.ir = new IRData("_" + node.identifier, new long[]{});
-        }
+        node.ir = new IRData("_" + node.identifier, exportVal(node.value));
+        globalData.put(node.identifier, node.ir);
     }
 
     private IRStmt C(IRExpr e, String trueL, String falseL) {
@@ -618,18 +608,22 @@ public class IRGenerator extends Visitor {
      * @return long array representation of e
      */
     private long[] exportVal(Expr e){
-        if (e instanceof IntLiteral) {
-            return new long[] {((IntLiteral) e).value.longValue()};
-        } else if (e instanceof BoolLiteral) {
-            return new long[] {((BoolLiteral) e).value? 1L:0L};
-        } else if (e instanceof StringLit) {
-            int n = ((StringLit) e).str.length();
-            long[] result = new long[n+1];
-            result[0] = 12; //TODO: should insert length
-            for (int i = 0; i < n; i++) {
-                result[i+1] = (int) ((StringLit) e).str.charAt(i);
+        if (e == null) {
+            return new long[]{};
+        } else {
+            if (e instanceof IntLiteral) {
+                return new long[] {((IntLiteral) e).value.longValue()};
+            } else if (e instanceof BoolLiteral) {
+                return new long[] {((BoolLiteral) e).value? 1L:0L};
+            } else if (e instanceof StringLit) {
+                int n = ((StringLit) e).str.length();
+                long[] result = new long[n+1];
+                result[0] = n;
+                for (int i = 0; i < n; i++) {
+                    result[i+1] = ((StringLit) e).str.charAt(i);
+                }
+                return result;
             }
-            return result;
         }
         return null;
     }
