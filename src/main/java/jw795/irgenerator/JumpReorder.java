@@ -80,8 +80,8 @@ public class JumpReorder {
                 basicBlocksMap = new HashMap<>();
                 BasicBlock root = buildCFG(((IRSeq)function.body()));
                 List<BasicBlock> trace = buildTrace(root);
-                System.out.println("===THIS IS TRACE===");
-                printBlocks(trace);
+//                System.out.println("===THIS IS TRACE===");
+//                printBlocks(trace);
                 body = fixJumps(trace);
             }
             reorderedFunDecl.put(function.name(), irFactory.IRFuncDecl(function.name(), body));
@@ -106,12 +106,11 @@ public class JumpReorder {
         BasicBlock curBlock;
         BasicBlock nxtBlock;
         boolean prevIsCjump = false;
-        System.out.println("total number of blocks " + trace.size());
+//        System.out.println("total number of blocks " + trace.size());
 
         // only need to worry about fixing jumps if there exist a next block
+        // TODO: add a jump to label end
         for (int i = 0; i < trace.size()-1; i++){
-//            System.out.println("enter block " + i);
-//            System.out.println("block size " + trace.get(i).statements.size());
             curBlock = trace.get(i);
             nxtBlock = trace.get(i+1);
 
@@ -190,7 +189,7 @@ public class JumpReorder {
 
         for (IRStmt stmt : node.stmts()){
             if (stmt instanceof IRCJump || stmt instanceof IRJump){
-                //always end a block
+                //always end a block and start the next block
                 stmts.add(stmt);
                 BasicBlock block = new BasicBlock(stmts, stmt);
                 //populate basicBlocksMap for connectBlocks() to use
@@ -218,8 +217,8 @@ public class JumpReorder {
             blocks.add(block);
         }
 
-        System.out.println("===THIS IS BASICBLOCKS===");
-        printBlocks(blocks);
+//        System.out.println("===THIS IS BASICBLOCKS===");
+//        printBlocks(blocks);
         return blocks;
     }
 
