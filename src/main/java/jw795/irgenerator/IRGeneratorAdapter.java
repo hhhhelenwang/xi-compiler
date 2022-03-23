@@ -47,6 +47,7 @@ public class IRGeneratorAdapter {
         // create irVisitor
         Visitor irVisitor = new IRGenerator(funcNames, funcRetLengths);
         IRCompUnit lowerIR = null;
+        IRCompUnit reorderedIR = null;
         // generate the target .irsol file
         FileWriter targetWriter = null;
         try{
@@ -57,10 +58,12 @@ public class IRGeneratorAdapter {
             checkedProgram.accept(irVisitor);
             IRCompUnit root = checkedProgram.ir;
             IRLower lirTranslator = new IRLower();
-            lowerIR = (IRCompUnit) lirTranslator.lower(root); //TODO: cast directly?
+            lowerIR = lirTranslator.lower(root); //TODO: cast directly?
+            JumpReorder jumpReorder = new JumpReorder();
+            reorderedIR = jumpReorder.reorder(lowerIR);
 
             // Writing to target file
-            targetWriter.write(prettyPrint(lowerIR));
+            targetWriter.write(prettyPrint(reorderedIR));
             targetWriter.close();
         } catch (Exception e) {
             e.printStackTrace();
@@ -68,7 +71,7 @@ public class IRGeneratorAdapter {
             e.printStackTrace();
         }
 
-        return lowerIR;
+        return reorderedIR;
     }
 
     /**

@@ -79,7 +79,7 @@ public class JumpReorder {
      * @param trace A trace of basic blocks
      * @return the function body with jumps between blocks fixed according to the given trace
      */
-    public IRSeq fixJumps (List<BasicBlock> trace) {
+    private IRSeq fixJumps (List<BasicBlock> trace) {
         List<IRStmt> stmts = new ArrayList<>();
         BasicBlock curBlock;
         BasicBlock nxtBlock;
@@ -133,12 +133,12 @@ public class JumpReorder {
         return new IRSeq(stmts);
     }
 
-        /**
-         * Construct a CFG from the given IRSeq node
-         * @param ir sequence
-         * @return cfg
-         */
-    public BasicBlock buildCFG(IRSeq ir){
+    /**
+     * Construct a CFG from the given IRSeq node
+     * @param ir sequence
+     * @return cfg
+     */
+    private BasicBlock buildCFG(IRSeq ir){
         List<BasicBlock> basicBlocks = getBasicBlocks(ir);
         BasicBlock root = connectBlocks(basicBlocks);
         return root;
@@ -148,7 +148,7 @@ public class JumpReorder {
      * Break an IR Sequence into a list of basic blocks.
      * @return a list of basic blocks
      */
-    public List<BasicBlock> getBasicBlocks(IRSeq node) {
+    private List<BasicBlock> getBasicBlocks(IRSeq node) {
         List<BasicBlock> blocks = new ArrayList<>();
         List<IRStmt> stmts = new ArrayList<>();
         String curLabel = "L0";
@@ -183,7 +183,7 @@ public class JumpReorder {
      * @param blocks List of BasicBlock to connect
      * @return the root node for the connected CFG
      */
-    public BasicBlock connectBlocks(List<BasicBlock> blocks) {
+    private BasicBlock connectBlocks(List<BasicBlock> blocks) {
         for (BasicBlock block: blocks) {
             Optional<IRStmt> endingStmt = block.endingStatement;
             if (endingStmt.isPresent()){
@@ -209,7 +209,7 @@ public class JumpReorder {
      * @param root the root of a CFG
      * @return the trace
      */
-    public List<BasicBlock> buildTrace(BasicBlock root) {
+    private List<BasicBlock> buildTrace(BasicBlock root) {
         //TODO: optimize traces around loops?
         List<BasicBlock> trace = new ArrayList<>();
         BasicBlock cur = root;
