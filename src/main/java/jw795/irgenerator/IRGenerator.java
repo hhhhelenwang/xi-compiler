@@ -616,10 +616,13 @@ public class IRGenerator extends Visitor {
             } else if (e instanceof BoolLiteral) {
                 return new long[] {((BoolLiteral) e).value? 1L:0L};
             } else if (e instanceof StringLit) {
-                int n = ((StringLit) e).str.length();
-                System.out.println(n);
+                String nstr = ((StringLit) e).str;
+                nstr = replacespecial(nstr);
+                int n = nstr.length();
+//                System.out.println(nstr);
+//                System.out.println(n);
                 long[] result = new long[n+1];
-                char[] ch=((StringLit) e).str.toCharArray();
+                char[] ch= nstr.toCharArray();
                 result[0] = n;
                 for (int i = 0; i < n; i++) {
                     result[i+1] = ch[i];
@@ -628,6 +631,13 @@ public class IRGenerator extends Visitor {
             }
         }
         return null;
+    }
+
+    private String replacespecial(String nstr) {
+        //looking at lex.jflex, there seems to be only one special case
+        String result = nstr.replace("\\n", "\n");
+//        result = result.replace("\\");
+        return result;
     }
 
     private String nextLabel() {
@@ -647,4 +657,5 @@ public class IRGenerator extends Visitor {
         stringCounter++;
         return result;
     }
+
 }
