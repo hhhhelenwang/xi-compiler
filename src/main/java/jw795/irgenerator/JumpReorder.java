@@ -80,8 +80,8 @@ public class JumpReorder {
                 basicBlocksMap = new HashMap<>();
                 BasicBlock root = buildCFG(((IRSeq)function.body()));
                 List<BasicBlock> trace = buildTrace(root);
-                System.out.println("===THIS IS TRACE===");
-                printBlocks(trace);
+//                System.out.println("===THIS IS TRACE===");
+//                printBlocks(trace);
                 body = fixJumps(trace);
             }
             reorderedFunDecl.put(function.name(), irFactory.IRFuncDecl(function.name(), body));
@@ -212,14 +212,13 @@ public class JumpReorder {
         }
 
         if (stmts.size() !=0){
-            curLabel = ((IRLabel) stmts.get(0)).name();
             BasicBlock block = new BasicBlock(stmts, curLabel);
             basicBlocksMap.put(curLabel, block);
             blocks.add(block);
         }
 
-        System.out.println("===THIS IS BASICBLOCKS===");
-        printBlocks(blocks);
+//        System.out.println("===THIS IS BASICBLOCKS===");
+//        printBlocks(blocks);
         return blocks;
     }
 
