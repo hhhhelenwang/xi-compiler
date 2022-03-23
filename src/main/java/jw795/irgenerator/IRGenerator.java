@@ -307,12 +307,8 @@ public class IRGenerator extends Visitor {
     public void visitPrCall(ProcCallStmt node) throws Exception {
         String procName = funcNames.get(node.name);
         ArrayList<IRExpr> argsIR = new ArrayList<>();
-        if (node.arguments.size() == 1) {
-            argsIR.add(node.arguments.get(0).ir);
-        } else {
-            for (Expr arg: node.arguments){
-                argsIR.add(arg.ir);
-            }
+        for (Expr arg: node.arguments){
+            argsIR.add(arg.ir);
         }
         node.ir = irFactory.IRCallStmt(irFactory.IRName(procName), 1L, argsIR);
     }
@@ -322,6 +318,8 @@ public class IRGenerator extends Visitor {
         List<Expr> args = node.arguments;
         String funcName = funcNames.get(node.name);
         if (args.size() == 1) {
+            System.out.println("==========="+funcName == null);
+
             node.ir = irFactory.IRCall(irFactory.IRName(funcName), args.get(0).ir);
         } else {
             LinkedList<IRExpr> argsIR = new LinkedList<>();
