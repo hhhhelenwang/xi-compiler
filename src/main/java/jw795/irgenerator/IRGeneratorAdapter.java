@@ -44,51 +44,53 @@ public class IRGeneratorAdapter {
         // typeCheckAdapter.gentypecheck() will print Lexical, Syntax, or Semantic errors if those errors exist
         System.out.println("start generating ir");
         Program checkedProgram = (Program) typeCheckerAdapter.generateTypeCheck();
-        //TODO: ast level constant folding
-        if(this.optimize){
-            ConstantFoldingAst confold= new ConstantFoldingAst(checkedProgram);
-            checkedProgram = confold.fold();
-        }
-        funProcess();
-
-
-        // create irVisitor
-        String[] name = fileName.split("/");
-        String dotXiName = name[name.length - 1];
-        String finalName = dotXiName.split("\\.")[0];
-        Visitor irVisitor = new IRGenerator(finalName, funcNames, funcRetLengths);
-        IRCompUnit lowerIR = null;
-        IRCompUnit reorderedIR = null;
-        // generate the target .irsol file
-        FileWriter targetWriter = null;
-        try{
-            File targetIrsol = generateTargetFile(fileName, destPath, "ir");
-            targetWriter = new FileWriter(targetIrsol);
-
-
-            // Generating IR
-            checkedProgram.accept(irVisitor);
-            IRCompUnit root = checkedProgram.ir;
-            IRLower lirTranslator = new IRLower();
-            lowerIR = lirTranslator.lower(root);
-            //TODO: IR level constant folding
+        if (checkedProgram != null) {
             if(this.optimize){
-                ConstantFolding confold = new ConstantFolding(lowerIR);
-                lowerIR = confold.foldComp();
+                ConstantFoldingAst confold= new ConstantFoldingAst(checkedProgram);
+                checkedProgram = confold.fold();
             }
-            JumpReorder jumpReorder = new JumpReorder();
-            reorderedIR = jumpReorder.reorder(lowerIR);
+            funProcess();
+            // create irVisitor
+            String[] name = fileName.split("/");
+            String dotXiName = name[name.length - 1];
+            String finalName = dotXiName.split("\\.")[0];
+            Visitor irVisitor = new IRGenerator(finalName, funcNames, funcRetLengths);
+//            IRCompUnit root = null; //TODO: delete this after debugging
+            IRCompUnit lowerIR = null;
+            IRCompUnit reorderedIR = null;
+            // generate the target .irsol file
+            FileWriter targetWriter = null;
 
-            // Writing to target file
-            targetWriter.write(prettyPrint(reorderedIR));
-            targetWriter.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("unknown error while generating IR: "+ e.getMessage());
-            e.printStackTrace();
+            try{
+                File targetIrsol = generateTargetFile(fileName, destPath, "ir");
+                targetWriter = new FileWriter(targetIrsol);
+
+
+                // Generating IR
+                checkedProgram.accept(irVisitor);
+                IRCompUnit root = checkedProgram.ir;
+                IRLower lirTranslator = new IRLower();
+                lowerIR = lirTranslator.lower(root);
+                if(this.optimize){
+                    ConstantFolding confold = new ConstantFolding(lowerIR);
+                    lowerIR = confold.foldComp();
+                }
+                JumpReorder jumpReorder = new JumpReorder();
+                reorderedIR = jumpReorder.reorder(lowerIR);
+
+                // Writing to target file
+                targetWriter.write(prettyPrint(root));
+                targetWriter.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println("unknown error while generating IR: "+ e.getMessage());
+            }
+
+            return reorderedIR;
+
+        } else {
+            return null;
         }
-
-        return reorderedIR;
     }
 
     /**
