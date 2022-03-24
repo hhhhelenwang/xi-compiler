@@ -100,7 +100,7 @@ public class IRGenerator extends Visitor {
             )
         );
         l.add(irFactory.IRLabel(indexOutOfBound));
-        l.add(irFactory.IRCallStmt(irFactory.IRName("_xi_out_of_bound"), 0L, new ArrayList<>()));
+        l.add(irFactory.IRCallStmt(irFactory.IRName("_xi_out_of_bounds"), 0L, new ArrayList<>()));
         l.add(irFactory.IRLabel(ok));
         IRSeq s = irFactory.IRSeq(l);
         IRMem a = irFactory.IRMem(
@@ -184,8 +184,10 @@ public class IRGenerator extends Visitor {
     }
 
     private IRESeq arrayConcat (Add node) {
-        IRExpr_c a1 = node.expr1.ir;
-        IRExpr_c a2 = node.expr2.ir;
+        String a1Str = nextTemp();
+        String a2Str = nextTemp();
+        IRTemp a1 = irFactory.IRTemp(a1Str);
+        IRTemp a2 = irFactory.IRTemp(a2Str);
         IRMem a1L = irFactory.IRMem(irFactory.IRBinOp(SUB, a1, irFactory.IRConst(8L)));
         IRMem a2L = irFactory.IRMem(irFactory.IRBinOp(SUB, a2, irFactory.IRConst(8L)));
         IRBinOp totalL = irFactory.IRBinOp(ADD, a1L, a2L);
@@ -200,6 +202,8 @@ public class IRGenerator extends Visitor {
         String l12 = nextLabel();
         String le2 = nextLabel();
         List<IRStmt> stmts = new ArrayList<>();
+        stmts.add(irFactory.IRMove(a1, node.expr1.ir));
+        stmts.add(irFactory.IRMove(a2, node.expr2.ir));
         stmts.add(irFactory.IRMove(
                 arrayStart,
                 irFactory.IRCall(irFactory.IRName("_xi_alloc"), space)
@@ -476,7 +480,7 @@ public class IRGenerator extends Visitor {
                     indexOutOfBound
             ));
             lst.add(irFactory.IRLabel(indexOutOfBound));
-            lst.add(irFactory.IRCallStmt(irFactory.IRName("_xi_out_of_bound"), 0L, new ArrayList<>()));
+            lst.add(irFactory.IRCallStmt(irFactory.IRName("_xi_out_of_bounds"), 0L, new ArrayList<>()));
             lst.add(irFactory.IRLabel(ok));
             IRMem a = irFactory.IRMem(irFactory.IRBinOp(ADD, t_a,
                     irFactory.IRBinOp(MUL, t_i, irFactory.IRConst(8))));
