@@ -100,7 +100,7 @@ public class IRGenerator extends Visitor {
             )
         );
         l.add(irFactory.IRLabel(indexOutOfBound));
-        l.add(irFactory.IRCallStmt(irFactory.IRName("_xi_out_of_bound"), 0L, new ArrayList<>()));
+        l.add(irFactory.IRCallStmt(irFactory.IRName("_xi_out_of_bounds"), 0L, new ArrayList<>()));
         l.add(irFactory.IRLabel(ok));
         IRSeq s = irFactory.IRSeq(l);
         IRMem a = irFactory.IRMem(
@@ -480,7 +480,7 @@ public class IRGenerator extends Visitor {
                     indexOutOfBound
             ));
             lst.add(irFactory.IRLabel(indexOutOfBound));
-            lst.add(irFactory.IRCallStmt(irFactory.IRName("_xi_out_of_bound"), 0L, new ArrayList<>()));
+            lst.add(irFactory.IRCallStmt(irFactory.IRName("_xi_out_of_bounds"), 0L, new ArrayList<>()));
             lst.add(irFactory.IRLabel(ok));
             IRMem a = irFactory.IRMem(irFactory.IRBinOp(ADD, t_a,
                     irFactory.IRBinOp(MUL, t_i, irFactory.IRConst(8))));
