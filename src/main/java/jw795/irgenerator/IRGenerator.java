@@ -237,7 +237,13 @@ public class IRGenerator extends Visitor {
                                         8L
                                 )
                         ),
-                        a1L
+                        irFactory.IRBinOp(
+                                MUL,
+                                a1L,
+                                irFactory.IRConst(
+                                        8L
+                                )
+                        )
                 )
         );
         IRBinOp cur2 = irFactory.IRBinOp(ADD, a2, irFactory.IRBinOp(MUL, j, irFactory.IRConst(8L)));
