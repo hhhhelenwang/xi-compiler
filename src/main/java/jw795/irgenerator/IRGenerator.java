@@ -184,8 +184,10 @@ public class IRGenerator extends Visitor {
     }
 
     private IRESeq arrayConcat (Add node) {
-        IRExpr_c a1 = node.expr1.ir;
-        IRExpr_c a2 = node.expr2.ir;
+        String a1Str = nextTemp();
+        String a2Str = nextTemp();
+        IRTemp a1 = irFactory.IRTemp(a1Str);
+        IRTemp a2 = irFactory.IRTemp(a2Str);
         IRMem a1L = irFactory.IRMem(irFactory.IRBinOp(SUB, a1, irFactory.IRConst(8L)));
         IRMem a2L = irFactory.IRMem(irFactory.IRBinOp(SUB, a2, irFactory.IRConst(8L)));
         IRBinOp totalL = irFactory.IRBinOp(ADD, a1L, a2L);
@@ -200,6 +202,8 @@ public class IRGenerator extends Visitor {
         String l12 = nextLabel();
         String le2 = nextLabel();
         List<IRStmt> stmts = new ArrayList<>();
+        stmts.add(irFactory.IRMove(a1, node.expr1.ir));
+        stmts.add(irFactory.IRMove(a2, node.expr2.ir));
         stmts.add(irFactory.IRMove(
                 arrayStart,
                 irFactory.IRCall(irFactory.IRName("_xi_alloc"), space)
