@@ -1,9 +1,9 @@
 package edu.cornell.cs.cs4120.xic.ir.interpret;
 
-import edu.cornell.cs.cs4120.xic.ir.IRCompUnit;
-import edu.cornell.cs.cs4120.xic.ir.IRNodeFactory_c;
 import edu.cornell.cs.cs4120.xic.ir.parse.IRLexer;
 import edu.cornell.cs.cs4120.xic.ir.parse.IRParser;
+import edu.cornell.cs.cs4120.xic.ir.IRCompUnit;
+import edu.cornell.cs.cs4120.xic.ir.IRNodeFactory_c;
 
 import java.io.FileReader;
 
@@ -11,8 +11,7 @@ public class Cli {
 
     /**
      *  A command-line interface for directly invoking the IR interpreter on IR Code.
-     *  Usage: use the first command line argument to
-     *  pass a filename
+     *  Usage: use the first command line argument to pass a filename
      */
     public static void main(String[] args) {
         IRCompUnit ircli; 

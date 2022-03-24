@@ -1,6 +1,6 @@
 main(args:int[][]){
-    if(true){
+    if(false){
         println("yes")
-        x:int = 4
     }
+    x:int = 4
 }

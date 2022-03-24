@@ -69,17 +69,27 @@ public class IRGeneratorAdapter {
                 // Generating IR
                 checkedProgram.accept(irVisitor);
                 IRCompUnit root = checkedProgram.ir;
+//                root = checkedProgram.ir;
+//                System.out.println("==========first pass============");
+//                System.out.println(root);
                 IRLower lirTranslator = new IRLower();
                 lowerIR = lirTranslator.lower(root);
+//                System.out.println("==========lowered============");
+//                System.out.println(lowerIR);
                 if(this.optimize){
                     ConstantFolding confold = new ConstantFolding(lowerIR);
                     lowerIR = confold.foldComp();
                 }
+//                System.out.println("==========folded============");
+//                System.out.println(lowerIR);
                 JumpReorder jumpReorder = new JumpReorder();
                 reorderedIR = jumpReorder.reorder(lowerIR);
 
+//                System.out.println("==========reordered============");
+//                System.out.println(reorderedIR);
+
                 // Writing to target file
-                targetWriter.write(prettyPrint(root));
+                targetWriter.write(prettyPrint(reorderedIR));
                 targetWriter.close();
             } catch (Exception e) {
                 e.printStackTrace();

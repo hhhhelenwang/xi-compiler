@@ -19,7 +19,7 @@ public class ConstantFoldingAst {
         for(Definition d : node.definitions){
             result.add(foldDefinition(d));
         }
-        return new Program(node.uses,node.definitions,node.getLine(), node.getCol());
+        return new Program(node.uses,result,node.getLine(), node.getCol());
     }
 
     public Definition foldDefinition(Definition def){
@@ -30,24 +30,35 @@ public class ConstantFoldingAst {
                     (BlockStmt) foldStmt(((FunctionDefine) def).functionBody),
                     node.getLine(), node.getCol()
             );
+        }else if(def instanceof ProcedureDefine){
+            return new ProcedureDefine(((ProcedureDefine) def).name,
+                    ((ProcedureDefine) def).arguments,
+                    (BlockStmt) foldStmt(((ProcedureDefine) def).procBody),
+                    node.getLine(), node.getCol()
+            );
         }
         return def;
     }
 
     public Statement foldStmt(Statement node){
+//        System.out.println("get to fold stmt");
         if(node instanceof AssignStmt){
             return new AssignStmt(((AssignStmt) node).leftVal,
                     foldExpr(((AssignStmt) node).expr),
                     node.getLine(), node.getCol());
         }else if(node instanceof IfStmt){
+//            System.out.println("get to if branch");
             Expr e = foldExpr(((IfStmt) node).condition);
             if (e instanceof BoolLiteral){
+//                System.out.println("get to boolliteral branch");
                 if (((BoolLiteral) e).value == true){
+//                    System.out.println("get to boolliteral true branch");
                     return foldStmt(((IfStmt) node).clause);
                 }else{
                     return new BlockStmt(new LinkedList<>(),node.getLine(),node.getCol() );
                 }
             }
+//            System.out.println("fall into normal if branch");
             return new IfStmt(e,
                     foldStmt(((IfStmt) node).clause),
                     node.getLine(), node.getCol()
@@ -88,10 +99,14 @@ public class ConstantFoldingAst {
             return new ProcCallStmt(((ProcCallStmt) node).name,
                         retvals,node.getLine(), node.getCol()
                     );
-        }else if(node instanceof BlockStmt){
+        }else if(node instanceof VarDeclareStmt){
+            return node;
+        } else if(node instanceof BlockStmt){
             List<Statement> retvals = new LinkedList<>();
             for(Statement s: ((BlockStmt) node).statements){
-                retvals.add(foldStmt(s));
+                Statement s1 = foldStmt(s);
+                s1.type = s.type;
+                retvals.add(s1);
             }
             return new BlockStmt(retvals, node.getLine(), node.getCol()
             );
@@ -110,7 +125,9 @@ public class ConstantFoldingAst {
         }else if(node instanceof CharLiteral){
             int i = ((CharLiteral) node).value;
             BigInteger val =  new BigInteger(String.valueOf(i));
-            return new IntLiteral( val, node.getLine(), node.getCol());
+            IntLiteral result =new IntLiteral( val, node.getLine(), node.getCol());
+            result.type = node.type;
+            return result;
         }
         else if(node instanceof StringLit){
             return node;
@@ -119,19 +136,28 @@ public class ConstantFoldingAst {
             for(Expr e: ((FunCallExpr) node).arguments){
                 lst.add(foldExpr(e));
             }
-            return new FunCallExpr(((FunCallExpr) node).name,lst, node.getLine(), node.getCol());
+            FunCallExpr result = new FunCallExpr(((FunCallExpr) node).name,lst, node.getLine(), node.getCol());
+            result.type = node.type;
+            return result;
         }else if(node instanceof ArrayExpr){
             return node;
         }else if(node instanceof ArrIndexExpr){
-            return node;
+            ArrIndexExpr result = new ArrIndexExpr(((ArrIndexExpr) node).array, foldExpr(((ArrIndexExpr) node).index),
+                    node.getLine(),node.getCol());
+            result.type = node.type;
+            return result;
         }else if(node instanceof IntNeg){
             if(((IntNeg) node).expr instanceof IntLiteral){
                 int val = -((IntLiteral) ((IntNeg) node).expr).value.intValue();
-                return new IntLiteral(new BigInteger(String.valueOf(val)), node.getLine(), node.getCol());
+                IntLiteral result = new IntLiteral(new BigInteger(String.valueOf(val)), node.getLine(), node.getCol());
+                result.type = node.type;
+                return result;
             }
         }else if(node instanceof Not){
             if(((Not) node).expr instanceof BoolLiteral){
-                return new BoolLiteral(!((BoolLiteral) ((Not) node).expr).value, node.getLine(),node.getCol());
+                BoolLiteral result = new BoolLiteral(!((BoolLiteral) ((Not) node).expr).value, node.getLine(),node.getCol());
+                result.type =node.type;
+                return result;
             }
         }
         return node;
@@ -142,24 +168,53 @@ public class ConstantFoldingAst {
         Expr val2 = foldExpr(node.expr2);
         if(val1 instanceof IntLiteral){
             if(val2 instanceof IntLiteral) {
+                BigInteger val;
+                Expr result = null;
                 if (node instanceof Add) {
-                    BigInteger val = ((IntLiteral) val1).value.add(((IntLiteral) val2).value);
-                    return new IntLiteral(val, node.getLine(), node.getCol());
-                }if (node instanceof Sub) {
-                    BigInteger val = ((IntLiteral) val1).value.subtract(((IntLiteral) val2).value);
-                    return new IntLiteral(val, node.getLine(), node.getCol());
-                }if (node instanceof Mult) {
-                    BigInteger val = ((IntLiteral) val1).value.multiply(((IntLiteral) val2).value);
-                    return new IntLiteral(val, node.getLine(), node.getCol());
-                }if (node instanceof Div) {
-                    BigInteger val = ((IntLiteral) val1).value.divide(((IntLiteral) val2).value);
-                    return new IntLiteral(val, node.getLine(), node.getCol());
-                }if (node instanceof HighMult) {
-                    BigInteger val = ((IntLiteral) val1).value.pow(((IntLiteral) val2).value.intValue());
-                    return new IntLiteral(val, node.getLine(), node.getCol());
-                }if (node instanceof Mod) {
-                    BigInteger val = ((IntLiteral) val1).value.mod(((IntLiteral) val2).value);
-                    return new IntLiteral(val, node.getLine(), node.getCol());
+                     val = ((IntLiteral) val1).value.add(((IntLiteral) val2).value);
+                    result =  new IntLiteral(val, node.getLine(), node.getCol());
+                }else if (node instanceof Sub) {
+                     val = ((IntLiteral) val1).value.subtract(((IntLiteral) val2).value);
+                    result = new IntLiteral(val, node.getLine(), node.getCol());
+                }else if (node instanceof Mult) {
+                    val = ((IntLiteral) val1).value.multiply(((IntLiteral) val2).value);
+                    result = new IntLiteral(val, node.getLine(), node.getCol());
+                }else if (node instanceof Div) {
+                    val = ((IntLiteral) val1).value.divide(((IntLiteral) val2).value);
+                    result = new IntLiteral(val, node.getLine(), node.getCol());
+                }else if (node instanceof HighMult) {
+                    val = ((IntLiteral) val1).value.multiply(((IntLiteral) val2).value);
+//                    System.out.println(BigInteger.valueOf(2).pow(64));
+//                    System.out.println(val.mod(BigInteger.valueOf(2).pow(64)));
+                    BigInteger valresult = val.subtract(val.mod(BigInteger.valueOf(2).pow(64)));
+//                    System.out.println(valresult);
+                    valresult = valresult.divide(BigInteger.valueOf(2).pow(64));
+                    result = new IntLiteral(valresult, node.getLine(), node.getCol());
+                }else if (node instanceof Mod) {
+                    val = ((IntLiteral) val1).value.mod(((IntLiteral) val2).value);
+                    result = new IntLiteral(val, node.getLine(), node.getCol());
+                }else if (node instanceof Equal){
+                    result = new BoolLiteral (((IntLiteral) val1).value.equals(((IntLiteral) val2).value),
+                                node.getLine(),node.getCol());
+                }else if (node instanceof GreaterThan){
+                    result = new BoolLiteral (((IntLiteral) val1).value.longValue() > ((IntLiteral) val2).value.longValue(),
+                            node.getLine(),node.getCol());
+                }else if (node instanceof GreaterEq){
+                    result = new BoolLiteral (((IntLiteral) val1).value.longValue() >= ((IntLiteral) val2).value.longValue(),
+                            node.getLine(),node.getCol());
+                }else if (node instanceof LessThan){
+                    result = new BoolLiteral (((IntLiteral) val1).value.longValue() < ((IntLiteral) val2).value.longValue(),
+                            node.getLine(),node.getCol());
+                }else if (node instanceof LessEq){
+                    result = new BoolLiteral (((IntLiteral) val1).value.longValue() <= ((IntLiteral) val2).value.longValue(),
+                            node.getLine(),node.getCol());
+                }
+                if(result ==null){
+                    System.out.println("case got left in fold ast");
+                    return node;
+                }else{
+                    result.type = node.type;
+                    return result;
                 }
             }else if(((IntLiteral) val1).value.intValue() == 1){
                 if(node instanceof Mult) {
@@ -204,9 +259,13 @@ public class ConstantFoldingAst {
                 boolean b1 = ((BoolLiteral) val1).value;
                 boolean b2 = ((BoolLiteral) val2).value;
                 if(node instanceof And){
-                    return new BoolLiteral(b1&b2, node.getLine(), node.getCol());
+                    BoolLiteral result = new BoolLiteral(b1&b2, node.getLine(), node.getCol());
+                    result.type = node.type;
+                    return result;
                 }else if(node instanceof Or){
-                    return new BoolLiteral(b1|b2, node.getLine(), node.getCol());
+                    BoolLiteral result =new BoolLiteral(b1|b2, node.getLine(), node.getCol());
+                    result.type = node.type;
+                    return result;
                 }
             }else{
                 if(((BoolLiteral) val1).value == true){
