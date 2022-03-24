@@ -46,7 +46,7 @@ public class JumpReorder {
 
     HashMap<String, BasicBlock> basicBlocksMap;// basicBlocksMap maps Label string to its basicBlock
     List<BasicBlock> originalBasicBlocks; // the list of basicBlocks after grouping IR codes to block
-
+    String doneLable;
     IRNodeFactory_c irFactory;
 
     IRCompUnit ir; // the ir to reorder
@@ -80,7 +80,10 @@ public class JumpReorder {
         Map<String, IRFuncDecl> reorderedFunDecl = new HashMap<>();
         for (IRFuncDecl function : node.functions().values()){
             IRStmt body = function.body();
+            int labelCounter = 0;
             if ( body instanceof IRSeq){
+                doneLable = "done" + labelCounter;
+                labelCounter++;
                 basicBlocksMap = new HashMap<>();
                 BasicBlock root = buildCFG(((IRSeq)function.body()));
                 List<BasicBlock> trace = buildTrace(root);
@@ -108,12 +111,24 @@ public class JumpReorder {
      */
     private IRSeq fixJumps (List<BasicBlock> trace) {
         List<BasicBlock> fallThroughedTrace = enableFallThrough(trace);
+//        System.out.println("===fallThroughedTrace===");
+//        printBlocks(fallThroughedTrace);
+//        System.out.println(fallThroughedTrace.size() + " fallThroughedTrace SIZE is");
+
         List<BasicBlock> addedJumpTrace = addJumps(fallThroughedTrace);
+
+//        System.out.println("===addedJumpTrace===");
+//        printBlocks(addedJumpTrace);
+//        System.out.println(addedJumpTrace.size() + " addedJumpTrace SIZE is");
+
         List<BasicBlock> cleanUpedTrace = cleanUp(addedJumpTrace);
+//        System.out.println("===cleanUpedTrace===");
+//        printBlocks(cleanUpedTrace);
+//        System.out.println(cleanUpedTrace.size() + " cleanUpedTrace SIZE is");
+
         List<IRStmt> finalTrace = flatten(cleanUpedTrace);
         return irFactory.IRSeq(finalTrace);
     }
-
     /**
      * Flatten a list of basicBlock to a list of RIStmt
      * @param blocks list of Basic Blocks
@@ -141,6 +156,8 @@ public class JumpReorder {
         for (int i = 0; i < trace.size() - 1; i++) {
             curBlock = trace.get(i);
             nxtBlock =  trace.get(i+1);
+//            System.out.println("=============================!!!!!=================================");
+//            printBlock(curBlock);
 
             if (prevIsCjump){
                 curBlock.statements.remove(0); //remove first stmt (LABEL)
@@ -160,13 +177,21 @@ public class JumpReorder {
                     //check if the next basic block has same label, if so, remove the jump
                     String nxtLabel = nxtBlock.label;
                     String curLabel = ((IRJump) curEndingStmt).target().label();
-                    if (nxtLabel.equals(curLabel.substring(5,curLabel.length()-1))){
+                    curLabel = curLabel.substring(5,curLabel.length()-1);
+
+//                    System.out.println("======================CLEAN UP==================================");
+//                    System.out.println(nxtLabel);
+//                    System.out.println(curLabel);
+
+                    if (nxtLabel.equals(curLabel)){
                         curBlock.statements.remove((curBlock.statements.size()-1));
                     }
                 }
             }
             blocks.add(curBlock);
         }
+//        System.out.println("=========end of trace==============");
+//        printBlock(trace.get(trace.size()-1));
         blocks.add(trace.get(trace.size()-1));
         return blocks;
     }
@@ -185,11 +210,13 @@ public class JumpReorder {
             curBlock = trace.get(i);
             nxtBlock = trace.get(i + 1);
             if (!curBlock.endingStatement.isPresent() && curBlock.nextBlockLabel.isPresent()) {
-                // check if we need to add JUMP if not followed by next label in original trace
+                // check if we need to add JUMP: not followed by next label in original trace
                 String nxtLabel = ((IRLabel) nxtBlock.statements.get(0)).name();
                 String expectedNxt = curBlock.nextBlockLabel.get();
-                if (!nxtLabel.equals(expectedNxt) && !expectedNxt.equals("done")) {
-                    curBlock.statements.add(irFactory.IRJump(irFactory.IRName(expectedNxt)));
+                if (!nxtLabel.equals(expectedNxt) && !expectedNxt.equals(doneLable)) {
+                    IRJump newJump = irFactory.IRJump(irFactory.IRName(expectedNxt));
+                    curBlock.statements.add(newJump);
+                    curBlock.endingStatement = Optional.of(newJump);
                 }
             }
             blocks.add(curBlock);
@@ -321,14 +348,14 @@ public class JumpReorder {
             }
         }
 
-        if (stmts.size() !=0){
-            stmts.add(irFactory.IRJump(irFactory.IRName("done")));
-            BasicBlock block = new BasicBlock(curLabel, stmts, Optional.of("done"));
+        if (stmts.size() != 0){
+            stmts.add(irFactory.IRJump(irFactory.IRName(doneLable)));
+            BasicBlock block = new BasicBlock(curLabel, stmts, Optional.of(doneLable));
             blocks.add(block);
         }
 
         //create special end block
-        blocks.add(new BasicBlock("done", new ArrayList<>(List.of(irFactory.IRLabel("done"))), Optional.empty()));
+        blocks.add(new BasicBlock(doneLable, new ArrayList<>(List.of(irFactory.IRLabel(doneLable))), Optional.empty()));
 
         return blocks;
     }
