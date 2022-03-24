@@ -2,10 +2,7 @@ package jw795.irgenerator;
 
 import edu.cornell.cs.cs4120.xic.ir.*;
 
-import java.sql.Array;
-import java.sql.SQLSyntaxErrorException;
 import java.util.*;
-import java.util.zip.CheckedOutputStream;
 
 import static edu.cornell.cs.cs4120.xic.ir.IRBinOp.OpType.XOR;
 
@@ -31,14 +28,14 @@ public class JumpReorder {
             this.endingStatement = endingStatement;
         }
 
-        public BasicBlock(String label, List<IRStmt> statements, IRStmt endingStatement) {
+        private BasicBlock(String label, List<IRStmt> statements, IRStmt endingStatement) {
             this.label = label;
             this.statements = statements;
             this.nextBlockLabel = Optional.empty();
             this.endingStatement = Optional.of(endingStatement);
         }
 
-        public BasicBlock(String label, List<IRStmt> statements, Optional<String> nextBlockLabel) {
+        private BasicBlock(String label, List<IRStmt> statements, Optional<String> nextBlockLabel) {
             this.label = label;
             this.statements = statements;
             this.nextBlockLabel = nextBlockLabel;
@@ -89,10 +86,6 @@ public class JumpReorder {
                 List<BasicBlock> trace = buildTrace(root);
                 BasicBlock lstBlock = originalBasicBlocks.get(originalBasicBlocks.size()-1);
                 trace.add(lstBlock);
-
-                System.out.println("===THIS IS TRACE===");
-                printBlocks(trace);
-                System.out.println(trace.size() + " TRACE SIZE is");
                 body = fixJumps(trace);
             }
             reorderedFunDecl.put(function.name(), irFactory.IRFuncDecl(function.name(), body));
@@ -152,12 +145,13 @@ public class JumpReorder {
                     // update block with new CJUMP
                     curBlock.statements.remove(curBlock.statements.size()-1); //remove last stmt
                     curBlock.statements.add(newCjump);
-//                } else if (curEndingStmt instanceof IRJump){
-//                    //check if the next basic block has same label, if so, remove the jump
-//                    String nxtLabel = ((IRLabel) nxtBlock.statements.get(0)).name();
-//                    if (nxtLabel.equals(((IRJump) curEndingStmt).target())){
-//                        curBlock.statements.remove((curBlock.statements.size()-1));
-//                    }
+                } else if (curEndingStmt instanceof IRJump){
+                    //check if the next basic block has same label, if so, remove the jump
+                    String nxtLabel = nxtBlock.label;
+                    String curLabel = ((IRJump) curEndingStmt).target().label();
+                    if (nxtLabel.equals(curLabel.substring(5,curLabel.length()-1))){
+                        curBlock.statements.remove((curBlock.statements.size()-1));
+                    }
                 }
             }
             blocks.add(curBlock);
@@ -174,11 +168,11 @@ public class JumpReorder {
         for (int i = 0; i < trace.size() - 1; i++) {
             curBlock = trace.get(i);
             nxtBlock = trace.get(i + 1);
-            if (curBlock.nextBlockLabel.isPresent()) {
+            if (!curBlock.endingStatement.isPresent() && curBlock.nextBlockLabel.isPresent()) {
                 // check if we need to add JUMP if not followed by next label in original trace
                 String nxtLabel = ((IRLabel) nxtBlock.statements.get(0)).name();
                 String expectedNxt = curBlock.nextBlockLabel.get();
-                if (!nxtLabel.equals(expectedNxt)) {
+                if (!nxtLabel.equals(expectedNxt) && !expectedNxt.equals("done")) {
                     curBlock.statements.add(irFactory.IRJump(irFactory.IRName(expectedNxt)));
                 }
             }
@@ -242,13 +236,10 @@ public class JumpReorder {
      */
     private BasicBlock buildCFG(IRSeq ir){
         List<BasicBlock> basicBlocksInit = getBasicBlocks(ir);
-        System.out.println("=================INIT BASIC BLOCKS====================");
-        printBlocks(basicBlocksInit);
         List<BasicBlock> basicBlocks = addNextLabel(basicBlocksInit);
         originalBasicBlocks = basicBlocks;
-
         BasicBlock root = basicBlocks.get(0);
-        return helper(root);
+        return connectBlocks(root);
     }
 
 
@@ -269,15 +260,6 @@ public class JumpReorder {
 
         blocks.add(lastBlockWLabel);
 
-
-        for (BasicBlock b: blocks){
-            System.out.println("==============================================================");
-            System.out.println(b.label);
-            if (b.nextBlockLabel.isPresent()){
-                System.out.println(b.nextBlockLabel.get());
-            }
-        }
-
         return blocks;
     }
 
@@ -296,15 +278,12 @@ public class JumpReorder {
                 //always end a block and start the next block
                 stmts.add(stmt);
                 BasicBlock block = new BasicBlock(curLabel, stmts, stmt);
-                //populate basicBlocksMap for connectBlocks() to use
-//                basicBlocksMap.put(curLabel, block);
                 blocks.add(block);
                 stmts = new ArrayList<>();
             } else if (stmt instanceof IRLabel) {
                 // always start a block && end previous block if not ended by jump/return
                 if (stmts.size() != 0){
                     BasicBlock block = new BasicBlock(curLabel, stmts, Optional.of(((IRLabel) stmt).name()));
-//                    basicBlocksMap.put(curLabel, block);
                     blocks.add(block);
                 }
                 curLabel = ((IRLabel) stmt).name();
@@ -318,7 +297,6 @@ public class JumpReorder {
         if (stmts.size() !=0){
             stmts.add(irFactory.IRJump(irFactory.IRName("done")));
             BasicBlock block = new BasicBlock(curLabel, stmts, Optional.of("done"));
-//            basicBlocksMap.put(curLabel, block);
             blocks.add(block);
         }
 
@@ -330,59 +308,26 @@ public class JumpReorder {
 
     /**
      * Connect the basic blocks in blocks according to their control flow.
-     * @param blocks List of BasicBlock to connect
+     * @param block root block to connect
      * @return the root node for the connected CFG
      */
-    private BasicBlock connectBlocks(List<BasicBlock> blocks) {
-//        for (BasicBlock block: blocks) {
-//            Optional<IRStmt> endingStmt = block.endingStatement;
-//            if (endingStmt.isPresent()){
-//                if (endingStmt.get() instanceof IRCJump){
-//                    block.children.add(basicBlocksMap.get(((IRCJump) endingStmt.get()).trueLabel()));
-//                    block.children.add(basicBlocksMap.get(((IRCJump) endingStmt.get()).falseLabel()));
-//                } else if (endingStmt.get() instanceof IRJump){
-//                    block.children.add(basicBlocksMap.get(((IRJump) endingStmt.get()).target().label().substring(5,7)));
-//                }
-//            } else {
-//                //Blocks not end with IRCJUMP, IRJUMP, or IRRETURN has the follow up block as their child
-//                if (block.nextBlockLabel.isPresent()){
-//                    String nextLabel = block.nextBlockLabel.get();
-//                    block.children.add(basicBlocksMap.get(nextLabel));
-//                }
-//            }
-//        }
-        System.out.println("===============connect blocks===================");
-        System.out.println(blocks.get(1).label);
-        System.out.println(blocks.get(1).children.size());
-        System.out.println(blocks.get(0).children.get(0).label);
-        System.out.println(blocks.get(0).children.get(0).children.size());
-
-
-        return blocks.get(0);
-    }
-
-    private BasicBlock helper (BasicBlock block){
+    private BasicBlock connectBlocks(BasicBlock block){
         Optional<IRStmt> endingStmt = block.endingStatement;
-        System.out.println("===============connect blocks===================");
-
-        System.out.println(block.label);
-        System.out.println(block.nextBlockLabel);
-
         if (endingStmt.isPresent()) {
             if (endingStmt.get() instanceof IRCJump) {
                 BasicBlock trueChild = basicBlocksMap.get(((IRCJump) endingStmt.get()).trueLabel());
                 BasicBlock falseChild = basicBlocksMap.get(((IRCJump) endingStmt.get()).falseLabel());
-                block.children.add(helper(trueChild));
-                block.children.add(helper(falseChild));
+                block.children.add(connectBlocks(trueChild));
+                block.children.add(connectBlocks(falseChild));
             } else if (endingStmt.get() instanceof IRJump){
                 BasicBlock child = basicBlocksMap.get(((IRJump) endingStmt.get()).target().label().substring(5,7));
-                block.children.add(helper(child));
+                block.children.add(connectBlocks(child));
             }
         } else {
             //Blocks not end with IRCJUMP, IRJUMP has the follow up block as their child
             if (block.nextBlockLabel.isPresent()){
                 String nextLabel = block.nextBlockLabel.get();
-                block.children.add(helper((basicBlocksMap.get(nextLabel))));
+                block.children.add(connectBlocks((basicBlocksMap.get(nextLabel))));
             }
         }
         return block;
@@ -393,16 +338,10 @@ public class JumpReorder {
      * @param root the root of a CFG
      * @return the trace
      */
-
-
     private List<BasicBlock> buildTrace(BasicBlock root) {
         List<BasicBlock> trace = new ArrayList<>();
         BasicBlock cur = root;
         if (cur == null) { return trace; }
-
-        System.out.println(cur.children.size());
-        System.out.println(cur.label);
-
 
         if (!cur.visited){
             cur.visited = true;
@@ -410,13 +349,10 @@ public class JumpReorder {
             if (cur.nextBlockLabel.isPresent()){
                 trace.add(cur);
             }
-
             if (cur.children.size() != 0){
                 for (BasicBlock child : cur.children){
                     trace.addAll(buildTrace(child));
                 }
-            } else {
-                System.out.println(cur.label+" HAS NO CHILD!!!!");
             }
         }
         return trace;
