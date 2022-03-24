@@ -78,9 +78,9 @@ public class JumpReorder {
     public IRCompUnit reorder(IRCompUnit node) {
         //fix jumps in each function body
         Map<String, IRFuncDecl> reorderedFunDecl = new HashMap<>();
+        int labelCounter = 0;
         for (IRFuncDecl function : node.functions().values()){
             IRStmt body = function.body();
-            int labelCounter = 0;
             if ( body instanceof IRSeq){
                 doneLable = "done" + labelCounter;
                 labelCounter++;
