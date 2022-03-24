@@ -619,8 +619,6 @@ public class IRGenerator extends Visitor {
                 String nstr = ((StringLit) e).str;
                 nstr = replacespecial(nstr);
                 int n = nstr.length();
-//                System.out.println(nstr);
-//                System.out.println(n);
                 long[] result = new long[n+1];
                 char[] ch= nstr.toCharArray();
                 result[0] = n;
