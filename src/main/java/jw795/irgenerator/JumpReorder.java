@@ -34,12 +34,6 @@ public class JumpReorder {
         }
     }
 
-    // TODO: notes on building cfg:
-    //  1. build one cfg per function body?
-    //  2. need to first separate ir into basic block
-    //  3. and then connect the basic block into cfg according to their control flow
-    //      -> how to decides which block should connect to which other blocks?
-
     HashMap<String, BasicBlock> basicBlocksMap;// basicBlocksMap maps Label string to its basicBlock
     IRNodeFactory_c irFactory;
 
@@ -102,22 +96,83 @@ public class JumpReorder {
      * @return the function body with jumps between blocks fixed according to the given trace
      */
     private IRSeq fixJumps (List<BasicBlock> trace) {
-        List<IRStmt> stmts = new ArrayList<>();
-        BasicBlock curBlock;
-        BasicBlock nxtBlock;
-        boolean prevIsCjump = false;
-//        System.out.println("total number of blocks " + trace.size());
+        List<BasicBlock> fallThroughedTrace = enableFallThrough(trace);
+        List<BasicBlock> addedJumpTrace = addJumps(fallThroughedTrace);
+        List<BasicBlock> cleanUpedTrace = cleanUp(addedJumpTrace);
+        return irFactory.IRSeq(flatten(cleanUpedTrace));
+    }
 
-        // only need to worry about fixing jumps if there exist a next block
-        // TODO: add a jump to label end
-        for (int i = 0; i < trace.size()-1; i++){
+    private List<IRStmt> flatten(List<BasicBlock> blocks){
+        List<IRStmt> flattened = new ArrayList<>();
+        for (BasicBlock b : blocks){
+            flattened.addAll(b.statements);
+        }
+        return flattened;
+    }
+
+    private List<BasicBlock> cleanUp(List<BasicBlock> trace) {
+        BasicBlock curBlock;
+        List<BasicBlock> blocks = new ArrayList<>();
+        boolean prevIsCjump = false;
+
+        for (int i = 0; i < trace.size() - 1; i++) {
             curBlock = trace.get(i);
-            nxtBlock = trace.get(i+1);
 
             if (prevIsCjump){
                 curBlock.statements.remove(0); //remove first stmt (LABEL)
                 prevIsCjump = false;
             }
+
+            if (curBlock.endingStatement.isPresent()){
+                IRStmt curEndingStmt = curBlock.endingStatement.get();
+                if (curEndingStmt instanceof IRCJump){
+
+                    IRCJump newCjump = irFactory.IRCJump(((IRCJump) curEndingStmt).cond(),
+                            ((IRCJump) curEndingStmt).trueLabel());
+                    prevIsCjump = true;
+                    // update block with new CJUMP
+                    curBlock.statements.remove(curBlock.statements.size()-1); //remove last stmt
+                    curBlock.statements.add(newCjump);
+                }
+            }
+            blocks.add(curBlock);
+        }
+        blocks.add(trace.get(trace.size()-1));
+        return blocks;
+    }
+
+    private List<BasicBlock> addJumps(List<BasicBlock> trace) {
+        BasicBlock curBlock;
+        BasicBlock nxtBlock;
+        List<BasicBlock> blocks = new ArrayList<>();
+
+        for (int i = 0; i < trace.size() - 1; i++) {
+            curBlock = trace.get(i);
+            nxtBlock = trace.get(i + 1);
+            if (!curBlock.endingStatement.isPresent()) {
+                // check if we need to add JUMP if not followed by next label in original trace
+                String nxtLabel = ((IRLabel) nxtBlock.statements.get(0)).name();
+                String expectedNxt = curBlock.nextBlockLabel.get();
+                if (!nxtLabel.equals(expectedNxt)) {
+                    curBlock.statements.add(irFactory.IRJump(irFactory.IRName(expectedNxt)));
+                }
+            }
+            blocks.add(curBlock);
+        }
+        blocks.add(trace.get(trace.size()-1));
+        return blocks;
+
+    }
+
+    private List<BasicBlock> enableFallThrough(List<BasicBlock> trace){
+        List<BasicBlock> blocks = new ArrayList<>();
+        BasicBlock curBlock;
+        BasicBlock nxtBlock;
+
+        // only need to worry about fixing jumps if there exist a next block
+        for (int i = 0; i < trace.size()-1; i++){
+            curBlock = trace.get(i);
+            nxtBlock = trace.get(i+1);
 
             if (curBlock.endingStatement.isPresent()){
                 IRStmt curEndingStmt = curBlock.endingStatement.get();
@@ -129,41 +184,29 @@ public class JumpReorder {
                     IRCJump newCjump;
                     if (curTrueLabel.equals(nxtLabel)){
                         IRBinOp newCond = irFactory.IRBinOp(XOR, ((IRCJump) curEndingStmt).cond(), irFactory.IRConst(1));
-                        newCjump = new IRCJump(newCond, ((IRCJump) curEndingStmt).falseLabel());
+                        newCjump = irFactory.IRCJump(newCond, ((IRCJump) curEndingStmt).falseLabel(), ((IRCJump) curEndingStmt).trueLabel());
                     } else {
-                        newCjump = new IRCJump(((IRCJump) curEndingStmt).cond(), ((IRCJump) curEndingStmt).trueLabel());
+                        newCjump = irFactory.IRCJump(((IRCJump) curEndingStmt).cond(), ((IRCJump) curEndingStmt).trueLabel(), ((IRCJump) curEndingStmt).falseLabel());
                     }
-                    prevIsCjump = true;
-                    // update block with correct ending stmt
+
+                    // update block with new CJUMP
                     curBlock.statements.remove(curBlock.statements.size()-1); //remove last stmt
-                    stmts.addAll(curBlock.statements);
-                    stmts.add(newCjump);
+                    curBlock.statements.add(newCjump);
+                    curBlock.endingStatement = Optional.of(newCjump);
                 } else if (curEndingStmt instanceof IRJump){
                     //check if the next basic block has same label, if so, remove the jump
                     String nxtLabel = ((IRLabel) nxtBlock.statements.get(0)).name();
                     if (nxtLabel.equals(((IRJump) curEndingStmt).target())){
                         curBlock.statements.remove((curBlock.statements.size()-1));
                     }
-                    stmts.addAll(curBlock.statements);
-                } else {
-                    stmts.addAll(curBlock.statements);
                 }
-
-            } else {
-                // check if we need to add JUMP if does not transfer control && not followed by next label
-                String nxtLabel = ((IRLabel) nxtBlock.statements.get(0)).name();
-                String expectedNxt = curBlock.nextBlockLabel.get();
-                if (!nxtLabel.equals(expectedNxt)) {
-                    curBlock.statements.add(irFactory.IRJump(irFactory.IRName(expectedNxt)));
-                }
-
-                stmts.addAll(curBlock.statements);
             }
+            blocks.add(curBlock);
+
         }
+        blocks.add(trace.get(trace.size()-1));
 
-        stmts.addAll(trace.get(trace.size()-1).statements);
-
-        return new IRSeq(stmts);
+        return blocks;
     }
 
     /**
