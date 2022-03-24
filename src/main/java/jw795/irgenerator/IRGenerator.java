@@ -156,7 +156,6 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitVar(VarExpr node) throws Exception {
-        //TODO: what is memtype for this ir mem
         if(globalData.containsKey(node.identifier)){
             node.ir = irFactory.IRMem(irFactory.IRName("_" + node.identifier));
         } else {
@@ -228,7 +227,8 @@ public class IRGenerator extends Visitor {
         stmts.add(irFactory.IRLabel(lh2));
         stmts.add(C(irFactory.IRBinOp(LT, j, a2L), l12, le2));
         stmts.add(irFactory.IRLabel(l12));
-        cur = irFactory.IRBinOp(ADD, arrayStart, irFactory.IRBinOp(ADD, a2L, irFactory.IRBinOp(MUL, j, irFactory.IRConst(8L))));
+        cur = irFactory.IRBinOp(ADD, arrayStart, irFactory.IRBinOp(ADD, a2L,
+                irFactory.IRBinOp(MUL, j, irFactory.IRConst(8L))));
         IRBinOp cur2 = irFactory.IRBinOp(ADD, a2, irFactory.IRBinOp(MUL, j, irFactory.IRConst(8L)));
         stmts.add(irFactory.IRMove(irFactory.IRMem(cur), irFactory.IRMem(cur2)));
         stmts.add(irFactory.IRMove(j, irFactory.IRBinOp(ADD, j, irFactory.IRConst(1L))));
@@ -318,7 +318,8 @@ public class IRGenerator extends Visitor {
     public void visitFunCallExpr(FunCallExpr node) throws Exception {
         if (node.name == "length") {
             IRTemp len = irFactory.IRTemp(nextTemp());
-            IRMove stmt = irFactory.IRMove(len, irFactory.IRBinOp(SUB, node.arguments.get(0).ir, irFactory.IRConst(8L)));
+            IRMove stmt = irFactory.IRMove(len, irFactory.IRBinOp(SUB, node.arguments.get(0).ir,
+                    irFactory.IRConst(8L)));
             node.ir = irFactory.IRESeq(stmt, irFactory.IRMem(len));
         } else {
             List<Expr> args = node.arguments;

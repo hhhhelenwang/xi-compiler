@@ -48,7 +48,6 @@ public class ConstantFolding {
         }else if (node instanceof IRJump) {
             return node;
         }
-        System.out.print("sth is left in constantfold ir");
         return node;
     }
 
@@ -108,7 +107,7 @@ public class ConstantFolding {
         } else if (node instanceof IRMem) {
             return node;
         } else if (node instanceof IRESeq) {
-            System.out.println("we should not see eseq at IR lower right?");
+            // no eseq after lowering
         }
         return  node;
     }
@@ -117,8 +116,8 @@ public class ConstantFolding {
         IRExpr foldedleft = foldExpr(node.left());
         IRExpr foldedright = foldExpr(node.right());
         if(foldedleft instanceof IRConst && foldedright instanceof  IRConst){
-            long fleft = ((IRConst) foldExpr(node.left())).value();
-            long fright = ((IRConst) foldExpr(node.right())).value();
+            long fleft = ((IRConst)foldedleft).value();
+            long fright = ((IRConst)foldedright).value();
             IRExpr result = foldtwoconst(fleft, fright,node.opType());
             if(result == null){
                 return node;
@@ -225,16 +224,20 @@ public class ConstantFolding {
                 if(cons == 0){
                     return expr;
                 }
+                break;
             case SUB:
-                if(cons == 0){
-                    return expr;
-                }
+//                if(cons == 0){
+//                    return expr;
+//                }
+                break;
+
             case MUL:
                 if(cons == 0){
                     return irFactory.IRConst(0);
                 }else if(cons == 1){
                     return expr;
                 }
+                break;
             case AND:
                 if(cons == 0){
                     return irFactory.IRConst(0);
