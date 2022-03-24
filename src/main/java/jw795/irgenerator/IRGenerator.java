@@ -337,9 +337,7 @@ public class IRGenerator extends Visitor {
         //Require: when an AST node translate to multiple IRStmts, make its ir an IRSeq
         LinkedList<IRStmt> seq = new LinkedList<>();
         for (Statement s: node.statements) {
-            if (s.ir instanceof IRSeq) {
-                seq.addAll(((IRSeq) s.ir).stmts());
-            } else if(s.ir instanceof IRStmt) {
+            if(s.ir instanceof IRStmt) {
                 seq.add((IRStmt) s.ir);
             }else{
                 //the left out case is vardeclarstmt, and it should not be print
