@@ -135,6 +135,15 @@ public class ConstantFolding {
         else if(foldedright instanceof IRConst){
             long cons =  ((IRConst) foldedright).value();
             IRExpr result = foldoneconst(cons, foldedleft, node.opType());
+            if (cons == 0){
+                if (node.opType() == IRBinOp.OpType.SUB){
+                    result = foldedleft;
+                }
+            }else if(cons == 1){
+                if (node.opType() == IRBinOp.OpType.DIV){
+                    result = foldedleft;
+                }
+            }
             if(result == null){
                 return node;
             }
