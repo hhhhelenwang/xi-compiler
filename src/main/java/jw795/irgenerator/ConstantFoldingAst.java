@@ -183,8 +183,13 @@ public class ConstantFoldingAst {
                     val = ((IntLiteral) val1).value.divide(((IntLiteral) val2).value);
                     result = new IntLiteral(val, node.getLine(), node.getCol());
                 }else if (node instanceof HighMult) {
-                    val = ((IntLiteral) val1).value.pow(((IntLiteral) val2).value.intValue());
-                    result = new IntLiteral(val, node.getLine(), node.getCol());
+                    val = ((IntLiteral) val1).value.multiply(((IntLiteral) val2).value);
+//                    System.out.println(BigInteger.valueOf(2).pow(64));
+//                    System.out.println(val.mod(BigInteger.valueOf(2).pow(64)));
+                    BigInteger valresult = val.subtract(val.mod(BigInteger.valueOf(2).pow(64)));
+//                    System.out.println(valresult);
+                    valresult = valresult.divide(BigInteger.valueOf(2).pow(64));
+                    result = new IntLiteral(valresult, node.getLine(), node.getCol());
                 }else if (node instanceof Mod) {
                     val = ((IntLiteral) val1).value.mod(((IntLiteral) val2).value);
                     result = new IntLiteral(val, node.getLine(), node.getCol());
