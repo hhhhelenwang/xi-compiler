@@ -477,8 +477,97 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitVarDecl(VarDeclareStmt node) throws Exception {
-        //this ir should only be use when see as Lvalue
-        node.ir = irFactory.IRTemp(node.identifier);
+        if (node.varType instanceof ArrayType) {
+            node.ir = irFactory.IRSeq(
+                            arrayDeclAllocate(
+                                    node.identifier,
+                                    (ArrayType) node.varType
+                            )
+                    );
+        } else {
+             node.ir = irFactory.IRTemp(node.identifier);
+        }
+    }
+
+    private List<IRStmt> arrayDeclAllocate(String id, ArrayType arrType) {
+        String tnStr = nextTemp();
+        String tmStr = nextTemp();
+        IRTemp tn = irFactory.IRTemp(tnStr);
+        IRTemp tm = irFactory.IRTemp(tmStr);
+        List<IRStmt> stmts = new ArrayList<>();
+        if (arrType.length.isPresent()) {
+            Expr e = arrType.length.get();
+            stmts.add(irFactory.IRMove(tn, e.ir));
+            stmts.add(
+                    irFactory.IRMove(
+                            tm,
+                            irFactory.IRCall(
+                                    irFactory.IRName("_xi_alloc"),
+                                    irFactory.IRBinOp(
+                                            ADD,
+                                            irFactory.IRBinOp(
+                                                    MUL,
+                                                    tn,
+                                                    irFactory.IRConst(8L)
+                                            ),
+                                            irFactory.IRConst(8L))
+                            )
+                    )
+            );
+            IRBinOp arrayStart = irFactory.IRBinOp(ADD, tm, irFactory.IRConst(8L));
+            stmts.add(irFactory.IRMove(irFactory.IRMem(tm), tn));
+            if (arrType.elemType instanceof ArrayType) {
+                String lh = nextLabel();
+                String l1 = nextLabel();
+                String le = nextLabel();
+
+                IRTemp cur = irFactory.IRTemp(nextTemp());
+                String subArrayID = nextTemp();
+                IRTemp subArray;
+                subArray = irFactory.IRTemp(subArrayID);
+
+                stmts.add(irFactory.IRMove(cur, irFactory.IRConst(0L)));
+                stmts.add(irFactory.IRLabel(lh));
+                stmts.add(C(irFactory.IRBinOp(LT, cur, tn), l1, le));
+                stmts.add(irFactory.IRLabel(l1));
+                List<IRStmt> createSubarray = arrayDeclAllocate(subArrayID, (ArrayType) arrType.elemType);
+                stmts.addAll(createSubarray);
+                stmts.add(
+                        irFactory.IRMove(
+                                irFactory.IRMem(
+                                        irFactory.IRBinOp(
+                                                ADD,
+                                                arrayStart,
+                                                irFactory.IRBinOp(
+                                                        MUL,
+                                                        cur,
+                                                        irFactory.IRConst(
+                                                                8L
+                                                        )
+                                                )
+                                        )
+                                ),
+                                subArray
+                        )
+                );
+                stmts.add(irFactory.IRJump(irFactory.IRName(lh)));
+                stmts.add(irFactory.IRLabel(le));
+            }
+            stmts.add(irFactory.IRMove(irFactory.IRTemp(id), arrayStart));
+        } else {
+            stmts.add(
+                    irFactory.IRMove(
+                            tm,
+                            irFactory.IRCall(
+                                    irFactory.IRName("_xi_alloc"),
+                                    irFactory.IRConst(8L)
+                            )
+                    )
+            );
+            stmts.add(irFactory.IRMove(irFactory.IRMem(tm), irFactory.IRConst(0L)));
+            stmts.add(irFactory.IRMove(irFactory.IRTemp(id), irFactory.IRBinOp(ADD, tm, irFactory.IRConst(8L))));
+        }
+        return stmts;
     }
 
     @Override
@@ -601,7 +690,7 @@ public class IRGenerator extends Visitor {
      */
     private long[] exportVal(Expr e){
         if (e == null) {
-            return new long[]{};
+            return new long[1];
         } else {
             if (e instanceof IntLiteral) {
                 return new long[] {((IntLiteral) e).value.longValue()};
@@ -620,6 +709,7 @@ public class IRGenerator extends Visitor {
                 return result;
             }
         }
+        System.out.println("unexpected case in exportVal");
         return null;
     }
 
