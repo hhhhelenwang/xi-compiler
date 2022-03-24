@@ -12,13 +12,8 @@ main (a : int[][]) {
     b:int[] = f()
     c:int[] = "Hello World!\n"
     d:int[] = "Hello World!\n"
-    print(b + c + d)
-    // len:int = length(b + c + d)
-    // print({len})
-    // print(b + c + d)
-    // i:int = 0
-    // while (i < len) {
-    //    print({(b + c + d)[i]})
-    //    i = i + 1
-    // }
+    e:int[] = b + c + d
+    print({e[14]})
+    print({e[38]})
+    print({e[39]})
 }
