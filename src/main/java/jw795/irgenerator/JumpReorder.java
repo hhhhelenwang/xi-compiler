@@ -44,10 +44,10 @@ public class JumpReorder {
     }
 
     HashMap<String, BasicBlock> basicBlocksMap;// basicBlocksMap maps Label string to its basicBlock
+    List<BasicBlock> originalBasicBlocks; // the list of basicBlocks after grouping IR codes to block
+
     IRNodeFactory_c irFactory;
 
-
-    List<BasicBlock> originalBasicBlocks;
     IRCompUnit ir; // the ir to reorder
     BasicBlock cfg; // the control flow graph built from ir
 
@@ -75,8 +75,7 @@ public class JumpReorder {
      * @return reordered IR
      */
     public IRCompUnit reorder(IRCompUnit node) {
-        // TODO: go through all functions in node, build cfg for each function body, and generate a new
-        //  IRCompUnit from the new reordered function body
+        //fix jumps in each function body
         Map<String, IRFuncDecl> reorderedFunDecl = new HashMap<>();
         for (IRFuncDecl function : node.functions().values()){
             IRStmt body = function.body();
@@ -84,8 +83,6 @@ public class JumpReorder {
                 basicBlocksMap = new HashMap<>();
                 BasicBlock root = buildCFG(((IRSeq)function.body()));
                 List<BasicBlock> trace = buildTrace(root);
-                BasicBlock lstBlock = originalBasicBlocks.get(originalBasicBlocks.size()-1);
-                trace.add(lstBlock);
                 body = fixJumps(trace);
             }
             reorderedFunDecl.put(function.name(), irFactory.IRFuncDecl(function.name(), body));
@@ -113,6 +110,11 @@ public class JumpReorder {
         return irFactory.IRSeq(finalTrace);
     }
 
+    /**
+     * Flatten a list of basicBlock to a list of RIStmt
+     * @param blocks list of Basic Blocks
+     * @return list of IRStmt
+     */
     private List<IRStmt> flatten(List<BasicBlock> blocks){
         List<IRStmt> flattened = new ArrayList<>();
         for (BasicBlock b : blocks){
@@ -121,6 +123,11 @@ public class JumpReorder {
         return flattened;
     }
 
+    /**
+     * Remove unnecessary LABELs and IRJUMPs
+     * @param trace A list of basic blocks
+     * @return list of BasicBlock
+     */
     private List<BasicBlock> cleanUp(List<BasicBlock> trace) {
         BasicBlock curBlock;
         BasicBlock nxtBlock;
@@ -160,6 +167,11 @@ public class JumpReorder {
         return blocks;
     }
 
+    /**
+     * Add jumps to
+     * @param trace of reordered blocks
+     * @return list of BasicBlock with fall through
+     */
     private List<BasicBlock> addJumps(List<BasicBlock> trace) {
         BasicBlock curBlock;
         BasicBlock nxtBlock;
@@ -181,9 +193,14 @@ public class JumpReorder {
 
         blocks.add(trace.get(trace.size()-1));
         return blocks;
-
     }
 
+
+    /**
+     * Enable CJUMP and JUMP fall through if applicable
+     * @param trace of reordered blocks
+     * @return list of BasicBlock with fall through
+     */
     private List<BasicBlock> enableFallThrough(List<BasicBlock> trace){
         List<BasicBlock> blocks = new ArrayList<>();
         BasicBlock curBlock;
@@ -210,7 +227,7 @@ public class JumpReorder {
                     }
 
                     // update block with new CJUMP
-                    curBlock.statements.remove(curBlock.statements.size()-1); //remove last stmt
+                    curBlock.statements.remove(curBlock.statements.size()-1);
                     curBlock.statements.add(newCjump);
                     curBlock.endingStatement = Optional.of(newCjump);
                 } else if (curEndingStmt instanceof IRJump){
@@ -243,6 +260,11 @@ public class JumpReorder {
     }
 
 
+    /**
+     * Populate basicBlockMap with blocks initialized with their next block's label
+     * @param basicBlocks basic blocks
+     * @return list of BasicBlock with nextLabel added to each block
+     */
     private List<BasicBlock> addNextLabel(List<BasicBlock> basicBlocks) {
         List<BasicBlock> blocks = new ArrayList<>();
 
@@ -250,7 +272,6 @@ public class JumpReorder {
             BasicBlock cur = basicBlocks.get(i);
             BasicBlock nxt = basicBlocks.get(i+1);
             BasicBlock withLabel = new BasicBlock(cur.label, cur.statements, cur.endingStatement, Optional.of(nxt.label));
-            System.out.println();
             basicBlocksMap.put(cur.label, withLabel);
             blocks.add(withLabel);
         }
@@ -307,9 +328,9 @@ public class JumpReorder {
     }
 
     /**
-     * Connect the basic blocks in blocks according to their control flow.
-     * @param block root block to connect
-     * @return the root node for the connected CFG
+     * Recursively connect the basic blocks in blocks according to their control flow.
+     * @param block first basic block in trace
+     * @return root of CFG
      */
     private BasicBlock connectBlocks(BasicBlock block){
         Optional<IRStmt> endingStmt = block.endingStatement;
@@ -333,25 +354,41 @@ public class JumpReorder {
         return block;
     }
 
+
     /**
-     *  Greedily construct a trace from the CFG.
+     *  Construct the final trace which includes an epilogue.
      * @param root the root of a CFG
      * @return the trace
      */
     private List<BasicBlock> buildTrace(BasicBlock root) {
+        //get trace body
+        List<BasicBlock> trace = buildTraceBody(root);
+
+        //add epilogue
+        BasicBlock epilogueBlock = originalBasicBlocks.get(originalBasicBlocks.size()-1);
+        trace.add(epilogueBlock);
+
+        return trace;
+    }
+
+    /**
+     *  Greedily construct a trace from the CFG.
+     * @param root the root of a CFG
+     * @return the trace body
+     */
+    private List<BasicBlock> buildTraceBody(BasicBlock root) {
         List<BasicBlock> trace = new ArrayList<>();
         BasicBlock cur = root;
         if (cur == null) { return trace; }
 
         if (!cur.visited){
             cur.visited = true;
-
             if (cur.nextBlockLabel.isPresent()){
                 trace.add(cur);
             }
             if (cur.children.size() != 0){
                 for (BasicBlock child : cur.children){
-                    trace.addAll(buildTrace(child));
+                    trace.addAll(buildTraceBody(child));
                 }
             }
         }
