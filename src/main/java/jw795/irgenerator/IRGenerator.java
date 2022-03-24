@@ -383,7 +383,7 @@ public class IRGenerator extends Visitor {
         lst.add(irFactory.IRLabel(falseL));
         if(node.elseClause.ir instanceof IRStmt){
             //avoid the edge case where the stmt is a single valdeclare stmt and therefore just an irexpr
-            lst.add((IRStmt) node.ifClause.ir);
+            lst.add((IRStmt) node.elseClause.ir);
         }
         lst.add(irFactory.IRLabel(endL));
         node.ir = irFactory.IRSeq(lst);
@@ -465,14 +465,6 @@ public class IRGenerator extends Visitor {
 
             node.ir = irFactory.IRSeq(lst);
         } else {
-
-            if(node.leftVal.getir() == null){
-                System.out.println("left is null");
-            }if(node.expr.ir == null ){
-                System.out.println("expr is null");
-                System.out.println(node.expr.toString());
-            }
-
             node.ir = irFactory.IRMove(node.leftVal.getir(), node.expr.ir);
         }
     }

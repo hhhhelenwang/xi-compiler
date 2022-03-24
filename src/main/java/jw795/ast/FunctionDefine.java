@@ -47,7 +47,7 @@ public class FunctionDefine extends ASTNode implements Definition{
     }
 
     /**
-     * First enter a scope, and thenput in fun arg and return
+     * First enter a scope, and then put in fun arg and return
      * @param visitor
      */
     @Override
