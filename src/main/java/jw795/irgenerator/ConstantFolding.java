@@ -82,7 +82,7 @@ public class ConstantFolding {
                 return irFactory.IRJump(irFactory.IRName(node.trueLabel()));
             }
         }
-        return node;
+        return irFactory.IRCJump(e,node.trueLabel(),node.falseLabel());
     }
 
 

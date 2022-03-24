@@ -227,8 +227,9 @@ public class IRGenerator extends Visitor {
         stmts.add(irFactory.IRLabel(lh2));
         stmts.add(C(irFactory.IRBinOp(LT, j, a2L), l12, le2));
         stmts.add(irFactory.IRLabel(l12));
-        cur = irFactory.IRBinOp(ADD, arrayStart, irFactory.IRBinOp(ADD, a2L,
-                irFactory.IRBinOp(MUL, j, irFactory.IRConst(8L))));
+        cur = irFactory.IRBinOp(ADD, arrayStart, irFactory.IRBinOp(ADD,
+                irFactory.IRBinOp(MUL, j, irFactory.IRConst(8L)),
+                irFactory.IRBinOp(MUL,i, irFactory.IRConst(8L))));
         IRBinOp cur2 = irFactory.IRBinOp(ADD, a2, irFactory.IRBinOp(MUL, j, irFactory.IRConst(8L)));
         stmts.add(irFactory.IRMove(irFactory.IRMem(cur), irFactory.IRMem(cur2)));
         stmts.add(irFactory.IRMove(j, irFactory.IRBinOp(ADD, j, irFactory.IRConst(1L))));
