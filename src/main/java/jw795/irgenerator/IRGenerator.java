@@ -442,7 +442,9 @@ public class IRGenerator extends Visitor {
     public void visitAssign(AssignStmt node) throws Exception {
         if (node.leftVal instanceof LeftValueList) {
             //guarantee to be multiple return
-            long length = funcRetLengths.get(node.expr);
+            FunCallExpr rig= (FunCallExpr) node.expr;
+            String nam = rig.name;
+            long length = funcRetLengths.get(nam);
             IRCall func = (IRCall) node.expr.ir;
             LinkedList<IRStmt> lst = new LinkedList<>();
 

@@ -1,23 +1,26 @@
 use io
 
-
 glvar:int
 donothing(){
 
 }
 dosth(a:int, b:bool): int{
+    y:int
     if(b){
-    return a
+    y = a
     }else{
-    return -a
+    y = -a
     }
+    return y
 }
 domul(a:int, b:bool): int, bool{
+    x:int;
     if(b){
-    return a, b
+    x = a
     }else{
-    return -a, b
+    x = -a
     }
+    return x, b
 }
 
 main(args: int[][]){
