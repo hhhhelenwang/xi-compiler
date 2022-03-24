@@ -109,8 +109,8 @@ public class JumpReorder {
         List<BasicBlock> fallThroughedTrace = enableFallThrough(trace);
         List<BasicBlock> addedJumpTrace = addJumps(fallThroughedTrace);
         List<BasicBlock> removeJumpsTrace = removeJumps(addedJumpTrace);
-        List<BasicBlock> cleanUpedTrace = removeLabels(removeJumpsTrace);
-        List<IRStmt> finalTrace = flatten(cleanUpedTrace);
+//        List<BasicBlock> cleanUpedTrace = removeLabels(removeJumpsTrace);
+        List<IRStmt> finalTrace = flatten(removeJumpsTrace);
         return irFactory.IRSeq(finalTrace);
     }
 
