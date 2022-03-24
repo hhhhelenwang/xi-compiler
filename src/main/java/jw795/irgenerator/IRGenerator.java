@@ -338,7 +338,9 @@ public class IRGenerator extends Visitor {
         for (Statement s: node.statements) {
             if(s.ir instanceof IRStmt) {
                 seq.add((IRStmt) s.ir);
-            }else{
+            } else if (s.ir instanceof IRESeq) {
+                seq.add(((IRESeq) s.ir).stmt());
+            } else{
                 //the left out case is vardeclarstmt, and it should not be print
             }
         }
@@ -476,12 +478,15 @@ public class IRGenerator extends Visitor {
     @Override
     public void visitVarDecl(VarDeclareStmt node) throws Exception {
         if (node.varType instanceof ArrayType) {
-            node.ir = irFactory.IRSeq(
+            node.ir = irFactory.IRESeq(
+                    irFactory.IRSeq(
                             arrayDeclAllocate(
                                     node.identifier,
                                     (ArrayType) node.varType
                             )
-                    );
+                    ),
+                    irFactory.IRTemp(node.identifier)
+            );
         } else {
              node.ir = irFactory.IRTemp(node.identifier);
         }
@@ -548,6 +553,7 @@ public class IRGenerator extends Visitor {
                                 subArray
                         )
                 );
+                stmts.add(irFactory.IRMove(cur, irFactory.IRBinOp(ADD, cur, irFactory.IRConst(1L))));
                 stmts.add(irFactory.IRJump(irFactory.IRName(lh)));
                 stmts.add(irFactory.IRLabel(le));
             }
