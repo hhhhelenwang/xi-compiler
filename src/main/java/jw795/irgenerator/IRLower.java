@@ -127,6 +127,7 @@ public class IRLower {
         } else if (node instanceof IRESeq) {
             return lowerESeq((IRESeq) node);
         } else {
+            System.out.println("unhandle lower expr class");
             return null;
         }
     }
