@@ -51,9 +51,6 @@ public class JumpReorder {
     private String doneLable;
     private IRNodeFactory_c irFactory;
 
-    IRCompUnit ir; // the ir to reorder
-    BasicBlock cfg; // the control flow graph built from ir
-
     public JumpReorder() {
         this.irFactory = new IRNodeFactory_c();
         this.basicBlocksMap = new HashMap<>();
@@ -89,9 +86,6 @@ public class JumpReorder {
                 basicBlocksMap = new HashMap<>();
                 BasicBlock root = buildCFG(((IRSeq)function.body()));
                 List<BasicBlock> trace = buildTrace(root);
-//                System.out.println("===trace===");
-//                printBlocks(trace);
-//                System.out.println(trace.size() + " trace SIZE is");
                 body = fixJumps(trace);
             }
             reorderedFunDecl.put(function.name(), irFactory.IRFuncDecl(function.name(), body));
@@ -113,26 +107,9 @@ public class JumpReorder {
      */
     private IRSeq fixJumps (List<BasicBlock> trace) {
         List<BasicBlock> fallThroughedTrace = enableFallThrough(trace);
-//        System.out.println("===fallThroughedTrace===");
-//        printBlocks(fallThroughedTrace);
-//        System.out.println(fallThroughedTrace.size() + " fallThroughedTrace SIZE is");
-
         List<BasicBlock> addedJumpTrace = addJumps(fallThroughedTrace);
-
-//        System.out.println("===addedJumpTrace===");
-//        printBlocks(addedJumpTrace);
-//        System.out.println(addedJumpTrace.size() + " addedJumpTrace SIZE is");
-
         List<BasicBlock> removeJumpsTrace = removeJumps(addedJumpTrace);
-        System.out.println("===removeJumps===");
-        printBlocks(removeJumpsTrace);
-        System.out.println(removeJumpsTrace.size() + " removeJumps SIZE is");
-
         List<BasicBlock> cleanUpedTrace = removeLabels(removeJumpsTrace);
-        System.out.println("===removeLabels===");
-        printBlocks(cleanUpedTrace);
-        System.out.println(cleanUpedTrace.size() + " cleanUpedTrace SIZE is");
-
         List<IRStmt> finalTrace = flatten(cleanUpedTrace);
         return irFactory.IRSeq(finalTrace);
     }
@@ -171,7 +148,6 @@ public class JumpReorder {
      */
     private List<BasicBlock> removeUnusedLabels(HashSet<String> labels, List<BasicBlock> trace) {
         for (BasicBlock block : trace){
-            System.out.println(block.label);
             if (!labels.contains(block.label)){
                 block.statements.remove(0);
             }
@@ -187,7 +163,6 @@ public class JumpReorder {
     private HashSet<String> findUsedLabels(List<BasicBlock> trace) {
         HashSet<String> labels = new HashSet<>();
         for (BasicBlock block : trace){
-            printBlock(block);
             if (block.endingStatement.isPresent()){
                 IRStmt endingStmt = block.endingStatement.get();
                 if ( endingStmt instanceof IRCJump){
@@ -341,8 +316,6 @@ public class JumpReorder {
     private BasicBlock buildCFG(IRSeq ir){
         List<BasicBlock> basicBlocksInit = getBasicBlocks(ir);
         List<BasicBlock> basicBlocks = addNextLabel(basicBlocksInit);
-//        System.out.println("================BASIC BLOCKS==================");
-//        printBlocks(basicBlocks);
         originalBasicBlocks = basicBlocks;
         BasicBlock root = basicBlocks.get(0);
         return connectBlocks(root);
@@ -364,24 +337,17 @@ public class JumpReorder {
                     cur.statements,
                     cur.endingStatement,
                     Optional.of(nxt.label));
-            System.out.println(cur.endingStatement);
 
             basicBlocksMap.put(cur.label, withLabel);
             blocks.add(withLabel);
         }
+        // handle epilogue
         BasicBlock lastBlock = basicBlocks.get(basicBlocks.size()-1);
-        printBlock(lastBlock);
-        System.out.println(lastBlock.statements);
-        System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         BasicBlock lastBlockWLabel = new BasicBlock(lastBlock.label,
                 lastBlock.statements,
                 lastBlock.endingStatement,
                 Optional.empty());
-
         basicBlocksMap.put(lastBlock.label, lastBlockWLabel);
-
-//        BasicBlock epilogue = new BasicBlock(doneLable, new ArrayList<>(), Optional.of(irFactory.IRJump(irFactory.IRName(doneLable))), Optional.empty());
-//        basicBlocksMap.put(doneLable, epilogue);
         blocks.add(lastBlockWLabel);
 
         return blocks;
