@@ -19,7 +19,7 @@ public class ConstantFoldingAst {
         for(Definition d : node.definitions){
             result.add(foldDefinition(d));
         }
-        return new Program(node.uses,node.definitions,node.getLine(), node.getCol());
+        return new Program(node.uses,result,node.getLine(), node.getCol());
     }
 
     public Definition foldDefinition(Definition def){
@@ -41,23 +41,24 @@ public class ConstantFoldingAst {
     }
 
     public Statement foldStmt(Statement node){
-        System.out.println("get to fold stmt");
+//        System.out.println("get to fold stmt");
         if(node instanceof AssignStmt){
             return new AssignStmt(((AssignStmt) node).leftVal,
                     foldExpr(((AssignStmt) node).expr),
                     node.getLine(), node.getCol());
         }else if(node instanceof IfStmt){
-            System.out.println("get to if branch");
+//            System.out.println("get to if branch");
             Expr e = foldExpr(((IfStmt) node).condition);
             if (e instanceof BoolLiteral){
-                System.out.println("get to boolliteral branch");
+//                System.out.println("get to boolliteral branch");
                 if (((BoolLiteral) e).value == true){
-                    System.out.println("get to boolliteral true branch");
+//                    System.out.println("get to boolliteral true branch");
                     return foldStmt(((IfStmt) node).clause);
                 }else{
                     return new BlockStmt(new LinkedList<>(),node.getLine(),node.getCol() );
                 }
             }
+//            System.out.println("fall into normal if branch");
             return new IfStmt(e,
                     foldStmt(((IfStmt) node).clause),
                     node.getLine(), node.getCol()
