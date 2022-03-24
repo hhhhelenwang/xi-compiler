@@ -1,6 +1,5 @@
 package jw795.irgenerator;
 
-import edu.cornell.cs.cs4120.util.SExpPrinter;
 import edu.cornell.cs.cs4120.xic.ir.*;
 
 import java.util.*;
@@ -48,13 +47,13 @@ public class JumpReorder {
 
     public void printBlock(BasicBlock block){
         for (IRStmt stmt : block.statements) {
-            System.out.println(stmt);
+//            System.out.println(stmt);
         }
     }
 
     public void printBlocks(List<BasicBlock> blocks){
         for (BasicBlock block: blocks) {
-            System.out.println("======new block=======");
+//            System.out.println("======new block=======");
             printBlock(block);
         }
     }

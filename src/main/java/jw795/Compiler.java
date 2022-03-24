@@ -135,6 +135,10 @@ public class Compiler {
         }
     }
 
+    /**
+     * Parse a single file
+     * @param fileName input file
+     */
     public void parseFile(String fileName) {
         try {
             // Generate token file
@@ -146,6 +150,9 @@ public class Compiler {
         }
     }
 
+    /**
+     * Perform type check on all input files
+     */
     public void typeCheck(){
         if (cmd.hasOption("typecheck")) {
             files = cmd.getArgList();
@@ -156,6 +163,11 @@ public class Compiler {
             }
         }
     }
+
+    /**
+     * Type check a single file
+     * @param fileName input file
+     */
     public void typeCheckFile(String fileName) {
         try {
             // Generate token file
@@ -172,7 +184,6 @@ public class Compiler {
      * @param fileName the input xi file
      * @return an IRCompUnit which is the root node of generated IR
      */
-    // TODO: produce IR for one file
     public IRCompUnit generateIRForFile(String fileName) {
         IRGeneratorAdapter irGeneratorAdapter;
         if(cmd.hasOption("O")){
@@ -180,11 +191,12 @@ public class Compiler {
         }else{
             irGeneratorAdapter = new IRGeneratorAdapter(fileName, this.destPath, this.libPath, true);
         }
-        IRCompUnit ir = irGeneratorAdapter.generateIR();
-        return ir;
+        return irGeneratorAdapter.generateIR(); // nullable
     }
 
-    // TODO: generate IR
+    /**
+     * Generate IR for all input file.
+     */
     public void generateIR() {
         if (cmd.hasOption("irgen")) {
             this.files = cmd.getArgList();
@@ -195,19 +207,18 @@ public class Compiler {
 
     }
 
-    // TODO: generate IR for all input files, and run all generated IR file
+    /**
+     * Generate and run IR for all input files.
+     */
     public void runIR() {
         if (cmd.hasOption("irrun")) {
             this.files = cmd.getArgList();
             for (String file : files) {
                 IRCompUnit ir = generateIRForFile(file);
-                IRSimulator sim = new IRSimulator(ir);
-                //TODO:
-                // ??? so to interpret an ir we need to call its main function
-                // but how do we know if
-                // 1) it has a main function and
-                // 2) what should be passed in as arguments?
-                long result = sim.call("_Imain_paai", 1);
+                if (ir != null) {
+                    IRSimulator sim = new IRSimulator(ir);
+                    long result = sim.call("_Imain_paai", 1);
+                }
             }
 
         }
@@ -221,7 +232,6 @@ public class Compiler {
         } catch (ParseException e){
             System.out.println(e.getMessage());
         }
-//        System.out.println("Started >>>");
         compiler.help();
         compiler.setPaths();
         compiler.lex();
