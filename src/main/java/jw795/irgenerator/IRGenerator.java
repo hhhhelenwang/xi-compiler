@@ -14,10 +14,9 @@ import static edu.cornell.cs.cs4120.xic.ir.IRBinOp.OpType.*;
 
 public class IRGenerator extends Visitor {
     String filename;
-    IRNodeFactory_c irFactory;
+    IRNodeFactory_c irFactory = new IRNodeFactory_c();
     //use for global data and string
     HashMap<String,IRData> globalData;
-    //TODO: find out where to store definition of function, and also give a way to find it's return type
     //currently make it a hashmap, but should it?
     HashMap<String, String> funcNames;
     HashMap<String, Long> funcRetLengths;
@@ -28,7 +27,6 @@ public class IRGenerator extends Visitor {
 
     public IRGenerator(String filename, HashMap<String, String> funcNames, HashMap<String, Long> funcRetLengths){
         this.filename = filename;
-        this.irFactory = new IRNodeFactory_c();
         this.funcNames = funcNames;
         this.funcRetLengths = funcRetLengths;
         this.globalData = new HashMap<>();
