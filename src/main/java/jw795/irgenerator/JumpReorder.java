@@ -18,6 +18,7 @@ public class JumpReorder {
         Optional<IRStmt> endingStatement; // An endingStatement is either CJUMP, JUMP or RETURN
         Optional<String> nextBlockLabel; // Label of the next block after getBasicBlocks
         boolean visited = false;
+        boolean connected = false;
         List<BasicBlock> children = new ArrayList<>();
 
 
@@ -83,6 +84,11 @@ public class JumpReorder {
                 basicBlocksMap = new HashMap<>();
                 BasicBlock root = buildCFG(((IRSeq)function.body()));
                 List<BasicBlock> trace = buildTrace(root);
+                System.out.println("===trace===");
+                printBlocks(trace);
+                System.out.println(trace.size() + " trace SIZE is");
+
+
                 body = fixJumps(trace);
             }
             reorderedFunDecl.put(function.name(), irFactory.IRFuncDecl(function.name(), body));
@@ -254,6 +260,8 @@ public class JumpReorder {
     private BasicBlock buildCFG(IRSeq ir){
         List<BasicBlock> basicBlocksInit = getBasicBlocks(ir);
         List<BasicBlock> basicBlocks = addNextLabel(basicBlocksInit);
+        System.out.println("================BASIC BLOCKS==================");
+        printBlocks(basicBlocks);
         originalBasicBlocks = basicBlocks;
         BasicBlock root = basicBlocks.get(0);
         return connectBlocks(root);
@@ -327,30 +335,43 @@ public class JumpReorder {
         return blocks;
     }
 
-    /**
-     * Recursively connect the basic blocks in blocks according to their control flow.
-     * @param block first basic block in trace
-     * @return root of CFG
-     */
+        /**
+         * Recursively connect the basic blocks in blocks according to their control flow.
+         * @param block first basic block in trace
+         * @return root of CFG
+         */
     private BasicBlock connectBlocks(BasicBlock block){
+
         Optional<IRStmt> endingStmt = block.endingStatement;
+
+        // mark this block as connected
+        block.connected = true;
+        basicBlocksMap.put(block.label, block);
+
         if (endingStmt.isPresent()) {
-            if (endingStmt.get() instanceof IRCJump) {
-                BasicBlock trueChild = basicBlocksMap.get(((IRCJump) endingStmt.get()).trueLabel());
-                BasicBlock falseChild = basicBlocksMap.get(((IRCJump) endingStmt.get()).falseLabel());
-                block.children.add(connectBlocks(trueChild));
-                block.children.add(connectBlocks(falseChild));
-            } else if (endingStmt.get() instanceof IRJump){
-                BasicBlock child = basicBlocksMap.get(((IRJump) endingStmt.get()).target().label().substring(5,7));
-                block.children.add(connectBlocks(child));
+                if (endingStmt.get() instanceof IRCJump) {
+                    BasicBlock trueChild = basicBlocksMap.get(((IRCJump) endingStmt.get()).trueLabel());
+                    BasicBlock falseChild = basicBlocksMap.get(((IRCJump) endingStmt.get()).falseLabel());
+                    if (!basicBlocksMap.get(trueChild.label).connected){
+                        block.children.add(connectBlocks(trueChild));
+                    }
+                    if (!basicBlocksMap.get(falseChild.label).connected){
+                        block.children.add(connectBlocks(falseChild));
+                    }
+                } else if (endingStmt.get() instanceof IRJump){
+                    BasicBlock child = basicBlocksMap.get(((IRJump) endingStmt.get()).target().label().substring(5,7));
+                    if (!basicBlocksMap.get(child.label).connected) {
+                        block.children.add(connectBlocks(child));
+                    }
+                }
+            } else {
+                //Blocks not end with IRCJUMP, IRJUMP has the follow up block as their child
+                if (block.nextBlockLabel.isPresent()){
+                    String nextLabel = block.nextBlockLabel.get();
+                    block.children.add(connectBlocks((basicBlocksMap.get(nextLabel))));
+                }
             }
-        } else {
-            //Blocks not end with IRCJUMP, IRJUMP has the follow up block as their child
-            if (block.nextBlockLabel.isPresent()){
-                String nextLabel = block.nextBlockLabel.get();
-                block.children.add(connectBlocks((basicBlocksMap.get(nextLabel))));
-            }
-        }
+
         return block;
     }
 
