@@ -84,11 +84,9 @@ public class JumpReorder {
                 basicBlocksMap = new HashMap<>();
                 BasicBlock root = buildCFG(((IRSeq)function.body()));
                 List<BasicBlock> trace = buildTrace(root);
-                System.out.println("===trace===");
-                printBlocks(trace);
-                System.out.println(trace.size() + " trace SIZE is");
-
-
+//                System.out.println("===trace===");
+//                printBlocks(trace);
+//                System.out.println(trace.size() + " trace SIZE is");
                 body = fixJumps(trace);
             }
             reorderedFunDecl.put(function.name(), irFactory.IRFuncDecl(function.name(), body));
@@ -260,8 +258,8 @@ public class JumpReorder {
     private BasicBlock buildCFG(IRSeq ir){
         List<BasicBlock> basicBlocksInit = getBasicBlocks(ir);
         List<BasicBlock> basicBlocks = addNextLabel(basicBlocksInit);
-        System.out.println("================BASIC BLOCKS==================");
-        printBlocks(basicBlocks);
+//        System.out.println("================BASIC BLOCKS==================");
+//        printBlocks(basicBlocks);
         originalBasicBlocks = basicBlocks;
         BasicBlock root = basicBlocks.get(0);
         return connectBlocks(root);
