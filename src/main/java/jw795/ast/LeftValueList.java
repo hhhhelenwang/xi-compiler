@@ -37,8 +37,8 @@ public class LeftValueList extends ASTNode implements LValue{
     }
 
     @Override
-    //TODO:implement this
     public IRExpr getir() {
-        return null;
+        System.out.println("you are call leftvaluelist.ir, it should not be call");
+        return null;// should not be call
     }
 }
