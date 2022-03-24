@@ -156,7 +156,6 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitVar(VarExpr node) throws Exception {
-        //TODO: what is memtype for this ir mem
         if(globalData.containsKey(node.identifier)){
             node.ir = irFactory.IRMem(irFactory.IRName("_" + node.identifier));
         } else {
@@ -228,7 +227,8 @@ public class IRGenerator extends Visitor {
         stmts.add(irFactory.IRLabel(lh2));
         stmts.add(C(irFactory.IRBinOp(LT, j, a2L), l12, le2));
         stmts.add(irFactory.IRLabel(l12));
-        cur = irFactory.IRBinOp(ADD, arrayStart, irFactory.IRBinOp(ADD, a2L, irFactory.IRBinOp(MUL, j, irFactory.IRConst(8L))));
+        cur = irFactory.IRBinOp(ADD, arrayStart, irFactory.IRBinOp(ADD, a2L,
+                irFactory.IRBinOp(MUL, j, irFactory.IRConst(8L))));
         IRBinOp cur2 = irFactory.IRBinOp(ADD, a2, irFactory.IRBinOp(MUL, j, irFactory.IRConst(8L)));
         stmts.add(irFactory.IRMove(irFactory.IRMem(cur), irFactory.IRMem(cur2)));
         stmts.add(irFactory.IRMove(j, irFactory.IRBinOp(ADD, j, irFactory.IRConst(1L))));
@@ -318,7 +318,8 @@ public class IRGenerator extends Visitor {
     public void visitFunCallExpr(FunCallExpr node) throws Exception {
         if (node.name == "length") {
             IRTemp len = irFactory.IRTemp(nextTemp());
-            IRMove stmt = irFactory.IRMove(len, irFactory.IRBinOp(SUB, node.arguments.get(0).ir, irFactory.IRConst(8L)));
+            IRMove stmt = irFactory.IRMove(len, irFactory.IRBinOp(SUB, node.arguments.get(0).ir,
+                    irFactory.IRConst(8L)));
             node.ir = irFactory.IRESeq(stmt, irFactory.IRMem(len));
         } else {
             List<Expr> args = node.arguments;
@@ -384,7 +385,7 @@ public class IRGenerator extends Visitor {
         lst.add(irFactory.IRLabel(falseL));
         if(node.elseClause.ir instanceof IRStmt){
             //avoid the edge case where the stmt is a single valdeclare stmt and therefore just an irexpr
-            lst.add((IRStmt) node.ifClause.ir);
+            lst.add((IRStmt) node.elseClause.ir);
         }
         lst.add(irFactory.IRLabel(endL));
         node.ir = irFactory.IRSeq(lst);
@@ -466,14 +467,6 @@ public class IRGenerator extends Visitor {
 
             node.ir = irFactory.IRSeq(lst);
         } else {
-
-            if(node.leftVal.getir() == null){
-                System.out.println("left is null");
-            }if(node.expr.ir == null ){
-                System.out.println("expr is null");
-                System.out.println(node.expr.toString());
-            }
-
             node.ir = irFactory.IRMove(node.leftVal.getir(), node.expr.ir);
         }
     }
@@ -705,10 +698,11 @@ public class IRGenerator extends Visitor {
             } else if (e instanceof BoolLiteral) {
                 return new long[] {((BoolLiteral) e).value? 1L:0L};
             } else if (e instanceof StringLit) {
-                int n = ((StringLit) e).str.length();
-                System.out.println(n);
+                String nstr = ((StringLit) e).str;
+                nstr = replacespecial(nstr);
+                int n = nstr.length();
                 long[] result = new long[n+1];
-                char[] ch=((StringLit) e).str.toCharArray();
+                char[] ch= nstr.toCharArray();
                 result[0] = n;
                 for (int i = 0; i < n; i++) {
                     result[i+1] = ch[i];
@@ -718,6 +712,13 @@ public class IRGenerator extends Visitor {
         }
         System.out.println("unexpected case in exportVal");
         return null;
+    }
+
+    private String replacespecial(String nstr) {
+        //looking at lex.jflex, there seems to be only one special case
+        String result = nstr.replace("\\n", "\n");
+//        result = result.replace("\\");
+        return result;
     }
 
     private String nextLabel() {
@@ -737,4 +738,5 @@ public class IRGenerator extends Visitor {
         stringCounter++;
         return result;
     }
+
 }

@@ -2,6 +2,7 @@ package jw795.irgenerator;
 
 import edu.cornell.cs.cs4120.xic.ir.*;
 
+import java.math.BigInteger;
 import java.util.*;
 
 public class ConstantFolding {
@@ -47,7 +48,6 @@ public class ConstantFolding {
         }else if (node instanceof IRJump) {
             return node;
         }
-        System.out.print("sth is left in constantfold ir");
         return node;
     }
 
@@ -107,7 +107,7 @@ public class ConstantFolding {
         } else if (node instanceof IRMem) {
             return node;
         } else if (node instanceof IRESeq) {
-            System.out.println("we should not see eseq at IR lower right?");
+            // no eseq after lowering
         }
         return  node;
     }
@@ -116,8 +116,8 @@ public class ConstantFolding {
         IRExpr foldedleft = foldExpr(node.left());
         IRExpr foldedright = foldExpr(node.right());
         if(foldedleft instanceof IRConst && foldedright instanceof  IRConst){
-            long fleft = ((IRConst) foldExpr(node.left())).value();
-            long fright = ((IRConst) foldExpr(node.right())).value();
+            long fleft = ((IRConst)foldedleft).value();
+            long fright = ((IRConst)foldedright).value();
             IRExpr result = foldtwoconst(fleft, fright,node.opType());
             if(result == null){
                 return node;
@@ -135,6 +135,15 @@ public class ConstantFolding {
         else if(foldedright instanceof IRConst){
             long cons =  ((IRConst) foldedright).value();
             IRExpr result = foldoneconst(cons, foldedleft, node.opType());
+            if (cons == 0){
+                if (node.opType() == IRBinOp.OpType.SUB){
+                    result = foldedleft;
+                }
+            }else if(cons == 1){
+                if (node.opType() == IRBinOp.OpType.DIV){
+                    result = foldedleft;
+                }
+            }
             if(result == null){
                 return node;
             }
@@ -153,7 +162,13 @@ public class ConstantFolding {
             case MUL:
                 return irFactory.IRConst(fleft * fright);
             case HMUL:
-                return irFactory.IRConst(fleft * fright);
+                BigInteger v1 = new BigInteger(String.valueOf(fleft));
+                BigInteger v2 = new BigInteger(String.valueOf(fright));
+                BigInteger v64 = new BigInteger(String.valueOf(2^64));
+                BigInteger val = v1.multiply(v2);
+                val  = val.subtract(val.mod(v64));
+                val =val.divide(v64);
+                return irFactory.IRConst(val.longValue());
             case DIV:
                 return irFactory.IRConst(fleft / fright);
             case MOD:
@@ -166,11 +181,11 @@ public class ConstantFolding {
                 long value = ((-(fleft - 1)) & fright) | ((-(fright - 1)) & fleft);
                 return irFactory.IRConst(value);
             case LSHIFT:
-                return irFactory.IRConst((long) (fleft * Math.pow(2, fright)));
+                return irFactory.IRConst(fleft << fright);
             case RSHIFT:
-                return irFactory.IRConst((long) (fleft / Math.pow(2, fright)));
+                return irFactory.IRConst(fleft >>> fright);
             case ARSHIFT:
-                return irFactory.IRConst((long) (fleft / Math.pow(2, fright)));
+                return irFactory.IRConst(fleft >> fright);
             case EQ:
                 if (fleft == fright) {
                     return irFactory.IRConst(1);
@@ -190,8 +205,7 @@ public class ConstantFolding {
                     return irFactory.IRConst(0);
                 }
             case ULT:
-                //TODO: what is ULT
-                return null;
+                return irFactory.IRConst(fleft < fright ^ fleft < 0 != fright < 0 ? 1 : 0);
             case GT:
                 if (fleft > fright) {
                     return irFactory.IRConst(1);
@@ -211,7 +225,7 @@ public class ConstantFolding {
                     return irFactory.IRConst(0);
                 }
         }
-        return null;
+        return null;//should not reach here
     }
     public IRExpr foldoneconst (long cons, IRExpr expr, IRBinOp.OpType type) {
         switch (type) {
@@ -219,16 +233,20 @@ public class ConstantFolding {
                 if(cons == 0){
                     return expr;
                 }
+                break;
             case SUB:
-                if(cons == 0){
-                    return expr;
-                }
+//                if(cons == 0){
+//                    return expr;
+//                }
+                break;
+
             case MUL:
                 if(cons == 0){
                     return irFactory.IRConst(0);
                 }else if(cons == 1){
                     return expr;
                 }
+                break;
             case AND:
                 if(cons == 0){
                     return irFactory.IRConst(0);
