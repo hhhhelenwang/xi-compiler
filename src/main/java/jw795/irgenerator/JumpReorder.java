@@ -44,10 +44,10 @@ public class JumpReorder {
         }
     }
 
-    HashMap<String, BasicBlock> basicBlocksMap;// basicBlocksMap maps Label string to its basicBlock
-    List<BasicBlock> originalBasicBlocks; // the list of basicBlocks after grouping IR codes to block
-    String doneLable;
-    IRNodeFactory_c irFactory;
+    private HashMap<String, BasicBlock> basicBlocksMap;// basicBlocksMap maps Label string to its basicBlock
+    private List<BasicBlock> originalBasicBlocks; // the list of basicBlocks after grouping IR codes to block
+    private String doneLable;
+    private IRNodeFactory_c irFactory;
 
     IRCompUnit ir; // the ir to reorder
     BasicBlock cfg; // the control flow graph built from ir
@@ -384,7 +384,8 @@ public class JumpReorder {
                         block.children.add(connectBlocks(falseChild));
                     }
                 } else if (endingStmt.get() instanceof IRJump){
-                    BasicBlock child = basicBlocksMap.get(((IRJump) endingStmt.get()).target().label().substring(5,7));
+                    String label = ((IRJump) endingStmt.get()).target().label();
+                    BasicBlock child = basicBlocksMap.get(label.substring(5,label.length()-1));
                     if (!basicBlocksMap.get(child.label).connected) {
                         block.children.add(connectBlocks(child));
                     }
