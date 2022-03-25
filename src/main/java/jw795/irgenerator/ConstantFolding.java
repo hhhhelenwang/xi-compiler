@@ -9,11 +9,20 @@ public class ConstantFolding {
     IRCompUnit original;
     IRNodeFactory_c irFactory;
 
+    /**
+     * class to fold an IRCompUnit node
+     * @param node
+     */
+
     ConstantFolding(IRCompUnit node){
         this.original = node;
         this.irFactory = new IRNodeFactory_c();
     }
 
+    /**
+     * Call this function to get a folded IRCompUnit
+     * @return IRCompUnit
+     */
     public IRCompUnit foldComp(){
         Map<String, IRFuncDecl> functions = this.original.functions();
         Map<String, IRFuncDecl> foldedFunctions = new HashMap<>();
@@ -30,6 +39,11 @@ public class ConstantFolding {
         return result;
     }
 
+    /**
+     * Helper function to fold all stmt
+     * @param node
+     * @return IRStmt
+     */
     public IRStmt foldStmt(IRStmt node){
         if (node instanceof IRSeq) {
             return foldSeq((IRSeq) node);
@@ -51,6 +65,11 @@ public class ConstantFolding {
         return node;
     }
 
+    /**
+     * Helper Func to fold IRSeq
+     * @param node
+     * @return IRStmt
+     */
     public IRStmt foldSeq(IRSeq node){
         LinkedList<IRStmt> lst = new LinkedList<>();
         for (IRStmt s: node.stmts()){
@@ -58,6 +77,12 @@ public class ConstantFolding {
         }
         return irFactory.IRSeq(lst);
     }
+
+    /**
+     * Helper Func to fold IRReturn
+     * @param node
+     * @return IRStmt
+     */
     public IRStmt foldReturn(IRReturn node){
         LinkedList<IRExpr> lst = new LinkedList<>();
         for (IRExpr e: node.rets()){
@@ -65,6 +90,12 @@ public class ConstantFolding {
         }
         return irFactory.IRReturn(lst);
     }
+
+    /**
+     * Helper Func to fold IRCallStmt
+     * @param node
+     * @return IRStmt
+     */
     public IRStmt foldCallStmt(IRCallStmt node){
         LinkedList<IRExpr> lst = new LinkedList<>();
         for (IRExpr e: node.args()){
@@ -73,6 +104,11 @@ public class ConstantFolding {
         return irFactory.IRCallStmt(node.target(),node.n_returns(),lst);
     }
 
+    /**
+     * Helper Func to fold IRCJump
+     * @param node
+     * @return IRStmt
+     */
     public IRStmt foldCJump(IRCJump node){
         IRExpr e = foldExpr(node.cond());
         if(e instanceof IRConst){
@@ -85,7 +121,11 @@ public class ConstantFolding {
         return irFactory.IRCJump(e,node.trueLabel(),node.falseLabel());
     }
 
-
+    /**
+     * Helper Func to fold all Expr
+     * @param node
+     * @return IRExpr
+     */
     public IRExpr foldExpr(IRExpr node){
         // match the node against all IR expressions
         if (node instanceof IRConst) {
@@ -112,6 +152,12 @@ public class ConstantFolding {
         return  node;
     }
 
+
+    /**
+     * Helper Func to fold IRBinop
+     * @param node
+     * @return IRExpr
+     */
     public IRExpr foldBiNop(IRBinOp node) {
         IRExpr foldedleft = foldExpr(node.left());
         IRExpr foldedright = foldExpr(node.right());
@@ -153,6 +199,13 @@ public class ConstantFolding {
         return node;
     }
 
+    /**
+     * Helper Func to calculate result of IRBinop
+     * @param fleft
+     * @param fright
+     * @param type
+     * @return IRExpr
+     */
     public IRExpr foldtwoconst (long fleft, long fright, IRBinOp.OpType type) {
         switch (type) {
             case ADD:
@@ -227,6 +280,15 @@ public class ConstantFolding {
         }
         return null;//should not reach here
     }
+
+    /**
+     * Helper Func to calculate special result with IRBinop with variable,
+     * and only for binop that are not left right sensitive
+     * @param cons
+     * @param type
+     * @param expr
+     * @return IRExpr
+     */
     public IRExpr foldoneconst (long cons, IRExpr expr, IRBinOp.OpType type) {
         switch (type) {
             case ADD:
