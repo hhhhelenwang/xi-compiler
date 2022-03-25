@@ -99,6 +99,7 @@ xic ("Test --irgen") ["./test/pa4"]"-libpath $(testpath) --irgen" {
     //testCJumpFallThrough.xi;
     //testRedundantLabelOrJumps.xi;
     testsideeffect.xi;
+    testlength.xi;
 }
 
 
@@ -126,7 +127,7 @@ xic ("Test --irgen -O") ["./test/pa4"]"-libpath $(testpath) --irgen -O" {
     //testCJumpFallThrough.xi;
     //testRedundantLabelOrJumps.xi;
     testsideeffect.xi;
-
+    testlength.xi;
  }
 
 
