@@ -202,7 +202,7 @@ public class ConstantFolding {
      * Helper Func to calculate result of IRBinop
      * @param fleft a folded left-expression of a binop
      * @param fright a folded right-expression of a binop
-     * @param type the type if the binop operator
+     * @param type the type of the binop operator
      * @return IRExpr folded expression
      */
     public IRExpr foldtwoconst (long fleft, long fright, IRBinOp.OpType type) {

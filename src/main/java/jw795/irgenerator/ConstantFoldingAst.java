@@ -7,7 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Perform constant folding at AST level.
+ * Perform constant folding at AST level
  */
 public class ConstantFoldingAst {
     Program node;
@@ -133,7 +133,7 @@ public class ConstantFoldingAst {
 
     /**
      * Helper function to fold all Expr node
-     * @param node
+     * @param node an expression node
      * @return folded expr
      */
     public Expr foldExpr(Expr node){

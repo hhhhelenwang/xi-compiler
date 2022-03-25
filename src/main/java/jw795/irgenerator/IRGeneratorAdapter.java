@@ -66,7 +66,6 @@ public class IRGeneratorAdapter {
                 File targetIrsol = generateTargetFile(fileName, destPath, "ir");
                 targetWriter = new FileWriter(targetIrsol);
 
-
                 // Generating IR
                 checkedProgram.accept(irVisitor);
                 IRCompUnit root = checkedProgram.ir;
