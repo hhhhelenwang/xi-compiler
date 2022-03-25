@@ -517,11 +517,12 @@ public class IRGenerator extends Visitor {
                 IRTemp tn = irFactory.IRTemp(nextTemp());
                 if (e.isPresent()) {
                     stmts.add(irFactory.IRMove(tn, e.get().ir));
+                    lengths.add(tn);
                 } else {
                     stmts.add(irFactory.IRMove(tn, irFactory.IRConst(0L)));
+                    lengths.add(tn);
                     break;
                 }
-                lengths.add(tn);
                 t = ((ArrayType) t).elemType;
             }
             stmts.addAll(arrayDeclAllocate(
@@ -569,10 +570,10 @@ public class IRGenerator extends Visitor {
         stmts.add(irFactory.IRMove(arrayStart, irFactory.IRBinOp(ADD, tm, irFactory.IRConst(8L))));
         stmts.add(irFactory.IRMove(irFactory.IRMem(tm), curLayerLength));
         if (lengths.peek() != null) {
-            String goToNextLayer = nextLabel();
-            String stop = nextLabel();
-            stmts.add(C(irFactory.IRBinOp(GT, curLayerLength, irFactory.IRConst(0L)), goToNextLayer, stop));
-            stmts.add(irFactory.IRLabel(goToNextLayer));
+//            String goToNextLayer = nextLabel();
+//            String stop = nextLabel();
+//            stmts.add(C(irFactory.IRBinOp(GT, curLayerLength, irFactory.IRConst(0L)), goToNextLayer, stop));
+//            stmts.add(irFactory.IRLabel(goToNextLayer));
 
 //            IRTemp nextLayerLength = irFactory.IRTemp(nextTemp());
 //            Optional<Expr> e = ((ArrayType) arrType.elemType).length;
@@ -618,7 +619,7 @@ public class IRGenerator extends Visitor {
             stmts.add(irFactory.IRJump(irFactory.IRName(lh)));
             stmts.add(irFactory.IRLabel(le));
 
-            stmts.add(irFactory.IRLabel(stop));
+//            stmts.add(irFactory.IRLabel(stop));
         }
         stmts.add(irFactory.IRMove(irFactory.IRTemp(id), arrayStart));
         return stmts;
