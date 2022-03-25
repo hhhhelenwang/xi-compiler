@@ -508,17 +508,26 @@ public class IRGenerator extends Visitor {
     public void visitVarDecl(VarDeclareStmt node) {
         if (node.varType instanceof ArrayType) {
             List<IRStmt> stmts = new ArrayList<>();
-            Optional<Expr> e = ((ArrayType) node.varType).length;
-            IRTemp tn = irFactory.IRTemp(nextTemp());
-            if (e.isPresent()) {
-                stmts.add(irFactory.IRMove(tn, e.get().ir));
-            } else {
-                stmts.add(irFactory.IRMove(tn, irFactory.IRConst(0L)));
+
+            Type t = node.varType;
+            Queue<IRTemp> lengths = new LinkedList<>();
+
+            while (t instanceof ArrayType) {
+                Optional<Expr> e = ((ArrayType) node.varType).length;
+                IRTemp tn = irFactory.IRTemp(nextTemp());
+                if (e.isPresent()) {
+                    stmts.add(irFactory.IRMove(tn, e.get().ir));
+                } else {
+                    stmts.add(irFactory.IRMove(tn, irFactory.IRConst(0L)));
+                    break;
+                }
+                lengths.add(tn);
+                t = ((ArrayType) t).elemType;
             }
             stmts.addAll(arrayDeclAllocate(
                     node.identifier,
                     (ArrayType) node.varType,
-                    tn
+                    lengths
             ));
             node.ir = irFactory.IRESeq(
                     irFactory.IRSeq(stmts),
@@ -533,12 +542,13 @@ public class IRGenerator extends Visitor {
      * Translate an array declaration into IR
      * @param id id of the array
      * @param arrType type of the array
-     * @param curLayerLength the length of array to allocate for
+     * @param lengths the length of layers of array to allocate for
      * @return IR to allocate space for an array declaration
      */
-    private List<IRStmt> arrayDeclAllocate(String id, ArrayType arrType, IRTemp curLayerLength) {
+    private List<IRStmt> arrayDeclAllocate(String id, ArrayType arrType, Queue<IRTemp> lengths) {
         IRTemp tm = irFactory.IRTemp(nextTemp());
         List<IRStmt> stmts = new ArrayList<>();
+        IRTemp curLayerLength = lengths.poll();
         stmts.add(
                 irFactory.IRMove(
                         tm,
@@ -558,19 +568,19 @@ public class IRGenerator extends Visitor {
         IRTemp arrayStart = irFactory.IRTemp(nextTemp());
         stmts.add(irFactory.IRMove(arrayStart, irFactory.IRBinOp(ADD, tm, irFactory.IRConst(8L))));
         stmts.add(irFactory.IRMove(irFactory.IRMem(tm), curLayerLength));
-        if (arrType.elemType instanceof ArrayType) {
+        if (lengths.peek() != null) {
             String goToNextLayer = nextLabel();
             String stop = nextLabel();
             stmts.add(C(irFactory.IRBinOp(GT, curLayerLength, irFactory.IRConst(0L)), goToNextLayer, stop));
             stmts.add(irFactory.IRLabel(goToNextLayer));
 
-            IRTemp nextLayerLength = irFactory.IRTemp(nextTemp());
-            Optional<Expr> e = ((ArrayType) arrType.elemType).length;
-            if (e.isPresent()) {
-                stmts.add(irFactory.IRMove(nextLayerLength, e.get().ir));
-            } else {
-                stmts.add(irFactory.IRMove(nextLayerLength, irFactory.IRConst(0L)));
-            }
+//            IRTemp nextLayerLength = irFactory.IRTemp(nextTemp());
+//            Optional<Expr> e = ((ArrayType) arrType.elemType).length;
+//            if (e.isPresent()) {
+//                stmts.add(irFactory.IRMove(nextLayerLength, e.get().ir));
+//            } else {
+//                stmts.add(irFactory.IRMove(nextLayerLength, irFactory.IRConst(0L)));
+//            }
 
             String lh = nextLabel();
             String l1 = nextLabel();
@@ -584,7 +594,7 @@ public class IRGenerator extends Visitor {
             stmts.add(irFactory.IRLabel(lh));
             stmts.add(C(irFactory.IRBinOp(LT, cur, curLayerLength), l1, le));
             stmts.add(irFactory.IRLabel(l1));
-            List<IRStmt> createSubarray = arrayDeclAllocate(subArrayID, (ArrayType) arrType.elemType, nextLayerLength);
+            List<IRStmt> createSubarray = arrayDeclAllocate(subArrayID, (ArrayType) arrType.elemType, lengths);
             stmts.addAll(createSubarray);
             stmts.add(
                     irFactory.IRMove(
