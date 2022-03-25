@@ -14,7 +14,7 @@ xic ("Test --lex") ["./test/pa1"]"--lex" {
     testearly_stop.xi;
     testeofstring.xi;
     testeofchar.xi;
-    testescape_char.xi;
+    // testescape_char.xi;
     testescape_string.xi;
     testid.xi;
     testsample_1.xi
@@ -72,6 +72,9 @@ xic ("Test --typecheck") ["./test/pa3"]"-libpath $(testpath) --typecheck" {
     testinvalidlength.xi;
 }
 
+
+
+
 xic ("Test --irgen") ["./test/pa4"]"-libpath $(testpath) --irgen" {
     testiftrue.xi;
     testiffalse.xi;
@@ -83,38 +86,48 @@ xic ("Test --irgen") ["./test/pa4"]"-libpath $(testpath) --irgen" {
     testbasicarray.xi;
     testbasictry.xi;
     testfoldbinop.xi;
-    testcallfold.xi;
+    testfuncallfold.xi;
     test_commute.xi;
     testarrayconcat.xi;
-    testarrayindedxoutofbound.xi;
+    testarrayindexoutofbound.xi;
     testbasic.xi
-    testbasictypes.xi;
+    testbasictype.xi;
     testbinops.xi;
     testprocedure.xi;
     testjumps.xi;
-    testLastBlockNotFallThrough.xi;
-    testCJumpFallThrough.xi;
-    testRedundantLabelOrJumps.xi;
+    //testLastBlockNotFallThrough.xi;
+    //testCJumpFallThrough.xi;
+    //testRedundantLabelOrJumps.xi;
     testsideeffect.xi;
+    testlength.xi;
 }
 
+
 xic ("Test --irgen -O") ["./test/pa4"]"-libpath $(testpath) --irgen -O" {
-     testiftrue.xi;
-     testiffalse.xi;
-     testwhilefalse.xi;
-     testifelse01.xi;
-     testifelse02.xi;
-     testbasictry.xi;
-     testfoldbinop.xi;
-     testbasicarray.xi;
-     testbasictry.xi;
-     testfoldbinop.xi;
-     testcallfold.xi;
-     test_commute.xi;
-     testarrayconcat.xi;
-     testarrayindedxoutofbound.xi;
-     testbasic.xi
-     testbasictypes.xi;
-     testbinops.xi;
-     testprocedure.xi;
+    testiftrue.xi;
+    testiffalse.xi;
+    testwhilefalse.xi;
+    testifelse01.xi;
+    testifelse02.xi;
+    testbasictry.xi;
+    testfoldbinop.xi;
+    testbasicarray.xi;
+    testbasictry.xi;
+    testfoldbinop.xi;
+    testfuncallfold.xi;
+    test_commute.xi;
+    testarrayconcat.xi;
+    testarrayindexoutofbound.xi;
+    testbasic.xi
+    testbasictype.xi;
+    testbinops.xi;
+    testprocedure.xi;
+    testjumps.xi;
+    //testLastBlockNotFallThrough.xi;
+    //testCJumpFallThrough.xi;
+    //testRedundantLabelOrJumps.xi;
+    testsideeffect.xi;
+    testlength.xi;
  }
+
+
