@@ -56,12 +56,18 @@ public class JumpReorder {
         this.basicBlocksMap = new HashMap<>();
     }
 
+    /**
+     * helper function for printing Block
+     * */
     public void printBlock(BasicBlock block){
         for (IRStmt stmt : block.statements) {
             System.out.println(stmt);
         }
     }
 
+    /**
+     * helper function for printing list of BasicBlocks
+     * */
     public void printBlocks(List<BasicBlock> blocks){
         for (BasicBlock block: blocks) {
             System.out.println("======new block=======");
@@ -109,8 +115,8 @@ public class JumpReorder {
         List<BasicBlock> fallThroughedTrace = enableFallThrough(trace);
         List<BasicBlock> addedJumpTrace = addJumps(fallThroughedTrace);
         List<BasicBlock> removeJumpsTrace = removeJumps(addedJumpTrace);
-//        List<BasicBlock> cleanUpedTrace = removeLabels(removeJumpsTrace);
-        List<IRStmt> finalTrace = flatten(removeJumpsTrace);
+        List<BasicBlock> cleanUpedTrace = removeLabels(removeJumpsTrace);
+        List<IRStmt> finalTrace = flatten(cleanUpedTrace);
         return irFactory.IRSeq(finalTrace);
     }
 
@@ -148,7 +154,7 @@ public class JumpReorder {
      */
     private List<BasicBlock> removeUnusedLabels(HashSet<String> labels, List<BasicBlock> trace) {
         for (BasicBlock block : trace){
-            if (!labels.contains(block.label)){
+            if (!labels.contains(block.label) && block.statements.get(0) instanceof IRLabel){
                 block.statements.remove(0);
             }
         }
@@ -404,7 +410,6 @@ public class JumpReorder {
          * @return root of CFG
          */
     private BasicBlock connectBlocks(BasicBlock block){
-
         Optional<IRStmt> endingStmt = block.endingStatement;
 
         // mark this block as connected

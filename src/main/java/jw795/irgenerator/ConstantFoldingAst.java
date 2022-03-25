@@ -10,10 +10,18 @@ import java.util.List;
 public class ConstantFoldingAst {
     Program node;
 
+    /**
+     * Class to constant fold an AST program node
+     * @param node
+     */
     ConstantFoldingAst(Program node){
         this.node = node;
     }
 
+    /**
+     * Function to fold AST node
+     * @return return a folded program node
+     */
     public Program fold(){
         List<Definition> result = new LinkedList<>();
         for(Definition d : node.definitions){
@@ -22,6 +30,11 @@ public class ConstantFoldingAst {
         return new Program(node.uses,result,node.getLine(), node.getCol());
     }
 
+    /**
+     * fold def
+     * @param def
+     * @return
+     */
     public Definition foldDefinition(Definition def){
         if (def instanceof FunctionDefine){
             return new FunctionDefine(((FunctionDefine) def).name,
@@ -40,6 +53,12 @@ public class ConstantFoldingAst {
         return def;
     }
 
+
+    /**
+     * Helper function to fold all statement node
+     * @param node
+     * @return folded statement
+     */
     public Statement foldStmt(Statement node){
 //        System.out.println("get to fold stmt");
         if(node instanceof AssignStmt){
@@ -115,6 +134,12 @@ public class ConstantFoldingAst {
         return node;
     }
 
+
+    /**
+     * Helper function to fold all Expr node
+     * @param node
+     * @return folded expr
+     */
     public Expr foldExpr(Expr node){
         if(node instanceof BinOpExpr){
             return foldBinop((BinOpExpr) node);
@@ -163,6 +188,11 @@ public class ConstantFoldingAst {
         return node;
     }
 
+    /**
+     * Helper function to fold binop
+     * @param node
+     * @return
+     */
     public Expr foldBinop(BinOpExpr node){
         Expr val1 =  foldExpr(node.expr1);
         Expr val2 = foldExpr(node.expr2);
