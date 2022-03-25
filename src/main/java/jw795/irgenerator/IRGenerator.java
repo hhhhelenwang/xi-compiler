@@ -537,8 +537,7 @@ public class IRGenerator extends Visitor {
      * @return IR to allocate space for an array declaration
      */
     private List<IRStmt> arrayDeclAllocate(String id, ArrayType arrType, IRTemp curLayerLength) {
-        String tmStr = nextTemp();
-        IRTemp tm = irFactory.IRTemp(tmStr);
+        IRTemp tm = irFactory.IRTemp(nextTemp());
         List<IRStmt> stmts = new ArrayList<>();
         stmts.add(
                 irFactory.IRMove(
@@ -564,51 +563,53 @@ public class IRGenerator extends Visitor {
             String stop = nextLabel();
             stmts.add(C(irFactory.IRBinOp(GT, curLayerLength, irFactory.IRConst(0L)), goToNextLayer, stop));
             stmts.add(irFactory.IRLabel(goToNextLayer));
-                String lh = nextLabel();
-                String l1 = nextLabel();
-                String le = nextLabel();
 
-                IRTemp cur = irFactory.IRTemp(nextTemp());
-                String subArrayID = nextTemp();
-                IRTemp subArray = irFactory.IRTemp(subArrayID);
-                stmts.add(irFactory.IRMove(cur, irFactory.IRConst(0L)));
-
-                stmts.add(irFactory.IRLabel(lh));
-                stmts.add(C(irFactory.IRBinOp(LT, cur, curLayerLength), l1, le));
-                stmts.add(irFactory.IRLabel(l1));
-                IRTemp nextLayerLength = irFactory.IRTemp(nextTemp());
-                Optional<Expr> e = ((ArrayType) arrType.elemType).length;
-                if (e.isPresent()) {
-                    stmts.add(irFactory.IRMove(nextLayerLength, e.get().ir));
-                } else {
-                    stmts.add(irFactory.IRMove(nextLayerLength, irFactory.IRConst(0L)));
-                }
-                List<IRStmt> createSubarray = arrayDeclAllocate(subArrayID, (ArrayType) arrType.elemType, nextLayerLength);
-                stmts.addAll(createSubarray);
-                stmts.add(
-                        irFactory.IRMove(
-                                irFactory.IRMem(
-                                        irFactory.IRBinOp(
-                                                ADD,
-                                                arrayStart,
-                                                irFactory.IRBinOp(
-                                                        MUL,
-                                                        cur,
-                                                        irFactory.IRConst(
-                                                                8L
-                                                        )
-                                                )
-                                        )
-                                ),
-                                subArray
-                        )
-                );
-                stmts.add(irFactory.IRMove(cur, irFactory.IRBinOp(ADD, cur, irFactory.IRConst(1L))));
-                stmts.add(irFactory.IRJump(irFactory.IRName(lh)));
-                stmts.add(irFactory.IRLabel(le));
-
-                stmts.add(irFactory.IRLabel(stop));
+            IRTemp nextLayerLength = irFactory.IRTemp(nextTemp());
+            Optional<Expr> e = ((ArrayType) arrType.elemType).length;
+            if (e.isPresent()) {
+                stmts.add(irFactory.IRMove(nextLayerLength, e.get().ir));
+            } else {
+                stmts.add(irFactory.IRMove(nextLayerLength, irFactory.IRConst(0L)));
             }
+
+            String lh = nextLabel();
+            String l1 = nextLabel();
+            String le = nextLabel();
+
+            IRTemp cur = irFactory.IRTemp(nextTemp());
+            String subArrayID = nextTemp();
+            IRTemp subArray = irFactory.IRTemp(subArrayID);
+            stmts.add(irFactory.IRMove(cur, irFactory.IRConst(0L)));
+
+            stmts.add(irFactory.IRLabel(lh));
+            stmts.add(C(irFactory.IRBinOp(LT, cur, curLayerLength), l1, le));
+            stmts.add(irFactory.IRLabel(l1));
+            List<IRStmt> createSubarray = arrayDeclAllocate(subArrayID, (ArrayType) arrType.elemType, nextLayerLength);
+            stmts.addAll(createSubarray);
+            stmts.add(
+                    irFactory.IRMove(
+                            irFactory.IRMem(
+                                    irFactory.IRBinOp(
+                                            ADD,
+                                            arrayStart,
+                                            irFactory.IRBinOp(
+                                                    MUL,
+                                                    cur,
+                                                    irFactory.IRConst(
+                                                            8L
+                                                    )
+                                            )
+                                    )
+                            ),
+                            subArray
+                    )
+            );
+            stmts.add(irFactory.IRMove(cur, irFactory.IRBinOp(ADD, cur, irFactory.IRConst(1L))));
+            stmts.add(irFactory.IRJump(irFactory.IRName(lh)));
+            stmts.add(irFactory.IRLabel(le));
+
+            stmts.add(irFactory.IRLabel(stop));
+        }
         stmts.add(irFactory.IRMove(irFactory.IRTemp(id), arrayStart));
         return stmts;
     }
