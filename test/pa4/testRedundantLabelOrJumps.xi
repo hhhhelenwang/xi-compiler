@@ -2,11 +2,13 @@ use io
 use conv
 
 counter:int = 10
+
 main(args: int[][]) {
     a:int = counter + 12
+
     while(counter > 0){
-        print("counter is")
-        println(counter)
+        print("enter while")
+
         j:int
         if ( counter > 5){
             println("enter counter > 5")
@@ -14,7 +16,6 @@ main(args: int[][]) {
         } else {
             m:int, n:int = ratadd(2,2,4,4)
             println("else branch")
-            counter = counter - m - n
             j = gcd(counter, m)
         }
 
