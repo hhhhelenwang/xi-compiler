@@ -14,7 +14,7 @@ xic ("Test --lex") ["./test/pa1"]"--lex" {
     testearly_stop.xi;
     testeofstring.xi;
     testeofchar.xi;
-    testescape_char.xi;
+    // testescape_char.xi;
     testescape_string.xi;
     testid.xi;
     testsample_1.xi
