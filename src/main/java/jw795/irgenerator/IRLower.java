@@ -85,24 +85,6 @@ public class IRLower {
         return loweredProgram;
     }
 
-//
-//
-//    /**
-//     * Lower an IR node.
-//     * @param node not lowered IR node
-//     * @return lowered IR node
-//     */
-//    public IRNode lowerHelper(IRNode node) {
-//        if (node instanceof IRExpr) {
-//            return lowerExpr((IRExpr) node);
-//        } else if (node instanceof IRStmt) {
-//            return lowerStmt((IRStmt) node);
-//        } else {
-//            return null;
-//        }
-//    }
-
-    // Expressions ======================================================================
     /**
      * L[e]: lower an IR expression.
      * @param node not lowered IR expression
@@ -245,7 +227,6 @@ public class IRLower {
         return new SEPair(sideOfE, exprVal);
     }
 
-    // Statements ======================================================================
     /**
      * L[s]: lower an IR statement into a sequence of statements.
      * @param node not lowered IR statement
@@ -415,18 +396,6 @@ public class IRLower {
         return irFactory.IRSeq(sequence);
     }
 
-    // Helpers =================================================================================
-
-    /**
-     * If an expression has side effects.
-     * @param pair lowered expression
-     * @return true if pair has side effects, false otherwise.
-     */
-    public boolean hasSideEffects(SEPair pair) {
-        return !pair.sideEffects.isEmpty();
-    }
-
-    // Helpers for flattening nested sequence ===============================================================
 
     /**
      * Flatten a possibly nested IRSeq
@@ -449,9 +418,6 @@ public class IRLower {
             }
         }
     }
-
-
-    // Helper functions for deciding if e1 and e2 commute ==========================================================
 
     /**
      * Decides whether e1 and e2 commute.

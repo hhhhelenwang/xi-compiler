@@ -1,5 +1,8 @@
 package jw795.typechecker;
 
+/**
+ * Representation of a function's type
+ */
 public class Fn implements Sigma{
     public T inputType;
     public T outputType;

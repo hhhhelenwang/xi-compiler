@@ -1,5 +1,8 @@
 package jw795.typechecker;
 
+/**
+ * Representation of an Array type.
+ */
 public abstract class Array extends Tau {
     /**
      *

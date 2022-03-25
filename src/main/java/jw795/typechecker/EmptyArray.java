@@ -1,5 +1,8 @@
 package jw795.typechecker;
 
+/**
+ * Representation of the type of an empty array.
+ */
 public class EmptyArray extends Array {
     /**
      * Type of the empty array

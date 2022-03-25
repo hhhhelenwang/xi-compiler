@@ -9,6 +9,9 @@ import java.util.*;
 
 import static edu.cornell.cs.cs4120.xic.ir.IRBinOp.OpType.*;
 
+/**
+ * A visitor that translate AST into IR.
+ */
 public class IRGenerator extends Visitor {
     String filename;
     IRNodeFactory_c irFactory = new IRNodeFactory_c();
@@ -43,7 +46,7 @@ public class IRGenerator extends Visitor {
     }
 
     @Override
-    public void visitArrayExpr(ArrayExpr node) throws Exception {
+    public void visitArrayExpr(ArrayExpr node) {
         ArrayList<IRStmt> l = new ArrayList<>();
         long n = node.arrayElements.size();
         IRConst arg = irFactory.IRConst(n * 8 + 8);
@@ -72,7 +75,7 @@ public class IRGenerator extends Visitor {
     }
 
     @Override
-    public void visitArrIndexExpr(ArrIndexExpr node) throws Exception {
+    public void visitArrIndexExpr(ArrIndexExpr node) {
         ArrayList<IRStmt> l = new ArrayList<>();
         IRTemp t_a = irFactory.IRTemp(nextTemp());
         l.add(irFactory.IRMove(t_a, node.array.ir));
@@ -150,7 +153,7 @@ public class IRGenerator extends Visitor {
     }
 
     @Override
-    public void visitVar(VarExpr node) throws Exception {
+    public void visitVar(VarExpr node) {
         if(globalData.containsKey(node.identifier)){
             node.ir = irFactory.IRMem(irFactory.IRName("_" + node.identifier));
         } else {
@@ -159,20 +162,20 @@ public class IRGenerator extends Visitor {
     }
 
     @Override
-    public void visitIntNeg(IntNeg node) throws Exception {
+    public void visitIntNeg(IntNeg node) {
         IRExpr val = node.expr.ir;
         node.ir = irFactory.IRBinOp(SUB, irFactory.IRConst(0), val);
     }
 
     @Override
     //not equate to XOR True
-    public void visitNot(Not node) throws Exception {
+    public void visitNot(Not node) {
         IRExpr val = node.expr.ir;
         node.ir = irFactory.IRBinOp(XOR, val, irFactory.IRConst(1));
     }
 
     @Override
-    public void visitAdd(Add node) throws Exception {
+    public void visitAdd(Add node) {
         if (node.type instanceof TypedArray || node.type instanceof EmptyArray) {
             node.ir = arrayConcat(node);
         } else {
@@ -180,6 +183,11 @@ public class IRGenerator extends Visitor {
         }
     }
 
+    /**
+     * Translate the special case for concatenating two arrays
+     * @param node an Add node whose children are two arrays
+     * @return translated array concatenation
+     */
     private IRESeq arrayConcat (Add node) {
         String a1Str = nextTemp();
         String a2Str = nextTemp();
@@ -257,73 +265,73 @@ public class IRGenerator extends Visitor {
     }
 
     @Override
-    public void visitSub(Sub node) throws Exception {
+    public void visitSub(Sub node) {
         node.ir = irFactory.IRBinOp(SUB, node.expr1.ir, node.expr2.ir);
     }
 
     @Override
-    public void visitMult(Mult node) throws Exception {
+    public void visitMult(Mult node) {
         node.ir = irFactory.IRBinOp(MUL, node.expr1.ir, node.expr2.ir);
     }
 
     @Override
-    public void visitHighMult(HighMult node) throws Exception {
+    public void visitHighMult(HighMult node) {
         node.ir = irFactory.IRBinOp(HMUL, node.expr1.ir, node.expr2.ir);
     }
 
     @Override
-    public void visitDiv(Div node) throws Exception {
+    public void visitDiv(Div node) {
         node.ir = irFactory.IRBinOp(DIV, node.expr1.ir, node.expr2.ir);
     }
 
     @Override
-    public void visitMod(Mod node) throws Exception {
+    public void visitMod(Mod node) {
         node.ir = irFactory.IRBinOp(MOD, node.expr1.ir, node.expr2.ir);
     }
 
     @Override
-    public void visitAnd(And node) throws Exception {
+    public void visitAnd(And node) {
         node.ir = irFactory.IRBinOp(AND, node.expr1.ir, node.expr2.ir);
     }
 
     @Override
-    public void visitOr(Or node) throws Exception {
+    public void visitOr(Or node) {
         node.ir = irFactory.IRBinOp(OR, node.expr1.ir, node.expr2.ir);
     }
 
     @Override
-    public void visitEqual(Equal node) throws Exception {
+    public void visitEqual(Equal node) {
         node.ir = irFactory.IRBinOp(EQ, node.expr1.ir, node.expr2.ir);
     }
 
     @Override
-    public void visitNotEqual(NotEqual node) throws Exception {
+    public void visitNotEqual(NotEqual node) {
         node.ir = irFactory.IRBinOp(NEQ, node.expr1.ir, node.expr2.ir);
 
     }
 
     @Override
-    public void visitLessThan(LessThan node) throws Exception {
+    public void visitLessThan(LessThan node) {
         node.ir = irFactory.IRBinOp(LT, node.expr1.ir, node.expr2.ir);
     }
 
     @Override
-    public void visitLessEq(LessEq node) throws Exception {
+    public void visitLessEq(LessEq node) {
         node.ir = irFactory.IRBinOp(LEQ, node.expr1.ir, node.expr2.ir);
     }
 
     @Override
-    public void visitGreaterThan(GreaterThan node) throws Exception {
+    public void visitGreaterThan(GreaterThan node) {
         node.ir = irFactory.IRBinOp(GT, node.expr1.ir, node.expr2.ir);
     }
 
     @Override
-    public void visitGreaterEq(GreaterEq node) throws Exception {
+    public void visitGreaterEq(GreaterEq node) {
         node.ir = irFactory.IRBinOp(GEQ, node.expr1.ir, node.expr2.ir);
     }
 
     @Override
-    public void visitPrCall(ProcCallStmt node) throws Exception {
+    public void visitPrCall(ProcCallStmt node) {
         String procName = funcNames.get(node.name);
         ArrayList<IRExpr> argsIR = new ArrayList<>();
         for (Expr arg: node.arguments){
@@ -333,7 +341,7 @@ public class IRGenerator extends Visitor {
     }
 
     @Override
-    public void visitFunCallExpr(FunCallExpr node) throws Exception {
+    public void visitFunCallExpr(FunCallExpr node) {
         if (node.name == "length") {
             IRTemp len = irFactory.IRTemp(nextTemp());
             IRMove stmt = irFactory.IRMove(len, irFactory.IRBinOp(SUB, node.arguments.get(0).ir,
@@ -351,7 +359,7 @@ public class IRGenerator extends Visitor {
     }
 
     @Override
-    public void visitBlockStmt(BlockStmt node) throws Exception {
+    public void visitBlockStmt(BlockStmt node) {
         //Require: when an AST node translate to multiple IRStmts, make its ir an IRSeq
         LinkedList<IRStmt> seq = new LinkedList<>();
         for (Statement s: node.statements) {
@@ -367,7 +375,7 @@ public class IRGenerator extends Visitor {
     }
 
     @Override
-    public void visitIfStmt(IfStmt node) throws Exception {
+    public void visitIfStmt(IfStmt node) {
         // labelcounter for ifclause, labelcounter+1 for skip the ifclause
         //use a label counter to generate a freshlabel
         LinkedList<IRStmt> lst = new LinkedList<>();
@@ -386,7 +394,7 @@ public class IRGenerator extends Visitor {
     }
 
     @Override
-    public void visitIfElseStmt(IfElseStmt node) throws Exception {
+    public void visitIfElseStmt(IfElseStmt node) {
         // labelcounter for ifclause, labelcounter+1 for skip the elseclause, labelcounter+2 for the end
         LinkedList<IRStmt> lst = new LinkedList<>();
         //first put the branch
@@ -410,7 +418,7 @@ public class IRGenerator extends Visitor {
     }
 
     @Override
-    public void visitWhileStmt(WhileStmt node) throws Exception {
+    public void visitWhileStmt(WhileStmt node) {
         LinkedList<IRStmt> lst = new LinkedList<>();
         String sL= nextLabel();
         String mL= nextLabel();
@@ -427,7 +435,7 @@ public class IRGenerator extends Visitor {
     }
 
     @Override
-    public void visitRet(ReturnStmt node) throws Exception {
+    public void visitRet(ReturnStmt node) {
         ArrayList<IRExpr> l = new ArrayList<>();
         for (Expr e : node.returnVals) {
             l.add(e.ir);
@@ -436,7 +444,7 @@ public class IRGenerator extends Visitor {
     }
 
     @Override
-    public void visitAssign(AssignStmt node) throws Exception {
+    public void visitAssign(AssignStmt node) {
         if (node.leftVal instanceof LeftValueList) {
             //guarantee to be multiple return
             FunCallExpr rig= (FunCallExpr) node.expr;
@@ -497,7 +505,7 @@ public class IRGenerator extends Visitor {
     }
 
     @Override
-    public void visitVarDecl(VarDeclareStmt node) throws Exception {
+    public void visitVarDecl(VarDeclareStmt node) {
         if (node.varType instanceof ArrayType) {
             List<IRStmt> stmts = new ArrayList<>();
             Optional<Expr> e = ((ArrayType) node.varType).length;
@@ -521,9 +529,15 @@ public class IRGenerator extends Visitor {
         }
     }
 
+    /**
+     * Translate an array declaration into IR
+     * @param id id of the array
+     * @param arrType type of the array
+     * @param curLayerLength the length of array to allocate for
+     * @return IR to allocate space for an array declaration
+     */
     private List<IRStmt> arrayDeclAllocate(String id, ArrayType arrType, IRTemp curLayerLength) {
-        String tmStr = nextTemp();
-        IRTemp tm = irFactory.IRTemp(tmStr);
+        IRTemp tm = irFactory.IRTemp(nextTemp());
         List<IRStmt> stmts = new ArrayList<>();
         stmts.add(
                 irFactory.IRMove(
@@ -549,57 +563,59 @@ public class IRGenerator extends Visitor {
             String stop = nextLabel();
             stmts.add(C(irFactory.IRBinOp(GT, curLayerLength, irFactory.IRConst(0L)), goToNextLayer, stop));
             stmts.add(irFactory.IRLabel(goToNextLayer));
-                String lh = nextLabel();
-                String l1 = nextLabel();
-                String le = nextLabel();
 
-                IRTemp cur = irFactory.IRTemp(nextTemp());
-                String subArrayID = nextTemp();
-                IRTemp subArray = irFactory.IRTemp(subArrayID);
-                stmts.add(irFactory.IRMove(cur, irFactory.IRConst(0L)));
-
-                stmts.add(irFactory.IRLabel(lh));
-                stmts.add(C(irFactory.IRBinOp(LT, cur, curLayerLength), l1, le));
-                stmts.add(irFactory.IRLabel(l1));
-                IRTemp nextLayerLength = irFactory.IRTemp(nextTemp());
-                Optional<Expr> e = ((ArrayType) arrType.elemType).length;
-                if (e.isPresent()) {
-                    stmts.add(irFactory.IRMove(nextLayerLength, e.get().ir));
-                } else {
-                    stmts.add(irFactory.IRMove(nextLayerLength, irFactory.IRConst(0L)));
-                }
-                List<IRStmt> createSubarray = arrayDeclAllocate(subArrayID, (ArrayType) arrType.elemType, nextLayerLength);
-                stmts.addAll(createSubarray);
-                stmts.add(
-                        irFactory.IRMove(
-                                irFactory.IRMem(
-                                        irFactory.IRBinOp(
-                                                ADD,
-                                                arrayStart,
-                                                irFactory.IRBinOp(
-                                                        MUL,
-                                                        cur,
-                                                        irFactory.IRConst(
-                                                                8L
-                                                        )
-                                                )
-                                        )
-                                ),
-                                subArray
-                        )
-                );
-                stmts.add(irFactory.IRMove(cur, irFactory.IRBinOp(ADD, cur, irFactory.IRConst(1L))));
-                stmts.add(irFactory.IRJump(irFactory.IRName(lh)));
-                stmts.add(irFactory.IRLabel(le));
-
-                stmts.add(irFactory.IRLabel(stop));
+            IRTemp nextLayerLength = irFactory.IRTemp(nextTemp());
+            Optional<Expr> e = ((ArrayType) arrType.elemType).length;
+            if (e.isPresent()) {
+                stmts.add(irFactory.IRMove(nextLayerLength, e.get().ir));
+            } else {
+                stmts.add(irFactory.IRMove(nextLayerLength, irFactory.IRConst(0L)));
             }
+
+            String lh = nextLabel();
+            String l1 = nextLabel();
+            String le = nextLabel();
+
+            IRTemp cur = irFactory.IRTemp(nextTemp());
+            String subArrayID = nextTemp();
+            IRTemp subArray = irFactory.IRTemp(subArrayID);
+            stmts.add(irFactory.IRMove(cur, irFactory.IRConst(0L)));
+
+            stmts.add(irFactory.IRLabel(lh));
+            stmts.add(C(irFactory.IRBinOp(LT, cur, curLayerLength), l1, le));
+            stmts.add(irFactory.IRLabel(l1));
+            List<IRStmt> createSubarray = arrayDeclAllocate(subArrayID, (ArrayType) arrType.elemType, nextLayerLength);
+            stmts.addAll(createSubarray);
+            stmts.add(
+                    irFactory.IRMove(
+                            irFactory.IRMem(
+                                    irFactory.IRBinOp(
+                                            ADD,
+                                            arrayStart,
+                                            irFactory.IRBinOp(
+                                                    MUL,
+                                                    cur,
+                                                    irFactory.IRConst(
+                                                            8L
+                                                    )
+                                            )
+                                    )
+                            ),
+                            subArray
+                    )
+            );
+            stmts.add(irFactory.IRMove(cur, irFactory.IRBinOp(ADD, cur, irFactory.IRConst(1L))));
+            stmts.add(irFactory.IRJump(irFactory.IRName(lh)));
+            stmts.add(irFactory.IRLabel(le));
+
+            stmts.add(irFactory.IRLabel(stop));
+        }
         stmts.add(irFactory.IRMove(irFactory.IRTemp(id), arrayStart));
         return stmts;
     }
 
     @Override
-    public void visitFunDef(FunctionDefine node) throws Exception {
+    public void visitFunDef(FunctionDefine node) {
         List<IRStmt> irBody = new ArrayList<>();
         List<IRStmt> saveArgs = moveArgument(node.arguments);
         irBody.addAll(saveArgs);
@@ -609,7 +625,7 @@ public class IRGenerator extends Visitor {
     }
 
     @Override
-    public void visitPrDef(ProcedureDefine node) throws Exception {
+    public void visitPrDef(ProcedureDefine node) {
         List<IRStmt> irBody = new ArrayList<>();
         List<IRStmt> saveArgs = moveArgument(node.arguments);
         irBody.addAll(saveArgs);
@@ -637,27 +653,27 @@ public class IRGenerator extends Visitor {
     }
 
     @Override
-    public void visitFunDecl(FunctionDeclare node) throws Exception {
+    public void visitFunDecl(FunctionDeclare node) {
         //do nothing
     }
 
     @Override
-    public void visitPrDecl(ProcedureDeclare node) throws Exception {
+    public void visitPrDecl(ProcedureDeclare node) {
         //do nothing
     }
 
     @Override
-    public void visitFunProcArgs(FunProcArgs funProcArgs) throws Exception {
-        //do nothing, see example, we only print funcname, but not args
+    public void visitFunProcArgs(FunProcArgs funProcArgs) {
+        //do nothing, we only print function name, but not args
     }
 
     @Override
-    public void visitUse(Use node) throws Exception {
+    public void visitUse(Use node) {
         //do nothing
     }
 
     @Override
-    public void visitProgram(Program node) throws Exception {
+    public void visitProgram(Program node) {
         node.ir = irFactory.IRCompUnit(filename);
         for (Definition d: node.definitions) {
             if (d instanceof FunctionDefine) {
@@ -672,16 +688,23 @@ public class IRGenerator extends Visitor {
     }
 
     @Override
-    public void visitInterface(Interface node) throws Exception {
+    public void visitInterface(Interface node) {
         //do nothing, since we don't print stuff in ixi file
     }
 
     @Override
-    public void visitGlobDecl(GlobDeclare node) throws Exception {
+    public void visitGlobDecl(GlobDeclare node) {
         node.ir = new IRData("_" + node.identifier, exportVal(node.value));
         globalData.put(node.identifier, node.ir);
     }
 
+    /**
+     * The C-translation that translates conditionals.
+     * @param e guard
+     * @param trueL true label
+     * @param falseL false label
+     * @return translated conditional
+     */
     private IRStmt C(IRExpr e, String trueL, String falseL) {
         if (e instanceof IRConst) {
             if (((IRConst) e).value() == 1) {
@@ -744,25 +767,41 @@ public class IRGenerator extends Visitor {
         return null;
     }
 
+    /**
+     * Replace a newline character code with the acutal new line
+     * @param nstr a newline character code
+     * @return replaced new line
+     */
     private String replacespecial(String nstr) {
         //looking at lex.jflex, there seems to be only one special case
         String result = nstr.replace("\\n", "\n");
-//        result = result.replace("\\");
         return result;
     }
 
+    /**
+     * Generate a new unique label
+     * @return a fresh label
+     */
     private String nextLabel() {
         String result = "l"+ labelCounter;
         labelCounter++;
         return result;
     }
 
+    /**
+     * Generate a fresh temporary
+     * @return a fresh temporary
+     */
     private String nextTemp() {
         String result = "t"+ tempCounter;
         tempCounter++;
         return result;
     }
 
+    /**
+     * Generate a new string constant id
+     * @return a fresh string constant id
+     */
     private String nextString() {
         String result = "string_const" + stringCounter;
         stringCounter++;

@@ -1,11 +1,14 @@
 package jw795;
 import jw795.ast.*;
 
+/**
+ * A visitor abstract class.
+ */
 public abstract class Visitor {
 
     public abstract void enterScope();
     public abstract void leaveScope();
-    // Expression =================
+
     // array literal
     public abstract void visitArrayExpr(ArrayExpr node) throws Exception;
 
@@ -43,7 +46,6 @@ public abstract class Visitor {
     public abstract void visitGreaterThan(GreaterThan node) throws Exception;
     public abstract void visitGreaterEq(GreaterEq node) throws Exception;
 
-    // Statement =====================
     // Procedure call
     public abstract void visitPrCall(ProcCallStmt node) throws Exception;
     // Function call
@@ -61,10 +63,13 @@ public abstract class Visitor {
     //Assign stmt
     public abstract void visitAssign(AssignStmt node) throws Exception;
 
+    // wildcard
     public abstract void visitWildCard(WildCard node);
 
     // Variable Declare stmt
     public abstract void visitVarDecl(VarDeclareStmt node) throws Exception;
+
+    // Function and procedures
     public abstract void visitFunDef(FunctionDefine node) throws Exception;
     public abstract void visitPrDef(ProcedureDefine node) throws Exception;
     public abstract void visitFunDecl(FunctionDeclare node) throws Exception;

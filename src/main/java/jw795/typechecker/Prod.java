@@ -2,6 +2,9 @@ package jw795.typechecker;
 
 import java.util.List;
 
+/**
+ * Representation of Prod type (t1, ..., t2)
+ */
 public class Prod implements T{
     public List<Tau> elementTypes;
 

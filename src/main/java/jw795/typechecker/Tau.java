@@ -1,5 +1,8 @@
 package jw795.typechecker;
 
+/**
+ * Representation of a Tau type
+ */
 public class Tau implements T{
 
     @Override

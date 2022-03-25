@@ -6,6 +6,9 @@ import jw795.util.SemanticErrorException;
 
 import java.util.*;
 
+/**
+ * A visitor that traverses and type-checks the AST
+ */
 public class TypeChecker extends Visitor {
 
     public SymbolTable env;
@@ -24,7 +27,6 @@ public class TypeChecker extends Visitor {
         this.env = new SymbolTable();
     }
 
-    // ================================= Visit functions for Expressions =================================
     @Override
     public void visitIntLiteral(IntLiteral node) {
         node.type = new Int();
@@ -43,9 +45,6 @@ public class TypeChecker extends Visitor {
             node.type = new Int();
     }
 
-    // there should not be any exception throw out from the upper 4 function, since they are basic type
-
-
     @Override
     public void visitVar(VarExpr node) throws SemanticErrorException {
         if (env.containsVar(node.identifier)) {
@@ -58,7 +57,6 @@ public class TypeChecker extends Visitor {
         }
     }
 
-    // UnOps =================================
     @Override
     public void visitIntNeg(IntNeg node) throws SemanticErrorException {
         if (node.expr.type instanceof Int) {
@@ -81,7 +79,6 @@ public class TypeChecker extends Visitor {
         }
     }
 
-    // BinOps =================================
     /** helper to check the type of the subexpressions of algebraic and int comparison binop */
     private void setBinOpIntType(BinOpExpr node, Tau type) throws SemanticErrorException{
         if ((node.expr1.type instanceof Int) && (node.expr2.type instanceof Int)) {
@@ -208,7 +205,7 @@ public class TypeChecker extends Visitor {
         setBinOpBoolType(node);
     }
 
-    /** */
+    /** Helper to check = and != binops */
     private void checkEqCompareBinOp(BinOpExpr node) throws SemanticErrorException {
         // eq/neq allows int, bool, and array as operands
         // if the first operand is an int, treat it as an integer comparison
@@ -305,8 +302,6 @@ public class TypeChecker extends Visitor {
         }
     }
 
-
-    // ================================= Visit functions for Statements =================================
     @Override
     public void visitPrCall(ProcCallStmt node) throws SemanticErrorException {
         // a procedure need to be fn T -> unit
@@ -380,13 +375,6 @@ public class TypeChecker extends Visitor {
     private boolean argsConform(List<Expr> nodeArgs, T declArgs, String fnPrStart) throws SemanticErrorException {
         if (declArgs instanceof Unit && nodeArgs.size() == 0) {
             return true;
-//            if (nodeArgs.size() == 0){
-//                return true;
-//            } else {
-//                String pos = errorstart(nodeArgs.get(0).getLine(), nodeArgs.get(0).getCol());
-//                String errorMsg = "Unmatched number of arguments. Expected Unit but got "+nodeArgs.size() + " args.";
-//                throw new SemanticErrorException(pos + errorMsg);
-//            }
         } else if (declArgs instanceof Tau && nodeArgs.size() == 1){
             if ((declArgs).equals(nodeArgs.get(0).type)) {
                 return true;
@@ -820,7 +808,6 @@ public class TypeChecker extends Visitor {
         // nothing to do here
     }
 
-    // Helper functions ======================================================================================
     /** Build a Tau type from a Type AST node. */
     public Tau typeToTau(Type t) {
         if (t instanceof IntType){
@@ -839,6 +826,7 @@ public class TypeChecker extends Visitor {
         return null;
     }
 
+    /** Generate the common error message starter. */
     public String errorstart(int line, int colmn){
         return ((line+1) + ":" + (colmn+1) +" error:" );
     }
