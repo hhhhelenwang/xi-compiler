@@ -1,5 +1,8 @@
 package jw795.typechecker;
 
+/**
+ * Representation of a Unit type
+ */
 public class Unit implements T, R {
     @Override
     public String toStr() {

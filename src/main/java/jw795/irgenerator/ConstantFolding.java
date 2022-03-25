@@ -10,10 +10,9 @@ public class ConstantFolding {
     IRNodeFactory_c irFactory;
 
     /**
-     * class to fold an IRCompUnit node
-     * @param node
+     * class to fold an IRCompUnit node at IR level
+     * @param node a lowered IR compile unit
      */
-
     ConstantFolding(IRCompUnit node){
         this.original = node;
         this.irFactory = new IRNodeFactory_c();
@@ -41,8 +40,8 @@ public class ConstantFolding {
 
     /**
      * Helper function to fold all stmt
-     * @param node
-     * @return IRStmt
+     * @param node an IR stmt
+     * @return IRStmt that is constant-folded
      */
     public IRStmt foldStmt(IRStmt node){
         if (node instanceof IRSeq) {
@@ -66,9 +65,9 @@ public class ConstantFolding {
     }
 
     /**
-     * Helper Func to fold IRSeq
-     * @param node
-     * @return IRStmt
+     * Constant fold every statement in an IRSeq
+     * @param node an IRSequence
+     * @return IRStmt folded sequence
      */
     public IRStmt foldSeq(IRSeq node){
         LinkedList<IRStmt> lst = new LinkedList<>();
@@ -79,9 +78,9 @@ public class ConstantFolding {
     }
 
     /**
-     * Helper Func to fold IRReturn
-     * @param node
-     * @return IRStmt
+     * Constant-fold a return statement
+     * @param node an IR return statement
+     * @return IRStmt folded IR return
      */
     public IRStmt foldReturn(IRReturn node){
         LinkedList<IRExpr> lst = new LinkedList<>();
@@ -93,8 +92,8 @@ public class ConstantFolding {
 
     /**
      * Helper Func to fold IRCallStmt
-     * @param node
-     * @return IRStmt
+     * @param node an IRCallStmt node
+     * @return IRStmt folded IRCallStmt
      */
     public IRStmt foldCallStmt(IRCallStmt node){
         LinkedList<IRExpr> lst = new LinkedList<>();
@@ -106,8 +105,8 @@ public class ConstantFolding {
 
     /**
      * Helper Func to fold IRCJump
-     * @param node
-     * @return IRStmt
+     * @param node an IRCJump node
+     * @return IRStmt folded IRCJump
      */
     public IRStmt foldCJump(IRCJump node){
         IRExpr e = foldExpr(node.cond());
@@ -123,8 +122,8 @@ public class ConstantFolding {
 
     /**
      * Helper Func to fold all Expr
-     * @param node
-     * @return IRExpr
+     * @param node an IR expression
+     * @return IRExpr foldded expression
      */
     public IRExpr foldExpr(IRExpr node){
         // match the node against all IR expressions
@@ -155,8 +154,8 @@ public class ConstantFolding {
 
     /**
      * Helper Func to fold IRBinop
-     * @param node
-     * @return IRExpr
+     * @param node an IR Binop expression
+     * @return IRExpr folded Binop expression
      */
     public IRExpr foldBiNop(IRBinOp node) {
         IRExpr foldedleft = foldExpr(node.left());
@@ -201,10 +200,10 @@ public class ConstantFolding {
 
     /**
      * Helper Func to calculate result of IRBinop
-     * @param fleft
-     * @param fright
-     * @param type
-     * @return IRExpr
+     * @param fleft a folded left-expression of a binop
+     * @param fright a folded right-expression of a binop
+     * @param type the type if the binop operator
+     * @return IRExpr folded expression
      */
     public IRExpr foldtwoconst (long fleft, long fright, IRBinOp.OpType type) {
         switch (type) {
@@ -219,8 +218,8 @@ public class ConstantFolding {
                 BigInteger v2 = new BigInteger(String.valueOf(fright));
                 BigInteger v64 = new BigInteger(String.valueOf(2^64));
                 BigInteger val = v1.multiply(v2);
-                val  = val.subtract(val.mod(v64));
-                val =val.divide(v64);
+                val = val.subtract(val.mod(v64));
+                val = val.divide(v64);
                 return irFactory.IRConst(val.longValue());
             case DIV:
                 return irFactory.IRConst(fleft / fright);
@@ -284,10 +283,10 @@ public class ConstantFolding {
     /**
      * Helper Func to calculate special result with IRBinop with variable,
      * and only for binop that are not left right sensitive
-     * @param cons
-     * @param type
-     * @param expr
-     * @return IRExpr
+     * @param cons the constant
+     * @param type the type of the operator
+     * @param expr expression to be folded
+     * @return IRExpr folded expression
      */
     public IRExpr foldoneconst (long cons, IRExpr expr, IRBinOp.OpType type) {
         switch (type) {
@@ -297,11 +296,7 @@ public class ConstantFolding {
                 }
                 break;
             case SUB:
-//                if(cons == 0){
-//                    return expr;
-//                }
                 break;
-
             case MUL:
                 if(cons == 0){
                     return irFactory.IRConst(0);

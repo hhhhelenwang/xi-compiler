@@ -108,8 +108,6 @@ public class Compiler {
      */
     public void lex(){
         if (cmd.hasOption("lex")) {
-            // TODO: delete stdout before submitting
-            System.out.println("Delete before submitting: Lexing >>");
             files = cmd.getArgList();
             for (String file : files) {
                 if (file.endsWith("xi")) {
@@ -124,8 +122,6 @@ public class Compiler {
      */
     public void parse(){
         if (cmd.hasOption("parse")) {
-            // TODO: delete stdout before submitting
-            System.out.println("Delete before submitting: Parsing >>");
             files = cmd.getArgList();
             for (String file : files) {
                 if (file.endsWith("xi")) {
@@ -223,7 +219,6 @@ public class Compiler {
 
         }
     }
-
 
     public static void main(String[] args) {
         Compiler compiler = new Compiler();

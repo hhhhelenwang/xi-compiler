@@ -682,6 +682,13 @@ public class IRGenerator extends Visitor {
         globalData.put(node.identifier, node.ir);
     }
 
+    /**
+     * The C-translation that translates conditionals.
+     * @param e guard
+     * @param trueL true label
+     * @param falseL false label
+     * @return translated conditional
+     */
     private IRStmt C(IRExpr e, String trueL, String falseL) {
         if (e instanceof IRConst) {
             if (((IRConst) e).value() == 1) {
@@ -744,25 +751,41 @@ public class IRGenerator extends Visitor {
         return null;
     }
 
+    /**
+     * Replace a newline character code with the acutal new line
+     * @param nstr a newline character code
+     * @return replaced new line
+     */
     private String replacespecial(String nstr) {
         //looking at lex.jflex, there seems to be only one special case
         String result = nstr.replace("\\n", "\n");
-//        result = result.replace("\\");
         return result;
     }
 
+    /**
+     * Generate a new unique label
+     * @return a fresh label
+     */
     private String nextLabel() {
         String result = "l"+ labelCounter;
         labelCounter++;
         return result;
     }
 
+    /**
+     * Generate a fresh temporary
+     * @return a fresh temporary
+     */
     private String nextTemp() {
         String result = "t"+ tempCounter;
         tempCounter++;
         return result;
     }
 
+    /**
+     * Generate a new string constant id
+     * @return a fresh string constant id
+     */
     private String nextString() {
         String result = "string_const" + stringCounter;
         stringCounter++;

@@ -31,6 +31,10 @@ public class SymbolTable {
         functions.add(initialMap);
     }
 
+    /**
+     * Get all the variables in the symbol table.
+     * @return a map of variable ids to their types.
+     */
     public HashMap<String, Sigma> getVariables() {
         HashMap<String, Sigma> result = new HashMap<>();
         for (HashMap<String, Sigma> map : variables) {
@@ -39,6 +43,10 @@ public class SymbolTable {
         return result;
     }
 
+    /**
+     * Get all the functions in the symbol table.
+     * @return a map of function ids to their types
+     */
     public HashMap<String, Sigma> getFunctions() {
         HashMap<String, Sigma> result = new HashMap<>();
         for (HashMap<String, Sigma> map : functions) {

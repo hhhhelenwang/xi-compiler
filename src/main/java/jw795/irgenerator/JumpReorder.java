@@ -6,6 +6,10 @@ import java.util.*;
 
 import static edu.cornell.cs.cs4120.xic.ir.IRBinOp.OpType.XOR;
 
+/**
+ * Reorder the IR code such that conditionals statements fall through on false branch.
+ * Contains implementation of the basic block, CFG, and the reordering algorithms.
+ */
 public class JumpReorder {
 
     /**

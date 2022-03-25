@@ -14,7 +14,9 @@ import java.util.List;
 
 import static jw795.util.FileUtil.generateTargetFile;
 
-
+/**
+ * Take in a single source file and perform type-checking on the file.
+ */
 public class TypeCheckerAdapter {
     parser cup_parser;
     Lexwrapper scanner;
@@ -36,6 +38,10 @@ public class TypeCheckerAdapter {
         this.visitor = new TypeChecker();
     }
 
+    /**
+     * Type check the file taken in by the class.
+     * @return return the type-checked AST of the input file
+     */
     public ASTNode generateTypeCheck() {
         //generate the target .parsed file
         FileWriter targetWriter = null;
@@ -123,7 +129,12 @@ public class TypeCheckerAdapter {
     }
 
     /**
-     * Standard output error message. <kind> error beginning at <filename>:<line>:<column>: <description>
+     * Standard output error message in the format of
+     * <kind> error beginning at <filename>:<line>:<column>: <description>
+     * @param errorKind error kind
+     * @param fileName file name
+     * @param error error
+     * @return a stdout error message
      */
     private String stdOutError(String errorKind, String fileName, String error) {
         return errorKind + "error beginning at " + fileName + ":" + error;
@@ -131,7 +142,10 @@ public class TypeCheckerAdapter {
 
 
     /**
-     * The first pass of type checking global definitions in a program.
+     * The first pass of type checking global definitions in a program to add the types into the context
+     * @param node a program ast
+     * @param visitor a type-checker visitor that is going to be used to type check the rest of the program
+     * @throws SemanticErrorException
      */
     public void programFirstPass(Program node, TypeChecker visitor) throws SemanticErrorException {
         for (Definition def : node.definitions) {
@@ -146,7 +160,10 @@ public class TypeCheckerAdapter {
     }
 
     /**
-     * First pass of function definition.
+     * First pass of function definitions to add the types into context
+     * @param node a function definition ast
+     * @param visitor a type-checker visitor that is going to be used to type check the rest of the program
+     * @throws SemanticErrorException
      */
     private void funDefFirstPass(FunctionDefine node, TypeChecker visitor) throws SemanticErrorException {
         if (!visitor.env.containsFun(node.name)) {
@@ -183,7 +200,10 @@ public class TypeCheckerAdapter {
     }
 
     /**
-     * First pass of procedure definition.
+     * First pass of procedure definitions to add the types into context
+     * @param node a procedure definition ast
+     * @param visitor a type-checker visitor that is going to be used to type check the rest of the program
+     * @throws SemanticErrorException
      */
     private void procDefFirstPass(ProcedureDefine node, TypeChecker visitor) throws SemanticErrorException {
         if (!visitor.env.containsFun(node.name)) {
@@ -209,7 +229,10 @@ public class TypeCheckerAdapter {
     }
 
     /**
-     * First pass of procedure definition.
+     * First pass of global declarations to add the types into context
+     * @param globDecl a global declaration ast
+     * @param visitor a type-checker visitor that is going to be used to type check the rest of the program
+     * @throws SemanticErrorException
      */
     private void globDeclFirstPass(GlobDeclare globDecl, TypeChecker visitor) throws SemanticErrorException {
         if (visitor.env.containsVar(globDecl.identifier)) {

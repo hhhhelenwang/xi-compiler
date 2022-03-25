@@ -13,6 +13,9 @@ import java.util.Map;
 
 import static jw795.util.FileUtil.generateTargetFile;
 
+/**
+ * Take in an input source file and produce an IR for it.
+ */
 public class IRGeneratorAdapter {
     TypeCheckerAdapter typeCheckerAdapter;
     String destPath; // the path to put the typed file in
@@ -42,7 +45,6 @@ public class IRGeneratorAdapter {
      */
     public IRCompUnit generateIR() {
         // typeCheckAdapter.gentypecheck() will print Lexical, Syntax, or Semantic errors if those errors exist
-        System.out.println("start generating ir");
         Program checkedProgram = (Program) typeCheckerAdapter.generateTypeCheck();
         if (checkedProgram != null) {
             if(this.optimize){
@@ -68,24 +70,14 @@ public class IRGeneratorAdapter {
                 // Generating IR
                 checkedProgram.accept(irVisitor);
                 IRCompUnit root = checkedProgram.ir;
-//                root = checkedProgram.ir;
-//                System.out.println("==========first pass============");
-//                System.out.println(root);
                 IRLower lirTranslator = new IRLower();
                 lowerIR = lirTranslator.lower(root);
-//                System.out.println("==========lowered============");
-//                System.out.println(lowerIR);
                 if(this.optimize){
                     ConstantFolding confold = new ConstantFolding(lowerIR);
                     lowerIR = confold.foldComp();
                 }
-//                System.out.println("==========folded============");
-//                System.out.println(lowerIR);
                 JumpReorder jumpReorder = new JumpReorder();
                 reorderedIR = jumpReorder.reorder(lowerIR);
-
-//                System.out.println("==========reordered============");
-//                System.out.println(reorderedIR);
 
                 // Writing to target file
                 targetWriter.write(prettyPrint(reorderedIR));

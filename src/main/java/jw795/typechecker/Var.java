@@ -1,5 +1,8 @@
 package jw795.typechecker;
 
+/**
+ * Representation of a variable type that exist in the context
+ */
 public class Var implements Sigma{
     Tau varType;
 

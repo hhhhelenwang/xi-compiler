@@ -1,5 +1,8 @@
 package jw795.typechecker;
 
+/**
+ * Representation of an array type that has its element type defined.
+ */
 public class TypedArray extends Array {
     public Tau elementType;
 
@@ -12,7 +15,7 @@ public class TypedArray extends Array {
     }
 
     /**
-     *
+     * Compare two arrays.
      * @param a Array this is compared with
      * @return whether this is "subtype or equal to" a. If both have the exact same type, return true.
      * If a is more informative than this, return true. Else return false (If this and a doesn't match, return false).
@@ -22,7 +25,8 @@ public class TypedArray extends Array {
             return false;
         } else {
             Tau atype = ((TypedArray)a).elementType;
-            if (this.elementType instanceof EmptyArray && (atype instanceof TypedArray || atype instanceof EmptyArray)) {
+            if (this.elementType instanceof EmptyArray &&
+                    (atype instanceof TypedArray || atype instanceof EmptyArray)) {
                 return true;
             } else if (elementType instanceof TypedArray && atype instanceof TypedArray) {
                 return ((TypedArray)elementType).compare(((TypedArray) atype));
@@ -33,7 +37,6 @@ public class TypedArray extends Array {
             }
         }
     }
-
 
     public String toStr(){
         return elementType.toStr()+"[]";
