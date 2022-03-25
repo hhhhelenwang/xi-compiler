@@ -1,4 +1,5 @@
 use io
+use conv
 g1:int = 5
 g2:int = 6
 f() : int {
@@ -8,6 +9,5 @@ f() : int {
 
 main (a : int[][]) {
     b:int = f() + g1;
-    c:int[] = {b};
-    print(c);
+    print(unparseInt(b));
 }
