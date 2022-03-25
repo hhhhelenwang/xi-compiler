@@ -513,7 +513,7 @@ public class IRGenerator extends Visitor {
             Queue<IRTemp> lengths = new LinkedList<>();
 
             while (t instanceof ArrayType) {
-                Optional<Expr> e = ((ArrayType) node.varType).length;
+                Optional<Expr> e = ((ArrayType) t).length;
                 IRTemp tn = irFactory.IRTemp(nextTemp());
                 if (e.isPresent()) {
                     stmts.add(irFactory.IRMove(tn, e.get().ir));
