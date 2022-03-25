@@ -12,7 +12,6 @@ public class JumpReorder {
      * Representation of a basic block
      */
     static class BasicBlock {
-        //TODO: have zero idea how this would work
         String label; //label l0, l1, ...., l_n, done0, done1, .., done_n
         List<IRStmt> statements;
         Optional<IRStmt> endingStatement; // An endingStatement is either CJUMP, JUMP or RETURN
@@ -121,7 +120,7 @@ public class JumpReorder {
     }
 
     /**
-     * Flatten a list of basicBlock to a list of RIStmt
+     * Flatten a list of basicBlock to a list of IRStmt
      * @param blocks list of Basic Blocks
      * @return list of IRStmt
      */
@@ -139,15 +138,12 @@ public class JumpReorder {
      * @return list of BasicBlock
      */
     private List<BasicBlock> removeLabels(List<BasicBlock> trace) {
-        // gather used labels
         HashSet<String> labels = findUsedLabels(trace);
-
-        // remove unused labels
         return removeUnusedLabels(labels, trace);
     }
 
     /**
-     *  remove unused labels in IRSeq
+     * remove unused labels in IRSeq
      * @param labels labels used
      * @param trace list of Basic Blocks with redundant jumps removed
      * @return BasicBlocks
@@ -208,8 +204,7 @@ public class JumpReorder {
                     IRCJump newCjump = irFactory.IRCJump(((IRCJump) curEndingStmt).cond(),
                             ((IRCJump) curEndingStmt).trueLabel());
                     prevIsCjump = true;
-                    // update block with new CJUMP
-                    curBlock.statements.remove(curBlock.statements.size()-1); //remove last stmt
+                    curBlock.statements.remove(curBlock.statements.size()-1);
                     curBlock.statements.add(newCjump);
                     curBlock.endingStatement = Optional.of(newCjump);
                 } else if (curEndingStmt instanceof IRJump){
@@ -270,7 +265,6 @@ public class JumpReorder {
         BasicBlock curBlock;
         BasicBlock nxtBlock;
 
-        // only need to worry about fixing jumps if there exist a next block
         for (int i = 0; i < trace.size()-1; i++){
             curBlock = trace.get(i);
             nxtBlock = trace.get(i+1);
@@ -294,7 +288,6 @@ public class JumpReorder {
                                 ((IRCJump) curEndingStmt).falseLabel());
                     }
 
-                    // update block with new CJUMP
                     curBlock.statements.remove(curBlock.statements.size()-1);
                     curBlock.statements.add(newCjump);
                     curBlock.endingStatement = Optional.of(newCjump);
@@ -449,13 +442,9 @@ public class JumpReorder {
      * @return the trace with n epilogue
      */
     private List<BasicBlock> buildTrace(BasicBlock root) {
-        //get trace body
         List<BasicBlock> trace = buildTraceBody(root);
-
-        //add epilogue
         BasicBlock epilogueBlock = originalBasicBlocks.get(originalBasicBlocks.size()-1);
         trace.add(epilogueBlock);
-
         return trace;
     }
 
