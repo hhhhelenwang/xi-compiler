@@ -614,7 +614,10 @@ public class IRGenerator extends Visitor {
         List<IRStmt> saveArgs = moveArgument(node.arguments);
         irBody.addAll(saveArgs);
         irBody.add((IRStmt) node.procBody.ir);
-        irBody.add(irFactory.IRReturn());
+        BlockStmt b = node.procBody;
+        if (b.statements.isEmpty() || !(b.statements.get(b.statements.size() - 1) instanceof ReturnStmt)) {
+            irBody.add(irFactory.IRReturn());
+        }
 
         String name = funcNames.get(node.name);
         node.ir = irFactory.IRFuncDecl(name, irFactory.IRSeq(irBody));
@@ -655,7 +658,7 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitProgram(Program node) throws Exception {
-        node.ir = irFactory.IRCompUnit("example");
+        node.ir = irFactory.IRCompUnit(filename);
         for (Definition d: node.definitions) {
             if (d instanceof FunctionDefine) {
                 node.ir.appendFunc(((FunctionDefine) d).ir);
