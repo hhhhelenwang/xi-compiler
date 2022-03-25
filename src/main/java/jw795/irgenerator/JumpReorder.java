@@ -107,11 +107,34 @@ public class JumpReorder {
      */
     private IRSeq fixJumps (List<BasicBlock> trace) {
         List<BasicBlock> fallThroughedTrace = enableFallThrough(trace);
+//        System.out.println("===fallThroughedTrace===");
+//        printBlocks(fallThroughedTrace);
+//        System.out.println(fallThroughedTrace.size() + " fallThroughedTrace SIZE is");
+
         List<BasicBlock> addedJumpTrace = addJumps(fallThroughedTrace);
+
+//        System.out.println("===addedJumpTrace===");
+//        printBlocks(addedJumpTrace);
+//        System.out.println(addedJumpTrace.size() + " addedJumpTrace SIZE is");
+
         List<BasicBlock> removeJumpsTrace = removeJumps(addedJumpTrace);
-//        List<BasicBlock> cleanUpedTrace = removeLabels(removeJumpsTrace);
-        List<IRStmt> finalTrace = flatten(removeJumpsTrace);
+//        System.out.println("===removeJumps===");
+//        printBlocks(removeJumpsTrace);
+//        System.out.println(removeJumpsTrace.size() + " removeJumps SIZE is");
+
+        List<BasicBlock> cleanUpedTrace = removeLabels(removeJumpsTrace);
+//        System.out.println("===removeLabels===");
+//        printBlocks(cleanUpedTrace);
+//        System.out.println(cleanUpedTrace.size() + " cleanUpedTrace SIZE is");
+
+        List<IRStmt> finalTrace = flatten(cleanUpedTrace);
+
+//        System.out.println("===removeJumpsTrace===");
+//        printBlocks(removeJumpsTrace);
+//        System.out.println(removeJumpsTrace.size() + " removeJumpsTrace SIZE is");
+
         return irFactory.IRSeq(finalTrace);
+//        return irFactory.IRSeq();
     }
 
     /**
@@ -148,7 +171,7 @@ public class JumpReorder {
      */
     private List<BasicBlock> removeUnusedLabels(HashSet<String> labels, List<BasicBlock> trace) {
         for (BasicBlock block : trace){
-            if (!labels.contains(block.label)){
+            if (!labels.contains(block.label) && block.statements.get(0) instanceof IRLabel){
                 block.statements.remove(0);
             }
         }
@@ -316,6 +339,8 @@ public class JumpReorder {
     private BasicBlock buildCFG(IRSeq ir){
         List<BasicBlock> basicBlocksInit = getBasicBlocks(ir);
         List<BasicBlock> basicBlocks = addNextLabel(basicBlocksInit);
+//        System.out.println("================BASIC BLOCKS==================");
+//        printBlocks(basicBlocks);
         originalBasicBlocks = basicBlocks;
         BasicBlock root = basicBlocks.get(0);
         return connectBlocks(root);
@@ -373,6 +398,7 @@ public class JumpReorder {
             } else if (stmt instanceof IRLabel) {
                 // always start a block && end previous block if not ended by jump/return
                 if (stmts.size() != 0){
+//                    stmts.add(irFactory.IRLabel(curLabel));
                     BasicBlock block = new BasicBlock(curLabel, stmts, Optional.of(((IRLabel) stmt).name()));
                     blocks.add(block);
                 }
