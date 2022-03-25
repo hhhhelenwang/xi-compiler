@@ -5,10 +5,7 @@ import jw795.Visitor;
 import jw795.ast.*;
 import jw795.typechecker.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import static edu.cornell.cs.cs4120.xic.ir.IRBinOp.OpType.*;
 
@@ -502,13 +499,21 @@ public class IRGenerator extends Visitor {
     @Override
     public void visitVarDecl(VarDeclareStmt node) throws Exception {
         if (node.varType instanceof ArrayType) {
+            List<IRStmt> stmts = new ArrayList<>();
+            Optional<Expr> e = ((ArrayType) node.varType).length;
+            IRTemp tn = irFactory.IRTemp(nextTemp());
+            if (e.isPresent()) {
+                stmts.add(irFactory.IRMove(tn, e.get().ir));
+            } else {
+                stmts.add(irFactory.IRMove(tn, irFactory.IRConst(0L)));
+            }
+            stmts.addAll(arrayDeclAllocate(
+                    node.identifier,
+                    (ArrayType) node.varType,
+                    tn
+            ));
             node.ir = irFactory.IRESeq(
-                    irFactory.IRSeq(
-                            arrayDeclAllocate(
-                                    node.identifier,
-                                    (ArrayType) node.varType
-                            )
-                    ),
+                    irFactory.IRSeq(stmts),
                     irFactory.IRTemp(node.identifier)
             );
         } else {
@@ -516,48 +521,54 @@ public class IRGenerator extends Visitor {
         }
     }
 
-    private List<IRStmt> arrayDeclAllocate(String id, ArrayType arrType) {
-        String tnStr = nextTemp();
+    private List<IRStmt> arrayDeclAllocate(String id, ArrayType arrType, IRTemp curLayerLength) {
         String tmStr = nextTemp();
-        IRTemp tn = irFactory.IRTemp(tnStr);
         IRTemp tm = irFactory.IRTemp(tmStr);
         List<IRStmt> stmts = new ArrayList<>();
-        if (arrType.length.isPresent()) {
-            Expr e = arrType.length.get();
-            stmts.add(irFactory.IRMove(tn, e.ir));
-            stmts.add(
-                    irFactory.IRMove(
-                            tm,
-                            irFactory.IRCall(
-                                    irFactory.IRName("_xi_alloc"),
-                                    irFactory.IRBinOp(
-                                            ADD,
-                                            irFactory.IRBinOp(
-                                                    MUL,
-                                                    tn,
-                                                    irFactory.IRConst(8L)
-                                            ),
-                                            irFactory.IRConst(8L))
-                            )
-                    )
-            );
-            IRBinOp arrayStart = irFactory.IRBinOp(ADD, tm, irFactory.IRConst(8L));
-            stmts.add(irFactory.IRMove(irFactory.IRMem(tm), tn));
-            if (arrType.elemType instanceof ArrayType) {
+        stmts.add(
+                irFactory.IRMove(
+                        tm,
+                        irFactory.IRCall(
+                                irFactory.IRName("_xi_alloc"),
+                                irFactory.IRBinOp(
+                                        ADD,
+                                        irFactory.IRBinOp(
+                                                MUL,
+                                                curLayerLength,
+                                                irFactory.IRConst(8L)
+                                        ),
+                                        irFactory.IRConst(8L))
+                        )
+                )
+        );
+        IRTemp arrayStart = irFactory.IRTemp(nextTemp());
+        stmts.add(irFactory.IRMove(arrayStart, irFactory.IRBinOp(ADD, tm, irFactory.IRConst(8L))));
+        stmts.add(irFactory.IRMove(irFactory.IRMem(tm), curLayerLength));
+        if (arrType.elemType instanceof ArrayType) {
+            String goToNextLayer = nextLabel();
+            String stop = nextLabel();
+            stmts.add(C(irFactory.IRBinOp(GT, curLayerLength, irFactory.IRConst(0L)), goToNextLayer, stop));
+            stmts.add(irFactory.IRLabel(goToNextLayer));
                 String lh = nextLabel();
                 String l1 = nextLabel();
                 String le = nextLabel();
 
                 IRTemp cur = irFactory.IRTemp(nextTemp());
                 String subArrayID = nextTemp();
-                IRTemp subArray;
-                subArray = irFactory.IRTemp(subArrayID);
-
+                IRTemp subArray = irFactory.IRTemp(subArrayID);
                 stmts.add(irFactory.IRMove(cur, irFactory.IRConst(0L)));
+
                 stmts.add(irFactory.IRLabel(lh));
-                stmts.add(C(irFactory.IRBinOp(LT, cur, tn), l1, le));
+                stmts.add(C(irFactory.IRBinOp(LT, cur, curLayerLength), l1, le));
                 stmts.add(irFactory.IRLabel(l1));
-                List<IRStmt> createSubarray = arrayDeclAllocate(subArrayID, (ArrayType) arrType.elemType);
+                IRTemp nextLayerLength = irFactory.IRTemp(nextTemp());
+                Optional<Expr> e = ((ArrayType) arrType.elemType).length;
+                if (e.isPresent()) {
+                    stmts.add(irFactory.IRMove(nextLayerLength, e.get().ir));
+                } else {
+                    stmts.add(irFactory.IRMove(nextLayerLength, irFactory.IRConst(0L)));
+                }
+                List<IRStmt> createSubarray = arrayDeclAllocate(subArrayID, (ArrayType) arrType.elemType, nextLayerLength);
                 stmts.addAll(createSubarray);
                 stmts.add(
                         irFactory.IRMove(
@@ -580,21 +591,10 @@ public class IRGenerator extends Visitor {
                 stmts.add(irFactory.IRMove(cur, irFactory.IRBinOp(ADD, cur, irFactory.IRConst(1L))));
                 stmts.add(irFactory.IRJump(irFactory.IRName(lh)));
                 stmts.add(irFactory.IRLabel(le));
+
+                stmts.add(irFactory.IRLabel(stop));
             }
-            stmts.add(irFactory.IRMove(irFactory.IRTemp(id), arrayStart));
-        } else {
-            stmts.add(
-                    irFactory.IRMove(
-                            tm,
-                            irFactory.IRCall(
-                                    irFactory.IRName("_xi_alloc"),
-                                    irFactory.IRConst(8L)
-                            )
-                    )
-            );
-            stmts.add(irFactory.IRMove(irFactory.IRMem(tm), irFactory.IRConst(0L)));
-            stmts.add(irFactory.IRMove(irFactory.IRTemp(id), irFactory.IRBinOp(ADD, tm, irFactory.IRConst(8L))));
-        }
+        stmts.add(irFactory.IRMove(irFactory.IRTemp(id), arrayStart));
         return stmts;
     }
 
