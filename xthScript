@@ -84,4 +84,11 @@ xic ("Test --irgen") ["./test/pa4"]"-libpath $(testpath) --irgen" {
     testbasictry.xi;
     testfoldbinop.xi;
     testcallfold.xi;
+    test_commute.xi;
+    testarrayconcat.xi;
+    testarrayindedxoutofbound.xi;
+    testbasic.xi
+    testbasictypes.xi;
+    testbinops.xi;
+    testprocedure.xi;
 }
