@@ -95,6 +95,7 @@ xic ("Test --irgen") ["./test/pa4"]"-libpath $(testpath) --irgen" {
     testLastBlockNotFallThrough.xi;
     testCJumpFallThrough.xi;
     testRedundantLabelOrJumps.xi;
+    testsideeffect.xi;
 }
 
 xic ("Test --irgen -O") ["./test/pa4"]"-libpath $(testpath) --irgen -O" {
