@@ -225,7 +225,7 @@ public class JumpReorder {
     }
 
     /**
-     * Add jumps to
+     * Add jumps to restore the original program flow
      * @param trace of reordered blocks
      * @return BasicBlocks with Jumps added to restore program flow
      */
