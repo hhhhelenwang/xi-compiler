@@ -71,3 +71,17 @@ xic ("Test --typecheck") ["./test/pa3"]"-libpath $(testpath) --typecheck" {
     ex15_scope_legal.xi;
     testinvalidlength.xi;
 }
+
+xic ("Test --irgen") ["./test/pa4"]"-libpath $(testpath) --irgen" {
+    testiftrue.xi;
+    testiffalse.xi;
+    testwhilefalse.xi;
+    testifelse01.xi;
+    testifelse02.xi;
+    testbasictry.xi;
+    testfoldbinop.xi;
+    testbasicarray.xi;
+    testbasictry.xi;
+    testfoldbinop.xi;
+    testcallfold.xi;
+}
