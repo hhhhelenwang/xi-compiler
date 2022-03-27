@@ -1,0 +1,3 @@
+#!/bin/bash
+cd ..
+zip -r xi-compiler.zip xi-compiler -x "xi-compiler/.git/*" "xi-compiler/.gitignore"
