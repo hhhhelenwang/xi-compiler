@@ -97,7 +97,6 @@ public class TypeCheckerAdapter {
                     targetWriter.close();
                 }
             } catch (SyntacticErrorException e) {
-                e.printStackTrace();
                 String errMsg = stdOutError("Syntax ", curFile, e.getMessage());
                 System.out.println(errMsg);
                 if (genFile) {
@@ -120,7 +119,6 @@ public class TypeCheckerAdapter {
                     targetWriter.write("\n");
                     targetWriter.close();
                 }
-                e.printStackTrace();
             }
         } catch (Exception e) {
             System.out.println("Compiler error: target file not found");

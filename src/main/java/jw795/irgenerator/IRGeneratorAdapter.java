@@ -50,7 +50,7 @@ public class IRGeneratorAdapter {
         Program checkedProgram = (Program) typeCheckerAdapter.generateTypeCheck();
         if (checkedProgram != null) {
             if(this.optimize){
-                ConstantFoldingAst confold= new ConstantFoldingAst(checkedProgram);
+                ConstantFoldingAst confold = new ConstantFoldingAst(checkedProgram);
                 checkedProgram = confold.fold();
             }
             funProcess();
@@ -88,7 +88,6 @@ public class IRGeneratorAdapter {
                     targetWriter.close();
                 }
             } catch (Exception e) {
-                e.printStackTrace();
                 System.out.println("unknown error while generating IR: "+ e.getMessage());
             }
 

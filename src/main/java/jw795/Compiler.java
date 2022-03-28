@@ -3,6 +3,7 @@
  */
 package jw795;
 
+import asmgenerator.AssemblyGeneratorAdapter;
 import edu.cornell.cs.cs4120.xic.ir.IRCompUnit;
 import edu.cornell.cs.cs4120.xic.ir.interpret.IRSimulator;
 import jw795.irgenerator.IRGeneratorAdapter;
@@ -24,8 +25,16 @@ public class Compiler {
     String destPath = "./";
     String sourcePath = "./";
     String libPath = "./";
+    String destPathAsm = "./";
+    Target targetOS = Target.LINUX;
     List<String> files = new ArrayList<>();
     Options options;
+
+    public enum Target {
+        LINUX, // supported
+        WINDOWS,
+        MACOS
+    }
 
     /**
      * Initialize the CommandLine Interface
@@ -234,7 +243,9 @@ public class Compiler {
     public void compileFile(String filename) {
         IRCompUnit ir = generateIRForFile(filename);
         if (ir != null) {
-            // compile ir
+            AssemblyGeneratorAdapter asmAdapter = new AssemblyGeneratorAdapter(
+                    filename, ir, destPathAsm, !cmd.hasOption("O"));
+            asmAdapter.generateAssembly();
         }
 
     }
@@ -245,7 +256,6 @@ public class Compiler {
     public void compile() {
         Option[] options = cmd.getOptions();
         if (options.length == 0 || cmd.hasOption("target")) {
-            System.out.println("hello");
             this.files = cmd.getArgList();
             for (String file : files) {
                 compileFile(file);
