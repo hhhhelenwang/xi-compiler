@@ -24,8 +24,9 @@ public class IRGeneratorAdapter {
     HashMap<String, String> funcNames = new HashMap<>();
     HashMap<String, Long> funcRetLengths = new HashMap<>();
     boolean optimize;
+    boolean genFile;
 
-    public IRGeneratorAdapter(String fileName, String dest, String lib, boolean opt) {
+    public IRGeneratorAdapter(String fileName, String dest, String lib, boolean opt, boolean generateFile) {
         this.destPath = dest;
         this.libPath = lib;
         this.fileName = fileName;
@@ -36,6 +37,7 @@ public class IRGeneratorAdapter {
         } catch (FileNotFoundException e) {
             System.out.println(fileName + ": " + " " + "File not found.");
         }
+        this.genFile = generateFile;
     }
 
 
@@ -63,8 +65,10 @@ public class IRGeneratorAdapter {
             FileWriter targetWriter = null;
 
             try{
-                File targetIrsol = generateTargetFile(fileName, destPath, "ir");
-                targetWriter = new FileWriter(targetIrsol);
+                if (genFile) {
+                    File targetIrsol = generateTargetFile(fileName, destPath, "ir");
+                    targetWriter = new FileWriter(targetIrsol);
+                }
 
                 // Generating IR
                 checkedProgram.accept(irVisitor);
@@ -78,9 +82,11 @@ public class IRGeneratorAdapter {
                 JumpReorder jumpReorder = new JumpReorder();
                 reorderedIR = jumpReorder.reorder(lowerIR);
 
-                // Writing to target file
-                targetWriter.write(prettyPrint(reorderedIR));
-                targetWriter.close();
+                if (genFile) {
+                    // Writing to target file
+                    targetWriter.write(prettyPrint(reorderedIR));
+                    targetWriter.close();
+                }
             } catch (Exception e) {
                 e.printStackTrace();
                 System.out.println("unknown error while generating IR: "+ e.getMessage());
