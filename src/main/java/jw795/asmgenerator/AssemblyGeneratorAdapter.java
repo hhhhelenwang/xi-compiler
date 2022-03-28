@@ -1,4 +1,4 @@
-package asmgenerator;
+package jw795.asmgenerator;
 
 import edu.cornell.cs.cs4120.xic.ir.IRCompUnit;
 

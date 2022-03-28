@@ -3,7 +3,7 @@
  */
 package jw795;
 
-import asmgenerator.AssemblyGeneratorAdapter;
+import jw795.asmgenerator.AssemblyGeneratorAdapter;
 import edu.cornell.cs.cs4120.xic.ir.IRCompUnit;
 import edu.cornell.cs.cs4120.xic.ir.interpret.IRSimulator;
 import jw795.irgenerator.IRGeneratorAdapter;
