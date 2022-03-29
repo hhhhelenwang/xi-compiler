@@ -1,9 +1,13 @@
 package jw795.asmgenerator;
 
+import edu.cornell.cs.cs4120.xic.ir.IRCompUnit;
 import edu.cornell.cs.cs4120.xic.ir.IRNode;
 import edu.cornell.cs.cs4120.xic.ir.IRNodeFactory;
 import edu.cornell.cs.cs4120.xic.ir.visit.IRVisitor;
 
+/**
+ * A visitor that traverse an IR tree and translate IR into tiles of abstract assembly.
+ */
 public class TilingVisitor extends IRVisitor {
     public TilingVisitor(IRNodeFactory inf) {
         super(inf);
@@ -18,9 +22,19 @@ public class TilingVisitor extends IRVisitor {
      * @param v2 The new node visitor created by {@link #enter(IRNode, IRNode)}, or {@code this}.
      * @return this node but visited
      */
+    //TODO: --> NOTE: Consider leave() == the visit function we used to write in our own ast visitor.
+    // This is the function interfaced by IRVisitor in the release code. You may wanna
+    // check out the docstrings in IRVisitor to understand how their visitor works.
+    // It is similar to the visitor we learned to write but weirder.
     @Override
     protected IRNode leave(IRNode parent, IRNode n, IRNode n2, IRVisitor v2) {
-        //TODO
+        //TODO: translate IR node to tile for each kinds of IR node,
+        // can have helper functions for each nodes if this methods gets too big
+        if (n instanceof IRCompUnit ) {
+            // whatever need to be done for CompUnit
+        } else {
+            // same pattern for other nodes
+        }
         return null;
     }
 }
