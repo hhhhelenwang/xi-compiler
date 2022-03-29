@@ -30,6 +30,8 @@ public class TilingVisitor extends IRVisitor {
     protected IRNode leave(IRNode parent, IRNode n, IRNode n2, IRVisitor v2) {
         //TODO: translate IR node to tile for each kinds of IR node,
         // can have helper functions for each nodes if this methods gets too big
+
+        //TODO: remember to add a field in IR to hold the optimal tile for IR node
         if (n instanceof IRCompUnit ) {
             // whatever need to be done for CompUnit
         } else {
