@@ -32,6 +32,8 @@ public class Tiler extends IRVisitor {
 
         if (n2 instanceof IRCompUnit) {
             // whatever need to be done for CompUnit
+        } else if (n2 instanceof IRFuncDecl) {
+
         } else if (n2 instanceof IRSeq){
             // same pattern for other nodes
         } else if (n2 instanceof IRMove) {
