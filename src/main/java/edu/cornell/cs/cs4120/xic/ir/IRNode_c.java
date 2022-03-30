@@ -13,8 +13,14 @@ public abstract class IRNode_c implements IRNode {
 
     public Tile optTile;
 
+    @Override
     public void setTile(Tile tile) {
         optTile = tile;
+    }
+
+    @Override
+    public Tile getTile() {
+        return optTile;
     }
 
     @Override

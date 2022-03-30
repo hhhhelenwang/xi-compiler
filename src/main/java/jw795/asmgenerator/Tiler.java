@@ -3,6 +3,7 @@ package jw795.asmgenerator;
 import edu.cornell.cs.cs4120.xic.ir.IRCompUnit;
 import edu.cornell.cs.cs4120.xic.ir.IRNode;
 import edu.cornell.cs.cs4120.xic.ir.IRNodeFactory;
+import edu.cornell.cs.cs4120.xic.ir.IRSeq;
 import edu.cornell.cs.cs4120.xic.ir.visit.IRVisitor;
 
 /**
@@ -32,10 +33,9 @@ public class Tiler extends IRVisitor {
 
         //  can have helper functions for each nodes if this methods gets too big
 
-        // TODO: remember to add a field in IR to hold the optimal tile for IR node
         if (n instanceof IRCompUnit) {
             // whatever need to be done for CompUnit
-        } else {
+        } else if (n instanceof IRSeq){
             // same pattern for other nodes
         }
         return null;
