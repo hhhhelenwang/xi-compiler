@@ -8,6 +8,6 @@ public class AAJe extends AAInstruction{
 
     @Override
     public String toString() {
-        return "je" + operand1.get();
+        return "je " + operand1.get();
     }
 }
