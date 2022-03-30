@@ -29,7 +29,10 @@ public class Tiler extends IRVisitor {
     // It is similar to the visitor we learned to write but weirder.
     @Override
     protected IRNode leave(IRNode parent, IRNode n, IRNode n2, IRVisitor v2) {
-        // TODO: translate IR node to tile for each kinds of IR node,
+        // TODO: translate IR node to tile for each kinds of IR node:
+        //  (lower IR only)
+        //  stmt: move, call_m, jump, cjump, label, return, seq
+        //  expr: const, temp, mem, name, binop
         // can have helper functions for each nodes if this methods gets too big
 
         // TODO: remember to add a field in IR to hold the optimal tile for IR node
