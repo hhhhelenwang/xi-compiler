@@ -1,6 +1,23 @@
 package jw795.assembly;
 
+import java.util.Optional;
+
 public abstract class AAInstruction {
+
+    Optional<AAOperand> operand1;
+    Optional<AAOperand> operand2;
+
+    public AAInstruction (AAOperand opr){
+        operand1 = Optional.of(opr);
+        operand2 = Optional.empty();
+
+    }
+
+    public AAInstruction(AAOperand opr1, AAOperand opr2) {
+        operand1 = Optional.of(opr1);
+        operand2 = Optional.of(opr2);
+
+    }
 
     // TODO: build up classes for each kinds of assembly instruction that we might use.
     //  See lecture notes for a somewhat comprehensive list of opcodes we use.
