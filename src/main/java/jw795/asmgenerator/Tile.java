@@ -13,12 +13,30 @@ public class Tile {
     public List<AAInstruction> assembly;
     public IRNode neighborIR;
     public int cost;
+    public int costOfSubTree;
 
     public Tile(List<AAInstruction> asm, IRNode neighbor) {
         assembly = asm;
         neighborIR = neighbor;
 
-        cost = costOfTile(); // calculate the cost of tile at construction
+        cost = computeCostOfTile(); // calculate the cost of tile at construction
+        costOfSubTree = computeCostOfSubTree();
+    }
+
+    /**
+     * Getter for the cost of the subtree.
+     * @return cost of subtree
+     */
+    public int getCostOfSubTree() {
+        return costOfSubTree;
+    }
+
+    /**
+     * Calculate the cost of this tile.
+     * @return cost of this tile
+     */
+    public int computeCostOfTile() {
+        return assembly.size();
     }
 
     /**
@@ -26,10 +44,10 @@ public class Tile {
      * subtree with n as root plus the cost of this tile.
      * @return total cost of tiling the IR tree with n(this node) as root
      */
-    public int costOfTile() {
-        //TODO
-        return 0;
+    public int computeCostOfSubTree() {
+        return cost + neighborIR.getTile().getCostOfSubTree();
     }
+
 
     @Override
     public String toString() {

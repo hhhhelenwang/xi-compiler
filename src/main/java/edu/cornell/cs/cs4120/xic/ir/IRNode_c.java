@@ -2,17 +2,20 @@ package edu.cornell.cs.cs4120.xic.ir;
 
 import edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 import edu.cornell.cs.cs4120.util.SExpPrinter;
-import edu.cornell.cs.cs4120.xic.ir.visit.AggregateVisitor;
-import edu.cornell.cs.cs4120.xic.ir.visit.CheckCanonicalIRVisitor;
-import edu.cornell.cs.cs4120.xic.ir.visit.CheckConstFoldedIRVisitor;
-import edu.cornell.cs.cs4120.xic.ir.visit.IRVisitor;
-import edu.cornell.cs.cs4120.xic.ir.visit.InsnMapsBuilder;
+import edu.cornell.cs.cs4120.xic.ir.visit.*;
+import jw795.asmgenerator.Tile;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
 /** A node in an intermediate-representation abstract syntax tree. */
 public abstract class IRNode_c implements IRNode {
+
+    public Tile optTile;
+
+    public void setTile(Tile tile) {
+        optTile = tile;
+    }
 
     @Override
     public IRNode visitChildren(IRVisitor v) {

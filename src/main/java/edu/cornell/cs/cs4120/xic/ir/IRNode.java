@@ -1,14 +1,22 @@
 package edu.cornell.cs.cs4120.xic.ir;
 
 import edu.cornell.cs.cs4120.util.SExpPrinter;
-import edu.cornell.cs.cs4120.xic.ir.visit.AggregateVisitor;
-import edu.cornell.cs.cs4120.xic.ir.visit.CheckCanonicalIRVisitor;
-import edu.cornell.cs.cs4120.xic.ir.visit.CheckConstFoldedIRVisitor;
-import edu.cornell.cs.cs4120.xic.ir.visit.IRVisitor;
-import edu.cornell.cs.cs4120.xic.ir.visit.InsnMapsBuilder;
+import edu.cornell.cs.cs4120.xic.ir.visit.*;
+import jw795.asmgenerator.Tile;
 
 /** A node in an intermediate-representation abstract syntax tree. */
 public interface IRNode {
+
+    /**
+     * Set the currently optimal tile for the IRNode
+     * @param tile optimal tile
+     */
+    void setTile(Tile tile);
+
+    /**
+     * Get the tile of this IRNode.
+     */
+    Tile getTile();
 
     /**
      * Visit the children of this IR node.
