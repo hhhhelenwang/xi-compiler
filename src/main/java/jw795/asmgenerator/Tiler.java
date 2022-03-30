@@ -1,9 +1,6 @@
 package jw795.asmgenerator;
 
-import edu.cornell.cs.cs4120.xic.ir.IRCompUnit;
-import edu.cornell.cs.cs4120.xic.ir.IRNode;
-import edu.cornell.cs.cs4120.xic.ir.IRNodeFactory;
-import edu.cornell.cs.cs4120.xic.ir.IRSeq;
+import edu.cornell.cs.cs4120.xic.ir.*;
 import edu.cornell.cs.cs4120.xic.ir.visit.IRVisitor;
 
 /**
@@ -33,10 +30,37 @@ public class Tiler extends IRVisitor {
 
         //  can have helper functions for each nodes if this methods gets too big
 
-        if (n instanceof IRCompUnit) {
+        if (n2 instanceof IRCompUnit) {
             // whatever need to be done for CompUnit
-        } else if (n instanceof IRSeq){
+        } else if (n2 instanceof IRSeq){
             // same pattern for other nodes
+        } else if (n2 instanceof IRMove) {
+
+        } else if (n2 instanceof IRCallStmt) {
+
+        } else if (n2 instanceof IRJump) {
+
+        } else if (n2 instanceof IRCJump) {
+
+        } else if (n2 instanceof IRLabel) {
+
+        } else if (n2 instanceof IRReturn) {
+
+        }
+        // expressions
+        else if (n2 instanceof IRConst) {
+
+        } else if (n2 instanceof IRTemp) {
+
+        } else if (n2 instanceof IRMem) {
+
+        } else if (n2 instanceof IRName) {
+
+        } else if (n2 instanceof IRBinOp) {
+
+        } else {
+            System.out.println("IR is not lowered.");
+            return null;
         }
         return null;
     }
