@@ -8,6 +8,6 @@ public class AAMove extends AAInstruction {
 
     @Override
     public String toString() {
-        return "mov" + operand1.get().toString() + " " + operand2.get().toString();
+        return "mov" + " " + operand1.get().toString() + ", " + operand2.get().toString();
     }
 }
