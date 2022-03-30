@@ -13,12 +13,15 @@ To use the compiler:
 ```
 where currently available options are:
 - –help: display the help page
-- –-lex: produce lexical analysis on source files
-- –-parse: produce syntactic analysis on source files
-- –-typecheck: produce semantic analysis
-- –-sourcepath: specify where to find the source files
-- –-libpath: specify where to find the interface files
-- -D: specify where to put the lexed files produced by the –lex option.
+- –lex: produce lexical analysis on source files
+- –parse: produce syntactic analysis on source files
+- –typecheck: produce semantic analysis
+- –sourcepath: specify where to find the source files
+- –libpath: specify where to find the interface files
+- –irgen: generate IR for the input files
+- –irrun: generate IR and run the IR for the input files
+- -D: specify where to put the diagnostic files produced by the –lex option
+
 
 Examples:
 ```
@@ -29,5 +32,7 @@ Examples:
 ./xic --parse test/testparse.xi -D parsed
 ./xic --typecheck test/test1.xi
 ./xic --typecheck test /test1.xi –sourcepath source –libpath libs
+./xic –irgen test/test1.xi
+./xic –irrun test/test1.xi
 
 ```
