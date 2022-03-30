@@ -19,6 +19,11 @@ public abstract class AAInstruction {
 
     }
 
+    public AAInstruction() {
+        operand1 = Optional.empty();
+        operand1 = Optional.empty();
+    }
+
     // TODO: build up classes for each kinds of assembly instruction that we might use.
     //  See lecture notes for a somewhat comprehensive list of opcodes we use.
 
