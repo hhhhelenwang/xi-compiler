@@ -8,6 +8,6 @@ public class AACmp extends AAInstruction{
 
     @Override
     public String toString() {
-        return "cmp " + this.operand1.get() + this.operand2.get();
+        return "test commit cmp " + this.operand1.get() + this.operand2.get();
     }
 }
