@@ -2,6 +2,10 @@ package jw795.asmgenerator;
 
 import edu.cornell.cs.cs4120.xic.ir.*;
 import edu.cornell.cs.cs4120.xic.ir.visit.IRVisitor;
+import jw795.assembly.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A visitor that traverse an IR tree and translate IR into tiles of abstract assembly.
@@ -59,11 +63,64 @@ public class Tiler extends IRVisitor {
         } else if (n2 instanceof IRName) {
 
         } else if (n2 instanceof IRBinOp) {
+            return tileBinop((IRBinOp) n2);
 
         } else {
             System.out.println("IR is not lowered.");
             return null;
         }
+        return null;
+    }
+
+    /**
+     * Tile a binop IR instruction
+     * @param node a binop IR node
+     * @return a binop IR node labeled with its tile of assembly
+     */
+    private IRNode tileBinop(IRBinOp node) {
+        AAOperand operand1;
+        AAOperand operand2;
+        List<IRNode> neighbors = new ArrayList<>();
+
+        // basic tiling for binop, no optimization
+        // first decides the two operands
+        // TODO: ok this is wrong
+        if (node.left() instanceof IRConst) {
+            operand1 = new AAImm(((IRConst) node.left()).value());
+        } else if (node.left() instanceof IRTemp) {
+            operand1 = new AATemp(((IRTemp) node.left()).name());
+        } else {
+            Tile childTile = node.getTile();
+            operand1 = childTile.getReturnTemp();
+            neighbors.add(node.left());
+        }
+
+        if (node.right() instanceof IRConst) {
+            operand2 = new AAImm(((IRConst) node.left()).value());
+        } else if (node.right() instanceof IRTemp) {
+            operand2 = new AATemp(((IRTemp) node.left()).name());
+        } else {
+            Tile childTile = node.getTile();
+            operand2 = childTile.getReturnTemp();
+            neighbors.add(node.right());
+        }
+
+        switch (node.opType()){
+            case ADD:
+                // basic tiling, no optimization yet
+                // TODO: match node against some patterns where optimization is possible through if-else
+                List<AAInstruction> aasm = new ArrayList<>();
+                AAAdd add = new AAAdd(operand1, operand2);
+                aasm.add(add);
+                Tile basicTile = new Tile(aasm, neighbors);
+                // set return temp
+
+            default:
+                break;
+
+        }
+
+
         return null;
     }
 }
