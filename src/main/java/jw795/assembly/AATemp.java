@@ -10,6 +10,10 @@ public class AATemp extends AAOperand{
         tempName = name;
     }
 
+    public String name() {
+        return  tempName;
+    }
+
     @Override
     public String toString() {
         return tempName;
