@@ -7,14 +7,18 @@ import jw795.assembly.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import java.util.ArrayList;
+
 /**
  * A visitor that traverse an IR tree and translate IR into tiles of abstract assembly.
  */
 public class Tiler extends IRVisitor {
     public TempSpiller tempSpiller;
-    public Tiler(IRNodeFactory inf) {
+
+    public Tiler(IRNodeFactory inf, TempSpiller tsp) {
         super(inf);
-        this.tempSpiller = new TempSpiller();
+        tempSpiller = tsp;
+
     }
 
     /**
@@ -40,9 +44,9 @@ public class Tiler extends IRVisitor {
         } else if (n2 instanceof IRFuncDecl) {
 
         } else if (n2 instanceof IRSeq){
-            // same pattern for other nodes
+            // do nothing
         } else if (n2 instanceof IRMove) {
-
+            return tileMove((IRMove) n2);
         } else if (n2 instanceof IRCallStmt) {
 
         } else if (n2 instanceof IRJump) {
@@ -60,7 +64,6 @@ public class Tiler extends IRVisitor {
         } else if (n2 instanceof IRTemp) {
 
         } else if (n2 instanceof IRMem) {
-            return tileMem((IRMem) n2);
 
         } else if (n2 instanceof IRName) {
 
@@ -75,6 +78,35 @@ public class Tiler extends IRVisitor {
     }
 
     /**
+     * Tile a move IR instruction
+     * @param node a move IR node
+     * @return a move IR node labeled with its tile of assembly
+     */
+    private IRNode tileMove(IRMove node) {
+        if (node.source() instanceof IRBinOp && node.target().equals(node.source())) {
+            List<IRNode> neighbors = new ArrayList<>();
+            neighbors.add(node.source());
+            node.optTile = new Tile(new ArrayList<>(), neighbors);
+        } else {
+            AAOperand operand1;
+            AAOperand operand2;
+            operand1 = node.target().getTile().returnTemp;
+            operand2 = node.source().getTile().returnTemp;
+            AAMove m = new AAMove(operand1, operand2);
+
+            ArrayList<AAInstruction> asm = new ArrayList<>();
+            asm.add(m);
+
+            List<IRNode> neighbors = new ArrayList<>();
+            neighbors.add(node.target());
+            neighbors.add(node.source());
+            Tile t = new Tile (asm, neighbors);
+            node.optTile = t;
+        }
+        return node;
+    }
+
+    /**
      * Tile a binop IR instruction
      * @param node a binop IR node
      * @return a binop IR node labeled with its tile of assembly
@@ -83,13 +115,34 @@ public class Tiler extends IRVisitor {
         AAOperand operand1;
         AAOperand operand2;
         List<IRNode> neighbors = new ArrayList<>();
+        AATemp returnTemp;
+        List<AAInstruction> aasm = new ArrayList<>();
 
         // basic tiling for binop, no optimization
         // first decides the two operands
-        // TODO: ok this is wrong
-        if (node.left() instanceof IRConst) {
-            operand1 = new AAImm(((IRConst) node.left()).value());
+
+        IRNode left = node.left();
+        IRNode right = node.right();
+        if (left instanceof IRConst) {
+            if (right instanceof IRConst) {
+                // both are const, so move one into a temp
+                returnTemp = tempSpiller.newTemp();
+                AAImm rImm =  new AAImm(((IRConst) left).value());
+                aasm.add(new AAMove(returnTemp, rImm));
+                operand1 = returnTemp;
+                operand2 = rImm;
+            } else if (right instanceof IRTemp) {
+                operand1 = new AATemp(((IRTemp) right).name());
+                operand2 = new AAImm(((IRConst) left).value());
+                returnTemp = (AATemp) operand1;
+            } else {
+                Tile childTile = node.getTile();
+                operand1 = childTile.getReturnTemp();
+                operand2 = new AAImm(((IRConst) left).value());
+                returnTemp = (AATemp) operand1;
+            }
         } else if (node.left() instanceof IRTemp) {
+            // TODO: ok this is wrong
             operand1 = new AATemp(((IRTemp) node.left()).name());
         } else {
             Tile childTile = node.getTile();
@@ -111,7 +164,6 @@ public class Tiler extends IRVisitor {
             case ADD:
                 // basic tiling, no optimization yet
                 // TODO: match node against some patterns where optimization is possible through if-else
-                List<AAInstruction> aasm = new ArrayList<>();
                 AAAdd add = new AAAdd(operand1, operand2);
                 aasm.add(add);
                 Tile basicTile = new Tile(aasm, neighbors);
@@ -170,5 +222,4 @@ public class Tiler extends IRVisitor {
         n2.setTile(newtile);
         return n2;
     }
-
 }
