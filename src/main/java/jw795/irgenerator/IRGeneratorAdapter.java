@@ -177,7 +177,7 @@ public class IRGeneratorAdapter {
         } else if (outputType instanceof Prod){
             String result = "t".concat(String.valueOf(((Prod) outputType).elementTypes.size()));
             for (Tau t : ((Prod) outputType).elementTypes) {
-                result.concat(outputNameBuild(t));
+                result = result.concat(outputNameBuild(t));
             }
             return result;
         }
