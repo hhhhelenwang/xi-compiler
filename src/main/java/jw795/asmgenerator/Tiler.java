@@ -11,9 +11,10 @@ import java.util.List;
  * A visitor that traverse an IR tree and translate IR into tiles of abstract assembly.
  */
 public class Tiler extends IRVisitor {
+    public TempSpiller tempSpiller;
     public Tiler(IRNodeFactory inf) {
         super(inf);
-
+        this.tempSpiller = new TempSpiller();
     }
 
     /**
@@ -59,6 +60,7 @@ public class Tiler extends IRVisitor {
         } else if (n2 instanceof IRTemp) {
 
         } else if (n2 instanceof IRMem) {
+            return tileMem((IRMem) n2);
 
         } else if (n2 instanceof IRName) {
 
@@ -124,12 +126,49 @@ public class Tiler extends IRVisitor {
         return null;
     }
 
-    private IRNode tileMem(IRNode parent, IRNode n, IRMem n2, IRVisitor v2){
-        IRNode result = inf.IRMem(n2.expr());
+    private IRNode tileMem(IRMem n2 ){
         List<IRNode> neighbors = new ArrayList<>();
-        neighbors.add(n2.expr());
-        result.setTile(new Tile((List<AAInstruction>) new AAMem(),neighbors));
+        List<AAInstruction> instructs = new ArrayList<>();
+        AATemp ret = this.tempSpiller.newTemp();
 
-        return result;
+        neighbors.add(n2.expr());
+        AAMem result = new AAMem();
+        //there are three case
+        // 1: global data
+        // 2: an string or an array
+        // user just want to use mem...[is there really this case?]
+
+        if(n2.expr() instanceof IRBinOp){
+            IRBinOp thechild = (IRBinOp) n2.expr();
+            if(thechild.opType() == IRBinOp.OpType.ADD){
+                if(thechild.right() instanceof  IRBinOp){
+                    if(((IRBinOp) thechild.right()).opType() == IRBinOp.OpType.MUL){
+                        result.setBase(thechild.left().getTile().returnTemp);
+                        result.setIndex(((IRBinOp) thechild.right()).left().getTile().returnTemp);
+                        if(((IRBinOp) thechild.right()).right() instanceof IRConst){
+                            result.setImmediate(new AAImm(((IRConst) ((IRBinOp) thechild.right()).right()).value()));
+                        }else{
+                            result.setIndex(thechild.right().getTile().returnTemp);
+                        }
+                    }
+                }
+            }
+        }else if(n2.expr() instanceof  IRLabel){
+            // how to get to know the position of a global data
+
+            //TODO:find global data place
+        }else{
+            result.setBase(n2.expr().getTile().returnTemp);
+            result.setScale(0);
+        }
+
+        instructs.add(new AAMove(ret, result));
+        Tile newtile = new Tile(instructs,neighbors);
+
+        newtile.returnTemp = ret;
+
+        n2.setTile(newtile);
+        return n2;
     }
+
 }
