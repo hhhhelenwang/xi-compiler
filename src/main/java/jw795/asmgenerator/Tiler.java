@@ -123,4 +123,13 @@ public class Tiler extends IRVisitor {
 
         return null;
     }
+
+    private IRNode tileMem(IRNode parent, IRNode n, IRMem n2, IRVisitor v2){
+        IRNode result = inf.IRMem(n2.expr());
+        List<IRNode> neighbors = new ArrayList<>();
+        neighbors.add(n2.expr());
+        result.setTile(new Tile((List<AAInstruction>) new AAMem(),neighbors));
+
+        return result;
+    }
 }
