@@ -7,6 +7,8 @@ import jw795.assembly.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import java.util.ArrayList;
+
 /**
  * A visitor that traverse an IR tree and translate IR into tiles of abstract assembly.
  */
@@ -39,9 +41,9 @@ public class Tiler extends IRVisitor {
         } else if (n2 instanceof IRFuncDecl) {
 
         } else if (n2 instanceof IRSeq){
-            // same pattern for other nodes
+            // do nothing
         } else if (n2 instanceof IRMove) {
-
+            return tileMove((IRMove) n2);
         } else if (n2 instanceof IRCallStmt) {
 
         } else if (n2 instanceof IRJump) {
@@ -70,6 +72,35 @@ public class Tiler extends IRVisitor {
             return null;
         }
         return null;
+    }
+
+    /**
+     * Tile a move IR instruction
+     * @param node a move IR node
+     * @return a move IR node labeled with its tile of assembly
+     */
+    private IRNode tileMove(IRMove node) {
+        if (node.source() instanceof IRBinOp && node.target().equals(node.source())) {
+            List<IRNode> neighbors = new ArrayList<>();
+            neighbors.add(node.source());
+            node.optTile = new Tile(new ArrayList<>(), neighbors);
+        } else {
+            AAOperand operand1;
+            AAOperand operand2;
+            operand1 = node.target().getTile().returnTemp;
+            operand2 = node.source().getTile().returnTemp;
+            AAMove m = new AAMove(operand1, operand2);
+
+            ArrayList<AAInstruction> asm = new ArrayList<>();
+            asm.add(m);
+
+            List<IRNode> neighbors = new ArrayList<>();
+            neighbors.add(node.target());
+            neighbors.add(node.source());
+            Tile t = new Tile (asm, neighbors);
+            node.optTile = t;
+        }
+        return node;
     }
 
     /**
