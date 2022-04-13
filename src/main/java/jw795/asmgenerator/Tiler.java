@@ -62,6 +62,7 @@ public class Tiler extends IRVisitor {
         } else if (n2 instanceof IRTemp) {
             return tileTemp((IRTemp) n2);
         } else if (n2 instanceof IRMem) {
+            return tileMem((IRMem) n2);
 
         } else if (n2 instanceof IRName) {
 
@@ -266,44 +267,53 @@ public class Tiler extends IRVisitor {
     }
 
     /**
-     * TODO: doc string
-     * @param n2
-     * @return
+     * Tile a IRMEM
+     * @param n2 the node to tile
+     * @return  n2 with tile being set
      */
     private IRNode tileMem(IRMem n2){
         List<IRNode> neighbors = new ArrayList<>();
         List<AAInstruction> instructs = new ArrayList<>();
         AATemp ret = this.tempSpiller.newTemp();
 
-        neighbors.add(n2.expr());
         AAMem result = new AAMem();
+        boolean canbeshortcut = false;
         //there are three case
-        // 1: global data
+        // 1: global data // this case is handle by IRNAMe itself
         // 2: an string or an array
-        // user just want to use mem...[is there really this case?] --> yes, all the time, e.g. add 1, [rpx + 8]
+        // 3: user just want to use mem...[is there really this case?] --> yes, all the time, e.g. add 1, [rpx + 8]
 
         if(n2.expr() instanceof IRBinOp){
             IRBinOp thechild = (IRBinOp) n2.expr();
             if(thechild.opType() == IRBinOp.OpType.ADD){
                 if(thechild.right() instanceof  IRBinOp){
                     if(((IRBinOp) thechild.right()).opType() == IRBinOp.OpType.MUL){
-                        result.setBase(thechild.left().getTile().returnTemp);
-                        result.setIndex(((IRBinOp) thechild.right()).left().getTile().returnTemp);
-                        if(((IRBinOp) thechild.right()).right() instanceof IRConst){
-                            result.setImmediate(new AAImm(((IRConst) ((IRBinOp) thechild.right()).right()).value()));
-                        }else{
-                            result.setIndex(thechild.right().getTile().returnTemp);
+                        if(((IRBinOp) thechild.right()).left() instanceof IRConst){
+                            canbeshortcut = true;
                         }
                     }
                 }
             }
-        }else if(n2.expr() instanceof  IRLabel){
-            // how to get to know the position of a global data
+        }
+        if(canbeshortcut){
+            // having an extra move to deal with the problem that arr pos become rsp + sth
+            IRBinOp thechild = (IRBinOp) n2.expr();
+            AATemp newpos = this.tempSpiller.newTemp();
+            instructs.add(new AAMove(newpos,thechild.left().getTile().returnTemp ));
+            result.setBase(newpos);
+            result.setScale(((IRConst) ((IRBinOp) thechild.right()).left()).value());
+            if(((IRBinOp) thechild.right()).right() instanceof IRConst){
+                result.setImmediate(new AAImm(((IRConst) ((IRBinOp) thechild.right()).right()).value()));
+            }else{
+                result.setIndex(thechild.right().getTile().returnTemp);
+            }
 
-            //TODO:find global data place
+        }else if(n2.expr() instanceof IRConst){
+            result.setImmediate(new AAImm(((IRConst) n2.expr()).value()));
+            neighbors.add(n2.expr());
         }else{
             result.setBase(n2.expr().getTile().returnTemp);
-            result.setScale(0);
+            neighbors.add(n2.expr());
         }
 
         instructs.add(new AAMove(ret, result));
