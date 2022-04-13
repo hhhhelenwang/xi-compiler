@@ -58,9 +58,9 @@ public class Tiler extends IRVisitor {
         }
         // expressions
         else if (n2 instanceof IRConst) {
-
+            return tileConst((IRConst) n2);
         } else if (n2 instanceof IRTemp) {
-
+            return tileTemp((IRTemp) n2);
         } else if (n2 instanceof IRMem) {
 
         } else if (n2 instanceof IRName) {
@@ -105,6 +105,34 @@ public class Tiler extends IRVisitor {
     }
 
     /**
+     * Tile a const IR expression by moving it to the target temp.
+     * @param node const
+     * @return const annotated with assembly tile
+     */
+    private IRNode tileConst(IRConst node) {
+        AATemp returnTemp = tempSpiller.newTemp();
+        List<AAInstruction> aasm = new ArrayList<>();
+        aasm.add(new AAMove(returnTemp, new AAImm(node.value())));
+        Tile constTile = new Tile(aasm, new ArrayList<>());
+        node.setTile(constTile);
+        return node;
+    }
+
+    /**
+     * Tile a temp IR expression by moving it to the target temp
+     * @param node temp
+     * @return temp annotated with assembly tile.
+     */
+    private IRNode tileTemp(IRTemp node) {
+        AATemp returnTemp = tempSpiller.newTemp();
+        List<AAInstruction> aasm = new ArrayList<>();
+        aasm.add(new AAMove(returnTemp, new AATemp(node.name())));
+        Tile constTile = new Tile(aasm, new ArrayList<>());
+        node.setTile(constTile);
+        return node;
+    }
+
+    /**
      * Tile a binop IR instruction
      * @param node a binop IR node
      * @return a binop IR node labeled with its tile of assembly
@@ -121,6 +149,7 @@ public class Tiler extends IRVisitor {
 
         IRNode left = node.left();
         IRNode right = node.right();
+        // TODO: some optimization stuff temporarily commented out for now do not delete these
 //        if (left instanceof IRConst) {
 //            if (right instanceof IRConst) {
 //                // both are const, so move one into a temp
@@ -224,6 +253,7 @@ public class Tiler extends IRVisitor {
                 break;
             case EQ: case NEQ: case LT: case ULT: case GT: case LEQ: case GEQ:
                 // TODO: cmp only set flags. no return value needed here?
+                // idea: use setcc instructions to set a register according to the flags
                 break;
             default:
                 break;
@@ -235,7 +265,12 @@ public class Tiler extends IRVisitor {
         return node;
     }
 
-    private IRNode tileMem(IRMem n2 ){
+    /**
+     * TODO: doc string
+     * @param n2
+     * @return
+     */
+    private IRNode tileMem(IRMem n2){
         List<IRNode> neighbors = new ArrayList<>();
         List<AAInstruction> instructs = new ArrayList<>();
         AATemp ret = this.tempSpiller.newTemp();
