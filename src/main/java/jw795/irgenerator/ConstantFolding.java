@@ -230,7 +230,8 @@ public class ConstantFolding {
             case OR:
                 return irFactory.IRConst(fleft | fright);
             case XOR:
-                long value = ((-(fleft - 1)) & fright) | ((-(fright - 1)) & fleft);
+//                long value = ((-(fleft - 1)) & fright) | ((-(fright - 1)) & fleft);
+                long value =  fleft ^fright;
                 return irFactory.IRConst(value);
             case LSHIFT:
                 return irFactory.IRConst(fleft << fright);
