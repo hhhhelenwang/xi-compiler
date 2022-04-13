@@ -457,7 +457,7 @@ public class IRGenerator extends Visitor {
             for (int i = 0; i < length; i++) {
                 IRExpr e = ((LeftValueList) node.leftVal).declares.get(i).getir();
                 if (e != null){
-                    lst.add(irFactory.IRMove(e, irFactory.IRTemp("_RV" + i)));
+                    lst.add(irFactory.IRMove(e, irFactory.IRTemp("_RV" + (i+1))));
                 }
             }
             node.ir = irFactory.IRSeq(lst);
