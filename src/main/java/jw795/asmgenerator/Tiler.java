@@ -7,8 +7,6 @@ import jw795.assembly.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import java.util.ArrayList;
-
 /**
  * A visitor that traverse an IR tree and translate IR into tiles of abstract assembly.
  */
@@ -123,59 +121,118 @@ public class Tiler extends IRVisitor {
 
         IRNode left = node.left();
         IRNode right = node.right();
-        if (left instanceof IRConst) {
-            if (right instanceof IRConst) {
-                // both are const, so move one into a temp
-                returnTemp = tempSpiller.newTemp();
-                AAImm rImm =  new AAImm(((IRConst) left).value());
-                aasm.add(new AAMove(returnTemp, rImm));
-                operand1 = returnTemp;
-                operand2 = rImm;
-            } else if (right instanceof IRTemp) {
-                operand1 = new AATemp(((IRTemp) right).name());
-                operand2 = new AAImm(((IRConst) left).value());
-                returnTemp = (AATemp) operand1;
-            } else {
-                Tile childTile = node.getTile();
-                operand1 = childTile.getReturnTemp();
-                operand2 = new AAImm(((IRConst) left).value());
-                returnTemp = (AATemp) operand1;
-            }
-        } else if (node.left() instanceof IRTemp) {
-            // TODO: ok this is wrong
-            operand1 = new AATemp(((IRTemp) node.left()).name());
-        } else {
-            Tile childTile = node.getTile();
-            operand1 = childTile.getReturnTemp();
-            neighbors.add(node.left());
-        }
+//        if (left instanceof IRConst) {
+//            if (right instanceof IRConst) {
+//                // both are const, so move one into a temp
+//                returnTemp = tempSpiller.newTemp();
+//                AAImm rImm =  new AAImm(((IRConst) left).value());
+//                aasm.add(new AAMove(returnTemp, rImm));
+//                operand1 = returnTemp;
+//                operand2 = rImm;
+//            } else if (right instanceof IRTemp) {
+//                operand1 = new AATemp(((IRTemp) right).name());
+//                operand2 = new AAImm(((IRConst) left).value());
+//                returnTemp = (AATemp) operand1;
+//            } else {
+//                Tile childTile = node.getTile();
+//                operand1 = childTile.getReturnTemp();
+//                operand2 = new AAImm(((IRConst) left).value());
+//                returnTemp = (AATemp) operand1;
+//            }
+//        } else if (left instanceof IRTemp) {
+//            // TODO: ok this is wrong
+//            operand1 = new AATemp(((IRTemp) node.left()).name());
+//            if (right instanceof IRConst) {
+//
+//            } else if (right instanceof IRTemp) {
+//
+//            } else {
+//
+//            }
+//        } else {
+////            Tile childTile = node.getTile();
+////            operand1 = childTile.getReturnTemp();
+////            neighbors.add(node.left());
+//        }
 
-        if (node.right() instanceof IRConst) {
-            operand2 = new AAImm(((IRConst) node.left()).value());
-        } else if (node.right() instanceof IRTemp) {
-            operand2 = new AATemp(((IRTemp) node.left()).name());
-        } else {
-            Tile childTile = node.getTile();
-            operand2 = childTile.getReturnTemp();
-            neighbors.add(node.right());
-        }
+        // the least optimal
+        Tile leftChildTile = left.getTile();
+        Tile rightChildTile = right.getTile();
+        operand1 = leftChildTile.getReturnTemp();
+        operand2 = rightChildTile.getReturnTemp();
+        returnTemp = (AATemp) operand1;
+        neighbors.add(left);
+        neighbors.add(right);
 
+        Tile basicTile;
         switch (node.opType()){
             case ADD:
                 // basic tiling, no optimization yet
                 // TODO: match node against some patterns where optimization is possible through if-else
                 AAAdd add = new AAAdd(operand1, operand2);
                 aasm.add(add);
-                Tile basicTile = new Tile(aasm, neighbors);
-                // set return temp
-
+                break;
+            case SUB:
+                AASub sub = new AASub(operand1, operand2);
+                aasm.add(sub);
+                break;
+            case MUL:
+                // multiplier in rax, result in rax
+                AATemp rax = new AATemp("rax");
+                aasm.add(new AAMove(rax, operand1));
+                aasm.add(new AAMul(operand2));
+                aasm.add(new AAMove(returnTemp, rax));
+                break;
+            case HMUL:
+                // mul puts higher part in rdx
+                AATemp rdx = new AATemp("rdx");
+                aasm.add(new AAMove(rdx, operand1));
+                aasm.add(new AAMul(operand2));
+                aasm.add(new AAMove(returnTemp, rdx));
+                break;
+            case DIV:
+                // op1 = dividend in rax, result in rax
+                rax = new AATemp("rax");
+                aasm.add(new AAMove(rax, operand1));
+                aasm.add(new AADiv(operand2));
+                aasm.add(new AAMove(returnTemp, rax));
+                break;
+            case MOD:
+                // div puts remainder in rdx
+                rdx = new AATemp("rdx");
+                aasm.add(new AAMove(rdx, operand1));
+                aasm.add(new AADiv(operand2));
+                aasm.add(new AAMove(returnTemp, rdx));
+                break;
+            case AND:
+                aasm.add(new AAAnd(operand1, operand2));
+                break;
+            case OR:
+                aasm.add(new AAOr(operand1, operand2));
+                break;
+            case XOR:
+                aasm.add(new AAXor(operand1, operand2));
+                break;
+            case LSHIFT:
+                aasm.add(new AAShl(operand1, operand2));
+                break;
+            case RSHIFT:
+                aasm.add(new AAShr(operand1, operand2));
+                break;
+            case ARSHIFT:
+                aasm.add(new AASar(operand1, operand2));
+                break;
+            case EQ: case NEQ: case LT: case ULT: case GT: case LEQ: case GEQ:
+                // TODO: cmp only set flags. no return value needed here?
+                break;
             default:
                 break;
 
         }
+        basicTile = new Tile(aasm, neighbors);
+        node.setTile(basicTile);
 
-
-        return null;
+        return node;
     }
 
     private IRNode tileMem(IRMem n2 ){
@@ -188,7 +245,7 @@ public class Tiler extends IRVisitor {
         //there are three case
         // 1: global data
         // 2: an string or an array
-        // user just want to use mem...[is there really this case?]
+        // user just want to use mem...[is there really this case?] --> yes, all the time, e.g. add 1, [rpx + 8]
 
         if(n2.expr() instanceof IRBinOp){
             IRBinOp thechild = (IRBinOp) n2.expr();
@@ -222,4 +279,7 @@ public class Tiler extends IRVisitor {
         n2.setTile(newtile);
         return n2;
     }
+
+
+
 }
