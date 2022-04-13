@@ -183,7 +183,7 @@ public class JumpReorder {
     }
 
     /**
-     * Remove unnecessary LABELs and IRJUMPs
+     * Remove unnecessary IRJUMPs
      * @param trace A list of basic blocks
      * @return BasicBlocks
      */
@@ -191,23 +191,16 @@ public class JumpReorder {
         BasicBlock curBlock;
         BasicBlock nxtBlock;
         List<BasicBlock> blocks = new ArrayList<>();
-        boolean prevIsCjump = false;
 
         for (int i = 0; i < trace.size() - 1; i++) {
             curBlock = trace.get(i);
             nxtBlock =  trace.get(i+1);
-
-            if (prevIsCjump){
-                curBlock.statements.remove(0); //remove first stmt (LABEL)
-                prevIsCjump = false;
-            }
 
             if (curBlock.endingStatement.isPresent()){
                 IRStmt curEndingStmt = curBlock.endingStatement.get();
                 if (curEndingStmt instanceof IRCJump){
                     IRCJump newCjump = irFactory.IRCJump(((IRCJump) curEndingStmt).cond(),
                             ((IRCJump) curEndingStmt).trueLabel());
-                    prevIsCjump = true;
                     curBlock.statements.remove(curBlock.statements.size()-1);
                     curBlock.statements.add(newCjump);
                     curBlock.endingStatement = Optional.of(newCjump);
