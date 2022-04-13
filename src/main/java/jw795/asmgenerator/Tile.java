@@ -2,6 +2,7 @@ package jw795.asmgenerator;
 
 import edu.cornell.cs.cs4120.xic.ir.IRNode;
 import jw795.assembly.AAInstruction;
+import jw795.assembly.AATemp;
 
 import java.util.List;
 
@@ -11,13 +12,14 @@ import java.util.List;
 public class Tile {
 
     public List<AAInstruction> assembly;
-    public IRNode neighborIR;
+    public List<IRNode> neighborIRs;
     public int cost;
     public int costOfSubTree;
+    public AATemp returnTemp;
 
-    public Tile(List<AAInstruction> asm, IRNode neighbor) {
+    public Tile(List<AAInstruction> asm, List<IRNode> neighbors) {
         assembly = asm;
-        neighborIR = neighbor;
+        neighborIRs = neighbors;
 
         cost = computeCostOfTile(); // calculate the cost of tile at construction
         costOfSubTree = computeCostOfSubTree();
@@ -45,9 +47,37 @@ public class Tile {
      * @return total cost of tiling the IR tree with n(this node) as root
      */
     public int computeCostOfSubTree() {
-        return cost + neighborIR.getTile().getCostOfSubTree();
+        int total = cost;
+        for (IRNode neighbor : neighborIRs) {
+            total += neighbor.getTile().getCostOfSubTree();
+        }
+        return total;
     }
 
+    /**
+     * Get the neighbor IR nodes of this tile.
+     * @return a list of neighbor IR nodes
+     */
+    public List<IRNode> getNeighborIRs() {
+        return neighborIRs;
+    }
+
+    /**
+     * Set the temporary to put the final value of this tile in.
+     * @param temp the temp to put the final values of this tile in.
+     */
+    public void setReturnTemp(AATemp temp) {
+        returnTemp = temp;
+    }
+
+    /**
+     * Get the temp where the final value of this tile is put in so that a tile that is right above this
+     * tile can make use of its value.
+     * @return the temp where the final value of this tile is.
+     */
+    public AATemp getReturnTemp() {
+        return returnTemp;
+    }
 
     @Override
     public String toString() {

@@ -27,4 +27,17 @@ public class IRTemp extends IRExpr_c {
         p.printAtom(name);
         p.endList();
     }
+
+    @Override
+    public boolean equals(Object t) {
+        if (!(t instanceof IRTemp)) {
+            return false;
+        } else {
+            if (this.name != ((IRTemp) t).name) {
+                return false;
+            } else{
+                return true;
+            }
+        }
+    }
 }
