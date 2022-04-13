@@ -149,7 +149,7 @@ public class Tiler extends IRVisitor {
 
         IRNode left = node.left();
         IRNode right = node.right();
-        // TODO: some optimization stuff temporarily commented out for now do not delete these
+        // TODO: some optimization stuff temporarily commented out for now do not delete these!!
 //        if (left instanceof IRConst) {
 //            if (right instanceof IRConst) {
 //                // both are const, so move one into a temp
