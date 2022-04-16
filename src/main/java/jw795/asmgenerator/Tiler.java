@@ -353,11 +353,16 @@ public class Tiler extends IRVisitor {
             //
             for(int i= 0; i < entry.getValue().data().length; i++){
                 AAMem address = new AAMem();
+                //TODO: the base of memory is the register/temp that stores the base of the memory address.
+                // Here dataentry is just the temp of that data, not the base of the address so this is not what we want.
                 address.setBase(dataentry);
                 address.setScale(8);
                 address.setImmediate(new AAImm(i));
                 instructs.add(new AAMove(address, new AAImm(i)));
             }
+            //TODO: we do not spill any temp when we are tiling. Spilling happens on the pass *after* we finish tiling everything.
+            // Also, tempSpiller only spill temps onto the *stack*, but we want data on the *heap*.
+            // So we have not actually figured out how to work with heap yet.
             tempSpiller.spillTemp(dataentry);
         }
 
