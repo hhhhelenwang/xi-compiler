@@ -443,7 +443,7 @@ public class Tiler extends IRVisitor {
         }
 
         AATemp[] argRegs = new AATemp[] {new AATemp("rdi"), new AATemp("rsi"), new AATemp("rdx"),
-                new AATemp("rcx"), r8 = new AATemp("r8"), new AATemp("r9")};
+                new AATemp("rcx"), new AATemp("r8"), new AATemp("r9")};
 
         // move up to first 6 args to registers
         for (int i = 0; i < nArgs-excessArgs; i++){
