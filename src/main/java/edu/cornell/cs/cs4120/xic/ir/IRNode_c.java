@@ -11,7 +11,7 @@ import java.io.StringWriter;
 /** A node in an intermediate-representation abstract syntax tree. */
 public abstract class IRNode_c implements IRNode {
 
-    public Tile optTile;
+    private Tile optTile;
 
     @Override
     public void setTile(Tile tile) {

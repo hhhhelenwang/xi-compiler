@@ -75,7 +75,7 @@ public class Tiler extends IRVisitor {
             instructs.add(new AAMove(placeholder, address));
 
             Tile result = new Tile(instructs,neighbors);
-            result.returnTemp = placeholder;
+            result.setReturnTemp(placeholder);
             n2.setTile(result);
             return n2;
 
@@ -98,12 +98,12 @@ public class Tiler extends IRVisitor {
         if (node.source() instanceof IRBinOp && node.target().equals(node.source())) {
             List<IRNode> neighbors = new ArrayList<>();
             neighbors.add(node.source());
-            node.optTile = new Tile(new ArrayList<>(), neighbors);
+            node.setTile(new Tile(new ArrayList<>(), neighbors));
         } else {
             AAOperand operand1;
             AAOperand operand2;
-            operand1 = node.target().getTile().returnTemp;
-            operand2 = node.source().getTile().returnTemp;
+            operand1 = node.target().getTile().getReturnTemp();
+            operand2 = node.source().getTile().getReturnTemp();
             AAMove m = new AAMove(operand1, operand2);
 
             ArrayList<AAInstruction> asm = new ArrayList<>();
@@ -113,7 +113,7 @@ public class Tiler extends IRVisitor {
             neighbors.add(node.target());
             neighbors.add(node.source());
             Tile t = new Tile (asm, neighbors);
-            node.optTile = t;
+            node.setTile(t);
         }
         return node;
     }
@@ -312,26 +312,26 @@ public class Tiler extends IRVisitor {
             // having an extra move to deal with the problem that arr pos become rsp + sth
             IRBinOp thechild = (IRBinOp) n2.expr();
             AATemp newpos = this.tempSpiller.newTemp();
-            instructs.add(new AAMove(newpos,thechild.left().getTile().returnTemp ));
+            instructs.add(new AAMove(newpos,thechild.left().getTile().getReturnTemp()));
             result.setBase(newpos);
             result.setScale(((IRConst) ((IRBinOp) thechild.right()).left()).value());
             if(((IRBinOp) thechild.right()).right() instanceof IRConst){
                 result.setImmediate(new AAImm(((IRConst) ((IRBinOp) thechild.right()).right()).value()));
             }else{
-                result.setIndex(thechild.right().getTile().returnTemp);
+                result.setIndex(thechild.right().getTile().getReturnTemp());
             }
 
         }else if(n2.expr() instanceof IRConst){
             result.setImmediate(new AAImm(((IRConst) n2.expr()).value()));
         }else{
-            result.setBase(n2.expr().getTile().returnTemp);
+            result.setBase(n2.expr().getTile().getReturnTemp());
             neighbors.add(n2.expr());
         }
 
         instructs.add(new AAMove(ret, result));
         Tile newtile = new Tile(instructs,neighbors);
 
-        newtile.returnTemp = ret;
+        newtile.setReturnTemp(ret);
 
         n2.setTile(newtile);
         return n2;
