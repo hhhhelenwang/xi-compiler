@@ -5,16 +5,14 @@ import edu.cornell.cs.cs4120.xic.ir.visit.IRVisitor;
 import jw795.assembly.*;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A visitor that traverse an IR tree and translate IR into tiles of abstract assembly.
  */
 public class Tiler extends IRVisitor {
     public TempSpiller tempSpiller;
-    //private List<String> argRegs = new ArrayList<>();
 
     public Tiler(IRNodeFactory inf, TempSpiller tsp) {
         super(inf);
@@ -42,6 +40,7 @@ public class Tiler extends IRVisitor {
 
         if (n2 instanceof IRCompUnit) {
             // whatever need to be done for CompUnit
+            return tileCompUnit((IRCompUnit) n2);
         } else if (n2 instanceof IRFuncDecl) {
 
         } else if (n2 instanceof IRSeq){
@@ -68,6 +67,17 @@ public class Tiler extends IRVisitor {
             return tileMem((IRMem) n2);
 
         } else if (n2 instanceof IRName) {
+            //put address on a tmp
+            AAMem address = tempSpiller.getMemOfTemp(new AATemp(((IRName) n2).name()));
+            List<IRNode> neighbors = new ArrayList<>();
+            List<AAInstruction> instructs = new ArrayList<>();
+            AATemp placeholder = tempSpiller.newTemp();
+            instructs.add(new AAMove(placeholder, address));
+
+            Tile result = new Tile(instructs,neighbors);
+            result.setReturnTemp(placeholder);
+            n2.setTile(result);
+            return n2;
 
         } else if (n2 instanceof IRBinOp) {
             return tileBinop((IRBinOp) n2);
@@ -88,12 +98,12 @@ public class Tiler extends IRVisitor {
         if (node.source() instanceof IRBinOp && node.target().equals(node.source())) {
             List<IRNode> neighbors = new ArrayList<>();
             neighbors.add(node.source());
-            node.optTile = new Tile(new ArrayList<>(), neighbors);
+            node.setTile(new Tile(new ArrayList<>(), neighbors));
         } else {
             AAOperand operand1;
             AAOperand operand2;
-            operand1 = node.target().getTile().returnTemp;
-            operand2 = node.source().getTile().returnTemp;
+            operand1 = node.target().getTile().getReturnTemp();
+            operand2 = node.source().getTile().getReturnTemp();
             AAMove m = new AAMove(operand1, operand2);
 
             ArrayList<AAInstruction> asm = new ArrayList<>();
@@ -103,7 +113,7 @@ public class Tiler extends IRVisitor {
             neighbors.add(node.target());
             neighbors.add(node.source());
             Tile t = new Tile (asm, neighbors);
-            node.optTile = t;
+            node.setTile(t);
         }
         return node;
     }
@@ -302,32 +312,66 @@ public class Tiler extends IRVisitor {
             // having an extra move to deal with the problem that arr pos become rsp + sth
             IRBinOp thechild = (IRBinOp) n2.expr();
             AATemp newpos = this.tempSpiller.newTemp();
-            instructs.add(new AAMove(newpos,thechild.left().getTile().returnTemp ));
+            instructs.add(new AAMove(newpos,thechild.left().getTile().getReturnTemp()));
             result.setBase(newpos);
             result.setScale(((IRConst) ((IRBinOp) thechild.right()).left()).value());
             if(((IRBinOp) thechild.right()).right() instanceof IRConst){
                 result.setImmediate(new AAImm(((IRConst) ((IRBinOp) thechild.right()).right()).value()));
             }else{
-                result.setIndex(thechild.right().getTile().returnTemp);
+                result.setIndex(thechild.right().getTile().getReturnTemp());
             }
 
         }else if(n2.expr() instanceof IRConst){
             result.setImmediate(new AAImm(((IRConst) n2.expr()).value()));
-            neighbors.add(n2.expr());
         }else{
-            result.setBase(n2.expr().getTile().returnTemp);
+            result.setBase(n2.expr().getTile().getReturnTemp());
             neighbors.add(n2.expr());
         }
 
         instructs.add(new AAMove(ret, result));
         Tile newtile = new Tile(instructs,neighbors);
 
-        newtile.returnTemp = ret;
+        newtile.setReturnTemp(ret);
 
         n2.setTile(newtile);
         return n2;
     }
 
+    private IRNode tileCompUnit(IRCompUnit node) {
+        //deal with functions & dataMap;
+        List<IRNode> neighbors = new ArrayList<>();
+        List<AAInstruction> instructs = new ArrayList<>();
+
+//        int memstart = 0;
+//        int memcur = memstart;
+        //for data, we can spill it on the memory and later retrieve it with it's name
+        //for a global data that is array, value should be store seperately.
+        //so we need a memory address that's uasable.
+        // So we need a lot AAMOVE
+        for (Map.Entry<String,IRData> entry : node.dataMap().entrySet()){
+            AATemp dataentry = new AATemp(entry.getKey());
+            //
+            for(int i= 0; i < entry.getValue().data().length; i++){
+                AAMem address = new AAMem();
+                //TODO: the base of memory is the register/temp that stores the base of the memory address.
+                // Here dataentry is just the temp of that data, not the base of the address so this is not what we want.
+                address.setBase(dataentry);
+                address.setScale(8);
+                address.setImmediate(new AAImm(i));
+                instructs.add(new AAMove(address, new AAImm(i)));
+            }
+            //TODO: we do not spill any temp when we are tiling. Spilling happens on the pass *after* we finish tiling everything.
+            // Also, tempSpiller only spill temps onto the *stack*, but we want data on the *heap*.
+            // So we have not actually figured out how to work with heap yet.
+            tempSpiller.spillTemp(dataentry);
+        }
+
+        //for functions, the default is view them as neighbor tiles and
+        //we should choose the one with smallest cost and then
+
+
+        return null;
+    }
     /**
      * Tile a jump stmt IR instruction
      * @param node a jump IR node

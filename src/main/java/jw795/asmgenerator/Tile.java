@@ -11,11 +11,11 @@ import java.util.List;
  */
 public class Tile {
 
-    public List<AAInstruction> assembly;
-    public List<IRNode> neighborIRs;
-    public int cost;
-    public int costOfSubTree;
-    public AATemp returnTemp;
+    private List<AAInstruction> assembly;
+    private List<IRNode> neighborIRs;
+    private int cost;
+    private int costOfSubTree;
+    private AATemp returnTemp;
 
     public Tile(List<AAInstruction> asm, List<IRNode> neighbors) {
         assembly = asm;
