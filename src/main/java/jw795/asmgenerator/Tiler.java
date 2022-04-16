@@ -67,6 +67,17 @@ public class Tiler extends IRVisitor {
             return tileMem((IRMem) n2);
 
         } else if (n2 instanceof IRName) {
+            //put address on a tmp
+            AAMem address = tempSpiller.getMemOfTemp(new AATemp(((IRName) n2).name()));
+            List<IRNode> neighbors = new ArrayList<>();
+            List<AAInstruction> instructs = new ArrayList<>();
+            AATemp placeholder = tempSpiller.newTemp();
+            instructs.add(new AAMove(placeholder, address));
+
+            Tile result = new Tile(instructs,neighbors);
+            result.returnTemp = placeholder;
+            n2.setTile(result);
+            return n2;
 
         } else if (n2 instanceof IRBinOp) {
             return tileBinop((IRBinOp) n2);
@@ -351,7 +362,7 @@ public class Tiler extends IRVisitor {
         }
 
         //for functions, the default is view them as neighbor tiles and
-        //
+        //we should choose the one with smallest cost and then
 
 
         return null;
