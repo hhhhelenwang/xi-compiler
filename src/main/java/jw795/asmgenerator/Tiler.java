@@ -6,6 +6,7 @@ import jw795.assembly.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A visitor that traverse an IR tree and translate IR into tiles of abstract assembly.
@@ -39,6 +40,7 @@ public class Tiler extends IRVisitor {
 
         if (n2 instanceof IRCompUnit) {
             // whatever need to be done for CompUnit
+            return tileCompUnit((IRCompUnit) n2);
         } else if (n2 instanceof IRFuncDecl) {
 
         } else if (n2 instanceof IRSeq){
@@ -310,7 +312,6 @@ public class Tiler extends IRVisitor {
 
         }else if(n2.expr() instanceof IRConst){
             result.setImmediate(new AAImm(((IRConst) n2.expr()).value()));
-            neighbors.add(n2.expr());
         }else{
             result.setBase(n2.expr().getTile().returnTemp);
             neighbors.add(n2.expr());
@@ -325,6 +326,36 @@ public class Tiler extends IRVisitor {
         return n2;
     }
 
+    private IRNode tileCompUnit(IRCompUnit node) {
+        //deal with functions & dataMap;
+        List<IRNode> neighbors = new ArrayList<>();
+        List<AAInstruction> instructs = new ArrayList<>();
+
+//        int memstart = 0;
+//        int memcur = memstart;
+        //for data, we can spill it on the memory and later retrieve it with it's name
+        //for a global data that is array, value should be store seperately.
+        //so we need a memory address that's uasable.
+        // So we need a lot AAMOVE
+        for (Map.Entry<String,IRData> entry : node.dataMap().entrySet()){
+            AATemp dataentry = new AATemp(entry.getKey());
+            //
+            for(int i= 0; i < entry.getValue().data().length; i++){
+                AAMem address = new AAMem();
+                address.setBase(dataentry);
+                address.setScale(8);
+                address.setImmediate(new AAImm(i));
+                instructs.add(new AAMove(address, new AAImm(i)));
+            }
+            tempSpiller.spillTemp(dataentry);
+        }
+
+        //for functions, the default is view them as neighbor tiles and
+        //
+
+
+        return null;
+    }
 
 
 }
