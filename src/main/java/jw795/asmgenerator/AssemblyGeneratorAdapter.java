@@ -41,7 +41,7 @@ public class AssemblyGeneratorAdapter {
         Tiler asmvisit = new Tiler(new IRNodeFactory_c(),new TempSpiller());
 
         IRNode visited = asmvisit.visit(sourceIR);
-        // assume that compunit provide all the code we need
+        // we also need to deal with grow stack and stuff
         try{
             printTile(visited.getTile());
             asmWriter.close();
