@@ -54,6 +54,7 @@ public class Tiler extends IRVisitor {
         } else if (n2 instanceof IRCJump) {
 
         } else if (n2 instanceof IRLabel) {
+            return tileLabel((IRLabel) n2);
 
         } else if (n2 instanceof IRReturn) {
 
@@ -65,20 +66,8 @@ public class Tiler extends IRVisitor {
             return tileTemp((IRTemp) n2);
         } else if (n2 instanceof IRMem) {
             return tileMem((IRMem) n2);
-
         } else if (n2 instanceof IRName) {
-            //put address on a tmp
-            AAMem address = tempSpiller.getMemOfTemp(new AATemp(((IRName) n2).name()));
-            List<IRNode> neighbors = new ArrayList<>();
-            List<AAInstruction> instructs = new ArrayList<>();
-            AATemp placeholder = tempSpiller.newTemp();
-            instructs.add(new AAMove(placeholder, address));
-
-            Tile result = new Tile(instructs,neighbors);
-            result.setReturnTemp(placeholder);
-            n2.setTile(result);
-            return n2;
-
+            return tileName((IRName) n2);
         } else if (n2 instanceof IRBinOp) {
             return tileBinop((IRBinOp) n2);
 
@@ -115,6 +104,35 @@ public class Tiler extends IRVisitor {
             Tile t = new Tile (asm, neighbors);
             node.setTile(t);
         }
+        return node;
+    }
+
+    /**
+     * Tile a label node into an assembly label
+     * @param node label IR node
+     * @return node with label tile
+     */
+    private IRNode tileLabel(IRLabel node) {
+        List<AAInstruction> aasm = new ArrayList<>();
+        aasm.add(new AALabelInstr(node.name()));
+        Tile labelTile = new Tile(aasm, new ArrayList<>());
+        node.setTile(labelTile);
+        return node;
+    }
+
+    /**
+     * Tile an IR Name into assembly
+     * @param node IR Name node
+     * @return node tiled with assembly name
+     */
+    private IRNode tileName(IRName node) {
+        // For an IR of Name(l), assembly need the label l
+        List<AAInstruction> aasm = new ArrayList<>();
+        AATemp target = tempSpiller.newTemp();
+        aasm.add(new AAMove(target, new AALabel(node.name())));
+        Tile labelTile = new Tile(aasm, new ArrayList<>());
+        labelTile.setReturnTemp(target);
+        node.setTile(labelTile);
         return node;
     }
 
@@ -266,7 +284,6 @@ public class Tiler extends IRVisitor {
                 aasm.add(new AASar(operand1, operand2));
                 break;
             case EQ: case NEQ: case LT: case ULT: case GT: case LEQ: case GEQ:
-                // TODO: cmp only set flags. no return value needed here?
                 // idea: use setcc instructions to set a register according to the flags
                 break;
             default:
