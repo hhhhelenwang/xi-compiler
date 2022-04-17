@@ -48,11 +48,11 @@ public class Tiler extends IRVisitor {
         } else if (n2 instanceof IRMove) {
             return tileMove((IRMove) n2);
         } else if (n2 instanceof IRCallStmt) {
-
+            return tileCallStmt((IRCallStmt) n2);
         } else if (n2 instanceof IRJump) {
-
+            return tileJump((IRJump) n2);
         } else if (n2 instanceof IRCJump) {
-
+            return tileCJump((IRCJump) n2);
         } else if (n2 instanceof IRLabel) {
             return tileLabel((IRLabel) n2);
 
@@ -388,6 +388,110 @@ public class Tiler extends IRVisitor {
 
 
         return null;
+    }
+    /**
+     * Tile a jump stmt IR instruction
+     * @param node a jump IR node
+     * @return a jump IR node labeled with its tile of assembly
+     */
+    private IRNode tileJump(IRJump node) {
+        List<AAInstruction> aasm = new ArrayList<>();
+        aasm.add(new AAJmp(node.target().getTile().getReturnTemp()));
+        Tile jumpTile = new Tile(aasm, new ArrayList<>());
+        node.setTile(jumpTile);
+        return node;
+    }
+
+
+    /**
+     * Tile a CJump IR instruction
+     * @param node a CJump IR node
+     * @return a CJump IR node labeled with its tile of assembly
+     */
+    private IRNode tileCJump(IRCJump node) {
+        List<AAInstruction> aasm = new ArrayList<>();
+        List<IRNode> neighbors = new ArrayList<>();
+        neighbors.add(node.cond());
+
+        //check how comparison works, get value from return reg, add jump if true
+//        if (node.cond().getTile().getReturnTemp())
+//        aasm.add(new AAJmp());
+        Tile jumpTile = new Tile(aasm, neighbors);
+        node.setTile(jumpTile);
+        return node;
+    }
+
+
+    /**
+     * Tile a call stmt IR instruction
+     * @param node a call stmt IR node
+     * @return a call stmt IR node labeled with its tile of assembly
+     */
+    private IRNode tileCallStmt(IRCallStmt node){
+        List<AAInstruction> instructs = new ArrayList<>();
+        List<IRNode> neighbors = new ArrayList<>();
+        List<AATemp> exprTemps = new ArrayList<>();
+
+        //T[t1, e2] == move(temp(t1), e), T[t2, e2], ..., T[tn, en]
+        for (IRExpr e : node.args()){
+            exprTemps.add(0, e.getTile().getReturnTemp()); // tn, tn-1, ... t1
+            neighbors.add(e);
+        }
+
+        AATemp rsp = new AATemp("rsp");
+
+        // if returning more than two, manually reserve space for ret2
+        Long nReturns = node.n_returns();
+        boolean multiRet = false;
+        if (nReturns > 2){
+            AATemp rdi = new AATemp("rdi");
+            instructs.add(new AASub(rsp, new AAImm(8 * (nReturns - 2))));
+            instructs.add(new AAMove(rdi, rsp));
+            multiRet = true;
+        }
+
+        // push excess args onto stack in reverse order
+        int nArgs = node.args().size();
+        int excessArgs = multiRet ? Math.max(0, nArgs-6) : Math.max(0, nArgs-5);
+
+        for (int i = 0; i < excessArgs; i++){
+            instructs.add(new AASub(rsp, new AAImm(8)));
+            instructs.add(new AAMove(tempSpiller.getMemOfTemp(rsp), exprTemps.get(i))); // push tn ... t7/6
+        }
+
+        AATemp[] argRegs = new AATemp[] {new AATemp("rdi"), new AATemp("rsi"), new AATemp("rdx"),
+                new AATemp("rcx"), new AATemp("r8"), new AATemp("r9")};
+
+        // move up to first 6 args to registers
+        for (int i = 0; i < nArgs-excessArgs; i++){
+            instructs.add(new AASub(argRegs[i], new AAImm(8)));
+            instructs.add(new AAMove(tempSpiller.getMemOfTemp(argRegs[i]), exprTemps.get(excessArgs+i-1)));
+        }
+
+        // jumps to specific destination
+        instructs.add(new AACall(node.target().getTile().getReturnTemp()));
+
+        if (multiRet){
+            instructs.add(new AAAdd(rsp, new AAImm(8 * (nArgs-6))));
+        }
+
+        String[] funcRegs = new String[] {"rax", "rdx"};
+        for (int i = 0; i < Math.min(2, nReturns); i++){
+            instructs.add(new AAMove(tempSpiller.newTemp(), tempSpiller.getMemOfTemp(new AATemp(funcRegs[i]))));
+        }
+
+        //pop
+        if (multiRet){
+            for (int i = 0; i < nReturns-2; i++){
+                //pop rv3...n
+                instructs.add(new AAMove(tempSpiller.newTemp(), tempSpiller.getMemOfTemp(rsp)));
+                instructs.add(new AAAdd(rsp, new AAImm(8)));
+            }
+        }
+
+        Tile callStmtTile = new Tile(instructs, neighbors);
+        node.setTile(callStmtTile);
+        return node;
     }
 
 
