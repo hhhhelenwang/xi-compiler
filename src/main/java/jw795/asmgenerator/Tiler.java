@@ -6,7 +6,6 @@ import jw795.assembly.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * A visitor that traverse an IR tree and translate IR into tiles of abstract assembly.
@@ -355,37 +354,7 @@ public class Tiler extends IRVisitor {
     }
 
     private IRNode tileCompUnit(IRCompUnit node) {
-        //deal with functions & dataMap;
-        List<IRNode> neighbors = new ArrayList<>();
-        List<AAInstruction> instructs = new ArrayList<>();
-
-//        int memstart = 0;
-//        int memcur = memstart;
-        //for data, we can spill it on the memory and later retrieve it with it's name
-        //for a global data that is array, value should be store seperately.
-        //so we need a memory address that's uasable.
-        // So we need a lot AAMOVE
-        for (Map.Entry<String,IRData> entry : node.dataMap().entrySet()){
-            AATemp dataentry = new AATemp(entry.getKey());
-            //
-            for(int i= 0; i < entry.getValue().data().length; i++){
-                AAMem address = new AAMem();
-                //TODO: the base of memory is the register/temp that stores the base of the memory address.
-                // Here dataentry is just the temp of that data, not the base of the address so this is not what we want.
-                address.setBase(dataentry);
-                address.setScale(8);
-                address.setImmediate(new AAImm(i));
-                instructs.add(new AAMove(address, new AAImm(i)));
-            }
-            //TODO: we do not spill any temp when we are tiling. Spilling happens on the pass *after* we finish tiling everything.
-            // Also, tempSpiller only spill temps onto the *stack*, but we want data on the *heap*.
-            // So we have not actually figured out how to work with heap yet.
-            tempSpiller.spillTemp(dataentry);
-        }
-
-        //for functions, the default is view them as neighbor tiles and
-        //we should choose the one with smallest cost and then
-
+        // handle all IR Data
 
         return null;
     }
