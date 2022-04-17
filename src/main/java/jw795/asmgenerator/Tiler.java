@@ -238,28 +238,28 @@ public class Tiler extends IRVisitor {
                 break;
             case MUL:
                 // multiplier in rax, result in rax
-                AATemp rax = new AATemp("rax");
+                AAReg rax = new AAReg("rax");
                 aasm.add(new AAMove(rax, operand1));
                 aasm.add(new AAMul(operand2));
                 aasm.add(new AAMove(returnTemp, rax));
                 break;
             case HMUL:
                 // mul puts higher part in rdx
-                AATemp rdx = new AATemp("rdx");
+                AAReg rdx = new AAReg("rdx");
                 aasm.add(new AAMove(rdx, operand1));
                 aasm.add(new AAMul(operand2));
                 aasm.add(new AAMove(returnTemp, rdx));
                 break;
             case DIV:
                 // op1 = dividend in rax, result in rax
-                rax = new AATemp("rax");
+                rax = new AAReg("rax");
                 aasm.add(new AAMove(rax, operand1));
                 aasm.add(new AADiv(operand2));
                 aasm.add(new AAMove(returnTemp, rax));
                 break;
             case MOD:
                 // div puts remainder in rdx
-                rdx = new AATemp("rdx");
+                rdx = new AAReg("rdx");
                 aasm.add(new AAMove(rdx, operand1));
                 aasm.add(new AADiv(operand2));
                 aasm.add(new AAMove(returnTemp, rdx));
@@ -282,21 +282,61 @@ public class Tiler extends IRVisitor {
             case ARSHIFT:
                 aasm.add(new AASar(operand1, operand2));
                 break;
-            case EQ: case NEQ: case LT: case ULT: case GT: case LEQ: case GEQ:
-                // idea: use setcc instructions to set a register according to the flags
+            case EQ:
+                AATemp target = tempSpiller.newTemp();
+                aasm.add(new AACmp(operand1, operand2));
+                aasm.add(new AASetcc(target, AASetcc.Condition.EQ));
+                returnTemp = target;
                 break;
+            case NEQ:
+                target = tempSpiller.newTemp();
+                aasm.add(new AACmp(operand1, operand2));
+                aasm.add(new AASetcc(target, AASetcc.Condition.NEQ));
+                returnTemp = target;
+                break;
+            case LT:
+                target = tempSpiller.newTemp();
+                aasm.add(new AACmp(operand1, operand2));
+                aasm.add(new AASetcc(target, AASetcc.Condition.LT));
+                returnTemp = target;
+                break;
+            case ULT:
+                target = tempSpiller.newTemp();
+                aasm.add(new AACmp(operand1, operand2));
+                aasm.add(new AASetcc(target, AASetcc.Condition.ULT));
+                returnTemp = target;
+                break;
+            case GT:
+                target = tempSpiller.newTemp();
+                aasm.add(new AACmp(operand1, operand2));
+                aasm.add(new AASetcc(target, AASetcc.Condition.GT));
+                returnTemp = target;
+                break;
+            case LEQ:
+                target = tempSpiller.newTemp();
+                aasm.add(new AACmp(operand1, operand2));
+                aasm.add(new AASetcc(target, AASetcc.Condition.LEQ));
+                returnTemp = target;
+                break;
+            case GEQ:
+                target = tempSpiller.newTemp();
+                aasm.add(new AACmp(operand1, operand2));
+                aasm.add(new AASetcc(target, AASetcc.Condition.GEQ));
+                returnTemp = target;
+                break;
+                // idea: use setcc instructions to set a register according to the flags
             default:
                 break;
-
         }
         basicTile = new Tile(aasm, neighbors);
+        basicTile.setReturnTemp(returnTemp);
         node.setTile(basicTile);
 
         return node;
     }
 
     /**
-     * Tile a IRMEM
+     * Tile a IR Mem node
      * @param n2 the node to tile
      * @return  n2 with tile being set
      */
