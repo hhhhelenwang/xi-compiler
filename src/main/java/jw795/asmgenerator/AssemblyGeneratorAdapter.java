@@ -1,6 +1,8 @@
 package jw795.asmgenerator;
 
 import edu.cornell.cs.cs4120.xic.ir.IRCompUnit;
+import edu.cornell.cs.cs4120.xic.ir.IRNode;
+import edu.cornell.cs.cs4120.xic.ir.IRNodeFactory_c;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -36,8 +38,28 @@ public class AssemblyGeneratorAdapter {
      */
     public void generateAssembly() {
         System.out.println("asm gen called!");
+        Tiler asmvisit = new Tiler(new IRNodeFactory_c(),new TempSpiller());
 
+        IRNode visited = asmvisit.visit(sourceIR);
+        // assume that compunit provide all the code we need
+        try{
+            printTile(visited.getTile());
+            asmWriter.close();
+        } catch (Exception e){
+            System.out.println("got an eroor while printing the string for a tile");
+        }
     }
+
+    private void printTile(Tile node) throws Exception{
+        if (node != null){
+            asmWriter.write(node.toString());
+        }
+        for(IRNode e: node.getNeighborIRs()){
+            printTile(e.getTile());
+        }
+    }
+
+
 
 
 
