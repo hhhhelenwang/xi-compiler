@@ -4,8 +4,8 @@ import java.util.Optional;
 
 public abstract class AAInstruction {
 
-    Optional<AAOperand> operand1;
-    Optional<AAOperand> operand2;
+    public Optional<AAOperand> operand1;
+    public Optional<AAOperand> operand2;
 
     public AAInstruction (AAOperand opr){
         operand1 = Optional.of(opr);

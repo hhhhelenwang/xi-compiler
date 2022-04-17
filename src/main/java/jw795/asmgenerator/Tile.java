@@ -79,6 +79,10 @@ public class Tile {
         return returnTemp;
     }
 
+    public List<AAInstruction> getAssembly(){
+        return this.assembly;
+    }
+
     @Override
     public String toString() {
         StringBuilder str = new StringBuilder();
