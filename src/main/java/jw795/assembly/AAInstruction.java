@@ -22,6 +22,13 @@ public abstract class AAInstruction {
         operand1 = Optional.empty();
     }
 
+    public void reseta1(AAOperand a1){
+        this.operand1 = Optional.of(a1);
+    }
+    public void reseta2(AAOperand a2){
+        this.operand2 = Optional.of(a2);
+    }
+
     // TODO: build up classes for each kinds of assembly instruction that we might use.
     //  See lecture notes for a somewhat comprehensive list of opcodes we use.
 

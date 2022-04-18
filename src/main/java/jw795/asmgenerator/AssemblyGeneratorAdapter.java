@@ -11,6 +11,9 @@ import jw795.assembly.AATemp;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import static jw795.util.FileUtil.generateTargetFile;
 
@@ -45,7 +48,12 @@ public class AssemblyGeneratorAdapter {
         System.out.println("asm gen called!");
         Tiler asmvisit = new Tiler(new IRNodeFactory_c(),new TempSpiller());
 
-        IRNode visited = asmvisit.visit(sourceIR);
+        //after visiting, it should be still IRCompunit
+        IRCompUnit visited = (IRCompUnit) asmvisit.visit(sourceIR);
+        for(Map.Entry<String,IRFuncDecl> funde: visited.functions().entrySet()){
+            List<AAInstruction> newins ;
+        }
+
         // we also need to deal with grow stack and stuff
         //tile and then spill temp
         try{
@@ -75,28 +83,39 @@ public class AssemblyGeneratorAdapter {
      * @param node
      * @return the original node with modified tile
      */
-    private IRNode spillnode(IRNode node, TempSpiller tmpsp){
+    private void spillnode(IRNode node, TempSpiller tmpsp){
         Tile cur = node.getTile();
         for(AAInstruction a : cur.getAssembly()){
+            AAOperand a1;
+            AAOperand a2;
             if(a.operand1.isPresent()){
-                if(a.operand1.get() instanceof AATemp){
-                    //spill the tmp if it is not default tmp
-                    if(!checkname(((AATemp) a.operand1.get()).name()))
-                    tmpsp.spillTemp((AATemp) a.operand1.get());
-                    //let assume that we make every access to temp a Memaccess
-                    //todo: seprate store and load
-
+                a1 =  a.operand1.get();
+                if(a1 instanceof AATemp) {
+                    //spill the tmp if it is not default reg and then make it an adress
+                    if (!checkname(((AATemp) a1).name())){
+                        tmpsp.spillTemp((AATemp) a1);
+                        a1 = tmpsp.getMemOfTemp((AATemp) a1);
+                        a.reseta1(a1);
+                    }
                 }
-                if(a.operand2.get() instanceof AATemp){
+            }
+            if(a.operand2.isPresent()){
+                a2 = a.operand1.get();
+                if(a2 instanceof AATemp){
                     //spill the tmp if it is not default tmp
-                    if(!checkname(((AATemp) a.operand2.get()).name()))
-                        tmpsp.spillTemp((AATemp) a.operand2.get());
+                    if(!checkname(((AATemp) a.operand2.get()).name())){
+                        tmpsp.spillTemp((AATemp) a2);
+                        a2 = tmpsp.getMemOfTemp((AATemp) a2);
+                        a.reseta2(a2);
+                    }
 
                 }
             }
-        }
+            for(IRNode irn: cur.getNeighborIRs()){
+                spillnode(irn,tmpsp);
+            }
 
-        return node;
+        }
     }
 
     private boolean checkname(String s){
