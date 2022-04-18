@@ -56,7 +56,7 @@ public class Tiler extends IRVisitor {
             return tileLabel((IRLabel) n2);
 
         } else if (n2 instanceof IRReturn) {
-
+            return tileReturn((IRReturn) n2);
         }
         // expressions
         else if (n2 instanceof IRConst) {
@@ -75,6 +75,35 @@ public class Tiler extends IRVisitor {
             return null;
         }
         return null;
+    }
+
+    private IRNode tileReturn(IRReturn node) {
+        ArrayList<IRExpr> rets = new ArrayList<>(node.rets());
+        int ret_size = rets.size();
+
+        List<AAInstruction> asm = new ArrayList<>();
+        List<IRNode> neighbors = new ArrayList<>();
+        for (IRExpr e : rets) {
+            neighbors.add(e);
+        }
+        if (ret_size == 0) {
+            //do nothing
+        } else if (ret_size == 1) {
+            asm.add(new AAMove(new AATemp("rax"), rets.get(0).getTile().getReturnTemp()));
+        } else if (ret_size == 2) {
+            asm.add(new AAMove(new AATemp("rax"), rets.get(0).getTile().getReturnTemp()));
+            asm.add(new AAMove(new AATemp("rdx"), rets.get(1).getTile().getReturnTemp()));
+        } else {
+            asm.add(new AAMove(new AATemp("rax"), rets.get(0).getTile().getReturnTemp()));
+            asm.add(new AAMove(new AATemp("rdx"), rets.get(1).getTile().getReturnTemp()));
+            AAMem ret_pt = new AAMem();
+            ret_pt.setBase(new AAReg("rdi"));
+            for (int i = 2; i < ret_size; i++) {
+                asm.add(new AAMove(ret_pt, rets.get(1).getTile().getReturnTemp()));
+            }
+        }
+        node.setTile(new Tile(asm, neighbors));
+        return node;
     }
 
     /**
