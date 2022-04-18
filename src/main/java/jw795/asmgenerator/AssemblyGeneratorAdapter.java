@@ -72,11 +72,11 @@ public class AssemblyGeneratorAdapter {
      * @throws Exception
      */
     private void printTile(Tile node) throws Exception{
-        if (node != null){
-            asmWriter.write(node.toString());
-        }
         for(IRNode e: node.getNeighborIRs()){
             printTile(e.getTile());
+        }
+        if (node != null){
+            asmWriter.write(node.toString());
         }
     }
 
