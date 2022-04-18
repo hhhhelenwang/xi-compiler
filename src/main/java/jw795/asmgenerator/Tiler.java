@@ -6,6 +6,7 @@ import jw795.assembly.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A visitor that traverse an IR tree and translate IR into tiles of abstract assembly.
@@ -75,6 +76,34 @@ public class Tiler extends IRVisitor {
             return null;
         }
         return null;
+    }
+
+    /**
+     * Translate CompUnit.
+     * @param node compile unit
+     * @return translated compile unit
+     */
+    private IRNode tileCompUnit(IRCompUnit node) {
+        List<AAInstruction> aasm = new ArrayList<>();
+        aasm.add(new AADirective(AADirective.DirType.DATA));
+        // data section
+        for (Map.Entry<String, IRData> data : node.dataMap().entrySet()) {
+            aasm.add(new AALabelInstr(data.getKey()));
+            for (Long d : data.getValue().data()) {
+                aasm.add(new AADataDecl(d));
+            }
+        }
+
+        aasm.add(new AADirective(AADirective.DirType.TEXT));
+        List<IRNode> neighbors = new ArrayList<>();
+
+        for (Map.Entry<String, IRFuncDecl> function : node.functions().entrySet()) {
+            neighbors.add(function.getValue());
+        }
+
+        Tile compUnitTile = new Tile(aasm, neighbors);
+        node.setTile(compUnitTile);
+        return node;
     }
 
     private IRNode tileReturn(IRReturn node) {
@@ -423,12 +452,6 @@ public class Tiler extends IRVisitor {
         return n2;
     }
 
-    private IRNode tileCompUnit(IRCompUnit node) {
-        // handle all IR Data
-        //TODO: AADataDecl
-
-        return null;
-    }
     /**
      * Tile a jump stmt IR instruction
      * @param node a jump IR node

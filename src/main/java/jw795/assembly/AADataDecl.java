@@ -1,29 +1,21 @@
 package jw795.assembly;
 
-import java.util.Optional;
+/**
+ * A data declaration directive that marks a 4 byte data space
+ */
+public class AADataDecl extends AADirective{
 
-public class AADataDecl extends AAInstruction{
+    private long value;
 
-    private String name;
-    private Optional<Long> value;
-
-    public AADataDecl(String dataName) {
-        name = dataName;
-        value = Optional.empty();
-    }
-
-    public AADataDecl(String dataName, long val) {
-        name = dataName;
-        value = Optional.of(val);
+    public AADataDecl(long val) {
+        super(DirType.QUAD);
+        value = val;
     }
 
 
     @Override
     public String toString() {
-        if (value.isPresent()) {
-            return name + "  " + "DD" + " " + value; // DD = 4-byte value
-        } else {
-            return name + "  " + "DD" + " " + "?";
-        }
+        return super.toString() + " " + value;
+
     }
 }
