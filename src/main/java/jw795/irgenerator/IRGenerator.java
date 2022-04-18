@@ -291,12 +291,70 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitAnd(And node) {
-        node.ir = irFactory.IRBinOp(AND, node.expr1.ir, node.expr2.ir);
+        boolean needshortcut = false;
+        if(node.expr1.ir instanceof IRESeq |  node.expr1.ir instanceof IRCall){
+            needshortcut = true;
+        }
+        if(node.expr2.ir instanceof  IRESeq | node.expr2.ir instanceof IRCall){
+            needshortcut = true;
+
+        }
+        if(needshortcut){
+            List<IRStmt> lst = new ArrayList<>();
+            String truel = nextLabel();
+            String falsel = nextLabel();
+            String endl = nextLabel();
+            IRTemp newtmpforcond = irFactory.IRTemp(nextTemp());
+            IRTemp newtmpforres = irFactory.IRTemp(nextTemp());
+            lst.add(irFactory.IRMove(newtmpforcond,node.expr1.ir));
+            lst.add(C(newtmpforcond,truel,falsel));
+
+            lst.add(irFactory.IRLabel(truel));
+            lst.add(irFactory.IRMove(newtmpforres,irFactory.IRBinOp(AND, newtmpforcond, node.expr2.ir)));
+            lst.add(irFactory.IRJump(irFactory.IRName(endl)));
+
+            lst.add(irFactory.IRLabel(falsel));
+            lst.add(irFactory.IRMove(newtmpforres,newtmpforcond));
+            lst.add(irFactory.IRLabel(endl));
+
+            node.ir = irFactory.IRESeq(irFactory.IRSeq(lst), newtmpforres);
+        }else{
+            node.ir = irFactory.IRBinOp(AND, node.expr1.ir, node.expr2.ir);
+        }
     }
 
     @Override
     public void visitOr(Or node) {
-        node.ir = irFactory.IRBinOp(OR, node.expr1.ir, node.expr2.ir);
+        boolean needshortcut = false;
+        if(node.expr1.ir instanceof IRESeq |  node.expr1.ir instanceof IRCall){
+            needshortcut = true;
+        }
+        if(node.expr2.ir instanceof  IRESeq | node.expr2.ir instanceof IRCall){
+            needshortcut = true;
+
+        }
+        if(needshortcut){
+            List<IRStmt> lst = new ArrayList<>();
+            String truel = nextLabel();
+            String falsel = nextLabel();
+            String endl = nextLabel();
+            IRTemp newtmpforcond = irFactory.IRTemp(nextTemp());
+            IRTemp newtmpforres = irFactory.IRTemp(nextTemp());
+            lst.add(irFactory.IRMove(newtmpforcond,node.expr1.ir));
+            lst.add(C(newtmpforcond,truel,falsel));
+
+            lst.add(irFactory.IRLabel(truel));
+            lst.add(irFactory.IRMove(newtmpforres,newtmpforcond));
+            lst.add(irFactory.IRJump(irFactory.IRName(endl)));
+
+            lst.add(irFactory.IRLabel(falsel));
+            lst.add(irFactory.IRMove(newtmpforres,irFactory.IRBinOp(OR, newtmpforcond, node.expr2.ir)));
+            lst.add(irFactory.IRLabel(endl));
+
+            node.ir = irFactory.IRESeq(irFactory.IRSeq(lst), newtmpforres);
+        }else{
+            node.ir = irFactory.IRBinOp(OR, node.expr1.ir, node.expr2.ir);
+        }
     }
 
     @Override
