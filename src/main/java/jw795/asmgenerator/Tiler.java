@@ -6,7 +6,6 @@ import jw795.assembly.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * A visitor that traverse an IR tree and translate IR into tiles of abstract assembly.
@@ -42,7 +41,7 @@ public class Tiler extends IRVisitor {
             // whatever need to be done for CompUnit
             return tileCompUnit((IRCompUnit) n2);
         } else if (n2 instanceof IRFuncDecl) {
-
+            return tileFuncDecl((IRFuncDecl) n2);
         } else if (n2 instanceof IRSeq){
             // do nothing
         } else if (n2 instanceof IRMove) {
@@ -55,7 +54,6 @@ public class Tiler extends IRVisitor {
             return tileCJump((IRCJump) n2);
         } else if (n2 instanceof IRLabel) {
             return tileLabel((IRLabel) n2);
-
         } else if (n2 instanceof IRReturn) {
             return tileReturn((IRReturn) n2);
         }
@@ -70,7 +68,6 @@ public class Tiler extends IRVisitor {
             return tileName((IRName) n2);
         } else if (n2 instanceof IRBinOp) {
             return tileBinop((IRBinOp) n2);
-
         } else {
             System.out.println("IR is not lowered.");
             return null;
@@ -78,6 +75,32 @@ public class Tiler extends IRVisitor {
         return null;
     }
 
+    /**
+     * Tile a FuncDecl IR instruction
+     * @param node a FuncDecl IR node
+     * @return a move IR node labeled with its tile of assembly
+     */
+    private IRNode tileFuncDecl(IRFuncDecl node) {
+        String name = node.name();
+        IRStmt body = node.body();
+        List<IRNode> neighbors = new ArrayList<>();
+        neighbors.add(body);
+        List<AAInstruction> asm = new ArrayList<>();
+        asm.add(new AALabelInstr(name));
+        //TODO: calculate allocation size
+        // asm.add(new AAEnter(new AAImm(8*l), new AAImm(0)));
+        asm.addAll(body.getTile().getAssembly());
+        asm.add(new AALeave());
+        asm.add(new AARet());
+        node.setTile(new Tile(asm, neighbors));
+        return node;
+    }
+
+    /**
+     * Tile a return IR instruction
+     * @param node a Return IR node
+     * @return a Return IR node labeled with its tile of assembly
+     */
     /**
      * Translate CompUnit.
      * @param node compile unit
@@ -118,13 +141,13 @@ public class Tiler extends IRVisitor {
         if (ret_size == 0) {
             //do nothing
         } else if (ret_size == 1) {
-            asm.add(new AAMove(new AATemp("rax"), rets.get(0).getTile().getReturnTemp()));
+            asm.add(new AAMove(new AAReg("rax"), rets.get(0).getTile().getReturnTemp()));
         } else if (ret_size == 2) {
-            asm.add(new AAMove(new AATemp("rax"), rets.get(0).getTile().getReturnTemp()));
-            asm.add(new AAMove(new AATemp("rdx"), rets.get(1).getTile().getReturnTemp()));
+            asm.add(new AAMove(new AAReg("rax"), rets.get(0).getTile().getReturnTemp()));
+            asm.add(new AAMove(new AAReg("rdx"), rets.get(1).getTile().getReturnTemp()));
         } else {
-            asm.add(new AAMove(new AATemp("rax"), rets.get(0).getTile().getReturnTemp()));
-            asm.add(new AAMove(new AATemp("rdx"), rets.get(1).getTile().getReturnTemp()));
+            asm.add(new AAMove(new AAReg("rax"), rets.get(0).getTile().getReturnTemp()));
+            asm.add(new AAMove(new AAReg("rdx"), rets.get(1).getTile().getReturnTemp()));
             AAMem ret_pt = new AAMem();
             ret_pt.setBase(new AAReg("rdi"));
             for (int i = 2; i < ret_size; i++) {
@@ -141,26 +164,26 @@ public class Tiler extends IRVisitor {
      * @return a move IR node labeled with its tile of assembly
      */
     private IRNode tileMove(IRMove node) {
-        if (node.source() instanceof IRBinOp && node.target().equals(node.source())) {
-            List<IRNode> neighbors = new ArrayList<>();
-            neighbors.add(node.source());
-            node.setTile(new Tile(new ArrayList<>(), neighbors));
-        } else {
-            AAOperand operand1;
-            AAOperand operand2;
-            operand1 = node.target().getTile().getReturnTemp();
-            operand2 = node.source().getTile().getReturnTemp();
-            AAMove m = new AAMove(operand1, operand2);
+        //TODO: optimization
+//        if (node.source() instanceof IRBinOp && node.target().equals(node.source())) {
+//            List<IRNode> neighbors = new ArrayList<>();
+//            neighbors.add(node.source());
+//            node.setTile(new Tile(new ArrayList<>(), neighbors));
+//        } else {
+        AAOperand operand1;
+        AAOperand operand2;
+        operand1 = node.target().getTile().getReturnTemp();
+        operand2 = node.source().getTile().getReturnTemp();
+        AAMove m = new AAMove(operand1, operand2);
 
-            ArrayList<AAInstruction> asm = new ArrayList<>();
-            asm.add(m);
+        ArrayList<AAInstruction> asm = new ArrayList<>();
+        asm.add(m);
 
-            List<IRNode> neighbors = new ArrayList<>();
-            neighbors.add(node.target());
-            neighbors.add(node.source());
-            Tile t = new Tile (asm, neighbors);
-            node.setTile(t);
-        }
+        List<IRNode> neighbors = new ArrayList<>();
+        neighbors.add(node.target());
+        neighbors.add(node.source());
+        Tile t = new Tile (asm, neighbors);
+        node.setTile(t);
         return node;
     }
 
