@@ -6,7 +6,6 @@ import jw795.assembly.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * A visitor that traverse an IR tree and translate IR into tiles of abstract assembly.
@@ -239,28 +238,28 @@ public class Tiler extends IRVisitor {
                 break;
             case MUL:
                 // multiplier in rax, result in rax
-                AATemp rax = new AATemp("rax");
+                AAReg rax = new AAReg("rax");
                 aasm.add(new AAMove(rax, operand1));
                 aasm.add(new AAMul(operand2));
                 aasm.add(new AAMove(returnTemp, rax));
                 break;
             case HMUL:
                 // mul puts higher part in rdx
-                AATemp rdx = new AATemp("rdx");
+                AAReg rdx = new AAReg("rdx");
                 aasm.add(new AAMove(rdx, operand1));
                 aasm.add(new AAMul(operand2));
                 aasm.add(new AAMove(returnTemp, rdx));
                 break;
             case DIV:
                 // op1 = dividend in rax, result in rax
-                rax = new AATemp("rax");
+                rax = new AAReg("rax");
                 aasm.add(new AAMove(rax, operand1));
                 aasm.add(new AADiv(operand2));
                 aasm.add(new AAMove(returnTemp, rax));
                 break;
             case MOD:
                 // div puts remainder in rdx
-                rdx = new AATemp("rdx");
+                rdx = new AAReg("rdx");
                 aasm.add(new AAMove(rdx, operand1));
                 aasm.add(new AADiv(operand2));
                 aasm.add(new AAMove(returnTemp, rdx));
@@ -283,21 +282,61 @@ public class Tiler extends IRVisitor {
             case ARSHIFT:
                 aasm.add(new AASar(operand1, operand2));
                 break;
-            case EQ: case NEQ: case LT: case ULT: case GT: case LEQ: case GEQ:
-                // idea: use setcc instructions to set a register according to the flags
+            case EQ:
+                AATemp target = tempSpiller.newTemp();
+                aasm.add(new AACmp(operand1, operand2));
+                aasm.add(new AASetcc(target, AASetcc.Condition.EQ));
+                returnTemp = target;
                 break;
+            case NEQ:
+                target = tempSpiller.newTemp();
+                aasm.add(new AACmp(operand1, operand2));
+                aasm.add(new AASetcc(target, AASetcc.Condition.NEQ));
+                returnTemp = target;
+                break;
+            case LT:
+                target = tempSpiller.newTemp();
+                aasm.add(new AACmp(operand1, operand2));
+                aasm.add(new AASetcc(target, AASetcc.Condition.LT));
+                returnTemp = target;
+                break;
+            case ULT:
+                target = tempSpiller.newTemp();
+                aasm.add(new AACmp(operand1, operand2));
+                aasm.add(new AASetcc(target, AASetcc.Condition.ULT));
+                returnTemp = target;
+                break;
+            case GT:
+                target = tempSpiller.newTemp();
+                aasm.add(new AACmp(operand1, operand2));
+                aasm.add(new AASetcc(target, AASetcc.Condition.GT));
+                returnTemp = target;
+                break;
+            case LEQ:
+                target = tempSpiller.newTemp();
+                aasm.add(new AACmp(operand1, operand2));
+                aasm.add(new AASetcc(target, AASetcc.Condition.LEQ));
+                returnTemp = target;
+                break;
+            case GEQ:
+                target = tempSpiller.newTemp();
+                aasm.add(new AACmp(operand1, operand2));
+                aasm.add(new AASetcc(target, AASetcc.Condition.GEQ));
+                returnTemp = target;
+                break;
+                // idea: use setcc instructions to set a register according to the flags
             default:
                 break;
-
         }
         basicTile = new Tile(aasm, neighbors);
+        basicTile.setReturnTemp(returnTemp);
         node.setTile(basicTile);
 
         return node;
     }
 
     /**
-     * Tile a IRMEM
+     * Tile a IR Mem node
      * @param n2 the node to tile
      * @return  n2 with tile being set
      */
@@ -355,37 +394,7 @@ public class Tiler extends IRVisitor {
     }
 
     private IRNode tileCompUnit(IRCompUnit node) {
-        //deal with functions & dataMap;
-        List<IRNode> neighbors = new ArrayList<>();
-        List<AAInstruction> instructs = new ArrayList<>();
-
-//        int memstart = 0;
-//        int memcur = memstart;
-        //for data, we can spill it on the memory and later retrieve it with it's name
-        //for a global data that is array, value should be store seperately.
-        //so we need a memory address that's uasable.
-        // So we need a lot AAMOVE
-        for (Map.Entry<String,IRData> entry : node.dataMap().entrySet()){
-            AATemp dataentry = new AATemp(entry.getKey());
-            //
-            for(int i= 0; i < entry.getValue().data().length; i++){
-                AAMem address = new AAMem();
-                //TODO: the base of memory is the register/temp that stores the base of the memory address.
-                // Here dataentry is just the temp of that data, not the base of the address so this is not what we want.
-                address.setBase(dataentry);
-                address.setScale(8);
-                address.setImmediate(new AAImm(i));
-                instructs.add(new AAMove(address, new AAImm(i)));
-            }
-            //TODO: we do not spill any temp when we are tiling. Spilling happens on the pass *after* we finish tiling everything.
-            // Also, tempSpiller only spill temps onto the *stack*, but we want data on the *heap*.
-            // So we have not actually figured out how to work with heap yet.
-            tempSpiller.spillTemp(dataentry);
-        }
-
-        //for functions, the default is view them as neighbor tiles and
-        //we should choose the one with smallest cost and then
-
+        // handle all IR Data
 
         return null;
     }
