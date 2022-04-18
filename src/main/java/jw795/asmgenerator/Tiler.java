@@ -396,20 +396,23 @@ public class Tiler extends IRVisitor {
         if(canbeshortcut){
             // having an extra move to deal with the problem that arr pos become rsp + sth
             IRBinOp thechild = (IRBinOp) n2.expr();
-            AATemp newpos = this.tempSpiller.newTemp();
-            instructs.add(new AAMove(newpos,thechild.left().getTile().getReturnTemp()));
-            result.setBase(newpos);
+            AAReg tempreg1 = new AAReg("rax");
+            instructs.add(new AAMove(tempreg1,thechild.left().getTile().getReturnTemp()));
+            result.setBase(tempreg1);
             result.setScale(((IRConst) ((IRBinOp) thechild.right()).left()).value());
             if(((IRBinOp) thechild.right()).right() instanceof IRConst){
                 result.setImmediate(new AAImm(((IRConst) ((IRBinOp) thechild.right()).right()).value()));
             }else{
-                result.setIndex(thechild.right().getTile().getReturnTemp());
+                AAReg tempreg2 = new AAReg("rcx");
+                instructs.add(new AAMove(tempreg2,thechild.right().getTile().getReturnTemp()));
+                result.setIndex(tempreg2);
             }
 
         }else if(n2.expr() instanceof IRConst){
             result.setImmediate(new AAImm(((IRConst) n2.expr()).value()));
         }else{
-            result.setBase(n2.expr().getTile().getReturnTemp());
+            AAReg tempreg3 = new AAReg("rdx");
+            result.setBase(tempreg3);
             neighbors.add(n2.expr());
         }
 
@@ -417,7 +420,6 @@ public class Tiler extends IRVisitor {
         Tile newtile = new Tile(instructs,neighbors);
 
         newtile.setReturnTemp(ret);
-
         n2.setTile(newtile);
         return n2;
     }
