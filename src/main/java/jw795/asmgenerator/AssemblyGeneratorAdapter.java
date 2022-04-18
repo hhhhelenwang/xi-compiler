@@ -93,42 +93,25 @@ public class AssemblyGeneratorAdapter {
             if(a.operand1.isPresent()){
                 a1 =  a.operand1.get();
                 if(a1 instanceof AATemp) {
-                    //spill the tmp if it is not default reg and then make it an adress
-                    if (!checkname(((AATemp) a1).name())){
-                        tmpsp.spillTemp((AATemp) a1);
-                        a1 = tmpsp.getMemOfTemp((AATemp) a1);
-                        a.reseta1(a1);
-                    }
+                    tmpsp.spillTemp((AATemp) a1);
+                    a1 = tmpsp.getMemOfTemp((AATemp) a1);
+                    a.reseta1(a1);
                 }
             }
             if(a.operand2.isPresent()){
                 a2 = a.operand1.get();
                 if(a2 instanceof AATemp){
-                    //spill the tmp if it is not default tmp
-                    if(!checkname(((AATemp) a.operand2.get()).name())){
-                        tmpsp.spillTemp((AATemp) a2);
-                        a2 = tmpsp.getMemOfTemp((AATemp) a2);
-                        a.reseta2(a2);
-                    }
-
+                    tmpsp.spillTemp((AATemp) a2);
+                    a2 = tmpsp.getMemOfTemp((AATemp) a2);
+                    a.reseta2(a2);
                 }
             }
             for(IRNode irn: cur.getNeighborIRs()){
                 spillnode(irn,tmpsp);
             }
-
         }
     }
 
-    private boolean checkname(String s){
-        boolean result = false;
-        if(s =="rcx" | s == "rdi" | s == "rsi"){ result = true; }
-        if(s == "r8" | s == "r9" | s == "rax"){ result = true; }
-        if(s.charAt(0) == 'r' && s.length() == 3){
-            result = true;
-        }
-        return result;
-    }
 
 
 
