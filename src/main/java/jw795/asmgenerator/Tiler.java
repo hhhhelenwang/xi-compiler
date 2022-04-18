@@ -2,6 +2,7 @@ package jw795.asmgenerator;
 
 import edu.cornell.cs.cs4120.xic.ir.*;
 import edu.cornell.cs.cs4120.xic.ir.visit.IRVisitor;
+import jw795.Compiler;
 import jw795.assembly.*;
 
 import java.util.ArrayList;
@@ -500,9 +501,48 @@ public class Tiler extends IRVisitor {
         List<IRNode> neighbors = new ArrayList<>();
         neighbors.add(node.cond());
 
-        //check how comparison works, get value from return reg, add jump if true
-//        if (node.cond().getTile().getReturnTemp())
-//        aasm.add(new AAJmp());
+        String target = node.trueLabel();
+        if (node.cond() instanceof IRBinOp){
+            switch (((IRBinOp)node.cond()).opType()) {
+                case AND:
+                case OR:
+                case XOR:
+                    //if true, jump
+                    aasm.add(new AACmp(node.cond().getTile().getReturnTemp(), new AAImm(1)));
+                    aasm.add(new AAJe(new AALabel(target)));
+                    break;
+                case EQ:
+                    aasm.add(new AAJe(new AALabel(target)));
+                    break;
+                case NEQ:
+                    aasm.add(new AAJne(new AALabel(target)));
+                    break;
+                case LT:
+                    aasm.add(new AAJl(new AALabel(target)));
+                    break;
+                case ULT:
+                    aasm.add(new AAJb(new AALabel(target)));
+                    break;
+                case GT:
+                    aasm.add(new AAJg(new AALabel(target)));
+                    break;
+                case LEQ:
+                    aasm.add(new AAJle(new AALabel(target)));
+                    break;
+                case GEQ:
+                    aasm.add(new AAJge(new AALabel(target)));
+                    break;
+                default:
+                    break;
+            }
+        } else if (node.cond() instanceof IRTemp){ //true, false IRTemp
+            aasm.add(new AACmp(node.cond().getTile().getReturnTemp(), new AAImm(1)));
+            aasm.add(new AAJe(new AALabel(target)));
+        } else {
+            System.out.println("should not enter this branch");
+
+        }
+
         Tile jumpTile = new Tile(aasm, neighbors);
         node.setTile(jumpTile);
         return node;
