@@ -7,8 +7,8 @@ import java.util.Optional;
  */
 public class AAMem extends AAOperand{
     // Memory operands are of the form [base + scale * index] or [base + scale * imm]. All are optional.
-    Optional<AATemp> base;
-    Optional<AATemp> index;
+    Optional<AAReg> base;
+    Optional<AAReg> index;
     Optional<Long> scale;
     Optional<AAImm> immediate;
 
@@ -20,11 +20,11 @@ public class AAMem extends AAOperand{
 
     }
 
-    public void setBase(AATemp b) {
+    public void setBase(AAReg b) {
         base = Optional.of(b);
     }
 
-    public void setIndex(AATemp i) {
+    public void setIndex(AAReg i) {
         index = Optional.of(i);
     }
 
