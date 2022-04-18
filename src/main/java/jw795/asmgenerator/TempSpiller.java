@@ -2,6 +2,7 @@ package jw795.asmgenerator;
 
 import jw795.assembly.AAImm;
 import jw795.assembly.AAMem;
+import jw795.assembly.AAReg;
 import jw795.assembly.AATemp;
 
 import java.util.HashMap;
@@ -15,7 +16,7 @@ public class TempSpiller {
     HashMap<String, Integer> stackOffsetOfTemp;
 
     int wordSize = 8;
-    AATemp stackPointer = new AATemp("rsp");
+    AAReg stackPointer = new AAReg("rsp");
 
     public TempSpiller() {
         tempCounter = 0;

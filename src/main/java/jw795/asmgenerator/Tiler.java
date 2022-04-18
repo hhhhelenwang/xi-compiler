@@ -353,7 +353,6 @@ public class Tiler extends IRVisitor {
                 aasm.add(new AASetcc(target, AASetcc.Condition.GEQ));
                 returnTemp = target;
                 break;
-                // idea: use setcc instructions to set a register according to the flags
             default:
                 break;
         }
@@ -384,7 +383,7 @@ public class Tiler extends IRVisitor {
         if(n2.expr() instanceof IRBinOp){
             IRBinOp thechild = (IRBinOp) n2.expr();
             if(thechild.opType() == IRBinOp.OpType.ADD){
-                if(thechild.right() instanceof  IRBinOp){
+                if(thechild.right() instanceof IRBinOp){
                     if(((IRBinOp) thechild.right()).opType() == IRBinOp.OpType.MUL){
                         if(((IRBinOp) thechild.right()).left() instanceof IRConst){
                             canbeshortcut = true;
@@ -426,6 +425,7 @@ public class Tiler extends IRVisitor {
 
     private IRNode tileCompUnit(IRCompUnit node) {
         // handle all IR Data
+        //TODO: AADataDecl
 
         return null;
     }
