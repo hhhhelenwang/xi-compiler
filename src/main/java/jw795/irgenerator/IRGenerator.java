@@ -750,7 +750,7 @@ public class IRGenerator extends Visitor {
 
     /**
      * convert a IntLiteral, a BoolLiteral, or a StringLiteral to a long array, used for putting data into globalData
-     * @param e the intput Expr that should be a IntLiteral, a BoolLiteral, or a StringLiteral
+     * @param e the input Expr that should be a IntLiteral, a BoolLiteral, or a StringLiteral
      * @return long array representation of e
      */
     private long[] exportVal(Expr e){
