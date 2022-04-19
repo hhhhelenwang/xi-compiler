@@ -128,8 +128,8 @@ public class Tiler extends IRVisitor {
         asm.add(new AAPush(r13));
         asm.add(new AAPush(r14));
         asm.add(new AAPush(r15));
-        long l = spilledTemps(node, tempSpiller);
-        if (l % 2 == 0) {
+        long l = tempSpiller.tempCounter;
+        if (l % 2 != 0) {
             l += 1;
         }
         asm.add(new AASub(rsp, new AAImm(8*l)));
@@ -144,6 +144,7 @@ public class Tiler extends IRVisitor {
         asm.add(new AAAdd(rsp, new AAImm(8)));
         asm.add(new AARet());
         node.setTile(new Tile(asm, neighbors));
+        spilledTemps(node, tempSpiller);
         tempSpiller = new TempSpiller();
         return node;
     }
@@ -153,10 +154,8 @@ public class Tiler extends IRVisitor {
      * @param node root node
      * @return how many temps are spilled to stack
      */
-    private long spilledTemps(IRNode node, TempSpiller tmpsp){
-        long num_temp = 0L;
+    private void spilledTemps(IRNode node, TempSpiller tmpsp){
         Tile cur = node.getTile();
-
         for(IRNode irn: cur.getNeighborIRs()){
             spilledTemps(irn,tmpsp);
         }
@@ -188,7 +187,6 @@ public class Tiler extends IRVisitor {
                 }
             }
         }
-        return tmpsp.tempCounter;
     }
 
     /**
@@ -336,10 +334,10 @@ public class Tiler extends IRVisitor {
      */
     private IRNode tileTemp(IRTemp node) {
         //TODO: translate temp(RV_i)
-
-        List<AAInstruction> asm = new ArrayList<>();
-        node.setTile(new Tile(asm, new ArrayList<>()));
-        node.getTile().setReturnTemp(tempSpiller.newTemp(node.name()));
+        List<AAInstruction> aasm = new ArrayList<>();
+        Tile constTile = new Tile(aasm, new ArrayList<>());
+        constTile.setReturnTemp(tempSpiller.newTemp(node.name()));
+        node.setTile(constTile);
         return node;
     }
 

@@ -12,6 +12,7 @@ public class AALabelInstr extends AAInstruction{
     private String name;
 
     public AALabelInstr(String labelName) {
+        super();
         name = labelName;
     }
 
