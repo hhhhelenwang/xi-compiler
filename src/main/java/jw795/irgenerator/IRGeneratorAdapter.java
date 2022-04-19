@@ -23,6 +23,7 @@ public class IRGeneratorAdapter {
     String fileName; // already contains source dir + file name
     HashMap<String, String> funcNames = new HashMap<>();
     HashMap<String, Long> funcRetLengths = new HashMap<>();
+    HashMap<String, Long> funcArgLengths = new HashMap<>();
     boolean optimize;
     boolean genFile;
 
@@ -120,7 +121,8 @@ public class IRGeneratorAdapter {
         for (Map.Entry<String, Sigma> entry : funs.entrySet()) {
             if (entry.getValue() instanceof Fn) {
                 funcNames.put(entry.getKey(), funNameBuild(entry.getKey(), (Fn) entry.getValue()));
-                funcRetLengths.put(entry.getKey(), retLength(((Fn) entry.getValue()).outputType));
+                funcRetLengths.put(entry.getKey(), TLength(((Fn) entry.getValue()).outputType));
+                funcArgLengths.put(entry.getKey(), TLength(((Fn) entry.getValue()).inputType));
             }
         }
     }
@@ -185,21 +187,21 @@ public class IRGeneratorAdapter {
     }
 
     /**
-     * generate the output length of a function with output type outputType
-     * @param outputType the output type of the function
-     * @return output length of a function with output type outputType
+     * generate number of primitive types in a T type
+     * @param type the T type
+     * @return number of primitive types in a T type
      */
-    private Long retLength(T outputType) {
-        if (outputType instanceof Int) {
+    private Long TLength(T type) {
+        if (type instanceof Int) {
             return 1L;
-        } else if (outputType instanceof Bool) {
+        } else if (type instanceof Bool) {
             return 1L;
-        } else if (outputType instanceof TypedArray) {
+        } else if (type instanceof TypedArray) {
             return 1L;
-        } else if (outputType instanceof Unit) {
+        } else if (type instanceof Unit) {
             return 0L;
-        } else if (outputType instanceof Prod){
-            return (long) ((Prod) outputType).elementTypes.size();
+        } else if (type instanceof Prod){
+            return (long) ((Prod) type).elementTypes.size();
         }
         return null;
     }
