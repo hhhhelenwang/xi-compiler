@@ -595,16 +595,26 @@ public class Tiler extends IRVisitor {
             instructs.add(new AAMove(rsp, exprTemps.get(excessArgs+i-1)));
         }
 
+        //make sure stack is 16 byte aligned before func call
+        int excessRets = multiRet ? nReturns.intValue()-2 : 0;
+        if (excessRets % 2 == 1){
+            instructs.add(new AASub(rsp, new AAImm(8)));
+        }
+
         // store rip on stack, jumps to specific destination
         instructs.add(new AACall(node.target().getTile().getReturnTemp()));
 
-        if (multiRet){
-            instructs.add(new AAAdd(rsp, new AAImm(8 * (nArgs-6))));
+        if (multiRet && excessArgs != 0){
+            instructs.add(new AAAdd(rsp, new AAImm(8 * excessArgs)));
         }
 
         AAReg[] funcRegs = new AAReg[] {new AAReg("rax"), new AAReg("rdx")};
         for (int i = 0; i < Math.min(2, nReturns); i++){
             instructs.add(new AAMove(tempSpiller.newTemp(), funcRegs[i]));
+        }
+
+        if (!multiRet && excessArgs != 0){
+            instructs.add(new AAAdd(rsp, new AAImm(8 * excessArgs)));
         }
 
         //pop
