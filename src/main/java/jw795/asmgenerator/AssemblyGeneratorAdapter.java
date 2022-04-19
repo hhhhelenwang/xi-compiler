@@ -52,7 +52,10 @@ public class AssemblyGeneratorAdapter {
         IRCompUnit visited = (IRCompUnit) asmvisit.visit(sourceIR);
         // we already handled the prologue and epilogue in fundecl
         try{
-            printTile(visited.getTile());
+            asmWriter.write(visited.getTile().toString());
+            for(IRNode node: visited.getTile().getNeighborIRs()){
+                printTile(node.getTile());
+            }
             asmWriter.close();
         } catch (Exception e){
             System.out.println("got an error while printing the string for a tile");

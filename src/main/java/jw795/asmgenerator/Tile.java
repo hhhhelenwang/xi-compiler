@@ -47,9 +47,9 @@ public class Tile {
     public int computeCostOfTile() {
         int instructionscost = 0;
         for(AAInstruction i:assembly){
-
+            instructionscost += computeCostOfIns(i);
         }
-        return assembly.size();
+        return instructionscost;
     }
 
     /**
