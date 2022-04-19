@@ -548,7 +548,7 @@ public class Tiler extends IRVisitor {
             if(thechild.opType() == IRBinOp.OpType.ADD){
                 if(thechild.right() instanceof IRBinOp){
                     if(((IRBinOp) thechild.right()).opType() == IRBinOp.OpType.MUL){
-                        if(((IRBinOp) thechild.right()).right() instanceof IRConst){
+                        if(((IRBinOp) thechild.right()).left() instanceof IRConst){
                             canbeshortcut = true;
                         }
                     }
