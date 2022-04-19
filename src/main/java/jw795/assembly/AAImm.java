@@ -5,6 +5,7 @@ public class AAImm extends AAOperand{
     public long val;
 
     public AAImm(long value) {
+        super();
         val = value;
     }
 

@@ -10,6 +10,7 @@ public class AALabel extends AAOperand{
     private String name;
 
     public AALabel(String labelName) {
+        super();
         name = labelName;
     }
 

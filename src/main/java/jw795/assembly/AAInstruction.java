@@ -19,7 +19,7 @@ public abstract class AAInstruction {
 
     public AAInstruction() {
         operand1 = Optional.empty();
-        operand1 = Optional.empty();
+        operand2 = Optional.empty();
     }
 
     public void reseta1(AAOperand a1){
