@@ -568,10 +568,42 @@ public class Tiler extends IRVisitor {
         String target = node.trueLabel();
         if (node.cond() instanceof IRBinOp){
             switch (((IRBinOp)node.cond()).opType()) {
+                case XOR:
+                    //XOR (binop) (const 1) due to jump reorder
+                    if (((IRBinOp)node.cond()).left() instanceof IRBinOp
+                            && ((IRBinOp)node.cond()).right() instanceof IRTemp) {
+                        switch ((((IRBinOp) ((IRBinOp)node.cond()).left()).opType())){
+                            case EQ:
+                                aasm.add(new AAJne(new AALabel(target)));
+                                break;
+                            case NEQ:
+                                aasm.add(new AAJe(new AALabel(target)));
+                                break;
+                            case LT:
+                                aasm.add(new AAJg(new AALabel(target)));
+                                break;
+                            case ULT:
+                                aasm.add(new AAJa(new AALabel(target)));
+                                break;
+                            case GT:
+                                aasm.add(new AAJl(new AALabel(target)));
+                                break;
+                            case LEQ:
+                                aasm.add(new AAJge(new AALabel(target)));
+                                break;
+                            case GEQ:
+                                aasm.add(new AAJle(new AALabel(target)));
+                                break;
+                            default:
+                                break;
+                        }
+                    } else {
+                        aasm.add(new AACmp(node.cond().getTile().getReturnTemp(), new AAImm(1)));
+                        aasm.add(new AAJe(new AALabel(target)));
+                    }
+                    break;
                 case AND:
                 case OR:
-                case XOR:
-                    //if true, jump
                     aasm.add(new AACmp(node.cond().getTile().getReturnTemp(), new AAImm(1)));
                     aasm.add(new AAJe(new AALabel(target)));
                     break;
