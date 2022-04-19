@@ -15,22 +15,22 @@ import java.util.Map;
  */
 public class Tiler extends IRVisitor {
     public TempSpiller tempSpiller;
-    private AAReg rax = new AAReg("rax");
-    private AAReg rbx = new AAReg("rbx");
-    private AAReg rcx = new AAReg("rcx");
-    private AAReg rdx = new AAReg("rdx");
-    private AAReg rsp = new AAReg("rsp");
-    private AAReg rbp = new AAReg("rbp");
-    private AAReg rsi = new AAReg("rsi");
-    private AAReg rdi = new AAReg("rdi");
-    private AAReg r8 = new AAReg("r8");
-    private AAReg r9 = new AAReg("r9");
-    private AAReg r10 = new AAReg("r10");
-    private AAReg r11 = new AAReg("r11");
-    private AAReg r12 = new AAReg("r12");
-    private AAReg r13 = new AAReg("r13");
-    private AAReg r14 = new AAReg("r14");
-    private AAReg r15 = new AAReg("r15");
+    private final AAReg rax = new AAReg("rax");
+    private final AAReg rbx = new AAReg("rbx");
+    private final AAReg rcx = new AAReg("rcx");
+    private final AAReg rdx = new AAReg("rdx");
+    private final AAReg rsp = new AAReg("rsp");
+    private final AAReg rbp = new AAReg("rbp");
+    private final AAReg rsi = new AAReg("rsi");
+    private final AAReg rdi = new AAReg("rdi");
+    private final AAReg r8 = new AAReg("r8");
+    private final AAReg r9 = new AAReg("r9");
+    private final AAReg r10 = new AAReg("r10");
+    private final AAReg r11 = new AAReg("r11");
+    private final AAReg r12 = new AAReg("r12");
+    private final AAReg r13 = new AAReg("r13");
+    private final AAReg r14 = new AAReg("r14");
+    private final AAReg r15 = new AAReg("r15");
 
     public Tiler(IRNodeFactory inf, TempSpiller tsp) {
         super(inf);
@@ -135,7 +135,7 @@ public class Tiler extends IRVisitor {
 
     /**
      * traverse the tile to get tmp number and replace tmp name with mem
-     * @param node
+     * @param node root node
      * @return how many temps are spilled to stack
      */
     private long spilledTemps(IRNode node, TempSpiller tmpsp){
@@ -152,7 +152,7 @@ public class Tiler extends IRVisitor {
                 }
             }
             if(a.operand2.isPresent()){
-                a2 = a.operand1.get();
+                a2 = a.operand2.get();
                 if(a2 instanceof AATemp){
                     tmpsp.spillTemp((AATemp) a2);
                     a2 = tmpsp.getMemOfTemp((AATemp) a2);
@@ -166,11 +166,6 @@ public class Tiler extends IRVisitor {
         return tmpsp.tempCounter;
     }
 
-    /**
-     * Tile a return IR instruction
-     * @param node a Return IR node
-     * @return a Return IR node labeled with its tile of assembly
-     */
     /**
      * Translate CompUnit.
      * @param node compile unit
@@ -199,15 +194,17 @@ public class Tiler extends IRVisitor {
         return node;
     }
 
+    /**
+     * Tile a return IR instruction
+     * @param node a Return IR node
+     * @return a Return IR node labeled with its tile of assembly
+     */
     private IRNode tileReturn(IRReturn node) {
         ArrayList<IRExpr> rets = new ArrayList<>(node.rets());
         int ret_size = rets.size();
 
         List<AAInstruction> asm = new ArrayList<>();
-        List<IRNode> neighbors = new ArrayList<>();
-        for (IRExpr e : rets) {
-            neighbors.add(e);
-        }
+        List<IRNode> neighbors = new ArrayList<>(rets);
         if (ret_size == 0) {
             //do nothing
         } else if (ret_size == 1) {
@@ -661,7 +658,7 @@ public class Tiler extends IRVisitor {
         instructs.add(new AACall(node.target().getTile().getReturnTemp()));
 
         if (multiRet && excessArgs != 0){
-            instructs.add(new AAAdd(rsp, new AAImm(8 * excessArgs)));
+            instructs.add(new AAAdd(rsp, new AAImm(8L * excessArgs)));
         }
 
         AAReg[] funcRegs = new AAReg[] {rax, rdx};
@@ -670,7 +667,7 @@ public class Tiler extends IRVisitor {
         }
 
         if (!multiRet && excessArgs != 0){
-            instructs.add(new AAAdd(rsp, new AAImm(8 * excessArgs)));
+            instructs.add(new AAAdd(rsp, new AAImm(8L * excessArgs)));
         }
 
         //pop

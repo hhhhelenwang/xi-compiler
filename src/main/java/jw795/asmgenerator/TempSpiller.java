@@ -6,22 +6,26 @@ import jw795.assembly.AAReg;
 import jw795.assembly.AATemp;
 
 import java.util.HashMap;
+import java.util.HashSet;
 
 /**
  * Handles spilling temporaries onto stack.
  */
 public class TempSpiller {
-    int tempCounter;
-    int topOfStack;
-    HashMap<String, Integer> stackOffsetOfTemp;
+    long tempCounter;
+    long topOfStack;
+    HashMap<String, Long> stackOffsetOfTemp;
 
-    int wordSize = 8;
+    HashMap<String, String> tempNames;
+
+    long wordSize = 8L;
     AAReg stackPointer = new AAReg("rsp");
 
     public TempSpiller() {
         tempCounter = 0;
-        topOfStack = 0;
+        topOfStack = 24;
         stackOffsetOfTemp = new HashMap<>();
+        tempNames = new HashMap<>();
     }
 
     /**
@@ -31,6 +35,17 @@ public class TempSpiller {
     public AATemp newTemp() {
         tempCounter ++;
         return new AATemp("t_asm" + tempCounter);
+    }
+
+    public AATemp newTemp(String name) {
+        if (tempNames.containsKey(name)) {
+            return new AATemp(tempNames.get(name));
+        } else {
+            tempCounter ++;
+            String newName = "t_asm" + tempCounter;
+            tempNames.put(name, newName);
+            return new AATemp(newName);
+        }
     }
 
     /**
@@ -46,20 +61,13 @@ public class TempSpiller {
     }
 
     /**
-     * Get the mem address where temp is spilled on. Requires the temp has been spilled onto the stack.
+     * Get the offset of where temp is spilled on. Requires the temp has been spilled onto the stack.
      * @param temp the temp to find addr for
      * @return the mem for where the temp is spilled.
      */
-    public AAMem getMemOfTemp(AATemp temp) {
-        int offset = stackOffsetOfTemp.get(temp.name());
-        AAMem mem = new AAMem();
-        mem.setBase(stackPointer);
-        mem.setImmediate(new AAImm(offset));
-
-        return mem;
+    public AAImm getOffsetOfTemp(AATemp temp) {
+        long offset = stackOffsetOfTemp.get(temp.name());
+        AAImm offset_imm = new AAImm(offset);
+        return offset_imm;
     }
-
-    //TODO: there's a bunch of other things to do here that i have not figured out yet
-
-
 }
