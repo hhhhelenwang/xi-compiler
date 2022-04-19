@@ -174,16 +174,21 @@ public class Tiler extends IRVisitor {
 //        } else {
         AAOperand operand1;
         AAOperand operand2;
-        operand1 = node.target().getTile().getReturnTemp();
-        operand2 = node.source().getTile().getReturnTemp();
-        AAMove m = new AAMove(operand1, operand2);
+        Tile t1 = node.target().getTile();
+        Tile t2 = node.source().getTile();
+        operand1 = t1.getReturnTemp();
+        operand2 = t2.getReturnTemp();
+        AAReg rdx = new AAReg("rdx");
+        AAMove m1 = new AAMove(rdx, operand2);
+        AAMove m2 = new AAMove(operand1, rdx);
 
         ArrayList<AAInstruction> asm = new ArrayList<>();
-        asm.add(m);
+        asm.addAll(t1.getAssembly());
+        asm.addAll(t2.getAssembly());
+        asm.add(m1);
+        asm.add(m2);
 
         List<IRNode> neighbors = new ArrayList<>();
-        neighbors.add(node.target());
-        neighbors.add(node.source());
         Tile t = new Tile (asm, neighbors);
         node.setTile(t);
         return node;
