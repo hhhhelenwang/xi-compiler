@@ -79,46 +79,4 @@ public class AssemblyGeneratorAdapter {
             asmWriter.write(node.toString());
         }
     }
-
-    /**
-     * traverse the tile to get tmp number and replace tmp name with
-     * @param node
-     * @return the original node with modified tile
-     */
-    private void spillnode(IRNode node, TempSpiller tmpsp){
-        Tile cur = node.getTile();
-        for(AAInstruction a : cur.getAssembly()){
-            AAOperand a1;
-            AAOperand a2;
-            if(a.operand1.isPresent()){
-                a1 =  a.operand1.get();
-                if(a1 instanceof AATemp) {
-                    tmpsp.spillTemp((AATemp) a1);
-                    a1 = tmpsp.getMemOfTemp((AATemp) a1);
-                    a.reseta1(a1);
-                }
-            }
-            if(a.operand2.isPresent()){
-                a2 = a.operand1.get();
-                if(a2 instanceof AATemp){
-                    tmpsp.spillTemp((AATemp) a2);
-                    a2 = tmpsp.getMemOfTemp((AATemp) a2);
-                    a.reseta2(a2);
-                }
-            }
-            for(IRNode irn: cur.getNeighborIRs()){
-                spillnode(irn,tmpsp);
-            }
-        }
-    }
-
-
-
-
-
-
-
-
-
-
 }

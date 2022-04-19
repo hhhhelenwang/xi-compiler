@@ -6,6 +6,7 @@ import jw795.Compiler;
 import jw795.assembly.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -14,6 +15,22 @@ import java.util.Map;
  */
 public class Tiler extends IRVisitor {
     public TempSpiller tempSpiller;
+    public AAReg rax = new AAReg("rax");
+    public AAReg rbx = new AAReg("rbx");
+    public AAReg rcx = new AAReg("rcx");
+    public AAReg rdx = new AAReg("rdx");
+    public AAReg rsp = new AAReg("rsp");
+    public AAReg rbp = new AAReg("rbp");
+    public AAReg rsi = new AAReg("rsi");
+    public AAReg rdi = new AAReg("rdi");
+    public AAReg r8 = new AAReg("r8");
+    public AAReg r9 = new AAReg("r9");
+    public AAReg r10 = new AAReg("r10");
+    public AAReg r11 = new AAReg("r11");
+    public AAReg r12 = new AAReg("r12");
+    public AAReg r13 = new AAReg("r13");
+    public AAReg r14 = new AAReg("r14");
+    public AAReg r15 = new AAReg("r15");
 
     public Tiler(IRNodeFactory inf, TempSpiller tsp) {
         super(inf);
@@ -86,16 +103,68 @@ public class Tiler extends IRVisitor {
         String name = node.name();
         IRStmt body = node.body();
         List<IRNode> neighbors = new ArrayList<>();
-        neighbors.add(body);
         List<AAInstruction> asm = new ArrayList<>();
         asm.add(new AALabelInstr(name));
-        //TODO: calculate allocation size
-        // asm.add(new AAEnter(new AAImm(8*l), new AAImm(0)));
+        asm.add(new AAPush(rdi));
+        asm.add(new AAPush(rbp));
+        asm.add(new AAMove(rbp, rsp));
+        asm.add(new AAAdd(rbp, new AAImm(8)));
+        asm.add(new AAPush(rbx));
+        asm.add(new AAPush(r12));
+        asm.add(new AAPush(r13));
+        asm.add(new AAPush(r14));
+        asm.add(new AAPush(r15));
+        TempSpiller tmpsp = new TempSpiller();
+        long l = spilledTemps(body, tmpsp);
+        if (l % 2 != 0) {
+            l += 1;
+        }
+        asm.add(new AASub(rsp, new AAImm(8*l)));
         asm.addAll(body.getTile().getAssembly());
-        asm.add(new AALeave());
+        asm.add(new AAAdd(rsp, new AAImm(8*l)));
+        asm.add(new AAPop(r15));
+        asm.add(new AAPop(r14));
+        asm.add(new AAPop(r13));
+        asm.add(new AAPop(r12));
+        asm.add(new AAPop(rbx));
+        asm.add(new AAPop(rbp));
+        asm.add(new AAAdd(rsp, new AAImm(8)));
         asm.add(new AARet());
         node.setTile(new Tile(asm, neighbors));
         return node;
+    }
+
+    /**
+     * traverse the tile to get tmp number and replace tmp name with mem
+     * @param node
+     * @return how many temps are spilled to stack
+     */
+    private long spilledTemps(IRNode node, TempSpiller tmpsp){
+        Tile cur = node.getTile();
+        for(AAInstruction a : cur.getAssembly()){
+            AAOperand a1;
+            AAOperand a2;
+            if(a.operand1.isPresent()){
+                a1 =  a.operand1.get();
+                if(a1 instanceof AATemp) {
+                    tmpsp.spillTemp((AATemp) a1);
+                    a1 = tmpsp.getMemOfTemp((AATemp) a1);
+                    a.reseta1(a1);
+                }
+            }
+            if(a.operand2.isPresent()){
+                a2 = a.operand1.get();
+                if(a2 instanceof AATemp){
+                    tmpsp.spillTemp((AATemp) a2);
+                    a2 = tmpsp.getMemOfTemp((AATemp) a2);
+                    a.reseta2(a2);
+                }
+            }
+            for(IRNode irn: cur.getNeighborIRs()){
+                spilledTemps(irn,tmpsp);
+            }
+        }
+        return tmpsp.tempCounter;
     }
 
     /**
@@ -143,15 +212,15 @@ public class Tiler extends IRVisitor {
         if (ret_size == 0) {
             //do nothing
         } else if (ret_size == 1) {
-            asm.add(new AAMove(new AAReg("rax"), rets.get(0).getTile().getReturnTemp()));
+            asm.add(new AAMove(rax, rets.get(0).getTile().getReturnTemp()));
         } else if (ret_size == 2) {
-            asm.add(new AAMove(new AAReg("rax"), rets.get(0).getTile().getReturnTemp()));
-            asm.add(new AAMove(new AAReg("rdx"), rets.get(1).getTile().getReturnTemp()));
+            asm.add(new AAMove(rax, rets.get(0).getTile().getReturnTemp()));
+            asm.add(new AAMove(rdx, rets.get(1).getTile().getReturnTemp()));
         } else {
-            asm.add(new AAMove(new AAReg("rax"), rets.get(0).getTile().getReturnTemp()));
-            asm.add(new AAMove(new AAReg("rdx"), rets.get(1).getTile().getReturnTemp()));
+            asm.add(new AAMove(rax, rets.get(0).getTile().getReturnTemp()));
+            asm.add(new AAMove(rdx, rets.get(1).getTile().getReturnTemp()));
             AAMem ret_pt = new AAMem();
-            ret_pt.setBase(new AAReg("rdi"));
+            ret_pt.setBase(rdi);
             for (int i = 2; i < ret_size; i++) {
                 asm.add(new AAMove(ret_pt, rets.get(1).getTile().getReturnTemp()));
             }
@@ -178,7 +247,7 @@ public class Tiler extends IRVisitor {
         Tile t2 = node.source().getTile();
         operand1 = t1.getReturnTemp();
         operand2 = t2.getReturnTemp();
-        AAReg rdx = new AAReg("rdx");
+        AAReg rdx = rdx;
         AAMove m1 = new AAMove(rdx, operand2);
         AAMove m2 = new AAMove(operand1, rdx);
 
@@ -326,28 +395,24 @@ public class Tiler extends IRVisitor {
                 break;
             case MUL:
                 // multiplier in rax, result in rax
-                AAReg rax = new AAReg("rax");
                 aasm.add(new AAMove(rax, operand1));
                 aasm.add(new AAMul(operand2));
                 aasm.add(new AAMove(returnTemp, rax));
                 break;
             case HMUL:
                 // mul puts higher part in rdx
-                AAReg rdx = new AAReg("rdx");
                 aasm.add(new AAMove(rdx, operand1));
                 aasm.add(new AAMul(operand2));
                 aasm.add(new AAMove(returnTemp, rdx));
                 break;
             case DIV:
                 // op1 = dividend in rax, result in rax
-                rax = new AAReg("rax");
                 aasm.add(new AAMove(rax, operand1));
                 aasm.add(new AADiv(operand2));
                 aasm.add(new AAMove(returnTemp, rax));
                 break;
             case MOD:
                 // div puts remainder in rdx
-                rdx = new AAReg("rdx");
                 aasm.add(new AAMove(rdx, operand1));
                 aasm.add(new AADiv(operand2));
                 aasm.add(new AAMove(returnTemp, rdx));
@@ -454,23 +519,20 @@ public class Tiler extends IRVisitor {
         if(canbeshortcut){
             // having an extra move to deal with the problem that arr pos become rsp + sth
             IRBinOp thechild = (IRBinOp) n2.expr();
-            AAReg tempreg1 = new AAReg("rax");
-            instructs.add(new AAMove(tempreg1,thechild.left().getTile().getReturnTemp()));
-            result.setBase(tempreg1);
+            instructs.add(new AAMove(rax,thechild.left().getTile().getReturnTemp()));
+            result.setBase(rax);
             result.setScale(((IRConst) ((IRBinOp) thechild.right()).left()).value());
             if(((IRBinOp) thechild.right()).right() instanceof IRConst){
                 result.setImmediate(new AAImm(((IRConst) ((IRBinOp) thechild.right()).right()).value()));
             }else{
-                AAReg tempreg2 = new AAReg("rcx");
-                instructs.add(new AAMove(tempreg2,thechild.right().getTile().getReturnTemp()));
-                result.setIndex(tempreg2);
+                instructs.add(new AAMove(rcx,thechild.right().getTile().getReturnTemp()));
+                result.setIndex(rcx);
             }
 
         }else if(n2.expr() instanceof IRConst){
             result.setImmediate(new AAImm(((IRConst) n2.expr()).value()));
         }else{
-            AAReg tempreg3 = new AAReg("rdx");
-            result.setBase(tempreg3);
+            result.setBase(rdx);
             neighbors.add(n2.expr());
         }
 
