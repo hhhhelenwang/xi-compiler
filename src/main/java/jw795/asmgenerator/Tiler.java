@@ -671,6 +671,12 @@ public class Tiler extends IRVisitor {
             exprTemps.add(0, e.getTile().getReturnTemp()); // tn, tn-1, ... t1
         }
 
+        //save caller saved registers rax, rcx, rdx, rsi, rdi, and r8–r11
+        AAReg[] callerRegs = new AAReg[]{rax, rcx, rdx, rsi, rdi, r8, r9, r10, r11};
+        for (AAReg reg : callerRegs){
+            instructs.add(new AAPush(reg));
+        }
+
         // if returning more than two, manually reserve space for ret2
         Long nReturns = node.n_returns();
         boolean multiRet = false;
@@ -723,6 +729,11 @@ public class Tiler extends IRVisitor {
                 //pop rv3...n
                 instructs.add(new AAPop(tempSpiller.newTemp()));
             }
+        }
+
+        //restore caller saved registers
+        for (int i = 0; i < callerRegs.length; i++){
+            instructs.add(new AAPop(callerRegs[callerRegs.length-1-i]));
         }
 
         Tile callStmtTile = new Tile(instructs, neighbors);
