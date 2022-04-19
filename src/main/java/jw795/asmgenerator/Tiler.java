@@ -214,6 +214,7 @@ public class Tiler extends IRVisitor {
      */
     private IRNode tileCompUnit(IRCompUnit node) {
         List<AAInstruction> aasm = new ArrayList<>();
+        aasm.add(new AADirective(AADirective.DirType.INTEL));
         aasm.add(new AADirective(AADirective.DirType.DATA));
         // data section
         for (Map.Entry<String, IRData> data : node.dataMap().entrySet()) {
