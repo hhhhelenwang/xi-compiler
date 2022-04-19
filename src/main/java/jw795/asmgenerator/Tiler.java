@@ -135,7 +135,6 @@ public class Tiler extends IRVisitor {
         }
         asm.add(new AASub(rsp, new AAImm(8*l)));
         asm.addAll(getNeighborAsm(body));
-        asm.addAll(body.getTile().getAssembly());
         asm.add(new AAAdd(rsp, new AAImm(8*l)));
         asm.add(new AAPop(r15));
         asm.add(new AAPop(r14));
@@ -289,8 +288,8 @@ public class Tiler extends IRVisitor {
         AAMove m2 = new AAMove(operand1, rdx);
 
         ArrayList<AAInstruction> asm = new ArrayList<>();
-        asm.addAll(t1.getAssembly());
-        asm.addAll(t2.getAssembly());
+        asm.addAll(getNeighborAsm(node.source()));
+        asm.addAll(getNeighborAsm(node.target()));
         asm.add(m1);
         asm.add(m2);
 
@@ -548,7 +547,7 @@ public class Tiler extends IRVisitor {
             if(thechild.opType() == IRBinOp.OpType.ADD){
                 if(thechild.right() instanceof IRBinOp){
                     if(((IRBinOp) thechild.right()).opType() == IRBinOp.OpType.MUL){
-                        if(((IRBinOp) thechild.right()).right() instanceof IRConst){
+                        if(((IRBinOp) thechild.right()).left() instanceof IRConst){
                             canbeshortcut = true;
                         }
                     }
