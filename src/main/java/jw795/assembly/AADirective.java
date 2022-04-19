@@ -8,7 +8,8 @@ public class AADirective extends AAInstruction{
     public enum DirType {
         TEXT,
         DATA,
-        QUAD;
+        QUAD,
+        INTEL;
 
         @Override
         public String toString() {
@@ -19,6 +20,8 @@ public class AADirective extends AAInstruction{
                     return ".data";
                 case QUAD:
                     return ".quad";
+                case INTEL:
+                    return ".intel_syntax noprefix";
                 default:
                     return null;
             }

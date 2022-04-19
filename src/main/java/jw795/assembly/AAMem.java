@@ -57,6 +57,7 @@ public class AAMem extends AAOperand{
         if (immediate.isPresent()) {
             strOfMem += "+" + immediate.get();
         }
+        strOfMem += "]";
 
         return strOfMem + "]";
     }
