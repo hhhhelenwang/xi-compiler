@@ -1,19 +1,12 @@
 package jw795.asmgenerator;
 
 import edu.cornell.cs.cs4120.xic.ir.IRCompUnit;
-import edu.cornell.cs.cs4120.xic.ir.IRFuncDecl;
 import edu.cornell.cs.cs4120.xic.ir.IRNode;
 import edu.cornell.cs.cs4120.xic.ir.IRNodeFactory_c;
-import jw795.assembly.AAAdd;
-import jw795.assembly.AAInstruction;
-import jw795.assembly.AAOperand;
-import jw795.assembly.AATemp;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.HashMap;
 
 import static jw795.util.FileUtil.generateTargetFile;
 
@@ -27,7 +20,12 @@ public class AssemblyGeneratorAdapter {
     boolean optimize;
     FileWriter asmWriter;
 
-    public AssemblyGeneratorAdapter(String file, IRCompUnit ir, String dest, boolean opt) {
+    HashMap<String, Long> funcArgLengths;
+    HashMap<String, Long> funcRetLengths;
+
+    public AssemblyGeneratorAdapter(String file, IRCompUnit ir, String dest, boolean opt,
+                                    HashMap<String, Long> funArg,
+                                    HashMap<String, Long> funRet) {
         fileName = file;
         sourceIR = ir;
         destPathAsm = dest;
@@ -39,6 +37,8 @@ public class AssemblyGeneratorAdapter {
             System.out.println("Compiler error: target file not found");
         }
 
+        funcArgLengths = funArg;
+        funcRetLengths = funRet;
     }
 
     /**
@@ -46,7 +46,7 @@ public class AssemblyGeneratorAdapter {
      */
     public void generateAssembly() {
         System.out.println("asm gen called!");
-        Tiler asmvisit = new Tiler(new IRNodeFactory_c(),new TempSpiller());
+        Tiler asmvisit = new Tiler(new IRNodeFactory_c(),new TempSpiller(), funcArgLengths, funcRetLengths);
 
         //after visiting, it should be still IRCompunit
         IRCompUnit visited = (IRCompUnit) asmvisit.visit(sourceIR);

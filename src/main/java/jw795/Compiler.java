@@ -30,6 +30,9 @@ public class Compiler {
     List<String> files = new ArrayList<>();
     Options options;
 
+    HashMap<String, Long> funcRetLengths;
+    HashMap<String, Long> funcArgLengths;
+
     public enum Target {
         LINUX, // supported
         WINDOWS,
@@ -203,7 +206,11 @@ public class Compiler {
         boolean optimize = !cmd.hasOption("O");
         IRGeneratorAdapter irGeneratorAdapter = new IRGeneratorAdapter(
                 fileName, this.destPath, this.libPath, optimize, generateFile);
-        return irGeneratorAdapter.generateIR(); // nullable
+
+        IRCompUnit sourceIR = irGeneratorAdapter.generateIR();
+        funcArgLengths = irGeneratorAdapter.getFuncArgLengths();
+        funcRetLengths = irGeneratorAdapter.getFuncRetLengths();
+        return sourceIR; // nullable
     }
 
     /**
@@ -244,7 +251,7 @@ public class Compiler {
         IRCompUnit ir = generateIRForFile(filename);
         if (ir != null) {
             AssemblyGeneratorAdapter asmAdapter = new AssemblyGeneratorAdapter(
-                    filename, ir, destPathAsm, !cmd.hasOption("O"));
+                    filename, ir, destPathAsm, !cmd.hasOption("O"), funcArgLengths, funcRetLengths);
             asmAdapter.generateAssembly();
         }
 

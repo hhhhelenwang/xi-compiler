@@ -205,4 +205,18 @@ public class IRGeneratorAdapter {
         }
         return null;
     }
+
+    /**
+     * Getter for the map of function names to their number of arguments
+     */
+    public HashMap<String, Long> getFuncArgLengths() {
+        return funcArgLengths;
+    }
+
+    /**
+     * Getter for the map of function names to their number of returns
+     */
+    public HashMap<String, Long> getFuncRetLengths() {
+        return funcRetLengths;
+    }
 }
