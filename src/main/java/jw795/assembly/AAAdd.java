@@ -8,6 +8,9 @@ public class AAAdd extends AAInstruction{
 
     @Override
     public String toString() {
-        return "add " + operand1.get() + ", " +  operand2.get();
+        if (operand2.get() instanceof AAImm) {
+            return "addq" + " " + operand1.get().toString() + ", " + operand2.get().toString();
+        } else {
+        return "add " + operand1.get() + ", " +  operand2.get();}
     }
 }

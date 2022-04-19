@@ -38,7 +38,7 @@ public class AAMem extends AAOperand{
 
     @Override
     public String toString() {
-        String strOfMem = "";
+        String strOfMem = "[";
         if (base.isPresent()) {
             strOfMem += base.get();
         }
