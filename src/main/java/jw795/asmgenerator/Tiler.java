@@ -146,6 +146,7 @@ public class Tiler extends IRVisitor {
         node.setTile(new Tile(asm, neighbors));
         spilledTemps(node, tempSpiller);
         tempSpiller = new TempSpiller();
+        spilledTemps(node,tempSpiller);
         return node;
     }
 
@@ -156,6 +157,9 @@ public class Tiler extends IRVisitor {
      */
     private void spilledTemps(IRNode node, TempSpiller tmpsp){
         Tile cur = node.getTile();
+        for(IRNode irn: cur.getNeighborIRs()){
+            spilledTemps(irn,tmpsp);
+        }
         for(AAInstruction a : cur.getAssembly()){
             AAOperand a1;
             AAOperand a2;
@@ -182,9 +186,6 @@ public class Tiler extends IRVisitor {
                     mem.setScale(-1L);
                     a.reseta2(mem);
                 }
-            }
-            for(IRNode irn: cur.getNeighborIRs()){
-                spilledTemps(irn,tmpsp);
             }
         }
     }
@@ -516,7 +517,6 @@ public class Tiler extends IRVisitor {
         List<AAInstruction> instructs = new ArrayList<>();
         AATemp ret = this.tempSpiller.newTemp();
 
-        AAMem result = new AAMem();
         boolean canbeshortcut = false;
         //there are three case
         // 1: global data // this case is handle by IRNAMe itself
@@ -528,7 +528,7 @@ public class Tiler extends IRVisitor {
             if(thechild.opType() == IRBinOp.OpType.ADD){
                 if(thechild.right() instanceof IRBinOp){
                     if(((IRBinOp) thechild.right()).opType() == IRBinOp.OpType.MUL){
-                        if(((IRBinOp) thechild.right()).left() instanceof IRConst){
+                        if(((IRBinOp) thechild.right()).right() instanceof IRConst){
                             canbeshortcut = true;
                         }
                     }
@@ -536,26 +536,32 @@ public class Tiler extends IRVisitor {
             }
         }
         if(canbeshortcut){
+            AAMem result1 = new AAMem();
             // having an extra move to deal with the problem that arr pos become rsp + sth
             IRBinOp thechild = (IRBinOp) n2.expr();
             instructs.add(new AAMove(rax, thechild.left().getTile().getReturnTemp()));
-            result.setBase(rax);
-            result.setScale(((IRConst) ((IRBinOp) thechild.right()).left()).value());
+            result1.setBase(rax);
+            result1.setScale(((IRConst) ((IRBinOp) thechild.right()).left()).value());
             if(((IRBinOp) thechild.right()).right() instanceof IRConst){
-                result.setImmediate(new AAImm(((IRConst) ((IRBinOp) thechild.right()).right()).value()));
+                result1.setImmediate(new AAImm(((IRConst) ((IRBinOp) thechild.right()).right()).value()));
             }else{
                 instructs.add(new AAMove(rcx, thechild.right().getTile().getReturnTemp()));
-                result.setIndex(rcx);
+                result1.setIndex(rcx);
             }
+            instructs.add(new AAMove(ret, result1));
 
         }else if(n2.expr() instanceof IRConst){
-            result.setImmediate(new AAImm(((IRConst) n2.expr()).value()));
+            AAMem result2 = new AAMem();
+            result2.setImmediate(new AAImm(((IRConst) n2.expr()).value()));
+            instructs.add(new AAMove(ret, result2));
         }else{
-            result.setBase(rdx);
+            AAMem result3 = new AAMem();
+            instructs.add(new AAMove(rdx, n2.expr().getTile().getReturnTemp()));
+            result3.setBase(rdx);
             neighbors.add(n2.expr());
+            instructs.add(new AAMove(ret, result3));
         }
 
-        instructs.add(new AAMove(ret, result));
         Tile newtile = new Tile(instructs,neighbors);
 
         newtile.setReturnTemp(ret);
@@ -707,7 +713,7 @@ public class Tiler extends IRVisitor {
         // move up to first 6 args to registers
         for (int i = 0; i < nArgs-excessArgs; i++){
             instructs.add(new AASub(argRegs[i], new AAImm(8)));
-            instructs.add(new AAMove(rsp, exprTemps.get(excessArgs+i-1)));
+            instructs.add(new AAMove(rsp, exprTemps.get(excessArgs+i)));
         }
 
         //make sure stack is 16 byte aligned before func call
