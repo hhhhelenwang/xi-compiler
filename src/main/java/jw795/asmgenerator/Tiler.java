@@ -258,7 +258,7 @@ public class Tiler extends IRVisitor {
             asm.add(new AAMove(rax, rets.get(0).getTile().getReturnTemp()));
             asm.add(new AAMove(rdx, rets.get(1).getTile().getReturnTemp()));
             AAMem ret_pt = new AAMem();
-            ret_pt.setBase(rdi);
+            ret_pt.setBase(rbp); //rbp points to return address
             for (int i = 2; i < ret_size; i++) {
                 asm.add(new AAMove(ret_pt, rets.get(i).getTile().getReturnTemp()));
             }
@@ -768,10 +768,11 @@ public class Tiler extends IRVisitor {
 
         //pop
         if (multiRet){
-            for (int i = 0; i < nReturns-2; i++){
+//            for (int i = 0; i < nReturns-2; i++){
                 //pop rv3...n
-                instructs.add(new AAPop(tempSpiller.newTemp()));
-            }
+//                instructs.add(new AAPop(tempSpiller.newTemp()));
+//            }
+            instructs.add(new AASub(rsp, new AAImm(8*excessRets)));
         }
 
         //restore caller saved registers
