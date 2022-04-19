@@ -92,15 +92,20 @@ public class Tiler extends IRVisitor {
         }
     }
 
-    private IRNode tileSeq(IRSeq n2) {
+    /**
+     * Tile a Seq IR instruction
+     * @param node a IRSeq node
+     * @return a Seq IR node labeled with its tile of assembly
+     */
+    private IRNode tileSeq(IRSeq node) {
         List <AAInstruction> ins = new ArrayList<>();
         List<IRNode> neighbors = new ArrayList<>();
-        for(IRStmt s: n2.stmts()){
+        for(IRStmt s: node.stmts()){
             neighbors.add(s);
         }
         Tile result = new Tile(ins,neighbors);
-        n2.setTile(result);
-        return n2;
+        node.setTile(result);
+        return node;
     }
 
     /**
@@ -177,11 +182,6 @@ public class Tiler extends IRVisitor {
     }
 
     /**
-     * Tile a return IR instruction
-     * @param node a Return IR node
-     * @return a Return IR node labeled with its tile of assembly
-     */
-    /**
      * Translate CompUnit.
      * @param node compile unit
      * @return translated compile unit
@@ -209,6 +209,11 @@ public class Tiler extends IRVisitor {
         return node;
     }
 
+    /**
+     * Tile a return IR instruction
+     * @param node a Return IR node
+     * @return a Return IR node labeled with its tile of assembly
+     */
     private IRNode tileReturn(IRReturn node) {
         ArrayList<IRExpr> rets = new ArrayList<>(node.rets());
         int ret_size = rets.size();
