@@ -2,6 +2,8 @@ package jw795.asmgenerator;
 
 import edu.cornell.cs.cs4120.xic.ir.IRNode;
 import jw795.assembly.AAInstruction;
+import jw795.assembly.AAMem;
+import jw795.assembly.AAMove;
 import jw795.assembly.AATemp;
 
 import java.util.List;
@@ -16,6 +18,11 @@ public class Tile {
     private int cost;
     private int costOfSubTree;
     private AATemp returnTemp;
+
+    //cost of differen tile -- cannot use enum as number is not sequential
+    private int memcost = 4;
+    private int inscost = 1;
+    private int movcost = 2;
 
     public Tile(List<AAInstruction> asm, List<IRNode> neighbors) {
         assembly = asm;
@@ -38,7 +45,35 @@ public class Tile {
      * @return cost of this tile
      */
     public int computeCostOfTile() {
+        int instructionscost = 0;
+        for(AAInstruction i:assembly){
+
+        }
         return assembly.size();
+    }
+
+    /**
+     * Calculate the cost of this tile.
+     * @return cost of this tile
+     */
+    public int computeCostOfIns(AAInstruction i) {
+        int result = 0;
+        if(i instanceof AAMove){
+            result += movcost;
+        }else{
+            result += inscost;
+        }
+        //instruction with AAMem as target or source have cost  += Memcost
+        if(i.operand1.isPresent()){
+            if(i.operand1.get() instanceof AAMem){
+                result += memcost;
+            }
+        }else if(i.operand2.isPresent()){
+            if(i.operand2.get() instanceof AAMem){
+                result += memcost;
+            }
+        }
+        return result;
     }
 
     /**
