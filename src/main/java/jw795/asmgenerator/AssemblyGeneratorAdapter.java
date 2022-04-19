@@ -50,14 +50,7 @@ public class AssemblyGeneratorAdapter {
 
         //after visiting, it should be still IRCompunit
         IRCompUnit visited = (IRCompUnit) asmvisit.visit(sourceIR);
-        for(Map.Entry<String,IRFuncDecl> funde: visited.functions().entrySet()){
-            List<AAInstruction> newins = new ArrayList<>();
-            TempSpiller tmpsp = new TempSpiller();
-            spillnode(funde.getValue(),tmpsp);
-        }
-
-        // we also need to deal with grow stack and stuff
-        //tile and then spill temp
+        // we already handled the prologue and epilogue in fundecl
         try{
             printTile(visited.getTile());
             asmWriter.close();
