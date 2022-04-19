@@ -312,6 +312,7 @@ public class Tiler extends IRVisitor {
         List<AAInstruction> aasm = new ArrayList<>();
         aasm.add(new AAMove(returnTemp, new AAImm(node.value())));
         Tile constTile = new Tile(aasm, new ArrayList<>());
+        constTile.setReturnTemp(returnTemp);
         node.setTile(constTile);
         return node;
     }
@@ -322,10 +323,9 @@ public class Tiler extends IRVisitor {
      * @return temp annotated with assembly tile.
      */
     private IRNode tileTemp(IRTemp node) {
-        AATemp returnTemp = tempSpiller.newTemp();
         List<AAInstruction> aasm = new ArrayList<>();
-        aasm.add(new AAMove(returnTemp, new AATemp(node.name())));
         Tile constTile = new Tile(aasm, new ArrayList<>());
+        constTile.setReturnTemp(tempSpiller.newTemp(node.name()));
         node.setTile(constTile);
         return node;
     }
