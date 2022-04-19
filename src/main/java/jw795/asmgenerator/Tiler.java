@@ -277,7 +277,9 @@ public class Tiler extends IRVisitor {
         asm.add(m1);
         asm.add(m2);
 
-        List<IRNode> neighbors = new ArrayList<>();
+        ArrayList<IRNode> neighbors = new ArrayList<>();
+        neighbors.add(node.source());
+        neighbors.add(node.target());
         Tile t = new Tile (asm, neighbors);
         node.setTile(t);
         return node;
