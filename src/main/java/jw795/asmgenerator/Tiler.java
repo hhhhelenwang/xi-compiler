@@ -61,7 +61,7 @@ public class Tiler extends IRVisitor {
         } else if (n2 instanceof IRFuncDecl) {
             return tileFuncDecl((IRFuncDecl) n2);
         } else if (n2 instanceof IRSeq){
-            // do nothing
+            return tileSeq((IRSeq) n2);
         } else if (n2 instanceof IRMove) {
             return tileMove((IRMove) n2);
         } else if (n2 instanceof IRCallStmt) {
@@ -90,7 +90,17 @@ public class Tiler extends IRVisitor {
             System.out.println("IR is not lowered.");
             return null;
         }
-        return null;
+    }
+
+    private IRNode tileSeq(IRSeq n2) {
+        List <AAInstruction> ins = new ArrayList<>();
+        List<IRNode> neighbors = new ArrayList<>();
+        for(IRStmt s: n2.stmts()){
+            neighbors.add(s);
+        }
+        Tile result = new Tile(ins,neighbors);
+        n2.setTile(result);
+        return n2;
     }
 
     /**
