@@ -507,7 +507,6 @@ public class Tiler extends IRVisitor {
         List<AAInstruction> instructs = new ArrayList<>();
         AATemp ret = this.tempSpiller.newTemp();
 
-        AAMem result = new AAMem();
         boolean canbeshortcut = false;
         //there are three case
         // 1: global data // this case is handle by IRNAMe itself
@@ -527,26 +526,29 @@ public class Tiler extends IRVisitor {
             }
         }
         if(canbeshortcut){
+            AAMem result1 = new AAMem();
             // having an extra move to deal with the problem that arr pos become rsp + sth
             IRBinOp thechild = (IRBinOp) n2.expr();
             instructs.add(new AAMove(rax, thechild.left().getTile().getReturnTemp()));
-            result.setBase(rax);
-            result.setScale(((IRConst) ((IRBinOp) thechild.right()).left()).value());
+            result1.setBase(rax);
+            result1.setScale(((IRConst) ((IRBinOp) thechild.right()).left()).value());
             if(((IRBinOp) thechild.right()).right() instanceof IRConst){
-                result.setImmediate(new AAImm(((IRConst) ((IRBinOp) thechild.right()).right()).value()));
+                result1.setImmediate(new AAImm(((IRConst) ((IRBinOp) thechild.right()).right()).value()));
             }else{
                 instructs.add(new AAMove(rcx, thechild.right().getTile().getReturnTemp()));
-                result.setIndex(rcx);
+                result1.setIndex(rcx);
             }
 
         }else if(n2.expr() instanceof IRConst){
-            result.setImmediate(new AAImm(((IRConst) n2.expr()).value()));
+            AAMem result2 = new AAMem();
+            result2.setImmediate(new AAImm(((IRConst) n2.expr()).value()));
         }else{
-            result.setBase(rdx);
+            AAMem result3 = new AAMem();
+            result3.setBase(rdx);
             neighbors.add(n2.expr());
         }
 
-        instructs.add(new AAMove(ret, result));
+//        instructs.add(new AAMove(ret, result));
         Tile newtile = new Tile(instructs,neighbors);
 
         newtile.setReturnTemp(ret);
