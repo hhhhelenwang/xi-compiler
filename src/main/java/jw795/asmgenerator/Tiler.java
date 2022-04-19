@@ -322,9 +322,17 @@ public class Tiler extends IRVisitor {
      */
     private IRNode tileName(IRName node) {
         // For an IR of Name(l), assembly need the label l
+        //there are two case：
+        //1: string
+        //2: label
         List<AAInstruction> aasm = new ArrayList<>();
         AATemp target = tempSpiller.newTemp();
-        aasm.add(new AAMove(target, new AALabel(node.name())));
+        if(node.name().length() >12 && node.name().substring(0, 7).equals("string_")){
+            aasm.add(new AAMove(rdx, tempSpiller.newTemp(node.name())));
+            aasm.add(new AAMove(target,rdx));
+        }else{
+            aasm.add(new AAMove(target, new AALabel(node.name())));
+        }
         Tile labelTile = new Tile(aasm, new ArrayList<>());
         labelTile.setReturnTemp(target);
         node.setTile(labelTile);
