@@ -222,7 +222,7 @@ public class Tiler extends IRVisitor {
             AAMem ret_pt = new AAMem();
             ret_pt.setBase(rdi);
             for (int i = 2; i < ret_size; i++) {
-                asm.add(new AAMove(ret_pt, rets.get(1).getTile().getReturnTemp()));
+                asm.add(new AAMove(ret_pt, rets.get(i).getTile().getReturnTemp()));
             }
         }
         node.setTile(new Tile(asm, neighbors));
@@ -557,7 +557,6 @@ public class Tiler extends IRVisitor {
         return node;
     }
 
-
     /**
      * Tile a CJump IR instruction
      * @param node a CJump IR node
@@ -607,14 +606,12 @@ public class Tiler extends IRVisitor {
             aasm.add(new AAJe(new AALabel(target)));
         } else {
             System.out.println("should not enter this branch");
-
         }
 
         Tile jumpTile = new Tile(aasm, neighbors);
         node.setTile(jumpTile);
         return node;
     }
-
 
     /**
      * Tile a call stmt IR instruction
@@ -628,17 +625,17 @@ public class Tiler extends IRVisitor {
 
         //T[t1, e2] == move(temp(t1), e), T[t2, e2], ..., T[tn, en]
         for (IRExpr e : node.args()){
-            exprTemps.add(0, e.getTile().getReturnTemp()); // tn, tn-1, ... t1
             neighbors.add(e);
+            exprTemps.add(0, e.getTile().getReturnTemp()); // tn, tn-1, ... t1
         }
 
-        AATemp rsp = new AATemp("rsp");
+        AAReg rsp = new AAReg("rsp");
 
         // if returning more than two, manually reserve space for ret2
         Long nReturns = node.n_returns();
         boolean multiRet = false;
         if (nReturns > 2){
-            AATemp rdi = new AATemp("rdi");
+            AAReg rdi = new AAReg("rdi");
             instructs.add(new AASub(rsp, new AAImm(8 * (nReturns - 2))));
             instructs.add(new AAMove(rdi, rsp));
             multiRet = true;
@@ -647,39 +644,46 @@ public class Tiler extends IRVisitor {
         // push excess args onto stack in reverse order
         int nArgs = node.args().size();
         int excessArgs = multiRet ? Math.max(0, nArgs-6) : Math.max(0, nArgs-5);
-
         for (int i = 0; i < excessArgs; i++){
-            instructs.add(new AASub(rsp, new AAImm(8)));
-            instructs.add(new AAMove(tempSpiller.getMemOfTemp(rsp), exprTemps.get(i))); // push tn ... t7/6
+            instructs.add(new AAPush(exprTemps.get(i)));// push tn ... t7/6
         }
 
-        AATemp[] argRegs = new AATemp[] {new AATemp("rdi"), new AATemp("rsi"), new AATemp("rdx"),
-                new AATemp("rcx"), new AATemp("r8"), new AATemp("r9")};
+        AAReg[] argRegs = new AAReg[] {new AAReg("rdi"), new AAReg("rsi"), new AAReg("rdx"),
+                new AAReg("rcx"), new AAReg("r8"), new AAReg("r9")};
 
         // move up to first 6 args to registers
         for (int i = 0; i < nArgs-excessArgs; i++){
             instructs.add(new AASub(argRegs[i], new AAImm(8)));
-            instructs.add(new AAMove(tempSpiller.getMemOfTemp(argRegs[i]), exprTemps.get(excessArgs+i-1)));
+            instructs.add(new AAMove(rsp, exprTemps.get(excessArgs+i-1)));
         }
 
-        // jumps to specific destination
+        //make sure stack is 16 byte aligned before func call
+        int excessRets = multiRet ? nReturns.intValue()-2 : 0;
+        if (excessRets % 2 == 1){
+            instructs.add(new AASub(rsp, new AAImm(8)));
+        }
+
+        // store rip on stack, jumps to specific destination
         instructs.add(new AACall(node.target().getTile().getReturnTemp()));
 
-        if (multiRet){
-            instructs.add(new AAAdd(rsp, new AAImm(8 * (nArgs-6))));
+        if (multiRet && excessArgs != 0){
+            instructs.add(new AAAdd(rsp, new AAImm(8 * excessArgs)));
         }
 
-        String[] funcRegs = new String[] {"rax", "rdx"};
+        AAReg[] funcRegs = new AAReg[] {new AAReg("rax"), new AAReg("rdx")};
         for (int i = 0; i < Math.min(2, nReturns); i++){
-            instructs.add(new AAMove(tempSpiller.newTemp(), tempSpiller.getMemOfTemp(new AATemp(funcRegs[i]))));
+            instructs.add(new AAMove(tempSpiller.newTemp(), funcRegs[i]));
+        }
+
+        if (!multiRet && excessArgs != 0){
+            instructs.add(new AAAdd(rsp, new AAImm(8 * excessArgs)));
         }
 
         //pop
         if (multiRet){
             for (int i = 0; i < nReturns-2; i++){
                 //pop rv3...n
-                instructs.add(new AAMove(tempSpiller.newTemp(), tempSpiller.getMemOfTemp(rsp)));
-                instructs.add(new AAAdd(rsp, new AAImm(8)));
+                instructs.add(new AAPop(tempSpiller.newTemp()));
             }
         }
 
