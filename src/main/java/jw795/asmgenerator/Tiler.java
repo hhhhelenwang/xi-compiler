@@ -377,10 +377,10 @@ public class Tiler extends IRVisitor {
      * @return a binop IR node labeled with its tile of assembly
      */
     private IRNode tileBinop(IRBinOp node) {
-        AAOperand destNaive = null;
-        AAOperand srcNaive = null;
+        AAOperand destNaive;
+        AAOperand srcNaive;
         List<IRNode> neighborsNaive = new ArrayList<>();
-        AATemp returnTempNaive = null;
+        AATemp returnTempNaive;
         List<AAInstruction> aasmNaive = new ArrayList<>();
 
         // basic tiling for binop, no optimization
@@ -448,37 +448,60 @@ public class Tiler extends IRVisitor {
                 // use the return temp of left as dest and the return temp for this binop
                 destNaive = left.getTile().getReturnTemp();
                 srcNaive  = new AAImm(((IRConst) right).value());
-
-
+                returnTempNaive = (AATemp) destNaive;
+                // the left is the neighbor node
+                neighborsNaive.add(left);
 
             } else if (right instanceof IRTemp) {
+                // need one temp to be moved to a register
+                AATemp leftTemp = left.getTile().getReturnTemp();
+                AAMove movRegTemp = new AAMove(rbx, leftTemp);
+                aasmNaive.add(movRegTemp);
+                // dest is the register
+                destNaive = rbx;
+                srcNaive = tempSpiller.newTemp(((IRTemp) right).name());
+                // need to move result back in temp later, so return temp is left temp
+                returnTempNaive = leftTemp;
+                // neighbor is left node
+                neighborsNaive.add(left);
 
             } else {
+                AATemp leftTemp = left.getTile().getReturnTemp();
+                AATemp rightTemp = right.getTile().getReturnTemp();
+                // need one temp to be moved to a register
+                AAMove movRegTemp = new AAMove(rbx, leftTemp);
+                aasmNaive.add(movRegTemp);
+                // dest is the register
+                destNaive = rbx;
+                srcNaive = rightTemp;
+                // need to move result back in temp later, so return temp is left temp
+                returnTempNaive = leftTemp;
+                // both are neighbors
+                neighborsNaive.add(left);
+                neighborsNaive.add(right);
 
             }
 
         }
 
-        // the least optimal
-//        Tile leftChildTile = left.getTile();
-//        Tile rightChildTile = right.getTile();
-//        destNaive = leftChildTile.getReturnTemp();
-//        srcNaive = rightChildTile.getReturnTemp();
-//        returnTempNaive = (AATemp) destNaive;
-//        neighborsNaive.add(left);
-//        neighborsNaive.add(right);
-
-        Tile basicTile;
+        Tile tileNaive;
         switch (node.opType()){
             case ADD:
-                // basic tiling, no optimization yet
-                // TODO: match node against some patterns where optimization is possible through if-else
                 AAAdd add = new AAAdd(destNaive, srcNaive);
                 aasmNaive.add(add);
+
+                if (destNaive instanceof AAReg) {
+                    // if dest is a register, move the result into a temp
+                    aasmNaive.add(new AAMove(returnTempNaive, destNaive));
+                }
                 break;
             case SUB:
                 AASub sub = new AASub(destNaive, srcNaive);
                 aasmNaive.add(sub);
+                if (destNaive instanceof AAReg) {
+                    // if dest is a register, move the result into a temp
+                    aasmNaive.add(new AAMove(returnTempNaive, destNaive));
+                }
                 break;
             case MUL:
                 // multiplier in rax, result in rax
@@ -488,7 +511,7 @@ public class Tiler extends IRVisitor {
                 break;
             case HMUL:
                 // mul puts higher part in rdx
-                aasmNaive.add(new AAMove(rdx, destNaive));
+                aasmNaive.add(new AAMove(rax, destNaive));
                 aasmNaive.add(new AAMul(srcNaive));
                 aasmNaive.add(new AAMove(returnTempNaive, rdx));
                 break;
@@ -500,78 +523,92 @@ public class Tiler extends IRVisitor {
                 break;
             case MOD:
                 // div puts remainder in rdx
-                aasmNaive.add(new AAMove(rdx, destNaive));
+                aasmNaive.add(new AAMove(rax, destNaive));
                 aasmNaive.add(new AADiv(srcNaive));
                 aasmNaive.add(new AAMove(returnTempNaive, rdx));
                 break;
             case AND:
                 aasmNaive.add(new AAAnd(destNaive, srcNaive));
+                if (destNaive instanceof AAReg) {
+                    // if dest is a register, move the result into a temp
+                    aasmNaive.add(new AAMove(returnTempNaive, destNaive));
+                }
                 break;
             case OR:
                 aasmNaive.add(new AAOr(destNaive, srcNaive));
+                if (destNaive instanceof AAReg) {
+                    // if dest is a register, move the result into a temp
+                    aasmNaive.add(new AAMove(returnTempNaive, destNaive));
+                }
                 break;
             case XOR:
                 aasmNaive.add(new AAXor(destNaive, srcNaive));
+                if (destNaive instanceof AAReg) {
+                    // if dest is a register, move the result into a temp
+                    aasmNaive.add(new AAMove(returnTempNaive, destNaive));
+                }
                 break;
             case LSHIFT:
                 aasmNaive.add(new AAShl(destNaive, srcNaive));
+                if (destNaive instanceof AAReg) {
+                    // if dest is a register, move the result into a temp
+                    aasmNaive.add(new AAMove(returnTempNaive, destNaive));
+                }
                 break;
             case RSHIFT:
                 aasmNaive.add(new AAShr(destNaive, srcNaive));
+                if (destNaive instanceof AAReg) {
+                    // if dest is a register, move the result into a temp
+                    aasmNaive.add(new AAMove(returnTempNaive, destNaive));
+                }
                 break;
             case ARSHIFT:
                 aasmNaive.add(new AASar(destNaive, srcNaive));
+                if (destNaive instanceof AAReg) {
+                    // if dest is a register, move the result into a temp
+                    aasmNaive.add(new AAMove(returnTempNaive, destNaive));
+                }
                 break;
             case EQ:
-                AATemp target = tempSpiller.newTemp();
                 aasmNaive.add(new AACmp(destNaive, srcNaive));
-                aasmNaive.add(new AASetcc(target, AASetcc.Condition.EQ));
-                returnTempNaive = target;
+                aasmNaive.add(new AASetcc(returnTempNaive, AASetcc.Condition.EQ));
                 break;
             case NEQ:
-                target = tempSpiller.newTemp();
                 aasmNaive.add(new AACmp(destNaive, srcNaive));
-                aasmNaive.add(new AASetcc(target, AASetcc.Condition.NEQ));
-                returnTempNaive = target;
+                aasmNaive.add(new AASetcc(returnTempNaive, AASetcc.Condition.NEQ));
                 break;
             case LT:
-                target = tempSpiller.newTemp();
                 aasmNaive.add(new AACmp(destNaive, srcNaive));
-                aasmNaive.add(new AASetcc(target, AASetcc.Condition.LT));
-                returnTempNaive = target;
+                aasmNaive.add(new AASetcc(returnTempNaive, AASetcc.Condition.LT));
                 break;
             case ULT:
-                target = tempSpiller.newTemp();
                 aasmNaive.add(new AACmp(destNaive, srcNaive));
-                aasmNaive.add(new AASetcc(target, AASetcc.Condition.ULT));
-                returnTempNaive = target;
+                aasmNaive.add(new AASetcc(returnTempNaive, AASetcc.Condition.ULT));
                 break;
             case GT:
-                target = tempSpiller.newTemp();
                 aasmNaive.add(new AACmp(destNaive, srcNaive));
-                aasmNaive.add(new AASetcc(target, AASetcc.Condition.GT));
-                returnTempNaive = target;
+                aasmNaive.add(new AASetcc(returnTempNaive, AASetcc.Condition.GT));
                 break;
             case LEQ:
-                target = tempSpiller.newTemp();
                 aasmNaive.add(new AACmp(destNaive, srcNaive));
-                aasmNaive.add(new AASetcc(target, AASetcc.Condition.LEQ));
-                returnTempNaive = target;
+                aasmNaive.add(new AASetcc(returnTempNaive, AASetcc.Condition.LEQ));
                 break;
             case GEQ:
-                target = tempSpiller.newTemp();
                 aasmNaive.add(new AACmp(destNaive, srcNaive));
-                aasmNaive.add(new AASetcc(target, AASetcc.Condition.GEQ));
-                returnTempNaive = target;
+                aasmNaive.add(new AASetcc(returnTempNaive, AASetcc.Condition.GEQ));
                 break;
             default:
                 break;
         }
-        basicTile = new Tile(aasmNaive, neighborsNaive);
-        basicTile.setReturnTemp(returnTempNaive);
-        node.setTile(basicTile);
+        tileNaive = new Tile(aasmNaive, neighborsNaive);
+        tileNaive.setReturnTemp(returnTempNaive);
+        node.setTile(tileNaive);
 
         return node;
+    }
+
+    private int binopToAddrMode() {
+        return 0;
     }
 
     /**
