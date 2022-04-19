@@ -13,16 +13,18 @@ import java.util.HashSet;
  */
 public class TempSpiller {
     long tempCounter;
+
+    long nameCounter;
     long topOfStack;
     HashMap<String, Long> stackOffsetOfTemp;
 
     HashMap<String, String> tempNames;
 
     long wordSize = 8L;
-    AAReg stackPointer = new AAReg("rsp");
 
     public TempSpiller() {
         tempCounter = 0;
+        nameCounter = 0;
         topOfStack = 24;
         stackOffsetOfTemp = new HashMap<>();
         tempNames = new HashMap<>();
@@ -33,16 +35,16 @@ public class TempSpiller {
      * @return name of a fresh temp
      */
     public AATemp newTemp() {
-        tempCounter ++;
-        return new AATemp("t_asm" + tempCounter);
+        nameCounter ++;
+        return new AATemp("t_asm" + nameCounter);
     }
 
     public AATemp newTemp(String name) {
         if (tempNames.containsKey(name)) {
             return new AATemp(tempNames.get(name));
         } else {
-            tempCounter ++;
-            String newName = "t_asm" + tempCounter;
+            nameCounter ++;
+            String newName = "t_asm" + nameCounter;
             tempNames.put(name, newName);
             return new AATemp(newName);
         }
@@ -55,6 +57,7 @@ public class TempSpiller {
     public void spillTemp(AATemp temp) {
         String name = temp.name();
         if (!stackOffsetOfTemp.containsKey(name)) {
+            tempCounter++;
             topOfStack += wordSize;
             stackOffsetOfTemp.put(temp.name(), topOfStack);
         }

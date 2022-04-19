@@ -4,6 +4,7 @@ import edu.cornell.cs.cs4120.xic.ir.*;
 import edu.cornell.cs.cs4120.xic.ir.visit.IRVisitor;
 import jw795.Compiler;
 import jw795.assembly.*;
+import jw795.irgenerator.JumpReorder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -103,7 +104,7 @@ public class Tiler extends IRVisitor {
         for(IRStmt s: node.stmts()){
             neighbors.add(s);
         }
-        Tile result = new Tile(ins,neighbors);
+        Tile result = new Tile(ins, neighbors);
         node.setTile(result);
         return node;
     }
@@ -133,7 +134,7 @@ public class Tiler extends IRVisitor {
             l += 1;
         }
         asm.add(new AASub(rsp, new AAImm(8*l)));
-        asm.addAll(body.getTile().getAssembly());
+        asm.addAll(getNeighborAsm(body));
         asm.add(new AAAdd(rsp, new AAImm(8*l)));
         asm.add(new AAPop(r15));
         asm.add(new AAPop(r14));
@@ -147,6 +148,23 @@ public class Tiler extends IRVisitor {
         spilledTemps(node, tempSpiller);
         tempSpiller = new TempSpiller();
         return node;
+    }
+
+    /**
+     * Recursively traverse all neighbors to get their assembly code
+     * @param node root node
+     * @return List of instructions of all neighbor nodes
+     */
+    private List<AAInstruction> getNeighborAsm(IRNode node){
+        List<AAInstruction> asm = new ArrayList<>();
+        if (node.getTile().getNeighborIRs().size() == 0){
+            return asm;
+        }
+        for (IRNode neighbor : node.getTile().getNeighborIRs()){
+            asm.addAll(neighbor.getTile().getAssembly());
+            asm.addAll(getNeighborAsm(neighbor));
+        }
+        return asm;
     }
 
     /**
@@ -270,12 +288,14 @@ public class Tiler extends IRVisitor {
         AAMove m2 = new AAMove(operand1, rdx);
 
         ArrayList<AAInstruction> asm = new ArrayList<>();
-        asm.addAll(t1.getAssembly());
-        asm.addAll(t2.getAssembly());
+        asm.addAll(getNeighborAsm(node.source()));
+        asm.addAll(getNeighborAsm(node.target()));
         asm.add(m1);
         asm.add(m2);
 
-        List<IRNode> neighbors = new ArrayList<>();
+        ArrayList<IRNode> neighbors = new ArrayList<>();
+        neighbors.add(node.source());
+        neighbors.add(node.target());
         Tile t = new Tile (asm, neighbors);
         node.setTile(t);
         return node;
@@ -527,7 +547,7 @@ public class Tiler extends IRVisitor {
             if(thechild.opType() == IRBinOp.OpType.ADD){
                 if(thechild.right() instanceof IRBinOp){
                     if(((IRBinOp) thechild.right()).opType() == IRBinOp.OpType.MUL){
-                        if(((IRBinOp) thechild.right()).right() instanceof IRConst){
+                        if(((IRBinOp) thechild.right()).left() instanceof IRConst){
                             canbeshortcut = true;
                         }
                     }
