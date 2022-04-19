@@ -144,6 +144,7 @@ public class Tiler extends IRVisitor {
         asm.add(new AAAdd(rsp, new AAImm(8)));
         asm.add(new AARet());
         node.setTile(new Tile(asm, neighbors));
+        spilledTemps(node, tempSpiller);
         tempSpiller = new TempSpiller();
         return node;
     }
