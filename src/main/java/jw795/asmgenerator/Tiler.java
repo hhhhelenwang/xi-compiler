@@ -61,7 +61,7 @@ public class Tiler extends IRVisitor {
         } else if (n2 instanceof IRFuncDecl) {
             return tileFuncDecl((IRFuncDecl) n2);
         } else if (n2 instanceof IRSeq){
-            // do nothing
+            return tileSeq((IRSeq) n2);
         } else if (n2 instanceof IRMove) {
             return tileMove((IRMove) n2);
         } else if (n2 instanceof IRCallStmt) {
@@ -90,7 +90,22 @@ public class Tiler extends IRVisitor {
             System.out.println("IR is not lowered.");
             return null;
         }
-        return null;
+    }
+
+    /**
+     * Tile a Seq IR instruction
+     * @param node a IRSeq node
+     * @return a Seq IR node labeled with its tile of assembly
+     */
+    private IRNode tileSeq(IRSeq node) {
+        List <AAInstruction> ins = new ArrayList<>();
+        List<IRNode> neighbors = new ArrayList<>();
+        for(IRStmt s: node.stmts()){
+            neighbors.add(s);
+        }
+        Tile result = new Tile(ins,neighbors);
+        node.setTile(result);
+        return node;
     }
 
     /**
@@ -565,10 +580,42 @@ public class Tiler extends IRVisitor {
         String target = node.trueLabel();
         if (node.cond() instanceof IRBinOp){
             switch (((IRBinOp)node.cond()).opType()) {
+                case XOR:
+                    //XOR (binop) (const 1) due to jump reorder
+                    if (((IRBinOp)node.cond()).left() instanceof IRBinOp
+                            && ((IRBinOp)node.cond()).right() instanceof IRTemp) {
+                        switch ((((IRBinOp) ((IRBinOp)node.cond()).left()).opType())){
+                            case EQ:
+                                aasm.add(new AAJne(new AALabel(target)));
+                                break;
+                            case NEQ:
+                                aasm.add(new AAJe(new AALabel(target)));
+                                break;
+                            case LT:
+                                aasm.add(new AAJg(new AALabel(target)));
+                                break;
+                            case ULT:
+                                aasm.add(new AAJa(new AALabel(target)));
+                                break;
+                            case GT:
+                                aasm.add(new AAJl(new AALabel(target)));
+                                break;
+                            case LEQ:
+                                aasm.add(new AAJge(new AALabel(target)));
+                                break;
+                            case GEQ:
+                                aasm.add(new AAJle(new AALabel(target)));
+                                break;
+                            default:
+                                break;
+                        }
+                    } else {
+                        aasm.add(new AACmp(node.cond().getTile().getReturnTemp(), new AAImm(1)));
+                        aasm.add(new AAJe(new AALabel(target)));
+                    }
+                    break;
                 case AND:
                 case OR:
-                case XOR:
-                    //if true, jump
                     aasm.add(new AACmp(node.cond().getTile().getReturnTemp(), new AAImm(1)));
                     aasm.add(new AAJe(new AALabel(target)));
                     break;
