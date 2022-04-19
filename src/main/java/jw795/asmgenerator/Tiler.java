@@ -15,27 +15,26 @@ import java.util.Map;
  */
 public class Tiler extends IRVisitor {
     public TempSpiller tempSpiller;
-    public AAReg rax = new AAReg("rax");
-    public AAReg rbx = new AAReg("rbx");
-    public AAReg rcx = new AAReg("rcx");
-    public AAReg rdx = new AAReg("rdx");
-    public AAReg rsp = new AAReg("rsp");
-    public AAReg rbp = new AAReg("rbp");
-    public AAReg rsi = new AAReg("rsi");
-    public AAReg rdi = new AAReg("rdi");
-    public AAReg r8 = new AAReg("r8");
-    public AAReg r9 = new AAReg("r9");
-    public AAReg r10 = new AAReg("r10");
-    public AAReg r11 = new AAReg("r11");
-    public AAReg r12 = new AAReg("r12");
-    public AAReg r13 = new AAReg("r13");
-    public AAReg r14 = new AAReg("r14");
-    public AAReg r15 = new AAReg("r15");
+    private AAReg rax = new AAReg("rax");
+    private AAReg rbx = new AAReg("rbx");
+    private AAReg rcx = new AAReg("rcx");
+    private AAReg rdx = new AAReg("rdx");
+    private AAReg rsp = new AAReg("rsp");
+    private AAReg rbp = new AAReg("rbp");
+    private AAReg rsi = new AAReg("rsi");
+    private AAReg rdi = new AAReg("rdi");
+    private AAReg r8 = new AAReg("r8");
+    private AAReg r9 = new AAReg("r9");
+    private AAReg r10 = new AAReg("r10");
+    private AAReg r11 = new AAReg("r11");
+    private AAReg r12 = new AAReg("r12");
+    private AAReg r13 = new AAReg("r13");
+    private AAReg r14 = new AAReg("r14");
+    private AAReg r15 = new AAReg("r15");
 
     public Tiler(IRNodeFactory inf, TempSpiller tsp) {
         super(inf);
         tempSpiller = tsp;
-
     }
 
     /**
@@ -247,7 +246,6 @@ public class Tiler extends IRVisitor {
         Tile t2 = node.source().getTile();
         operand1 = t1.getReturnTemp();
         operand2 = t2.getReturnTemp();
-        AAReg rdx = rdx;
         AAMove m1 = new AAMove(rdx, operand2);
         AAMove m2 = new AAMove(operand1, rdx);
 
@@ -519,13 +517,13 @@ public class Tiler extends IRVisitor {
         if(canbeshortcut){
             // having an extra move to deal with the problem that arr pos become rsp + sth
             IRBinOp thechild = (IRBinOp) n2.expr();
-            instructs.add(new AAMove(rax,thechild.left().getTile().getReturnTemp()));
+            instructs.add(new AAMove(rax, thechild.left().getTile().getReturnTemp()));
             result.setBase(rax);
             result.setScale(((IRConst) ((IRBinOp) thechild.right()).left()).value());
             if(((IRBinOp) thechild.right()).right() instanceof IRConst){
                 result.setImmediate(new AAImm(((IRConst) ((IRBinOp) thechild.right()).right()).value()));
             }else{
-                instructs.add(new AAMove(rcx,thechild.right().getTile().getReturnTemp()));
+                instructs.add(new AAMove(rcx, thechild.right().getTile().getReturnTemp()));
                 result.setIndex(rcx);
             }
 
@@ -629,13 +627,10 @@ public class Tiler extends IRVisitor {
             exprTemps.add(0, e.getTile().getReturnTemp()); // tn, tn-1, ... t1
         }
 
-        AAReg rsp = new AAReg("rsp");
-
         // if returning more than two, manually reserve space for ret2
         Long nReturns = node.n_returns();
         boolean multiRet = false;
         if (nReturns > 2){
-            AAReg rdi = new AAReg("rdi");
             instructs.add(new AASub(rsp, new AAImm(8 * (nReturns - 2))));
             instructs.add(new AAMove(rdi, rsp));
             multiRet = true;
@@ -648,8 +643,7 @@ public class Tiler extends IRVisitor {
             instructs.add(new AAPush(exprTemps.get(i)));// push tn ... t7/6
         }
 
-        AAReg[] argRegs = new AAReg[] {new AAReg("rdi"), new AAReg("rsi"), new AAReg("rdx"),
-                new AAReg("rcx"), new AAReg("r8"), new AAReg("r9")};
+        AAReg[] argRegs = new AAReg[] {rdi, rsi, rdx, rcx, r8, r9};
 
         // move up to first 6 args to registers
         for (int i = 0; i < nArgs-excessArgs; i++){
@@ -670,7 +664,7 @@ public class Tiler extends IRVisitor {
             instructs.add(new AAAdd(rsp, new AAImm(8 * excessArgs)));
         }
 
-        AAReg[] funcRegs = new AAReg[] {new AAReg("rax"), new AAReg("rdx")};
+        AAReg[] funcRegs = new AAReg[] {rax, rdx};
         for (int i = 0; i < Math.min(2, nReturns); i++){
             instructs.add(new AAMove(tempSpiller.newTemp(), funcRegs[i]));
         }
