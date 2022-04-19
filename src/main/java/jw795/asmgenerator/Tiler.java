@@ -807,11 +807,9 @@ public class Tiler extends IRVisitor {
 
         //pop
         if (multiRet){
-//            for (int i = 0; i < nReturns-2; i++){
-                //pop rv3...n
-//                instructs.add(new AAPop(tempSpiller.newTemp()));
-//            }
-            instructs.add(new AASub(rsp, new AAImm(8*excessRets)));
+            for (int i = 0; i < nReturns-2; i++){
+                instructs.add(new AAPop(tempSpiller.newTemp())); //return m, m-1, ..., 3
+            }
         }
 
         //restore caller saved registers
