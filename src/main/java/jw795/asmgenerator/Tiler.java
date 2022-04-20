@@ -292,7 +292,8 @@ public class Tiler extends IRVisitor {
         int ret_size = rets.size();
 
         List<AAInstruction> asm = new ArrayList<>();
-        List<IRNode> neighbors = new ArrayList<>(rets);
+        List<IRNode> neighbors = new ArrayList<>();
+
         if (ret_size == 0) {
             //do nothing
         } else if (ret_size == 1) {
@@ -306,6 +307,7 @@ public class Tiler extends IRVisitor {
             AAMem ret_pt = new AAMem();
             ret_pt.setBase(rbp); //rbp points to return address
             for (int i = 2; i < ret_size; i++) {
+                asm.add(new AAAdd(ret_pt, new AAImm(8)));
                 asm.add(new AAMove(ret_pt, rets.get(i).getTile().getReturnTemp()));
             }
         }
