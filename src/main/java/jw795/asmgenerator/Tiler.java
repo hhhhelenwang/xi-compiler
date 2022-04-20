@@ -50,6 +50,14 @@ public class Tiler extends IRVisitor {
             funcArgLengths.put(names.get(key), funcArg.get(key));
             funcRetLengths.put(names.get(key), funcRet.get(key));
         }
+        funcArgLengths.put("_xi_alloc", 1L);
+        funcRetLengths.put("_xi_alloc", 1L);
+
+        funcArgLengths.put("_xi_out_of_bounds", 0L);
+        funcRetLengths.put("_xi_out_of_bounds", 0L);
+
+        funcArgLengths.put("_Iassert_pb", 1L);
+        funcRetLengths.put("_Iassert_pb", 0L);
     }
 
     /**
