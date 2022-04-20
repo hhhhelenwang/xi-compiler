@@ -124,10 +124,7 @@ public class Tiler extends IRVisitor {
      */
     private IRNode tileSeq(IRSeq node) {
         List <AAInstruction> ins = new ArrayList<>();
-        List<IRNode> neighbors = new ArrayList<>();
-        for(IRStmt s: node.stmts()){
-            neighbors.add(s);
-        }
+        List<IRNode> neighbors = new ArrayList<>(node.stmts());
         Tile result = new Tile(ins, neighbors);
         node.setTile(result);
         return node;
