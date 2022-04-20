@@ -225,7 +225,6 @@ public class Tiler extends IRVisitor {
         List<AAInstruction> asm = new ArrayList<>();
         for (IRNode neighbor : node.getTile().getNeighborIRs()) {
             asm.addAll(concatAsm(neighbor));
-            asm.addAll(neighbor.getTile().getAssembly());
         }
         asm.addAll(node.getTile().getAssembly());
         return asm;
