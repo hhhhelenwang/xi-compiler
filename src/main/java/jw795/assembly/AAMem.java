@@ -39,23 +39,37 @@ public class AAMem extends AAOperand{
     @Override
     public String toString() {
         String strOfMem = "[";
+
         if (base.isPresent()) {
             strOfMem += base.get();
         }
 
         if (scale.isPresent()) {
-
+            if (base.isPresent()){
+                if (scale.get() > 0){
+                    strOfMem += "+";
+                } else {
+                    strOfMem += "-";
+                }
+            }
             if (index.isPresent()) {
-                strOfMem += "+" + scale.get() + "*" + index.get();
+                strOfMem += scale.get() + "*" + index.get();
             }
         } else {
+            if (base.isPresent()){
+                strOfMem += "+";
+            }
             if (index.isPresent()) {
-                strOfMem += "+" + index.get();
+                strOfMem += index.get();
             }
         }
 
         if (immediate.isPresent()) {
-            strOfMem += "+" + immediate.get();
+            if (!index.isPresent() && !base.isPresent()){
+                strOfMem += immediate.get();
+            } else {
+                strOfMem += "+" + immediate.get();
+            }
         }
         strOfMem += "]";
 
