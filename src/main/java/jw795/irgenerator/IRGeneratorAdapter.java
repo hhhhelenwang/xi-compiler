@@ -219,4 +219,8 @@ public class IRGeneratorAdapter {
     public HashMap<String, Long> getFuncRetLengths() {
         return funcRetLengths;
     }
+
+    public HashMap<String, String> getFuncNames() {
+        return funcNames;
+    }
 }

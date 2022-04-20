@@ -1,5 +1,6 @@
 package jw795.asmgenerator;
 
+import edu.cornell.cs.cs4120.xic.ir.IRTemp;
 import jw795.assembly.AAImm;
 import jw795.assembly.AAMem;
 import jw795.assembly.AAReg;
@@ -42,6 +43,8 @@ public class TempSpiller {
     public AATemp newTemp(String name) {
         if (tempNames.containsKey(name)) {
             return new AATemp(tempNames.get(name));
+        } else if (name.startsWith("_RV")) {
+            return new AATemp(name);
         } else {
             nameCounter ++;
             String newName = "t_asm" + nameCounter;

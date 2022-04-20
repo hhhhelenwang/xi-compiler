@@ -7,6 +7,7 @@ import edu.cornell.cs.cs4120.xic.ir.IRNodeFactory_c;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.HashMap;
+import java.util.Map;
 
 import static jw795.util.FileUtil.generateTargetFile;
 
@@ -20,12 +21,14 @@ public class AssemblyGeneratorAdapter {
     boolean optimize;
     FileWriter asmWriter;
 
+    HashMap<String, String> funcNames;
+
     HashMap<String, Long> funcArgLengths;
     HashMap<String, Long> funcRetLengths;
 
     public AssemblyGeneratorAdapter(String file, IRCompUnit ir, String dest, boolean opt,
                                     HashMap<String, Long> funArg,
-                                    HashMap<String, Long> funRet) {
+                                    HashMap<String, Long> funRet, HashMap<String, String> names) {
         fileName = file;
         sourceIR = ir;
         destPathAsm = dest;
@@ -36,7 +39,7 @@ public class AssemblyGeneratorAdapter {
         } catch (Exception e) {
             System.out.println("Compiler error: target file not found");
         }
-
+        funcNames = names;
         funcArgLengths = funArg;
         funcRetLengths = funRet;
     }
@@ -46,7 +49,7 @@ public class AssemblyGeneratorAdapter {
      */
     public void generateAssembly() {
         System.out.println("asm gen called!");
-        Tiler asmvisit = new Tiler(new IRNodeFactory_c(),new TempSpiller(), funcArgLengths, funcRetLengths);
+        Tiler asmvisit = new Tiler(new IRNodeFactory_c(),new TempSpiller(), funcArgLengths, funcRetLengths, funcNames);
 
         //after visiting, it should be still IRCompunit
         IRCompUnit visited = (IRCompUnit) asmvisit.visit(sourceIR);
