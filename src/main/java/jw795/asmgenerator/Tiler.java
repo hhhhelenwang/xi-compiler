@@ -7,6 +7,7 @@ import jw795.assembly.*;
 import java.util.*;
 
 import static java.lang.Math.max;
+import static java.lang.Math.min;
 
 /**
  * A visitor that traverse an IR tree and translate IR into tiles of abstract assembly.
@@ -17,9 +18,6 @@ public class Tiler extends IRVisitor {
     HashMap<String, Long> funcRetLengths;
 
     String[] argNames = new String[6];
-
-    Long curMaxArg;
-    Long curMaxRet;
 
     private final AAReg rax = new AAReg("rax");
     private final AAReg rbx = new AAReg("rbx");
@@ -44,8 +42,6 @@ public class Tiler extends IRVisitor {
         for (int i = 0; i < 6; i++) {
             argNames[i] = "_ARG" + (i + 1);
         }
-        curMaxArg = 0L;
-        curMaxRet = 0L;
         funcArgLengths = new HashMap<>();
         funcRetLengths = new HashMap<>();
         for (String key : funcArg.keySet()) {
@@ -183,7 +179,7 @@ public class Tiler extends IRVisitor {
 
         List<AAInstruction> curAsm = node.getTile().getAssembly();
 
-        // allocate space for spilled temps + alignment + scratch space for all the function calls
+        // allocate space for spilled temps + alignment for all the function calls
         curAsm.add(new AASub(rsp, new AAImm(8 * l)));
 
         // add body's asm to fundecl's asm
@@ -238,13 +234,6 @@ public class Tiler extends IRVisitor {
      * @return how many temps are spilled to stack
      */
     private long allocate(IRNode node, TempSpiller tmpsp) {
-        if (node instanceof IRCallStmt) {
-            String name = ((IRName) ((IRCallStmt) node).target()).name();
-            long arg = funcArgLengths.get(name);
-            long ret = funcRetLengths.get(name);
-            curMaxRet = max(ret, curMaxRet);
-            curMaxArg = max(arg, curMaxArg);
-        }
         Tile cur = node.getTile();
         for (IRNode irn : cur.getNeighborIRs()) {
             allocate(irn, tmpsp);
@@ -277,7 +266,7 @@ public class Tiler extends IRVisitor {
                 }
             }
         }
-        return tmpsp.tempCounter + curMaxArg + curMaxRet;
+        return tmpsp.tempCounter;
     }
 
     /**
@@ -459,7 +448,7 @@ public class Tiler extends IRVisitor {
         //2: label
         List<AAInstruction> aasm = new ArrayList<>();
         AATemp target = tempSpiller.newTemp();
-        if (node.name().length() > 12 && node.name().substring(0, 7).equals("string_")) {
+        if (node.name().length() > 12 && node.name().startsWith("string_")) {
             aasm.add(new AAMove(rdx, tempSpiller.newTemp(node.name())));
             aasm.add(new AAMove(target, rdx));
         } else {
@@ -953,81 +942,83 @@ public class Tiler extends IRVisitor {
      * @return a call stmt IR node labeled with its tile of assembly
      */
     private IRNode tileCallStmt(IRCallStmt node) {
-        List<AAInstruction> instructs = new ArrayList<>();
-        List<IRNode> neighbors = new ArrayList<>();
-        List<AATemp> exprTemps = new ArrayList<>();
+        String name = ((IRName) node.target()).name();
+        long curRetSize = funcRetLengths.get(name);
+        long curArgSize = funcArgLengths.get(name);
+        boolean aligned = false;
 
-        //T[t1, e2] == move(temp(t1), e), T[t2, e2], ..., T[tn, en]
-        for (IRExpr e : node.args()) {
-            neighbors.add(e);
-            exprTemps.add(0, e.getTile().getReturnTemp()); // tn, tn-1, ... t1
-        }
+        List<AAInstruction> instructs = new ArrayList<>();
 
         //save caller saved registers rax, rcx, rdx, rsi, rdi, and r8–r11
         AAReg[] callerRegs = new AAReg[]{rax, rcx, rdx, rsi, rdi, r8, r9, r10, r11};
-        for (AAReg reg : callerRegs) {
-            instructs.add(new AAPush(reg));
+        AATemp[] savedRegs = new AATemp[9];
+        for (int i = 0; i < 9; i++) {
+            savedRegs[i] = tempSpiller.newTemp();
+            instructs.add(new AAMove(savedRegs[i], callerRegs[i]));
         }
 
-        // if returning more than two, manually reserve space for ret2
-        Long nReturns = node.n_returns();
-        boolean multiRet = false;
-        if (nReturns > 2) {
-            instructs.add(new AASub(rsp, new AAImm(8 * (nReturns - 2))));
-            instructs.add(new AAMove(rdi, rsp));
-            multiRet = true;
+        long l = curRetSize + curArgSize;
+        if (l % 2 != 0) {
+            // alignment for scratch spaces
+            aligned = true;
+            instructs.add(new AASub(rsp, new AAImm(8L)));
         }
 
-        // push excess args onto stack in reverse order
-        int nArgs = node.args().size();
-        int excessArgs = multiRet ? max(0, nArgs - 6) : max(0, nArgs - 5);
-        for (int i = 0; i < excessArgs; i++) {
-            instructs.add(new AAPush(exprTemps.get(i)));// push tn ... t7/6
+        // allocate scratch spaces for excess return from the callee
+        if (curRetSize > 2) {
+            instructs.add(new AASub(rsp, new AAImm((curRetSize - 2) * 8)));
         }
 
-        AAReg[] argRegs = new AAReg[]{rdi, rsi, rdx, rcx, r8, r9};
-
-        // move up to first 6 args to registers
-        for (int i = 0; i < nArgs - excessArgs; i++) {
-            instructs.add(new AASub(argRegs[i], new AAImm(8)));
-            instructs.add(new AAMove(rsp, exprTemps.get(excessArgs + i)));
+        // push any excess args on to stack
+        for (long i = curArgSize - 1; i > 4; i--) {
+            IRExpr e = node.args().get((int) i);
+            instructs.addAll(concatAsm(e));
+            instructs.add(new AAPush(e.getTile().getReturnTemp()));
         }
 
-        //make sure stack is 16 byte aligned before func call
-        int excessRets = multiRet ? nReturns.intValue() - 2 : 0;
-        if (excessRets % 2 == 1) {
-            instructs.add(new AASub(rsp, new AAImm(8)));
+        // put first five arguments, not including the return address argument,
+        // into corresponding registers if there is any
+
+        AAReg[] argRegs = {rsi, rdx, rcx, r8, r9};
+        for (int i = 0; i < min(curArgSize, 5); i++) {
+            instructs.add(new AAMove(argRegs[i], node.args().get(i).getTile().getReturnTemp()));
         }
+
+        // put return address into register
+        long offset = max(curArgSize - 5, 0);
+        instructs.add(new AAMove(rdi, rsp));
+        instructs.add(new AAAdd(rdi, new AAImm(offset * 8)));
 
         // store rip on stack, jumps to specific destination
         instructs.add(new AACall(node.target().getTile().getReturnTemp()));
 
-        if (multiRet && excessArgs != 0) {
-            instructs.add(new AAAdd(rsp, new AAImm(8L * excessArgs)));
+        // destroy the scratch space for arguments after call
+        instructs.add(new AAAdd(rsp, new AAImm(max(curArgSize - 5, 0) * 8L)));
+
+        // put the first two returns into RV temps if there is any
+        if (curRetSize >= 1) {
+            instructs.add(new AAMove(tempSpiller.newTemp("_RV1"), rax));
+        }
+        if (curRetSize >= 2) {
+            instructs.add(new AAMove(tempSpiller.newTemp("_RV2"), rdx));
         }
 
-        AAReg[] funcRegs = new AAReg[]{rax, rdx};
-        for (int i = 0; i < Math.min(2, nReturns); i++) {
-            instructs.add(new AAMove(tempSpiller.newTemp(), funcRegs[i]));
+        // pop excess returns into RV temps
+        for (int i = 0; i < curRetSize - 2; i++) {
+            instructs.add(new AAPop(tempSpiller.newTemp("_RV" + (i + 3))));
         }
 
-        if (!multiRet && excessArgs != 0) {
-            instructs.add(new AAAdd(rsp, new AAImm(8L * excessArgs)));
-        }
-
-        //pop
-        if (multiRet) {
-            for (int i = 0; i < nReturns - 2; i++) {
-                instructs.add(new AAPop(tempSpiller.newTemp())); //return m, m-1, ..., 3
-            }
+        // remove any alignment
+        if (aligned) {
+            instructs.add(new AAAdd(rsp, new AAImm(8L)));
         }
 
         //restore caller saved registers
         for (int i = 0; i < callerRegs.length; i++) {
-            instructs.add(new AAPop(callerRegs[callerRegs.length - 1 - i]));
+            instructs.add(new AAMove(callerRegs[i], savedRegs[i]));
         }
 
-        Tile callStmtTile = new Tile(instructs, neighbors);
+        Tile callStmtTile = new Tile(instructs, new ArrayList<>());
         node.setTile(callStmtTile);
         return node;
     }
