@@ -26,7 +26,7 @@ public class TempSpiller {
     public TempSpiller() {
         tempCounter = 0;
         nameCounter = 0;
-        topOfStack = 24;
+        topOfStack = 48;
         stackOffsetOfTemp = new HashMap<>();
         tempNames = new HashMap<>();
     }
@@ -43,8 +43,6 @@ public class TempSpiller {
     public AATemp newTemp(String name) {
         if (tempNames.containsKey(name)) {
             return new AATemp(tempNames.get(name));
-        } else if (name.startsWith("_RV")) {
-            return new AATemp(name);
         } else {
             nameCounter ++;
             String newName = "t_asm" + nameCounter;
