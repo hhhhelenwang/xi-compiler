@@ -356,10 +356,6 @@ public class Tiler extends IRVisitor {
         IRNode source = node.source();
 
         Tile t2 = source.getTile();
-        if (source instanceof IRMem) {
-            System.out.println("tileMove:\n" + source);
-            System.out.println("tile:\n" + t2);
-        }
         srcNaive = t2.getReturnTemp();
         neighborsNaive.add(source);
 
