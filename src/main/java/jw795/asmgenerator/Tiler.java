@@ -354,7 +354,12 @@ public class Tiler extends IRVisitor {
 
         IRNode target = node.target();
         IRNode source = node.source();
+
         Tile t2 = source.getTile();
+        if (source instanceof IRMem) {
+            System.out.println("tileMove:\n" + source);
+            System.out.println("tile:\n" + t2);
+        }
         srcNaive = t2.getReturnTemp();
         neighborsNaive.add(source);
 
@@ -711,25 +716,53 @@ public class Tiler extends IRVisitor {
             case MUL:
                 // multiplier in rax, result in rax
                 aasmNaive.add(new AAMove(rax, destNaive));
-                aasmNaive.add(new AAMul(srcNaive));
+                if (srcNaive instanceof AAImm) {
+                    // mul only takes register or memory location
+                    AATemp tmp = tempSpiller.newTemp();
+                    aasmNaive.add(new AAMove(tmp, srcNaive));
+                    aasmNaive.add(new AAImul(tmp));
+                } else {
+                    aasmNaive.add(new AAImul(srcNaive));
+                }
                 aasmNaive.add(new AAMove(returnTempNaive, rax));
                 break;
             case HMUL:
                 // mul puts higher part in rdx
                 aasmNaive.add(new AAMove(rax, destNaive));
-                aasmNaive.add(new AAMul(srcNaive));
+                if (srcNaive instanceof AAImm) {
+                    // mul only takes register or memory location
+                    AATemp tmp = tempSpiller.newTemp();
+                    aasmNaive.add(new AAMove(tmp, srcNaive));
+                    aasmNaive.add(new AAImul(tmp));
+                } else {
+                    aasmNaive.add(new AAImul(srcNaive));
+                }
                 aasmNaive.add(new AAMove(returnTempNaive, rdx));
                 break;
             case DIV:
                 // op1 = dividend in rax, result in rax
                 aasmNaive.add(new AAMove(rax, destNaive));
-                aasmNaive.add(new AADiv(srcNaive));
+                if (srcNaive instanceof AAImm) {
+                    // div only takes register or memory location
+                    AATemp tmp = tempSpiller.newTemp();
+                    aasmNaive.add(new AAMove(tmp, srcNaive));
+                    aasmNaive.add(new AAIdiv(tmp));
+                } else {
+                    aasmNaive.add(new AAIdiv(srcNaive));
+                }
                 aasmNaive.add(new AAMove(returnTempNaive, rax));
                 break;
             case MOD:
                 // div puts remainder in rdx
                 aasmNaive.add(new AAMove(rax, destNaive));
-                aasmNaive.add(new AADiv(srcNaive));
+                if (srcNaive instanceof AAImm) {
+                    // div only takes register or memory location
+                    AATemp tmp = tempSpiller.newTemp();
+                    aasmNaive.add(new AAMove(tmp, srcNaive));
+                    aasmNaive.add(new AAIdiv(tmp));
+                } else {
+                    aasmNaive.add(new AAIdiv(srcNaive));
+                }
                 aasmNaive.add(new AAMove(returnTempNaive, rdx));
                 break;
             case AND:
@@ -861,6 +894,7 @@ public class Tiler extends IRVisitor {
                 asmOpt.add(new AAMove(rcx, optMem));
                 asmOpt.add(new AAMove(returnTemp, rcx));
                 tileOpt = new Tile(asmOpt, neighborsOpt);
+                tileOpt.setReturnTemp(returnTemp);
             } else {
                 tileOpt = null; // no optimization
             }
@@ -1138,7 +1172,7 @@ public class Tiler extends IRVisitor {
             // mov left into rax = base
             AATemp leftTemp = tempSpiller.newTemp((((IRTemp) left).name()));
             aasm.add(new AAMove(rcx, leftTemp));
-            base = rax;
+            base = rcx;
             returnTemp = leftTemp;
 
             IRNode rLeft = ((IRBinOp) right).left();

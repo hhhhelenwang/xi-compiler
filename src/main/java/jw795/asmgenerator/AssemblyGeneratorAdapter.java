@@ -7,7 +7,6 @@ import edu.cornell.cs.cs4120.xic.ir.IRNodeFactory_c;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.HashMap;
-import java.util.Map;
 
 import static jw795.util.FileUtil.generateTargetFile;
 
@@ -61,6 +60,7 @@ public class AssemblyGeneratorAdapter {
             }
             asmWriter.close();
         } catch (Exception e){
+            e.printStackTrace();
             System.out.println("got an error while printing the string for a tile");
         }
     }
