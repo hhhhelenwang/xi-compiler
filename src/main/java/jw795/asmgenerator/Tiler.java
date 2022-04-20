@@ -388,6 +388,7 @@ public class Tiler extends IRVisitor {
         // target = mem, source = mem --> check on both
         // target = temp, source = mem --> check for binop optimization on source
         // target = mem, source = temp --> check for binop optimization on target
+        // target = temp, source = imm --> use single line command
         // target = temp, source = temp --> no optimization, use naive
         AAOperand destOpt;
         AAOperand srcOpt;
@@ -419,10 +420,13 @@ public class Tiler extends IRVisitor {
             asmOpt.add(new AAMove(rdi, srcOpt)); // optimized binop uses rax and rbx so use rdx to avoid conflict
             asmOpt.add(new AAMove(destOpt, rdi));
             tileOpt = new Tile(asmOpt, neighborsOpt);
+        }else if( target instanceof IRTemp && source instanceof IRConst){
+
+            asmOpt.add(new AAMove(tempSpiller.newTemp(((IRTemp) target).name()),new AAImm (((IRConst) source).value())));
+            tileOpt = new Tile(asmOpt,neighborsOpt);
         }
 
         if (tileOpt == null) {
-            System.out.println("tile naive move");
             node.setTile(tileNaive);
         } else if (tileOpt.getCostOfSubTree() <= tileNaive.getCostOfSubTree()) {
             node.setTile(tileOpt);
