@@ -440,9 +440,6 @@ public class Tiler extends IRVisitor {
 
         // basic tiling for binop, no optimization
         // first decides the two operands
-
-        List<Tile> options = new ArrayList<>();
-
         IRNode left = node.left();
         IRNode right = node.right();
         if (left instanceof IRConst) {
@@ -553,27 +550,41 @@ public class Tiler extends IRVisitor {
                 tileNaive.setReturnTemp(returnTempNaive);
 
                 // in case that one of the operand is 1, can use inc
-//                if (srcNaive instanceof AAImm) {
-//                    // preserve the things done when collecting operands
-//                    List<AAInstruction> aasmInc = new ArrayList<>(aasmNaive);
-//
-//                }
+                Tile tileInc = null;
+                if (srcNaive instanceof AAImm) {
+                    // preserve/reuse the things done when collecting operands
+                    List<AAInstruction> aasmInc = new ArrayList<>(aasmNaive);
+                    aasmInc.add(new AAInc(destNaive));
+                    tileInc = new Tile(aasmInc, neighborsNaive);
+                }
 
                 // check for possible lea
                 BinOpToAddrParams params = binopToAddrMode(node);
                 Tile tileLea = null;
                 if (params.optimized) {
                     List<AAInstruction> aasmLea = new ArrayList<>(params.assembly);
-                    AAReg destLea = rax;
-                    AAMem srcLea = params.address;
                     AATemp returnTempLea = params.returnTemp;
-                    aasmLea.add(new AALea(destLea, srcLea)); // the lea instruction
+                    aasmLea.add(new AALea(rax, params.address)); // the lea instruction (always use rax as dest)
                     aasmLea.add(new AAMove(returnTempLea, rax)); // mov result to return temp after lea
                     tileLea = new Tile(aasmLea, new ArrayList<>()); // lea do not have neighbors
                     tileLea.setReturnTemp(returnTempLea);
                 }
 
-                break;
+                List<Tile> allOptions = new ArrayList<>();
+                allOptions.add(tileNaive);
+                allOptions.add(tileInc);
+                allOptions.add(tileLea);
+                int minCost = Integer.MAX_VALUE;
+                Tile bestOption = tileNaive;
+                for (Tile option: allOptions) {
+                    if (option.getCostOfSubTree() < minCost) {
+                        minCost = option.getCostOfSubTree();
+                        bestOption = option;
+                    }
+                }
+                node.setTile(bestOption);
+                return node;
+
             case SUB:
                 AASub sub = new AASub(destNaive, srcNaive);
                 aasmNaive.add(sub);

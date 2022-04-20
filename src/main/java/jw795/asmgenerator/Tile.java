@@ -19,7 +19,7 @@ public class Tile {
     private int costOfSubTree;
     private AATemp returnTemp;
 
-    //cost of differen tile -- cannot use enum as number is not sequential
+    //cost of different tile -- cannot use enum as number is not sequential
     private int memcost = 4;
     private int inscost = 1;
     private int movcost = 2;
