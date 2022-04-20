@@ -1034,7 +1034,7 @@ public class Tiler extends IRVisitor {
         instructs.add(new AAAdd(rdi, new AAImm(offset * 8)));
 
         // store rip on stack, jumps to specific destination
-        instructs.add(new AACall(node.target().getTile().getReturnTemp()));
+        instructs.add(new AACall(new AALabel(((IRName)node.target()).name())));
 
         // destroy the scratch space for arguments after call
         instructs.add(new AAAdd(rsp, new AAImm(max(curArgSize - 5, 0) * 8L)));
