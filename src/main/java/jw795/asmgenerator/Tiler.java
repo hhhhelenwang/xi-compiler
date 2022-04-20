@@ -16,6 +16,8 @@ public class Tiler extends IRVisitor {
     HashMap<String, Long> funcArgLengths;
     HashMap<String, Long> funcRetLengths;
 
+    String[] argNames = new String[6];
+
     Long curMaxArg;
     Long curMaxRet;
 
@@ -39,6 +41,9 @@ public class Tiler extends IRVisitor {
     public Tiler(IRNodeFactory inf, TempSpiller tsp, HashMap<String, Long> funcArg, HashMap<String, Long> funcRet, HashMap<String, String> names) {
         super(inf);
         tempSpiller = tsp;
+        for (int i = 0; i < 6; i++){
+            argNames[i] = "_ARG" + (i + 1);
+        }
         curMaxArg = 0L;
         curMaxRet = 0L;
         funcArgLengths = new HashMap<>();
@@ -150,22 +155,37 @@ public class Tiler extends IRVisitor {
         asm.add(new AAPush(r13));
         asm.add(new AAPush(r14));
         asm.add(new AAPush(r15));
-        long l = allocate(body, tempSpiller);
+        AAReg[] argRegs = new AAReg[] {rsi, rdx, rcx, r8, r9};
+        long argSize = funcArgLengths.get(name);
+        for (long i = 0L; i < argSize; i++) {
+            if (i < 5) {
+                asm.add(new AAMove(tempSpiller.newTemp(argNames[(int) i]), argRegs[(int) i]));
+            } else {
+                long index = i - 5;
+                AAMem mem = new AAMem();
+                mem.setBase(rbp);
+                mem.setImmediate(new AAImm(index * 8));
+                asm.add(new AAMove(rax, mem));
+                asm.add(new AAMove(tempSpiller.newTemp("_RV" + (i + 1)), rax));
+            }
+        }
+        node.setTile(new Tile(asm, neighbors));
+        long l = allocate(node, tempSpiller);
         if (l % 2 == 0) {
             l += 1;
         }
-        asm.add(new AASub(rsp, new AAImm(8*l)));
-        asm.addAll(getNeighborAsm(body));
-        asm.add(new AAAdd(rsp, new AAImm(8*l)));
-        asm.add(new AAPop(r15));
-        asm.add(new AAPop(r14));
-        asm.add(new AAPop(r13));
-        asm.add(new AAPop(r12));
-        asm.add(new AAPop(rbx));
-        asm.add(new AAPop(rbp));
-        asm.add(new AAAdd(rsp, new AAImm(8)));
-        asm.add(new AARet());
-        node.setTile(new Tile(asm, neighbors));
+        List<AAInstruction> curAsm = node.getTile().getAssembly();
+        curAsm.add(new AASub(rsp, new AAImm(8*l)));
+        curAsm.addAll(getNeighborAsm(body));
+        curAsm.add(new AAAdd(rsp, new AAImm(8*l)));
+        curAsm.add(new AAPop(r15));
+        curAsm.add(new AAPop(r14));
+        curAsm.add(new AAPop(r13));
+        curAsm.add(new AAPop(r12));
+        curAsm.add(new AAPop(rbx));
+        curAsm.add(new AAPop(rbp));
+        curAsm.add(new AAAdd(rsp, new AAImm(8)));
+        curAsm.add(new AARet());
         tempSpiller = new TempSpiller();
         return node;
     }
@@ -229,22 +249,13 @@ public class Tiler extends IRVisitor {
             if(a.operand2.isPresent()){
                 a2 = a.operand2.get();
                 if (a2 instanceof AATemp) {
-                    String temp_name = ((AATemp) a2).name();
-                    if (!temp_name.startsWith("_RV")) {
-                        tmpsp.spillTemp((AATemp) a2);
-                        AAImm offset = tmpsp.getOffsetOfTemp((AATemp) a2);
-                        AAMem mem = new AAMem();
-                        mem.setBase(rbp);
-                        mem.setImmediate(offset);
-                        mem.setScale(-1L);
-                        a.reseta2(mem);
-                    } else {
-                        AAMem mem = new AAMem();
-                        mem.setBase(rsp);
-                        AAImm imm = new AAImm(Long.parseLong(temp_name.replaceFirst(temp_name, "^_RV")));
-                        mem.setImmediate(imm);
-                        a.reseta2(mem);
-                    }
+                    tmpsp.spillTemp((AATemp) a2);
+                    AAImm offset = tmpsp.getOffsetOfTemp((AATemp) a2);
+                    AAMem mem = new AAMem();
+                    mem.setBase(rbp);
+                    mem.setImmediate(offset);
+                    mem.setScale(-1L);
+                    a.reseta2(mem);
                 }
             }
         }
