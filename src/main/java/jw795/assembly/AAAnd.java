@@ -8,10 +8,7 @@ public class AAAnd extends AAInstruction{
 
     @Override
     public String toString() {
-        if (operand2.get() instanceof AAImm) {
-            return "andq" + " " + operand1.get().toString() + ", " + operand2.get().toString();
-        } else {
-            return "and" + " " + operand1.get() + ", " + operand2.get();
-        }
+        return "and" + " " + operand1.get() + ", " + operand2.get();
+
     }
 }
