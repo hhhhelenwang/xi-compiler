@@ -283,8 +283,8 @@ public class Tiler extends IRVisitor {
         // data section
         for (Map.Entry<String, IRData> data : node.dataMap().entrySet()) {
             if ( data.getValue().data().length > 1) {
-                aasm.add(new AADataDecl(data.getValue().data()[0]));
                 aasm.add(new AALabelInstr(data.getKey()));
+                aasm.add(new AADataDecl(data.getValue().data()[0]));
                 for (int i = 1; i < data.getValue().data().length; i++) {
                     aasm.add(new AADataDecl(data.getValue().data()[i]));
                 }
