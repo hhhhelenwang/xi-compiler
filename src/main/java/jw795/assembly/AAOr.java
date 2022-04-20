@@ -8,6 +8,10 @@ public class AAOr extends AAInstruction{
 
     @Override
     public String toString() {
-        return "or" + " " + operand1.get() + ", " + operand2.get();
+        if (operand2.get() instanceof AAImm) {
+            return "orq" + " " + operand1.get().toString() + ", " + operand2.get().toString();
+        } else {
+            return "or " + operand1.get() + ", " + operand2.get();
+        }
     }
 }

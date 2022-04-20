@@ -7,6 +7,6 @@ public class AADec extends AAInstruction{
 
     @Override
     public String toString() {
-        return "dec "+ operand1.get();
+        return "decq "+ operand1.get();
     }
 }

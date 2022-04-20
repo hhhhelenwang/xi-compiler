@@ -21,7 +21,7 @@ xic ("Test -target linux -O") ["./test/pa5"]"-libpath $(testpath) -target linux 
     test_commute.xi;
     testarrayconcat.xi;
     testarrayindexoutofbound.xi;
-    testbasic.xi
+    testbasic.xi;
     testbasictype.xi;
     testbinops.xi;
     testprocedure.xi;
@@ -30,5 +30,7 @@ xic ("Test -target linux -O") ["./test/pa5"]"-libpath $(testpath) -target linux 
     testCJumpFallThrough.xi;
     testsideeffect.xi;
     testlength.xi;
- }
+
+    testaddrmode.xi;
+}
 

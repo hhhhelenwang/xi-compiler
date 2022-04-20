@@ -647,6 +647,10 @@ public class Tiler extends IRVisitor {
         Tile tileNaive;
         switch (node.opType()) {
             case ADD:
+                // for later use of inc, but since we do not want the normal add
+                // but still want the previous instruction we do it here
+                List<AAInstruction> aasmInc = new ArrayList<>(aasmNaive);
+
                 // basic case
                 AAAdd add = new AAAdd(destNaive, srcNaive);
                 aasmNaive.add(add);
@@ -661,9 +665,10 @@ public class Tiler extends IRVisitor {
                 Tile tileInc = null;
                 if (srcNaive instanceof AAImm && ((AAImm) srcNaive).val == 1) {
                     // preserve/reuse the things done when collecting operands
-                    List<AAInstruction> aasmInc = new ArrayList<>(aasmNaive);
                     aasmInc.add(new AAInc(destNaive));
                     tileInc = new Tile(aasmInc, neighborsNaive);
+                    // same ret temp, also destNaive will not be a reg here according to the cases above
+                    tileInc.setReturnTemp(returnTempNaive);
                 }
 
                 // check for possible lea
@@ -690,7 +695,7 @@ public class Tiler extends IRVisitor {
                 int minCost = Integer.MAX_VALUE;
                 Tile bestOption = tileNaive;
                 for (Tile option : allOptions) {
-                    if (option.getCostOfSubTree() < minCost) {
+                    if (option.getCostOfSubTree() <= minCost) {
                         minCost = option.getCostOfSubTree();
                         bestOption = option;
                     }
@@ -699,6 +704,10 @@ public class Tiler extends IRVisitor {
                 return node;
 
             case SUB:
+                // for later use of dec, but since we do not want the normal sub
+                // but still want the previous instructions so we do it here
+                List<AAInstruction> aasmDec = new ArrayList<>(aasmNaive);
+
                 AASub sub = new AASub(destNaive, srcNaive);
                 aasmNaive.add(sub);
                 if (destNaive instanceof AAReg) {
@@ -709,11 +718,13 @@ public class Tiler extends IRVisitor {
                 tileNaive.setReturnTemp(returnTempNaive);
 
                 Tile tileDec = null;
-                if (srcNaive instanceof AAImm && ((AAImm) srcNaive).val == -1) {
+                // sub(a, 1) = a - 1 = dec a
+                if (srcNaive instanceof AAImm && ((AAImm) srcNaive).val == 1) {
                     // preserve/reuse the things done when collecting operands
-                    List<AAInstruction> aasmDec = new ArrayList<>(aasmNaive);
-                    aasmDec.add(new AAInc(destNaive));
+                    aasmDec.add(new AADec(destNaive));
                     tileDec = new Tile(aasmDec, neighborsNaive);
+                    // same ret temp, also destNaive will not be a reg here according to the cases above
+                    tileDec.setReturnTemp(returnTempNaive);
                 }
 
                 if (tileDec != null && tileDec.getCostOfSubTree() <= tileNaive.getCostOfSubTree()) {
