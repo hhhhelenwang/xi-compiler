@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.lang.Math.max;
+
 /**
  * A visitor that traverse an IR tree and translate IR into tiles of abstract assembly.
  */
@@ -16,6 +18,9 @@ public class Tiler extends IRVisitor {
     public TempSpiller tempSpiller;
     HashMap<String, Long> funcArgLengths;
     HashMap<String, Long> funcRetLengths;
+
+    Long curMaxArg;
+    Long curMaxRet;
 
     private final AAReg rax = new AAReg("rax");
     private final AAReg rbx = new AAReg("rbx");
@@ -34,11 +39,15 @@ public class Tiler extends IRVisitor {
     private final AAReg r14 = new AAReg("r14");
     private final AAReg r15 = new AAReg("r15");
 
-    public Tiler(IRNodeFactory inf, TempSpiller tsp, HashMap<String, Long> funcArg, HashMap<String, Long> funcRet) {
+    public Tiler(IRNodeFactory inf, TempSpiller tsp, HashMap<String, Long> funcArg, HashMap<String, Long> funcRet, HashMap<String, String> names) {
         super(inf);
         tempSpiller = tsp;
-        funcArgLengths = funcArg;
-        funcRetLengths = funcRet;
+        curMaxArg = 0L;
+        curMaxRet = 0L;
+        for (String key : funcArg.keySet()) {
+            funcArgLengths.put(names.get(key), funcArg.get(key));
+            funcRetLengths.put(names.get(key), funcRet.get(key));
+        }
     }
 
     /**
@@ -122,6 +131,8 @@ public class Tiler extends IRVisitor {
         IRStmt body = node.body();
         List<IRNode> neighbors = new ArrayList<>();
         List<AAInstruction> asm = new ArrayList<>();
+        asm.add(new AADirective(AADirective.DirType.TEXT));
+        asm.add(new AADirective(AADirective.DirType.GLOBAL, name));
         asm.add(new AALabelInstr(name));
         asm.add(new AAPush(rdi));
         asm.add(new AAPush(rbp));
@@ -132,8 +143,8 @@ public class Tiler extends IRVisitor {
         asm.add(new AAPush(r13));
         asm.add(new AAPush(r14));
         asm.add(new AAPush(r15));
-        long l = tempSpiller.tempCounter;
-        if (l % 2 != 0) {
+        long l = allocate(body, tempSpiller);
+        if (l % 2 == 0) {
             l += 1;
         }
         asm.add(new AASub(rsp, new AAImm(8*l)));
@@ -148,7 +159,6 @@ public class Tiler extends IRVisitor {
         asm.add(new AAAdd(rsp, new AAImm(8)));
         asm.add(new AARet());
         node.setTile(new Tile(asm, neighbors));
-        spilledTemps(node, tempSpiller);
         tempSpiller = new TempSpiller();
         return node;
     }
@@ -175,10 +185,24 @@ public class Tiler extends IRVisitor {
      * @param node root node
      * @return how many temps are spilled to stack
      */
-    private void spilledTemps(IRNode node, TempSpiller tmpsp){
+    private long allocate(IRNode node, TempSpiller tmpsp){
+        if (node instanceof IRCall) {
+            String name = ((IRName)((IRCall) node).target()).name();
+            long arg = funcArgLengths.get(name);
+            long ret = funcRetLengths.get(name);
+            curMaxRet = max(ret, curMaxRet);
+            curMaxArg = max(arg, curMaxArg);
+        }
+        if (node instanceof IRCallStmt) {
+            String name = ((IRName)((IRCallStmt) node).target()).name();
+            long arg = funcArgLengths.get(name);
+            long ret = funcRetLengths.get(name);
+            curMaxRet = max(ret, curMaxRet);
+            curMaxArg = max(arg, curMaxArg);
+        }
         Tile cur = node.getTile();
         for(IRNode irn: cur.getNeighborIRs()){
-            spilledTemps(irn,tmpsp);
+            allocate(irn,tmpsp);
         }
         for(AAInstruction a : cur.getAssembly()){
             AAOperand a1;
@@ -197,7 +221,8 @@ public class Tiler extends IRVisitor {
             }
             if(a.operand2.isPresent()){
                 a2 = a.operand2.get();
-                if(a2 instanceof AATemp){
+                String temp_name = ((AATemp) a2).name();
+                if (!temp_name.startsWith("_RV")) {
                     tmpsp.spillTemp((AATemp) a2);
                     AAImm offset = tmpsp.getOffsetOfTemp((AATemp) a2);
                     AAMem mem = new AAMem();
@@ -205,9 +230,16 @@ public class Tiler extends IRVisitor {
                     mem.setImmediate(offset);
                     mem.setScale(-1L);
                     a.reseta2(mem);
+                } else {
+                    AAMem mem = new AAMem();
+                    mem.setBase(rsp);
+                    AAImm imm = new AAImm(Long.parseLong(temp_name.replaceFirst(temp_name, "^_RV")));
+                    mem.setImmediate(imm);
+                    a.reseta2(mem);
                 }
             }
         }
+        return tmpsp.tempCounter + curMaxArg + curMaxRet;
     }
 
     /**
@@ -227,7 +259,6 @@ public class Tiler extends IRVisitor {
             }
         }
 
-        aasm.add(new AADirective(AADirective.DirType.TEXT));
         List<IRNode> neighbors = new ArrayList<>();
 
         for (Map.Entry<String, IRFuncDecl> function : node.functions().entrySet()) {
@@ -284,10 +315,28 @@ public class Tiler extends IRVisitor {
 //        } else {
         AAOperand operand1;
         AAOperand operand2;
+        IRNode n1 = node.target();
+        IRNode n2 = node.source();
+        if (n2 instanceof IRTemp && ((IRTemp) n2).name().startsWith("_RV")) {
+            long index = Long.parseLong(((IRTemp) n2).name().replaceFirst("^_RV", ""));
+            if (index == 1) {
+                operand2 = rax;
+            } else if (index == 2) {
+                operand2 = rdx;
+            } else {
+                AAMem mem = new AAMem();
+                mem.setBase(rdi);
+                mem.setImmediate(new AAImm((index - 2) * 8L));
+                operand2 = mem;
+            }
+        } else {
+            Tile t2 = node.source().getTile();
+            operand2 = t2.getReturnTemp();
+        }
+
         Tile t1 = node.target().getTile();
-        Tile t2 = node.source().getTile();
         operand1 = t1.getReturnTemp();
-        operand2 = t2.getReturnTemp();
+
         AAMove m1 = new AAMove(rdx, operand2);
         AAMove m2 = new AAMove(operand1, rdx);
 
@@ -363,11 +412,8 @@ public class Tiler extends IRVisitor {
      * @return temp annotated with assembly tile.
      */
     private IRNode tileTemp(IRTemp node) {
-        //TODO: translate temp(RV_i)
-        List<AAInstruction> aasm = new ArrayList<>();
-        Tile constTile = new Tile(aasm, new ArrayList<>());
-        constTile.setReturnTemp(tempSpiller.newTemp(node.name()));
-        node.setTile(constTile);
+        node.setTile(new Tile(new ArrayList<>(), new ArrayList<>()));
+        node.getTile().setReturnTemp(tempSpiller.newTemp(node.name()));
         return node;
     }
 
@@ -807,7 +853,7 @@ public class Tiler extends IRVisitor {
 
         // push excess args onto stack in reverse order
         int nArgs = node.args().size();
-        int excessArgs = multiRet ? Math.max(0, nArgs-6) : Math.max(0, nArgs-5);
+        int excessArgs = multiRet ? max(0, nArgs-6) : max(0, nArgs-5);
         for (int i = 0; i < excessArgs; i++){
             instructs.add(new AAPush(exprTemps.get(i)));// push tn ... t7/6
         }

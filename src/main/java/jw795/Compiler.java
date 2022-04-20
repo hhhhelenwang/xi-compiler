@@ -30,6 +30,7 @@ public class Compiler {
     List<String> files = new ArrayList<>();
     Options options;
 
+    HashMap<String, String> funcNames;
     HashMap<String, Long> funcRetLengths;
     HashMap<String, Long> funcArgLengths;
 
@@ -208,6 +209,7 @@ public class Compiler {
                 fileName, this.destPath, this.libPath, optimize, generateFile);
 
         IRCompUnit sourceIR = irGeneratorAdapter.generateIR();
+        funcNames = irGeneratorAdapter.getFuncNames();
         funcArgLengths = irGeneratorAdapter.getFuncArgLengths();
         funcRetLengths = irGeneratorAdapter.getFuncRetLengths();
         return sourceIR; // nullable
@@ -251,7 +253,7 @@ public class Compiler {
         IRCompUnit ir = generateIRForFile(filename);
         if (ir != null) {
             AssemblyGeneratorAdapter asmAdapter = new AssemblyGeneratorAdapter(
-                    filename, ir, destPathAsm, !cmd.hasOption("O"), funcArgLengths, funcRetLengths);
+                    filename, ir, destPathAsm, !cmd.hasOption("O"), funcArgLengths, funcRetLengths, funcNames);
             asmAdapter.generateAssembly();
         }
 
