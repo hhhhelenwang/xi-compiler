@@ -41,7 +41,7 @@ public class Tiler extends IRVisitor {
     public Tiler(IRNodeFactory inf, TempSpiller tsp, HashMap<String, Long> funcArg, HashMap<String, Long> funcRet, HashMap<String, String> names) {
         super(inf);
         tempSpiller = tsp;
-        for (int i = 0; i < 6; i++){
+        for (int i = 0; i < 6; i++) {
             argNames[i] = "_ARG" + (i + 1);
         }
         curMaxArg = 0L;
@@ -64,11 +64,12 @@ public class Tiler extends IRVisitor {
 
     /**
      * Translate an IR node into a tile of abstract assembly instructions.
+     *
      * @param parent The parent AST node of {@code n} or {@code null} when it is the root.
-     * @param n The original node in the input AST
-     * @param n2 The node returned by {@link IRNode#visitChildren(IRVisitor)}, which should
-     *    look like n except that the children have been visited.
-     * @param v2 The new node visitor created by {@link #enter(IRNode, IRNode)}, or {@code this}.
+     * @param n      The original node in the input AST
+     * @param n2     The node returned by {@link IRNode#visitChildren(IRVisitor)}, which should
+     *               look like n except that the children have been visited.
+     * @param v2     The new node visitor created by {@link #enter(IRNode, IRNode)}, or {@code this}.
      * @return this node but visited
      */
     @Override
@@ -78,7 +79,7 @@ public class Tiler extends IRVisitor {
             return tileCompUnit((IRCompUnit) n2);
         } else if (n2 instanceof IRFuncDecl) {
             return tileFuncDecl((IRFuncDecl) n2);
-        } else if (n2 instanceof IRSeq){
+        } else if (n2 instanceof IRSeq) {
             return tileSeq((IRSeq) n2);
         } else if (n2 instanceof IRMove) {
             return tileMove((IRMove) n2);
@@ -112,11 +113,12 @@ public class Tiler extends IRVisitor {
 
     /**
      * Tile a Seq IR instruction
+     *
      * @param node a IRSeq node
      * @return a Seq IR node labeled with its tile of assembly
      */
     private IRNode tileSeq(IRSeq node) {
-        List <AAInstruction> ins = new ArrayList<>();
+        List<AAInstruction> ins = new ArrayList<>();
         List<IRNode> neighbors = new ArrayList<>(node.stmts());
         Tile result = new Tile(ins, neighbors);
         node.setTile(result);
@@ -125,6 +127,7 @@ public class Tiler extends IRVisitor {
 
     /**
      * Tile a FuncDecl IR instruction
+     *
      * @param node a FuncDecl IR node
      * @return a FuncDecl IR node labeled with its tile
      */
@@ -153,7 +156,7 @@ public class Tiler extends IRVisitor {
         asm.add(new AAPush(r15));
 
         //move function arguments from caller stack and registers to _ARG temps
-        AAReg[] argRegs = new AAReg[] {rsi, rdx, rcx, r8, r9};
+        AAReg[] argRegs = new AAReg[]{rsi, rdx, rcx, r8, r9};
         long argSize = funcArgLengths.get(name);
         for (long i = 0L; i < argSize; i++) {
             if (i < 5) {
@@ -181,13 +184,13 @@ public class Tiler extends IRVisitor {
         List<AAInstruction> curAsm = node.getTile().getAssembly();
 
         // allocate space for spilled temps + alignment + scratch space for all the function calls
-        curAsm.add(new AASub(rsp, new AAImm(8*l)));
+        curAsm.add(new AASub(rsp, new AAImm(8 * l)));
 
         // add body's asm to fundecl's asm
         curAsm.addAll(concatAsm(body));
 
         // destroy stack up to callee-saved registers
-        curAsm.add(new AAAdd(rsp, new AAImm(8*l)));
+        curAsm.add(new AAAdd(rsp, new AAImm(8 * l)));
 
         //restore callee-saved registers
         curAsm.add(new AAPop(r15));
@@ -213,12 +216,13 @@ public class Tiler extends IRVisitor {
 
     /**
      * Recursively traverse root node to get their assembly code
+     *
      * @param node root node
      * @return List of instructions of concatenated optimal assembly code
      */
-    private List<AAInstruction> concatAsm(IRNode node){
+    private List<AAInstruction> concatAsm(IRNode node) {
         List<AAInstruction> asm = new ArrayList<>();
-        for (IRNode neighbor : node.getTile().getNeighborIRs()){
+        for (IRNode neighbor : node.getTile().getNeighborIRs()) {
             asm.addAll(neighbor.getTile().getAssembly());
             asm.addAll(concatAsm(neighbor));
             asm.addAll(node.getTile().getAssembly());
@@ -228,28 +232,29 @@ public class Tiler extends IRVisitor {
 
     /**
      * traverse the root node and replace tmp name with mem
-     * @param node root node
+     *
+     * @param node  root node
      * @param tmpsp temp spiller
      * @return how many temps are spilled to stack
      */
-    private long allocate(IRNode node, TempSpiller tmpsp){
+    private long allocate(IRNode node, TempSpiller tmpsp) {
         if (node instanceof IRCallStmt) {
-            String name = ((IRName)((IRCallStmt) node).target()).name();
+            String name = ((IRName) ((IRCallStmt) node).target()).name();
             long arg = funcArgLengths.get(name);
             long ret = funcRetLengths.get(name);
             curMaxRet = max(ret, curMaxRet);
             curMaxArg = max(arg, curMaxArg);
         }
         Tile cur = node.getTile();
-        for(IRNode irn: cur.getNeighborIRs()){
-            allocate(irn,tmpsp);
+        for (IRNode irn : cur.getNeighborIRs()) {
+            allocate(irn, tmpsp);
         }
-        for(AAInstruction a : cur.getAssembly()){
+        for (AAInstruction a : cur.getAssembly()) {
             AAOperand a1;
             AAOperand a2;
-            if(a.operand1.isPresent()){
-                a1 =  a.operand1.get();
-                if(a1 instanceof AATemp) {
+            if (a.operand1.isPresent()) {
+                a1 = a.operand1.get();
+                if (a1 instanceof AATemp) {
                     tmpsp.spillTemp((AATemp) a1);
                     AAImm offset = tmpsp.getOffsetOfTemp((AATemp) a1);
                     AAMem mem = new AAMem();
@@ -259,7 +264,7 @@ public class Tiler extends IRVisitor {
                     a.reseta1(mem);
                 }
             }
-            if(a.operand2.isPresent()){
+            if (a.operand2.isPresent()) {
                 a2 = a.operand2.get();
                 if (a2 instanceof AATemp) {
                     tmpsp.spillTemp((AATemp) a2);
@@ -277,6 +282,7 @@ public class Tiler extends IRVisitor {
 
     /**
      * Translate CompUnit.
+     *
      * @param node compile unit
      * @return translated compile unit
      */
@@ -305,6 +311,7 @@ public class Tiler extends IRVisitor {
 
     /**
      * Tile a return IR instruction
+     *
      * @param node a Return IR node
      * @return a Return IR node labeled with its tile of assembly
      */
@@ -345,6 +352,7 @@ public class Tiler extends IRVisitor {
 
     /**
      * Tile a move IR instruction
+     *
      * @param node a move IR node
      * @return a move IR node labeled with its tile of assembly
      */
@@ -426,6 +434,7 @@ public class Tiler extends IRVisitor {
 
     /**
      * Tile a label node into an assembly label
+     *
      * @param node label IR node
      * @return node with label tile
      */
@@ -439,6 +448,7 @@ public class Tiler extends IRVisitor {
 
     /**
      * Tile an IR Name into assembly
+     *
      * @param node IR Name node
      * @return node tiled with assembly name
      */
@@ -449,10 +459,10 @@ public class Tiler extends IRVisitor {
         //2: label
         List<AAInstruction> aasm = new ArrayList<>();
         AATemp target = tempSpiller.newTemp();
-        if(node.name().length() >12 && node.name().substring(0, 7).equals("string_")){
+        if (node.name().length() > 12 && node.name().substring(0, 7).equals("string_")) {
             aasm.add(new AAMove(rdx, tempSpiller.newTemp(node.name())));
-            aasm.add(new AAMove(target,rdx));
-        }else{
+            aasm.add(new AAMove(target, rdx));
+        } else {
             aasm.add(new AAMove(target, new AALabel(node.name())));
         }
         Tile labelTile = new Tile(aasm, new ArrayList<>());
@@ -463,6 +473,7 @@ public class Tiler extends IRVisitor {
 
     /**
      * Tile a const IR expression by moving it to the target temp.
+     *
      * @param node const
      * @return const annotated with assembly tile
      */
@@ -478,6 +489,7 @@ public class Tiler extends IRVisitor {
 
     /**
      * Tile a temp IR expression by moving it to the target temp
+     *
      * @param node temp
      * @return temp annotated with assembly tile.
      */
@@ -489,6 +501,7 @@ public class Tiler extends IRVisitor {
 
     /**
      * Tile a binop IR instruction
+     *
      * @param node a binop IR node
      * @return a binop IR node labeled with its tile of assembly
      */
@@ -507,7 +520,7 @@ public class Tiler extends IRVisitor {
             if (right instanceof IRConst) {
                 // both are const, so move one into a temp, this tile has no neighbors
                 returnTempNaive = tempSpiller.newTemp();
-                AAImm rImm =  new AAImm(((IRConst) left).value());
+                AAImm rImm = new AAImm(((IRConst) left).value());
                 aasmNaive.add(new AAMove(returnTempNaive, rImm));
                 destNaive = returnTempNaive;
                 srcNaive = rImm;
@@ -560,7 +573,7 @@ public class Tiler extends IRVisitor {
             if (right instanceof IRConst) {
                 // use the return temp of left as dest and the return temp for this binop
                 destNaive = left.getTile().getReturnTemp();
-                srcNaive  = new AAImm(((IRConst) right).value());
+                srcNaive = new AAImm(((IRConst) right).value());
                 returnTempNaive = (AATemp) destNaive;
                 // the left is the neighbor node
                 neighborsNaive.add(left);
@@ -596,7 +609,7 @@ public class Tiler extends IRVisitor {
         }
 
         Tile tileNaive;
-        switch (node.opType()){
+        switch (node.opType()) {
             case ADD:
                 // basic case
                 AAAdd add = new AAAdd(destNaive, srcNaive);
@@ -635,12 +648,12 @@ public class Tiler extends IRVisitor {
                 if (tileInc != null) {
                     allOptions.add(tileInc);
                 }
-                if (tileLea != null){
+                if (tileLea != null) {
                     allOptions.add(tileLea);
                 }
                 int minCost = Integer.MAX_VALUE;
                 Tile bestOption = tileNaive;
-                for (Tile option: allOptions) {
+                for (Tile option : allOptions) {
                     if (option.getCostOfSubTree() < minCost) {
                         minCost = option.getCostOfSubTree();
                         bestOption = option;
@@ -778,19 +791,19 @@ public class Tiler extends IRVisitor {
     }
 
 
-
     /**
      * Tile a IR Mem node
+     *
      * @param node the node to tile
      * @return node with tile being set
      */
-    private IRNode tileMem(IRMem node){
+    private IRNode tileMem(IRMem node) {
         List<IRNode> neighborsNaive = new ArrayList<>();
         List<AAInstruction> asmNaive = new ArrayList<>();
         AAOperand addrNaive;
         if (node.expr() instanceof IRConst) {
             addrNaive = new AAImm(((IRConst) node.expr()).value());
-        } else if (node.expr() instanceof IRTemp){
+        } else if (node.expr() instanceof IRTemp) {
             addrNaive = tempSpiller.newTemp(((IRTemp) node.expr()).name());
         } else {
             addrNaive = node.expr().getTile().getReturnTemp();
@@ -831,12 +844,14 @@ public class Tiler extends IRVisitor {
 
     /**
      * Tile a jump stmt IR instruction
+     *
      * @param node a jump IR node
      * @return a jump IR node labeled with its tile of assembly
      */
     private IRNode tileJump(IRJump node) {
         List<AAInstruction> aasm = new ArrayList<>();
-        aasm.add(new AAJmp(node.target().getTile().getReturnTemp()));
+        aasm.add(new AAJmp(new AALabel(((IRName)node.target()).name())));
+//        aasm.add(new AAJmp(node.target().getTile().getReturnTemp()));
         Tile jumpTile = new Tile(aasm, new ArrayList<>());
         node.setTile(jumpTile);
         return node;
@@ -844,7 +859,8 @@ public class Tiler extends IRVisitor {
 
     /**
      * Tile a CJump IR instruction
-     * @param node a CJump IR node
+     *
+     * @param node a  IR node
      * @return a CJump IR node labeled with its tile of assembly
      */
     private IRNode tileCJump(IRCJump node) {
@@ -853,13 +869,13 @@ public class Tiler extends IRVisitor {
         neighbors.add(node.cond());
 
         String target = node.trueLabel();
-        if (node.cond() instanceof IRBinOp){
-            switch (((IRBinOp)node.cond()).opType()) {
+        if (node.cond() instanceof IRBinOp) {
+            switch (((IRBinOp) node.cond()).opType()) {
                 case XOR:
                     //XOR (binop) (const 1) due to jump reorder
-                    if (((IRBinOp)node.cond()).left() instanceof IRBinOp
-                            && ((IRBinOp)node.cond()).right() instanceof IRTemp) {
-                        switch ((((IRBinOp) ((IRBinOp)node.cond()).left()).opType())){
+                    if (((IRBinOp) node.cond()).left() instanceof IRBinOp
+                            && ((IRBinOp) node.cond()).right() instanceof IRTemp) {
+                        switch ((((IRBinOp) ((IRBinOp) node.cond()).left()).opType())) {
                             case EQ:
                                 aasm.add(new AAJne(new AALabel(target)));
                                 break;
@@ -918,7 +934,7 @@ public class Tiler extends IRVisitor {
                 default:
                     break;
             }
-        } else if (node.cond() instanceof IRTemp){ //true, false IRTemp
+        } else if (node.cond() instanceof IRTemp) { //true, false IRTemp
             aasm.add(new AACmp(node.cond().getTile().getReturnTemp(), new AAImm(1)));
             aasm.add(new AAJe(new AALabel(target)));
         } else {
@@ -932,30 +948,31 @@ public class Tiler extends IRVisitor {
 
     /**
      * Tile a call stmt IR instruction
+     *
      * @param node a call stmt IR node
      * @return a call stmt IR node labeled with its tile of assembly
      */
-    private IRNode tileCallStmt(IRCallStmt node){
+    private IRNode tileCallStmt(IRCallStmt node) {
         List<AAInstruction> instructs = new ArrayList<>();
         List<IRNode> neighbors = new ArrayList<>();
         List<AATemp> exprTemps = new ArrayList<>();
 
         //T[t1, e2] == move(temp(t1), e), T[t2, e2], ..., T[tn, en]
-        for (IRExpr e : node.args()){
+        for (IRExpr e : node.args()) {
             neighbors.add(e);
             exprTemps.add(0, e.getTile().getReturnTemp()); // tn, tn-1, ... t1
         }
 
         //save caller saved registers rax, rcx, rdx, rsi, rdi, and r8–r11
         AAReg[] callerRegs = new AAReg[]{rax, rcx, rdx, rsi, rdi, r8, r9, r10, r11};
-        for (AAReg reg : callerRegs){
+        for (AAReg reg : callerRegs) {
             instructs.add(new AAPush(reg));
         }
 
         // if returning more than two, manually reserve space for ret2
         Long nReturns = node.n_returns();
         boolean multiRet = false;
-        if (nReturns > 2){
+        if (nReturns > 2) {
             instructs.add(new AASub(rsp, new AAImm(8 * (nReturns - 2))));
             instructs.add(new AAMove(rdi, rsp));
             multiRet = true;
@@ -963,51 +980,51 @@ public class Tiler extends IRVisitor {
 
         // push excess args onto stack in reverse order
         int nArgs = node.args().size();
-        int excessArgs = multiRet ? max(0, nArgs-6) : max(0, nArgs-5);
-        for (int i = 0; i < excessArgs; i++){
+        int excessArgs = multiRet ? max(0, nArgs - 6) : max(0, nArgs - 5);
+        for (int i = 0; i < excessArgs; i++) {
             instructs.add(new AAPush(exprTemps.get(i)));// push tn ... t7/6
         }
 
-        AAReg[] argRegs = new AAReg[] {rdi, rsi, rdx, rcx, r8, r9};
+        AAReg[] argRegs = new AAReg[]{rdi, rsi, rdx, rcx, r8, r9};
 
         // move up to first 6 args to registers
-        for (int i = 0; i < nArgs-excessArgs; i++){
+        for (int i = 0; i < nArgs - excessArgs; i++) {
             instructs.add(new AASub(argRegs[i], new AAImm(8)));
-            instructs.add(new AAMove(rsp, exprTemps.get(excessArgs+i)));
+            instructs.add(new AAMove(rsp, exprTemps.get(excessArgs + i)));
         }
 
         //make sure stack is 16 byte aligned before func call
-        int excessRets = multiRet ? nReturns.intValue()-2 : 0;
-        if (excessRets % 2 == 1){
+        int excessRets = multiRet ? nReturns.intValue() - 2 : 0;
+        if (excessRets % 2 == 1) {
             instructs.add(new AASub(rsp, new AAImm(8)));
         }
 
         // store rip on stack, jumps to specific destination
         instructs.add(new AACall(node.target().getTile().getReturnTemp()));
 
-        if (multiRet && excessArgs != 0){
+        if (multiRet && excessArgs != 0) {
             instructs.add(new AAAdd(rsp, new AAImm(8L * excessArgs)));
         }
 
-        AAReg[] funcRegs = new AAReg[] {rax, rdx};
-        for (int i = 0; i < Math.min(2, nReturns); i++){
+        AAReg[] funcRegs = new AAReg[]{rax, rdx};
+        for (int i = 0; i < Math.min(2, nReturns); i++) {
             instructs.add(new AAMove(tempSpiller.newTemp(), funcRegs[i]));
         }
 
-        if (!multiRet && excessArgs != 0){
+        if (!multiRet && excessArgs != 0) {
             instructs.add(new AAAdd(rsp, new AAImm(8L * excessArgs)));
         }
 
         //pop
-        if (multiRet){
-            for (int i = 0; i < nReturns-2; i++){
+        if (multiRet) {
+            for (int i = 0; i < nReturns - 2; i++) {
                 instructs.add(new AAPop(tempSpiller.newTemp())); //return m, m-1, ..., 3
             }
         }
 
         //restore caller saved registers
-        for (int i = 0; i < callerRegs.length; i++){
-            instructs.add(new AAPop(callerRegs[callerRegs.length-1-i]));
+        for (int i = 0; i < callerRegs.length; i++) {
+            instructs.add(new AAPop(callerRegs[callerRegs.length - 1 - i]));
         }
 
         Tile callStmtTile = new Tile(instructs, neighbors);
@@ -1019,11 +1036,11 @@ public class Tiler extends IRVisitor {
     /**
      * This is an record that contains the information gathered as we translate a binop into memory operand form.
      * It contains:
-     *  - address: the translated address,
-     *  - assembly: the assembly instructions needed for the address to work with the original binop,
-     *  - whether the binop can be optimized into a memory operand, and,
-     *  - returnTemp: for the case when the binop is checked for a possible lea, the place where the result
-     *      of the lea should be returned to
+     * - address: the translated address,
+     * - assembly: the assembly instructions needed for the address to work with the original binop,
+     * - whether the binop can be optimized into a memory operand, and,
+     * - returnTemp: for the case when the binop is checked for a possible lea, the place where the result
+     * of the lea should be returned to
      */
     private static class BinOpToAddrParams {
         public AAMem address;
@@ -1044,6 +1061,7 @@ public class Tiler extends IRVisitor {
     /**
      * A helper function that determines if a binop expression can be shortened into a single mem operand
      * and carry out the shortening if possible.
+     *
      * @return a record that contains the translated address and other useful information
      */
     private BinOpToAddrParams binopToAddrMode(IRBinOp node) {
@@ -1168,8 +1186,9 @@ public class Tiler extends IRVisitor {
 
     /**
      * Helper to check for Mem(Binop) optimization into single memory address
-     * @param oldOpr the old mem operand, not optimized
-     * @param asmOpt list of assembly code
+     *
+     * @param oldOpr       the old mem operand, not optimized
+     * @param asmOpt       list of assembly code
      * @param neighborsOpt list of neighbors later used by the tile
      * @return the possibly optimized mem, can be a short-handed mem address, or a temp (no optimization)
      */
@@ -1182,7 +1201,7 @@ public class Tiler extends IRVisitor {
                 optOpr = targetAddrParams.address;
                 asmOpt.addAll(targetAddrParams.assembly);
             } else {
-                optOpr = oldOpr.getTile().getReturnTemp();
+                optOpr = oldOpr.expr().getTile().getReturnTemp();
                 neighborsOpt.add(oldOpr);
             }
         } else {
@@ -1191,6 +1210,4 @@ public class Tiler extends IRVisitor {
         }
         return optOpr;
     }
-
-
 }
