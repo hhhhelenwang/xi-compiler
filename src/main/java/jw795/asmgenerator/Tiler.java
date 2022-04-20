@@ -437,6 +437,33 @@ public class Tiler extends IRVisitor {
         return node;
     }
 
+    /**
+     * Helper to check for Mem(Binop) optimization into single memory address
+     * Requires: oldOpr has already been tiled
+     * @param oldOpr       the old mem node, not optimized
+     * @param asmOpt       list of assembly code
+     * @param neighborsOpt list of neighbors later used by the tile
+     * @return the possibly optimized mem, can be a short-handed mem address, or a temp (no optimization)
+     */
+    private AAOperand getOptMem(IRMem oldOpr, List<AAInstruction> asmOpt, List<IRNode> neighborsOpt) {
+        AAOperand optOpr;
+        IRExpr targetAddr = oldOpr.expr();
+        if (targetAddr instanceof IRBinOp) {
+            BinOpToAddrParams targetAddrParams = binopToAddrMode((IRBinOp) targetAddr);
+            if (targetAddrParams.optimized) {
+                optOpr = targetAddrParams.address;
+                asmOpt.addAll(targetAddrParams.assembly);
+            } else {
+                optOpr = oldOpr.expr().getTile().getReturnTemp();
+                neighborsOpt.add(oldOpr);
+            }
+        } else {
+            optOpr = oldOpr.getTile().getReturnTemp();
+            neighborsOpt.add(oldOpr);
+        }
+        return optOpr;
+    }
+
 
     /**
      * Tile a label node into an assembly label
@@ -806,20 +833,28 @@ public class Tiler extends IRVisitor {
     private IRNode tileMem(IRMem node) {
         List<IRNode> neighborsNaive = new ArrayList<>();
         List<AAInstruction> asmNaive = new ArrayList<>();
-        AAOperand addrNaive;
-        if (node.expr() instanceof IRConst) {
-            addrNaive = new AAImm(((IRConst) node.expr()).value());
-        } else if (node.expr() instanceof IRTemp) {
-            addrNaive = tempSpiller.newTemp(((IRTemp) node.expr()).name());
-        } else {
-            addrNaive = node.expr().getTile().getReturnTemp();
-            neighborsNaive.add(node.expr());
-        }
-        asmNaive.add(new AAMove(rcx, addrNaive));
+        AAOperand addrNaive; // the address
+        AAMem mem = new AAMem(); // the final mem = [addrNaive]
         AATemp returnTemp = tempSpiller.newTemp();
-        AAMem mem = new AAMem();
-        mem.setBase(rcx);
-        asmNaive.add(new AAMove(returnTemp, mem));
+        IRExpr addr = node.expr();
+        if (addr instanceof IRConst) {
+            addrNaive = new AAImm(((IRConst) addr).value());
+            mem.setImmediate((AAImm) addrNaive);
+            asmNaive.add(new AAMove(rcx, mem));
+            asmNaive.add(new AAMove(returnTemp, rcx)); // no neighbors
+        } else if (addr instanceof IRTemp) {
+            // the content of this temp is our addrNaive
+            addrNaive = tempSpiller.newTemp(((IRTemp) addr).name());
+            asmNaive.add(new AAMove(rcx, addrNaive)); // move content of temp into a register to be used in mem
+            mem.setBase(rcx);
+            asmNaive.add(new AAMove(returnTemp, rcx));
+        } else {
+            addrNaive = addr.getTile().getReturnTemp();
+            asmNaive.add(new AAMove(rcx, addrNaive)); // move content of ret temp into a register to be used in mem
+            mem.setBase(rcx);
+            asmNaive.add(new AAMove(returnTemp, rcx));
+            neighborsNaive.add(addr);
+        }
         Tile tileNaive = new Tile(asmNaive, neighborsNaive);
         tileNaive.setReturnTemp(returnTemp);
 
@@ -827,19 +862,22 @@ public class Tiler extends IRVisitor {
         List<IRNode> neighborsOpt = new ArrayList<>();
         List<AAInstruction> asmOpt = new ArrayList<>();
         Tile tileOpt = null;
-        AAOperand optMem = getOptMem(node, asmOpt, neighborsOpt);
-        if (optMem instanceof AAMem) { // did optimized
-            asmOpt.add(new AALea(rcx, (AAMem) optMem)); // we want the address itself moved to rax
-            asmOpt.add(new AAMove(returnTemp, rcx));
-            tileOpt = new Tile(asmOpt, neighborsOpt);
-            tileOpt.setReturnTemp(returnTemp);
-        } else { // did not optimize so can use naive
-            tileOpt = null;
+
+        if (addr instanceof IRBinOp) {
+            BinOpToAddrParams addrParams = binopToAddrMode((IRBinOp) addr);
+            AAMem optMem;
+            if (addrParams.optimized){
+                optMem = addrParams.address;
+                asmOpt.addAll(addrParams.assembly);
+                asmOpt.add(new AAMove(rcx, optMem));
+                asmOpt.add(new AAMove(returnTemp, rcx));
+                tileOpt = new Tile(asmOpt, neighborsOpt);
+            } else {
+                tileOpt = null; // no optimization
+            }
         }
 
-        if (tileOpt == null) {
-            node.setTile(tileNaive);
-        } else if (tileOpt.getCostOfSubTree() <= tileNaive.getCostOfSubTree()) {
+        if (tileOpt != null && tileOpt.getCostOfSubTree() <= tileNaive.getCostOfSubTree()) {
             node.setTile(tileOpt);
         } else {
             node.setTile(tileNaive);
@@ -1190,30 +1228,5 @@ public class Tiler extends IRVisitor {
         return new BinOpToAddrParams(finalAddr, aasm, returnTemp);
     }
 
-    /**
-     * Helper to check for Mem(Binop) optimization into single memory address
-     *
-     * @param oldOpr       the old mem operand, not optimized
-     * @param asmOpt       list of assembly code
-     * @param neighborsOpt list of neighbors later used by the tile
-     * @return the possibly optimized mem, can be a short-handed mem address, or a temp (no optimization)
-     */
-    private AAOperand getOptMem(IRMem oldOpr, List<AAInstruction> asmOpt, List<IRNode> neighborsOpt) {
-        AAOperand optOpr;
-        IRExpr targetAddr = oldOpr.expr();
-        if (targetAddr instanceof IRBinOp) {
-            BinOpToAddrParams targetAddrParams = binopToAddrMode((IRBinOp) targetAddr);
-            if (targetAddrParams.optimized) {
-                optOpr = targetAddrParams.address;
-                asmOpt.addAll(targetAddrParams.assembly);
-            } else {
-                optOpr = oldOpr.expr().getTile().getReturnTemp();
-                neighborsOpt.add(oldOpr);
-            }
-        } else {
-            optOpr = oldOpr.getTile().getReturnTemp();
-            neighborsOpt.add(oldOpr);
-        }
-        return optOpr;
-    }
+
 }
