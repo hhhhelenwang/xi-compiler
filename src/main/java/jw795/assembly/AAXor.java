@@ -8,7 +8,11 @@ public class AAXor extends AAInstruction{
 
     @Override
     public String toString() {
-        return "xor" + " " + operand1.get() + ", " + operand2.get();
+        if (operand2.get() instanceof AAImm) {
+            return "xorq" + " " + operand1.get() + ", " + operand2.get();
+        } else {
+            return "xor" + " " + operand1.get() + ", " + operand2.get();
+        }
 
     }
 }

@@ -8,7 +8,11 @@ public class AAMul extends AAInstruction{
 
     @Override
     public String toString() {
-        return "mul " + operand1.get();
+        if (operand2.get() instanceof AAImm) {
+            return "mulq" + " " + operand1.get().toString() + ", " + operand2.get().toString();
+        } else {
+            return "mul " + operand1.get();
+        }
 
     }
 }

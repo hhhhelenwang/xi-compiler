@@ -8,6 +8,10 @@ public class AACmp extends AAInstruction{
 
     @Override
     public String toString() {
-        return "cmp " + this.operand1.get() + this.operand2.get();
+        if (operand2.get() instanceof AAImm) {
+            return "cmpq" + " " + operand1.get().toString() + ", " + operand2.get().toString();
+        } else {
+            return "cmp " + this.operand1.get() + ", " + this.operand2.get();
+        }
     }
 }

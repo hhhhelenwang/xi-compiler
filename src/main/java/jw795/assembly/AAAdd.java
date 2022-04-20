@@ -11,6 +11,7 @@ public class AAAdd extends AAInstruction{
         if (operand2.get() instanceof AAImm) {
             return "addq" + " " + operand1.get().toString() + ", " + operand2.get().toString();
         } else {
-        return "add " + operand1.get() + ", " +  operand2.get();}
+        return "add " + operand1.get() + ", " +  operand2.get();
+        }
     }
 }

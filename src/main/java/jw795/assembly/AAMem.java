@@ -44,33 +44,69 @@ public class AAMem extends AAOperand{
             strOfMem += base.get();
         }
 
-        if (scale.isPresent()) {
-            if (base.isPresent()){
+        if (index.isPresent()){
+//            if (scale.isPresent()){
                 if (scale.get() > 0){
-                    strOfMem += "+";
+                    if (base.isPresent()){
+                        strOfMem += "+";
+                    }
+                    strOfMem += scale.get() + "*" + index.get();
                 } else {
-                    strOfMem += "-";
+                    strOfMem += "-" + scale.get() + "*" + index.get();
                 }
-            }
-            if (index.isPresent()) {
-                strOfMem += scale.get() + "*" + index.get();
-            }
-        } else {
-            if (base.isPresent()){
-                strOfMem += "+";
-            }
-            if (index.isPresent()) {
-                strOfMem += index.get();
-            }
+//            }
+//            else {
+//                if (base.isPresent()){
+//                    strOfMem += "+" + index.get();
+//                } else {
+//                    strOfMem += index.get();
+//                }
+//            }
         }
 
-        if (immediate.isPresent()) {
-            if (!index.isPresent() && !base.isPresent()){
-                strOfMem += immediate.get();
-            } else {
-                strOfMem += "+" + immediate.get();
+        //rbp - 1 * 8         + 16
+        //base scale * index  imm(pos)
+        if (immediate.isPresent()){
+            if (scale.isPresent()){
+                if (index.isPresent()){
+                    if (base.isPresent()){
+                        strOfMem += "+";
+                    }
+                    strOfMem += immediate.get();
+                } else {
+                    if (scale.get() < 0){
+                        strOfMem += "-" + immediate.get();
+                    }
+                }
             }
         }
+//        if (scale.isPresent()) {
+//            if (base.isPresent()){
+//                if (scale.get() > 0){
+//                    strOfMem += "+";
+//                } else {
+//                    strOfMem += "-";
+//                }
+//            }
+//            if (index.isPresent()) {
+//                strOfMem += scale.get() + "*" + index.get();
+//            }
+//        } else {
+//            if (base.isPresent()){
+//                strOfMem += "+";
+//            }
+//            if (index.isPresent()) {
+//                strOfMem += index.get();
+//            }
+//        }
+//
+//        if (immediate.isPresent()) {
+//            if (!index.isPresent() && !base.isPresent()){
+//                strOfMem += immediate.get();
+//            } else {
+//                strOfMem += "+" + immediate.get();
+//            }
+//        }
         strOfMem += "]";
 
         return strOfMem;
