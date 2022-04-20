@@ -144,7 +144,7 @@ public class Tiler extends IRVisitor {
 
         //save callee-saved registers
         asm.add(new AAMove(rbp, rsp));
-        asm.add(new AAAdd(rbp, new AAImm(8)));
+        asm.add(new AAAdd(rbp, new AAImm(8L)));
         asm.add(new AAPush(rbx));
         asm.add(new AAPush(r12));
         asm.add(new AAPush(r13));
@@ -157,7 +157,7 @@ public class Tiler extends IRVisitor {
         for (long i = 0L; i < argSize; i++) {
             System.out.println(i);
             if (i < 5) {
-                asm.add(new AAMove(tempSpiller.newTemp(argNames[(int) i]), argRegs[(int) i]));
+                asm.add(new AAMove(tempSpiller.newTemp("_ARG" + (i + 1)), argRegs[(int) i]));
             } else {
                 long index = i - 4;
                 AAMem mem = new AAMem();
@@ -1024,14 +1024,14 @@ public class Tiler extends IRVisitor {
         List<AAInstruction> instructs = new ArrayList<>();
 
         //save caller saved registers rax, rcx, rdx, rsi, rdi, and r8–r11
-        AAReg[] callerRegs = new AAReg[]{rax, rcx, rdx, rsi, rdi, r8, r9, r10, r11};
-        AATemp[] savedRegs = new AATemp[9];
-        for (int i = 0; i < 9; i++) {
+        AAReg[] callerRegs = new AAReg[]{rax, rcx, rdx, rsp, rsi, rdi, r8, r9, r10, r11};
+        AATemp[] savedRegs = new AATemp[10];
+        for (int i = 0; i < 10; i++) {
             savedRegs[i] = tempSpiller.newTemp();
             instructs.add(new AAMove(savedRegs[i], callerRegs[i]));
         }
 
-        long l = curRetSize + curArgSize;
+        long l = curRetSize - 2 + curArgSize - 5;
         if (l % 2 != 0) {
             // alignment for scratch spaces
             aligned = true;
@@ -1043,25 +1043,30 @@ public class Tiler extends IRVisitor {
             instructs.add(new AASub(rsp, new AAImm((curRetSize - 2) * 8)));
         }
 
+        if (curRetSize > 2) {
+            // put return address into register rdi
+            long offset = max(curArgSize - 5, 0);
+            instructs.add(new AAMove(rdi, rsp));
+            instructs.add(new AAAdd(rdi, new AAImm(offset * 8)));
+            // put first five arguments, not including the return address argument,
+            // into corresponding registers if there is any
+            AAReg[] argRegs = {rsi, rdx, rcx, r8, r9};
+            for (int i = 0; i < min(curArgSize, 5); i++) {
+                instructs.add(new AAMove(argRegs[i], node.args().get(i).getTile().getReturnTemp()));
+            }
+        } else {
+            AAReg[] argRegs = {rdi, rsi, rdx, rcx, r8, r9};
+            for (int i = 0; i < min(curArgSize, 6); i++) {
+                instructs.add(new AAMove(argRegs[i], node.args().get(i).getTile().getReturnTemp()));
+            }
+        }
+
         // push any excess args on to stack
         for (long i = curArgSize - 1; i > 4; i--) {
             IRExpr e = node.args().get((int) i);
             instructs.addAll(concatAsm(e));
             instructs.add(new AAPush(e.getTile().getReturnTemp()));
         }
-
-        // put first five arguments, not including the return address argument,
-        // into corresponding registers if there is any
-
-        AAReg[] argRegs = {rsi, rdx, rcx, r8, r9};
-        for (int i = 0; i < min(curArgSize, 5); i++) {
-            instructs.add(new AAMove(argRegs[i], node.args().get(i).getTile().getReturnTemp()));
-        }
-
-        // put return address into register
-        long offset = max(curArgSize - 5, 0);
-        instructs.add(new AAMove(rdi, rsp));
-        instructs.add(new AAAdd(rdi, new AAImm(offset * 8)));
 
         // store rip on stack, jumps to specific destination
         instructs.add(new AACall(new AALabel(((IRName)node.target()).name())));
