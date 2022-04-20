@@ -221,21 +221,23 @@ public class Tiler extends IRVisitor {
             }
             if(a.operand2.isPresent()){
                 a2 = a.operand2.get();
-                String temp_name = ((AATemp) a2).name();
-                if (!temp_name.startsWith("_RV")) {
-                    tmpsp.spillTemp((AATemp) a2);
-                    AAImm offset = tmpsp.getOffsetOfTemp((AATemp) a2);
-                    AAMem mem = new AAMem();
-                    mem.setBase(rbp);
-                    mem.setImmediate(offset);
-                    mem.setScale(-1L);
-                    a.reseta2(mem);
-                } else {
-                    AAMem mem = new AAMem();
-                    mem.setBase(rsp);
-                    AAImm imm = new AAImm(Long.parseLong(temp_name.replaceFirst(temp_name, "^_RV")));
-                    mem.setImmediate(imm);
-                    a.reseta2(mem);
+                if (a2 instanceof AATemp) {
+                    String temp_name = ((AATemp) a2).name();
+                    if (!temp_name.startsWith("_RV")) {
+                        tmpsp.spillTemp((AATemp) a2);
+                        AAImm offset = tmpsp.getOffsetOfTemp((AATemp) a2);
+                        AAMem mem = new AAMem();
+                        mem.setBase(rbp);
+                        mem.setImmediate(offset);
+                        mem.setScale(-1L);
+                        a.reseta2(mem);
+                    } else {
+                        AAMem mem = new AAMem();
+                        mem.setBase(rsp);
+                        AAImm imm = new AAImm(Long.parseLong(temp_name.replaceFirst(temp_name, "^_RV")));
+                        mem.setImmediate(imm);
+                        a.reseta2(mem);
+                    }
                 }
             }
         }
