@@ -8,6 +8,10 @@ public class AASub extends AAInstruction{
 
     @Override
     public String toString() {
-        return "sub " + operand1.get() + ", " +  operand2.get();
+        if (operand2.get() instanceof AAImm) {
+            return "subq" + " " + operand1.get().toString() + ", " + operand2.get().toString();
+        } else {
+            return "sub " + operand1.get() + ", " +  operand2.get();
+        }
     }
 }
