@@ -35,6 +35,7 @@ public class Tiler extends IRVisitor {
     private final AAReg r13 = new AAReg("r13");
     private final AAReg r14 = new AAReg("r14");
     private final AAReg r15 = new AAReg("r15");
+    private final AAReg rip = new AAReg("rip");
 
     public Tiler(IRNodeFactory inf, TempSpiller tsp, HashMap<String, Long> funcArg, HashMap<String, Long> funcRet, HashMap<String, String> names) {
         super(inf);
@@ -281,9 +282,17 @@ public class Tiler extends IRVisitor {
         aasm.add(new AADirective(AADirective.DirType.DATA));
         // data section
         for (Map.Entry<String, IRData> data : node.dataMap().entrySet()) {
-            aasm.add(new AALabelInstr(data.getKey()));
-            for (Long d : data.getValue().data()) {
-                aasm.add(new AADataDecl(d));
+            if ( data.getValue().data().length > 1) {
+                aasm.add(new AADataDecl(data.getValue().data()[0]));
+                aasm.add(new AALabelInstr(data.getKey()));
+                for (int i = 1; i < data.getValue().data().length; i++) {
+                    aasm.add(new AADataDecl(data.getValue().data()[i]));
+                }
+            } else {
+                aasm.add(new AALabelInstr(data.getKey()));
+                for (Long d : data.getValue().data()){
+                    aasm.add(new AADataDecl(d));
+                }
             }
         }
 
@@ -482,12 +491,16 @@ public class Tiler extends IRVisitor {
         //2: label
         List<AAInstruction> aasm = new ArrayList<>();
         AATemp target = tempSpiller.newTemp();
-        if (node.name().length() > 12 && node.name().startsWith("string_")) {
-            aasm.add(new AAMove(rdx, tempSpiller.newTemp(node.name())));
-            aasm.add(new AAMove(target, rdx));
-        } else {
-            aasm.add(new AAMove(target, new AALabel(node.name())));
-        }
+//        if (node.name().length() > 12 && node.name().startsWith("string_")) {
+        aasm.add(new AAMove(rdx, tempSpiller.newTemp(node.name())));
+        AAMem mem = new AAMem();
+        mem.setBase(rip);
+        mem.setLabel(new AALabel(node.name()));
+        aasm.add(new AALea(rdx, mem));
+        aasm.add(new AAMove(target, rdx));
+//        } else {
+//            aasm.add(new AAMove(target, new AALabel(node.name())));
+//        }
         Tile labelTile = new Tile(aasm, new ArrayList<>());
         labelTile.setReturnTemp(target);
         node.setTile(labelTile);
@@ -914,7 +927,6 @@ public class Tiler extends IRVisitor {
     private IRNode tileJump(IRJump node) {
         List<AAInstruction> aasm = new ArrayList<>();
         aasm.add(new AAJmp(new AALabel(((IRName)node.target()).name())));
-//        aasm.add(new AAJmp(node.target().getTile().getReturnTemp()));
         Tile jumpTile = new Tile(aasm, new ArrayList<>());
         node.setTile(jumpTile);
         return node;

@@ -11,13 +11,14 @@ public class AAMem extends AAOperand{
     Optional<AAReg> index;
     Optional<Long> scale;
     Optional<AAImm> immediate;
+    Optional<AALabel> label;
 
     public AAMem() {
         base = Optional.empty();
         index = Optional.empty();
         scale = Optional.empty();
         immediate = Optional.empty();
-
+        label = Optional.empty();
     }
 
     public void setBase(AAReg b) {
@@ -36,6 +37,8 @@ public class AAMem extends AAOperand{
         immediate = Optional.of(imm);
     }
 
+    public void setLabel(AALabel l) {label = Optional.of(l); }
+
     @Override
     public String toString() {
         String strOfMem = "[";
@@ -45,7 +48,6 @@ public class AAMem extends AAOperand{
         }
 
         if (index.isPresent()){
-//            if (scale.isPresent()){
                 if (scale.get() > 0){
                     if (base.isPresent()){
                         strOfMem += "+";
@@ -80,33 +82,10 @@ public class AAMem extends AAOperand{
                 }
             }
         }
-//        if (scale.isPresent()) {
-//            if (base.isPresent()){
-//                if (scale.get() > 0){
-//                    strOfMem += "+";
-//                } else {
-//                    strOfMem += "-";
-//                }
-//            }
-//            if (index.isPresent()) {
-//                strOfMem += scale.get() + "*" + index.get();
-//            }
-//        } else {
-//            if (base.isPresent()){
-//                strOfMem += "+";
-//            }
-//            if (index.isPresent()) {
-//                strOfMem += index.get();
-//            }
-//        }
-//
-//        if (immediate.isPresent()) {
-//            if (!index.isPresent() && !base.isPresent()){
-//                strOfMem += immediate.get();
-//            } else {
-//                strOfMem += "+" + immediate.get();
-//            }
-//        }
+
+        if (label.isPresent()){
+            strOfMem += "+" + label.get();
+        }
         strOfMem += "]";
 
         return strOfMem;
