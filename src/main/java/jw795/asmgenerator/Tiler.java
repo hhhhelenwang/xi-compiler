@@ -44,6 +44,8 @@ public class Tiler extends IRVisitor {
         tempSpiller = tsp;
         curMaxArg = 0L;
         curMaxRet = 0L;
+        funcArgLengths = new HashMap<>();
+        funcRetLengths = new HashMap<>();
         for (String key : funcArg.keySet()) {
             funcArgLengths.put(names.get(key), funcArg.get(key));
             funcRetLengths.put(names.get(key), funcRet.get(key));
