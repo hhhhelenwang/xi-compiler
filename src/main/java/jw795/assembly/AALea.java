@@ -12,6 +12,6 @@ public class AALea extends AAInstruction{
 
     @Override
     public String toString() {
-        return "lea" + " " + dest + ", " + src + ";";
+        return "lea" + " " + dest + ", " + src;
     }
 }
