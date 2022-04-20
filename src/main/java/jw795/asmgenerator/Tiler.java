@@ -4,10 +4,7 @@ import edu.cornell.cs.cs4120.xic.ir.*;
 import edu.cornell.cs.cs4120.xic.ir.visit.IRVisitor;
 import jw795.assembly.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.lang.Math.max;
 
@@ -545,13 +542,37 @@ public class Tiler extends IRVisitor {
         Tile tileNaive;
         switch (node.opType()){
             case ADD:
+                // basic case
                 AAAdd add = new AAAdd(destNaive, srcNaive);
                 aasmNaive.add(add);
-
                 if (destNaive instanceof AAReg) {
                     // if dest is a register, move the result into a temp
                     aasmNaive.add(new AAMove(returnTempNaive, destNaive));
                 }
+                tileNaive = new Tile(aasmNaive, neighborsNaive);
+                tileNaive.setReturnTemp(returnTempNaive);
+
+                // in case that one of the operand is 1, can use inc
+//                if (srcNaive instanceof AAImm) {
+//                    // preserve the things done when collecting operands
+//                    List<AAInstruction> aasmInc = new ArrayList<>(aasmNaive);
+//
+//                }
+
+                // check for possible lea
+                BinOpToAddrParams params = binopToAddrMode(node);
+                Tile tileLea = null;
+                if (params.optimized) {
+                    List<AAInstruction> aasmLea = new ArrayList<>(params.assembly);
+                    AAReg destLea = rax;
+                    AAMem srcLea = params.address;
+                    AATemp returnTempLea = params.returnTemp;
+                    aasmLea.add(new AALea(destLea, srcLea)); // the lea instruction
+                    aasmLea.add(new AAMove(returnTempLea, rax)); // mov result to return temp after lea
+                    tileLea = new Tile(aasmLea, new ArrayList<>()); // lea do not have neighbors
+                    tileLea.setReturnTemp(returnTempLea);
+                }
+
                 break;
             case SUB:
                 AASub sub = new AASub(destNaive, srcNaive);
@@ -665,8 +686,154 @@ public class Tiler extends IRVisitor {
         return node;
     }
 
-    private int binopToAddrMode() {
-        return 0;
+    /**
+     * This is an record that contains the information gathered as we translate a binop into memory operand form.
+     * It contains:
+     *  - address: the translated address,
+     *  - assembly: the assembly instructions needed for the address to work with the original binop,
+     *  - whether the binop can be optimized into a memory operand, and,
+     *  - returnTemp: for the case when the binop is checked for a possible lea, the place where the result
+     *      of the lea should be returned to
+     */
+    private static class BinOpToAddrParams {
+        public AAMem address;
+        public List<AAInstruction> assembly;
+        public boolean optimized;
+        // has return temp if this is for translating binop expression into a single lea
+        public AATemp returnTemp;
+
+        public BinOpToAddrParams(AAMem addr, List<AAInstruction> asm, AATemp retTmp) {
+            address = addr;
+            assembly = asm;
+            optimized = (addr != null);
+            returnTemp = retTmp;
+        }
+
+    }
+
+    /**
+     * A helper function that determines if a binop expression can be shortened into a single mem operand
+     * and carry out the shortening if possible.
+     * @return a record that contains the translated address and other useful information
+     */
+    private BinOpToAddrParams binopToAddrMode(IRBinOp node) {
+        // base = rax
+        // index = rbx
+
+        // things that can be optimized using addressing mode:
+        // b + i + o
+        // b + s * i
+        // b + s * i + o
+
+        // b  i + o
+        // b + s * i
+        // b + s * i + o
+
+        List<AAInstruction> aasm = new ArrayList<>();
+        AAMem finalAddr = null;
+        AATemp returnTemp = null;
+
+        Set<Long> validScales = new HashSet<>();
+        validScales.add((long) 1);
+        validScales.add((long) 2);
+        validScales.add((long) 4);
+        validScales.add((long) 8);
+
+        AAReg base;
+        AAReg index;
+        long scale;
+        AAImm offset;
+
+        IRNode left = node.left();
+        IRNode right = node.right();
+
+        // binop looks like a + b * c --> do not know which of b/c is scale/index yet
+        if (left instanceof IRTemp
+                && right instanceof IRBinOp
+                && ((IRBinOp) right).opType() == IRBinOp.OpType.MUL) {
+            // left temp is the base and dest (for lea)
+            // mov left into rax = base
+            AATemp leftTemp = tempSpiller.newTemp((((IRTemp) left).name()));
+            aasm.add(new AAMove(rax, leftTemp));
+            base = rax;
+            returnTemp = leftTemp;
+
+            IRNode rLeft = ((IRBinOp) right).left();
+            IRNode rRight = ((IRBinOp) right).right();
+            // base + scale * index
+            if (rLeft instanceof IRConst
+                    && validScales.contains(((IRConst) rLeft).value())
+                    && rRight instanceof IRTemp) {
+                // mov rRight into rbx = index
+                aasm.add(new AAMove(rbx, tempSpiller.newTemp(((IRTemp) rRight).name())));
+                index = rbx;
+                scale = ((IRConst) rLeft).value();
+                finalAddr = new AAMem();
+                finalAddr.setBase(base);
+                finalAddr.setScale(scale);
+                finalAddr.setIndex(index);
+            }
+            // base + index * scale
+            else if (rRight instanceof IRConst
+                    && validScales.contains(((IRConst) rRight).value())
+                    && rLeft instanceof IRTemp) {
+                // mov rLeft into rbx = index
+                aasm.add(new AAMove(rbx, tempSpiller.newTemp(((IRTemp) rLeft).name())));
+                index = rbx;
+                scale = ((IRConst) rRight).value();
+                finalAddr = new AAMem();
+                finalAddr.setBase(base);
+                finalAddr.setScale(scale);
+                finalAddr.setIndex(index);
+            }
+
+        }
+
+        // looks like a * b + c
+        else if (right instanceof IRTemp
+                && left instanceof IRBinOp
+                && ((IRBinOp) left).opType() == IRBinOp.OpType.MUL) {
+            // base and dest is now c which is right
+            AATemp rightTemp = tempSpiller.newTemp((((IRTemp) right).name()));
+            aasm.add(new AAMove(rax, rightTemp));
+            base = rax;
+            returnTemp = rightTemp;
+
+            IRNode lLeft = ((IRBinOp) left).left();
+            IRNode lRight = ((IRBinOp) left).right();
+
+            // scale * index + base
+            if (lLeft instanceof IRConst
+                    && validScales.contains(((IRConst) lLeft).value())
+                    && lRight instanceof IRTemp) {
+                // mov lRight into rbx = index
+                aasm.add(new AAMove(rbx, tempSpiller.newTemp(((IRTemp) lRight).name())));
+                index = rbx;
+                scale = ((IRConst) lLeft).value();
+                finalAddr = new AAMem();
+                finalAddr.setBase(base);
+                finalAddr.setScale(scale);
+                finalAddr.setIndex(index);
+
+            }
+            // index * scale + base
+            else if (lRight instanceof IRConst
+                    && validScales.contains(((IRConst) lRight).value())
+                    && lLeft instanceof IRTemp) {
+                // mov rLeft into rbx = index
+                aasm.add(new AAMove(rbx, tempSpiller.newTemp(((IRTemp) lLeft).name())));
+                index = rbx;
+                scale = ((IRConst) lRight).value();
+                finalAddr = new AAMem();
+                finalAddr.setBase(base);
+                finalAddr.setScale(scale);
+                finalAddr.setIndex(index);
+
+            }
+
+        }
+
+        return new BinOpToAddrParams(finalAddr, aasm, returnTemp);
     }
 
     /**
