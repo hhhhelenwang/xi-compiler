@@ -347,7 +347,6 @@ public class Tiler extends IRVisitor {
      * @return a move IR node labeled with its tile of assembly
      */
     private IRNode tileMove(IRMove node) {
-        System.out.println(node);
         // naive
         AAOperand destNaive;
         AAOperand srcNaive;
@@ -659,7 +658,6 @@ public class Tiler extends IRVisitor {
                     tileInc = new Tile(aasmInc, neighborsNaive);
                     // same ret temp, also destNaive will not be a reg here according to the cases above
                     tileInc.setReturnTemp(returnTempNaive);
-                    System.out.println(tileInc);
                 }
 
                 // check for possible lea

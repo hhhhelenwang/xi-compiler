@@ -30,5 +30,7 @@ xic ("Test -target linux -O") ["./test/pa5"]"-libpath $(testpath) -target linux 
     testCJumpFallThrough.xi;
     testsideeffect.xi;
     testlength.xi;
+
+    testaddrmode.xi;
 }
 

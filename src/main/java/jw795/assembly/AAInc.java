@@ -8,6 +8,6 @@ public class AAInc extends AAInstruction{
 
     @Override
     public String toString() {
-        return "inc "+ operand1.get();
+        return "incq "+ operand1.get();
     }
 }

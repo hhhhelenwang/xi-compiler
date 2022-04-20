@@ -1,3 +1,6 @@
+use io;
+use conv
+
 main(args:int[][]){
     x:int = 5;
     y:int = 6;
@@ -11,4 +14,7 @@ main(args:int[][]){
 
     a = a + 1;
     b = b - 1;
+
+    print(unparseInt(a));
+    print(unparseInt(b));
 }
