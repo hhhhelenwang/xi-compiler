@@ -556,7 +556,7 @@ public class Tiler extends IRVisitor {
                 AAImm rImm = new AAImm(((IRConst) left).value());
                 aasmNaive.add(new AAMove(returnTempNaive, rImm));
                 destNaive = returnTempNaive;
-                srcNaive = rImm;
+                srcNaive = new AAImm(((IRConst) right).value());
 
             } else if (right instanceof IRTemp) {
                 // use right as the target temp and return temp, this tile has no neighbors
