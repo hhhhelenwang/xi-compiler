@@ -34,18 +34,16 @@ public class AASetcc extends AAInstruction{
             }
         }
     }
-
-    private AAOperand operand1;
     private Condition cond;
 
     public AASetcc(AAOperand op1, Condition cc) {
-        operand1 = op1;
+        super(op1);
         cond = cc;
     }
 
 
     @Override
     public String toString() {
-        return "set" + cond + " " + operand1;
+        return "set" + cond + " " + operand1.get();
     }
 }
