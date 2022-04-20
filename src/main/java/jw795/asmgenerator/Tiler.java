@@ -131,6 +131,8 @@ public class Tiler extends IRVisitor {
         IRStmt body = node.body();
         List<IRNode> neighbors = new ArrayList<>();
         List<AAInstruction> asm = new ArrayList<>();
+        asm.add(new AADirective(AADirective.DirType.TEXT));
+        asm.add(new AADirective(AADirective.DirType.GLOBAL, name));
         asm.add(new AALabelInstr(name));
         asm.add(new AAPush(rdi));
         asm.add(new AAPush(rbp));
@@ -257,7 +259,6 @@ public class Tiler extends IRVisitor {
             }
         }
 
-        aasm.add(new AADirective(AADirective.DirType.TEXT));
         List<IRNode> neighbors = new ArrayList<>();
 
         for (Map.Entry<String, IRFuncDecl> function : node.functions().entrySet()) {

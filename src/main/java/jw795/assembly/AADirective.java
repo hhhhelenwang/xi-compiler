@@ -4,12 +4,14 @@ package jw795.assembly;
  * An assembly directive.
  */
 public class AADirective extends AAInstruction{
+    String sofname = "";
 
     public enum DirType {
         TEXT,
         DATA,
         QUAD,
-        INTEL;
+        INTEL,
+        GLOBAL;
 
         @Override
         public String toString() {
@@ -22,6 +24,8 @@ public class AADirective extends AAInstruction{
                     return ".quad";
                 case INTEL:
                     return ".intel_syntax noprefix";
+                case GLOBAL:
+                    return ".global";
                 default:
                     return null;
             }
@@ -33,9 +37,13 @@ public class AADirective extends AAInstruction{
     public AADirective(DirType type) {
         dirType = type;
     }
+    public AADirective(DirType type, String name) {
+        dirType = type;
+        sofname = " " + name;
+    }
 
     @Override
     public String toString() {
-        return dirType.toString();
+        return dirType.toString()+sofname;
     }
 }
