@@ -573,8 +573,12 @@ public class Tiler extends IRVisitor {
                 // pick the best one
                 List<Tile> allOptions = new ArrayList<>();
                 allOptions.add(tileNaive);
-                allOptions.add(tileInc);
-                allOptions.add(tileLea);
+                if (tileInc != null) {
+                    allOptions.add(tileInc);
+                }
+                if(tileLea != null){
+                    allOptions.add(tileLea);
+                }
                 int minCost = Integer.MAX_VALUE;
                 Tile bestOption = tileNaive;
                 for (Tile option: allOptions) {
