@@ -387,28 +387,28 @@ public class Tiler extends IRVisitor {
         Tile tileOpt = null;
         if (target instanceof IRMem && source instanceof IRMem) {
             // check on target
-            destOpt = getOptMoveOperand(target, asmOpt, neighborsOpt);
+            destOpt = getOptMem((IRMem) target, asmOpt, neighborsOpt);
             // check on source
-            srcOpt = getOptMoveOperand(source, asmOpt, neighborsOpt);
+            srcOpt = getOptMem((IRMem) source, asmOpt, neighborsOpt);
             // since both target and source are mem, mov to a register in between
-            asmOpt.add(new AAMove(rcx, srcOpt)); // optimized binop uses rax and rbx so use rdx to avoid conflict
-            asmOpt.add(new AAMove(destOpt, rcx));
+            asmOpt.add(new AAMove(rdi, srcOpt)); // optimized binop uses rax and rbx so use rdx to avoid conflict
+            asmOpt.add(new AAMove(destOpt, rdi));
             tileOpt = new Tile(asmOpt, neighborsOpt);
         } else if (target instanceof IRTemp && source instanceof IRMem) {
             // target is a temp, use it directly
             destOpt = tempSpiller.newTemp(((IRTemp) target).name());
             // check on source
-            srcOpt = getOptMoveOperand(source, asmOpt, neighborsOpt);
-            asmOpt.add(new AAMove(rcx, srcOpt)); // optimized binop uses rax and rbx so use rdx to avoid conflict
-            asmOpt.add(new AAMove(destOpt, rcx));
+            srcOpt = getOptMem((IRMem) source, asmOpt, neighborsOpt);
+            asmOpt.add(new AAMove(rdi, srcOpt)); // optimized binop uses rcx and rsi so use rdi to avoid conflict
+            asmOpt.add(new AAMove(destOpt, rdi));
             tileOpt = new Tile(asmOpt, neighborsOpt);
         } else if (target instanceof IRMem && source instanceof IRTemp) {
             // check on target
-            destOpt = getOptMoveOperand(target, asmOpt, neighborsOpt);
+            destOpt = getOptMem((IRMem) target, asmOpt, neighborsOpt);
             // source is a temp, use it directly
             srcOpt = tempSpiller.newTemp(((IRTemp) source).name());
-            asmOpt.add(new AAMove(rcx, srcOpt)); // optimized binop uses rax and rbx so use rdx to avoid conflict
-            asmOpt.add(new AAMove(destOpt, rcx));
+            asmOpt.add(new AAMove(rdi, srcOpt)); // optimized binop uses rax and rbx so use rdx to avoid conflict
+            asmOpt.add(new AAMove(destOpt, rdi));
             tileOpt = new Tile(asmOpt, neighborsOpt);
         }
 
@@ -423,31 +423,6 @@ public class Tiler extends IRVisitor {
         return node;
     }
 
-    /**
-     * Helper to check for Mem(Binop) optimization into single memory address
-     * @param oldOpr the old mem operand, not optimized
-     * @param asmOpt list of assembly code
-     * @param neighborsOpt list of neighbors later used by the tile
-     * @return the possibly optimized mem operand
-     */
-    private AAOperand getOptMoveOperand(IRNode oldOpr, List<AAInstruction> asmOpt, List<IRNode> neighborsOpt) {
-        AAOperand optOpr;
-        IRExpr targetAddr = ((IRMem) oldOpr).expr();
-        if (targetAddr instanceof IRBinOp) {
-            BinOpToAddrParams targetAddrParams = binopToAddrMode((IRBinOp) targetAddr);
-            if (targetAddrParams.optimized) {
-                optOpr = targetAddrParams.address;
-                asmOpt.addAll(targetAddrParams.assembly);
-            } else {
-                optOpr = oldOpr.getTile().getReturnTemp();
-                neighborsOpt.add(oldOpr);
-            }
-        } else {
-            optOpr = oldOpr.getTile().getReturnTemp();
-            neighborsOpt.add(oldOpr);
-        }
-        return optOpr;
-    }
 
     /**
      * Tile a label node into an assembly label
@@ -561,9 +536,9 @@ public class Tiler extends IRVisitor {
                 // both are temps, we need to move one temp into a register and binop with that register,
                 // this tile has no neighbors
                 AATemp leftTemp = tempSpiller.newTemp(((IRTemp) left).name());
-                AAMove movRegTemp = new AAMove(rbx, leftTemp);
+                AAMove movRegTemp = new AAMove(rcx, leftTemp);
                 aasmNaive.add(movRegTemp);
-                destNaive = rbx;
+                destNaive = rcx;
                 srcNaive = tempSpiller.newTemp(((IRTemp) right).name());
                 // later we need to move result from rbx to return temp, for which we continue to use left temp
                 returnTempNaive = leftTemp;
@@ -571,9 +546,9 @@ public class Tiler extends IRVisitor {
             } else {
                 // use left as dest, mov left into rbx, and use right return temp as source
                 AATemp leftTemp = tempSpiller.newTemp(((IRTemp) left).name());
-                AAMove movRegTemp = new AAMove(rbx, leftTemp);
+                AAMove movRegTemp = new AAMove(rcx, leftTemp);
                 aasmNaive.add(movRegTemp);
-                destNaive = rbx;
+                destNaive = rcx;
                 srcNaive = right.getTile().getReturnTemp();
                 // right is the neighbor
                 neighborsNaive.add(right);
@@ -593,10 +568,10 @@ public class Tiler extends IRVisitor {
             } else if (right instanceof IRTemp) {
                 // need one temp to be moved to a register
                 AATemp leftTemp = left.getTile().getReturnTemp();
-                AAMove movRegTemp = new AAMove(rbx, leftTemp);
+                AAMove movRegTemp = new AAMove(rcx, leftTemp);
                 aasmNaive.add(movRegTemp);
                 // dest is the register
-                destNaive = rbx;
+                destNaive = rcx;
                 srcNaive = tempSpiller.newTemp(((IRTemp) right).name());
                 // need to move result back in temp later, so return temp is left temp
                 returnTempNaive = leftTemp;
@@ -607,10 +582,10 @@ public class Tiler extends IRVisitor {
                 AATemp leftTemp = left.getTile().getReturnTemp();
                 AATemp rightTemp = right.getTile().getReturnTemp();
                 // need one temp to be moved to a register
-                AAMove movRegTemp = new AAMove(rbx, leftTemp);
+                AAMove movRegTemp = new AAMove(rcx, leftTemp);
                 aasmNaive.add(movRegTemp);
                 // dest is the register
-                destNaive = rbx;
+                destNaive = rcx;
                 srcNaive = rightTemp;
                 // need to move result back in temp later, so return temp is left temp
                 returnTempNaive = leftTemp;
@@ -648,8 +623,8 @@ public class Tiler extends IRVisitor {
                 if (params.optimized) {
                     List<AAInstruction> aasmLea = new ArrayList<>(params.assembly);
                     AATemp returnTempLea = params.returnTemp;
-                    aasmLea.add(new AALea(rax, params.address)); // the lea instruction (always use rax as dest)
-                    aasmLea.add(new AAMove(returnTempLea, rax)); // mov result to return temp after lea
+                    aasmLea.add(new AALea(rcx, params.address)); // the lea instruction (always use rax as dest)
+                    aasmLea.add(new AAMove(returnTempLea, rcx)); // mov result to return temp after lea
                     tileLea = new Tile(aasmLea, new ArrayList<>()); // lea do not have neighbors
                     tileLea.setReturnTemp(returnTempLea);
                 }
@@ -681,7 +656,23 @@ public class Tiler extends IRVisitor {
                     // if dest is a register, move the result into a temp
                     aasmNaive.add(new AAMove(returnTempNaive, destNaive));
                 }
-                break;
+                tileNaive = new Tile(aasmNaive, neighborsNaive);
+                tileNaive.setReturnTemp(returnTempNaive);
+
+                Tile tileDec = null;
+                if (srcNaive instanceof AAImm && ((AAImm) srcNaive).val == -1) {
+                    // preserve/reuse the things done when collecting operands
+                    List<AAInstruction> aasmDec = new ArrayList<>(aasmNaive);
+                    aasmDec.add(new AAInc(destNaive));
+                    tileDec = new Tile(aasmDec, neighborsNaive);
+                }
+
+                if (tileDec != null && tileDec.getCostOfSubTree() <= tileNaive.getCostOfSubTree()) {
+                    node.setTile(tileDec);
+                } else {
+                    node.setTile(tileNaive);
+                }
+                return node;
             case MUL:
                 // multiplier in rax, result in rax
                 aasmNaive.add(new AAMove(rax, destNaive));
@@ -786,216 +777,56 @@ public class Tiler extends IRVisitor {
         return node;
     }
 
-    /**
-     * This is an record that contains the information gathered as we translate a binop into memory operand form.
-     * It contains:
-     *  - address: the translated address,
-     *  - assembly: the assembly instructions needed for the address to work with the original binop,
-     *  - whether the binop can be optimized into a memory operand, and,
-     *  - returnTemp: for the case when the binop is checked for a possible lea, the place where the result
-     *      of the lea should be returned to
-     */
-    private static class BinOpToAddrParams {
-        public AAMem address;
-        public List<AAInstruction> assembly;
-        public boolean optimized;
-        // has return temp if this is for translating binop expression into a single lea
-        public AATemp returnTemp;
 
-        public BinOpToAddrParams(AAMem addr, List<AAInstruction> asm, AATemp retTmp) {
-            address = addr;
-            assembly = asm;
-            optimized = (addr != null);
-            returnTemp = retTmp;
-        }
-
-    }
-
-    /**
-     * A helper function that determines if a binop expression can be shortened into a single mem operand
-     * and carry out the shortening if possible.
-     * @return a record that contains the translated address and other useful information
-     */
-    private BinOpToAddrParams binopToAddrMode(IRBinOp node) {
-        // base = rax
-        // index = rbx
-
-        // things that can be optimized using addressing mode:
-        // b + i + o
-        // b + s * i
-        // b + s * i + o
-
-        // b  i + o
-        // b + s * i
-        // b + s * i + o
-
-        List<AAInstruction> aasm = new ArrayList<>();
-        AAMem finalAddr = null;
-        AATemp returnTemp = null;
-
-        Set<Long> validScales = new HashSet<>();
-        validScales.add((long) 1);
-        validScales.add((long) 2);
-        validScales.add((long) 4);
-        validScales.add((long) 8);
-
-        AAReg base;
-        AAReg index;
-        long scale;
-        AAImm offset;
-
-        IRNode left = node.left();
-        IRNode right = node.right();
-
-        // binop looks like a + b * c --> do not know which of b/c is scale/index yet
-        if (left instanceof IRTemp
-                && right instanceof IRBinOp
-                && ((IRBinOp) right).opType() == IRBinOp.OpType.MUL) {
-            // left temp is the base and dest (for lea)
-            // mov left into rax = base
-            AATemp leftTemp = tempSpiller.newTemp((((IRTemp) left).name()));
-            aasm.add(new AAMove(rax, leftTemp));
-            base = rax;
-            returnTemp = leftTemp;
-
-            IRNode rLeft = ((IRBinOp) right).left();
-            IRNode rRight = ((IRBinOp) right).right();
-            // base + scale * index
-            if (rLeft instanceof IRConst
-                    && validScales.contains(((IRConst) rLeft).value())
-                    && rRight instanceof IRTemp) {
-                // mov rRight into rbx = index
-                aasm.add(new AAMove(rbx, tempSpiller.newTemp(((IRTemp) rRight).name())));
-                index = rbx;
-                scale = ((IRConst) rLeft).value();
-                finalAddr = new AAMem();
-                finalAddr.setBase(base);
-                finalAddr.setScale(scale);
-                finalAddr.setIndex(index);
-            }
-            // base + index * scale
-            else if (rRight instanceof IRConst
-                    && validScales.contains(((IRConst) rRight).value())
-                    && rLeft instanceof IRTemp) {
-                // mov rLeft into rbx = index
-                aasm.add(new AAMove(rbx, tempSpiller.newTemp(((IRTemp) rLeft).name())));
-                index = rbx;
-                scale = ((IRConst) rRight).value();
-                finalAddr = new AAMem();
-                finalAddr.setBase(base);
-                finalAddr.setScale(scale);
-                finalAddr.setIndex(index);
-            }
-
-        }
-
-        // looks like a * b + c
-        else if (right instanceof IRTemp
-                && left instanceof IRBinOp
-                && ((IRBinOp) left).opType() == IRBinOp.OpType.MUL) {
-            // base and dest is now c which is right
-            AATemp rightTemp = tempSpiller.newTemp((((IRTemp) right).name()));
-            aasm.add(new AAMove(rax, rightTemp));
-            base = rax;
-            returnTemp = rightTemp;
-
-            IRNode lLeft = ((IRBinOp) left).left();
-            IRNode lRight = ((IRBinOp) left).right();
-
-            // scale * index + base
-            if (lLeft instanceof IRConst
-                    && validScales.contains(((IRConst) lLeft).value())
-                    && lRight instanceof IRTemp) {
-                // mov lRight into rbx = index
-                aasm.add(new AAMove(rbx, tempSpiller.newTemp(((IRTemp) lRight).name())));
-                index = rbx;
-                scale = ((IRConst) lLeft).value();
-                finalAddr = new AAMem();
-                finalAddr.setBase(base);
-                finalAddr.setScale(scale);
-                finalAddr.setIndex(index);
-
-            }
-            // index * scale + base
-            else if (lRight instanceof IRConst
-                    && validScales.contains(((IRConst) lRight).value())
-                    && lLeft instanceof IRTemp) {
-                // mov rLeft into rbx = index
-                aasm.add(new AAMove(rbx, tempSpiller.newTemp(((IRTemp) lLeft).name())));
-                index = rbx;
-                scale = ((IRConst) lRight).value();
-                finalAddr = new AAMem();
-                finalAddr.setBase(base);
-                finalAddr.setScale(scale);
-                finalAddr.setIndex(index);
-
-            }
-
-        }
-
-        return new BinOpToAddrParams(finalAddr, aasm, returnTemp);
-    }
 
     /**
      * Tile a IR Mem node
-     * @param n2 the node to tile
-     * @return  n2 with tile being set
+     * @param node the node to tile
+     * @return node with tile being set
      */
-    private IRNode tileMem(IRMem n2){
-        List<IRNode> neighbors = new ArrayList<>();
-        List<AAInstruction> instructs = new ArrayList<>();
-        AATemp ret = this.tempSpiller.newTemp();
-
-        boolean canbeshortcut = false;
-        //there are three case
-        // 1: global data // this case is handle by IRNAMe itself
-        // 2: an string or an array
-        // 3: user just want to use mem...[is there really this case?] --> yes, all the time, e.g. add 1, [rpx + 8]
-
-        if(n2.expr() instanceof IRBinOp){
-            IRBinOp thechild = (IRBinOp) n2.expr();
-            if(thechild.opType() == IRBinOp.OpType.ADD){
-                if(thechild.right() instanceof IRBinOp){
-                    if(((IRBinOp) thechild.right()).opType() == IRBinOp.OpType.MUL){
-                        if(((IRBinOp) thechild.right()).left() instanceof IRConst){
-                            canbeshortcut = true;
-                        }
-                    }
-                }
-            }
+    private IRNode tileMem(IRMem node){
+        List<IRNode> neighborsNaive = new ArrayList<>();
+        List<AAInstruction> asmNaive = new ArrayList<>();
+        AAOperand addrNaive;
+        if (node.expr() instanceof IRConst) {
+            addrNaive = new AAImm(((IRConst) node.expr()).value());
+        } else if (node.expr() instanceof IRTemp){
+            addrNaive = tempSpiller.newTemp(((IRTemp) node.expr()).name());
+        } else {
+            addrNaive = node.expr().getTile().getReturnTemp();
+            neighborsNaive.add(node.expr());
         }
-        if(canbeshortcut){
-            AAMem result1 = new AAMem();
-            // having an extra move to deal with the problem that arr pos become rsp + sth
-            IRBinOp thechild = (IRBinOp) n2.expr();
-            instructs.add(new AAMove(rax, thechild.left().getTile().getReturnTemp()));
-            result1.setBase(rax);
-            result1.setScale(((IRConst) ((IRBinOp) thechild.right()).left()).value());
-            if(((IRBinOp) thechild.right()).right() instanceof IRConst){
-                result1.setImmediate(new AAImm(((IRConst) ((IRBinOp) thechild.right()).right()).value()));
-            }else{
-                instructs.add(new AAMove(rcx, thechild.right().getTile().getReturnTemp()));
-                result1.setIndex(rcx);
-            }
-            instructs.add(new AAMove(ret, result1));
+        asmNaive.add(new AAMove(rcx, addrNaive));
+        AATemp returnTemp = tempSpiller.newTemp();
+        AAMem mem = new AAMem();
+        mem.setBase(rcx);
+        asmNaive.add(new AAMove(returnTemp, mem));
+        Tile tileNaive = new Tile(asmNaive, neighborsNaive);
+        tileNaive.setReturnTemp(returnTemp);
 
-        }else if(n2.expr() instanceof IRConst){
-            AAMem result2 = new AAMem();
-            result2.setImmediate(new AAImm(((IRConst) n2.expr()).value()));
-            instructs.add(new AAMove(ret, result2));
-        }else{
-            AAMem result3 = new AAMem();
-            instructs.add(new AAMove(rdx, n2.expr().getTile().getReturnTemp()));
-            result3.setBase(rdx);
-            neighbors.add(n2.expr());
-            instructs.add(new AAMove(ret, result3));
+        // optimize for shorthand-ing binop address
+        List<IRNode> neighborsOpt = new ArrayList<>();
+        List<AAInstruction> asmOpt = new ArrayList<>();
+        Tile tileOpt = null;
+        AAOperand optMem = getOptMem(node, asmOpt, neighborsOpt);
+        if (optMem instanceof AAMem) { // did optimized
+            asmOpt.add(new AALea(rcx, (AAMem) optMem)); // we want the address itself moved to rax
+            asmOpt.add(new AAMove(returnTemp, rcx));
+            tileOpt = new Tile(asmOpt, neighborsOpt);
+            tileOpt.setReturnTemp(returnTemp);
+        } else { // did not optimize so can use naive
+            tileOpt = null;
         }
 
-        Tile newtile = new Tile(instructs,neighbors);
+        if (tileOpt == null) {
+            node.setTile(tileNaive);
+        } else if (tileOpt.getCostOfSubTree() <= tileNaive.getCostOfSubTree()) {
+            node.setTile(tileOpt);
+        } else {
+            node.setTile(tileNaive);
+        }
 
-        newtile.setReturnTemp(ret);
-        n2.setTile(newtile);
-        return n2;
+        return node;
     }
 
     /**
@@ -1182,6 +1013,183 @@ public class Tiler extends IRVisitor {
         Tile callStmtTile = new Tile(instructs, neighbors);
         node.setTile(callStmtTile);
         return node;
+    }
+
+
+    /**
+     * This is an record that contains the information gathered as we translate a binop into memory operand form.
+     * It contains:
+     *  - address: the translated address,
+     *  - assembly: the assembly instructions needed for the address to work with the original binop,
+     *  - whether the binop can be optimized into a memory operand, and,
+     *  - returnTemp: for the case when the binop is checked for a possible lea, the place where the result
+     *      of the lea should be returned to
+     */
+    private static class BinOpToAddrParams {
+        public AAMem address;
+        public List<AAInstruction> assembly;
+        public boolean optimized;
+        // has return temp if this is for translating binop expression into a single lea
+        public AATemp returnTemp;
+
+        public BinOpToAddrParams(AAMem addr, List<AAInstruction> asm, AATemp retTmp) {
+            address = addr;
+            assembly = asm;
+            optimized = (addr != null);
+            returnTemp = retTmp;
+        }
+
+    }
+
+    /**
+     * A helper function that determines if a binop expression can be shortened into a single mem operand
+     * and carry out the shortening if possible.
+     * @return a record that contains the translated address and other useful information
+     */
+    private BinOpToAddrParams binopToAddrMode(IRBinOp node) {
+        // base = rax
+        // index = rbx
+
+        // things that can be optimized using addressing mode:
+        // b + i + o
+        // b + s * i
+        // b + s * i + o
+
+        // b  i + o
+        // b + s * i
+        // b + s * i + o
+
+        List<AAInstruction> aasm = new ArrayList<>();
+        AAMem finalAddr = null;
+        AATemp returnTemp = null;
+
+        Set<Long> validScales = new HashSet<>();
+        validScales.add((long) 1);
+        validScales.add((long) 2);
+        validScales.add((long) 4);
+        validScales.add((long) 8);
+
+        AAReg base;
+        AAReg index;
+        long scale;
+        AAImm offset;
+
+        IRNode left = node.left();
+        IRNode right = node.right();
+
+        // binop looks like a + b * c --> do not know which of b/c is scale/index yet
+        if (left instanceof IRTemp
+                && right instanceof IRBinOp
+                && ((IRBinOp) right).opType() == IRBinOp.OpType.MUL) {
+            // left temp is the base and dest (for lea)
+            // mov left into rax = base
+            AATemp leftTemp = tempSpiller.newTemp((((IRTemp) left).name()));
+            aasm.add(new AAMove(rcx, leftTemp));
+            base = rax;
+            returnTemp = leftTemp;
+
+            IRNode rLeft = ((IRBinOp) right).left();
+            IRNode rRight = ((IRBinOp) right).right();
+            // base + scale * index
+            if (rLeft instanceof IRConst
+                    && validScales.contains(((IRConst) rLeft).value())
+                    && rRight instanceof IRTemp) {
+                // mov rRight into rbx = index
+                aasm.add(new AAMove(rsi, tempSpiller.newTemp(((IRTemp) rRight).name())));
+                index = rsi;
+                scale = ((IRConst) rLeft).value();
+                finalAddr = new AAMem();
+                finalAddr.setBase(base);
+                finalAddr.setScale(scale);
+                finalAddr.setIndex(index);
+            }
+            // base + index * scale
+            else if (rRight instanceof IRConst
+                    && validScales.contains(((IRConst) rRight).value())
+                    && rLeft instanceof IRTemp) {
+                // mov rLeft into rbx = index
+                aasm.add(new AAMove(rsi, tempSpiller.newTemp(((IRTemp) rLeft).name())));
+                index = rsi;
+                scale = ((IRConst) rRight).value();
+                finalAddr = new AAMem();
+                finalAddr.setBase(base);
+                finalAddr.setScale(scale);
+                finalAddr.setIndex(index);
+            }
+
+        }
+
+        // looks like a * b + c
+        else if (right instanceof IRTemp
+                && left instanceof IRBinOp
+                && ((IRBinOp) left).opType() == IRBinOp.OpType.MUL) {
+            // base and dest is now c which is right
+            AATemp rightTemp = tempSpiller.newTemp((((IRTemp) right).name()));
+            aasm.add(new AAMove(rcx, rightTemp));
+            base = rcx;
+            returnTemp = rightTemp;
+
+            IRNode lLeft = ((IRBinOp) left).left();
+            IRNode lRight = ((IRBinOp) left).right();
+
+            // scale * index + base
+            if (lLeft instanceof IRConst
+                    && validScales.contains(((IRConst) lLeft).value())
+                    && lRight instanceof IRTemp) {
+                // mov lRight into rbx = index
+                aasm.add(new AAMove(rsi, tempSpiller.newTemp(((IRTemp) lRight).name())));
+                index = rsi;
+                scale = ((IRConst) lLeft).value();
+                finalAddr = new AAMem();
+                finalAddr.setBase(base);
+                finalAddr.setScale(scale);
+                finalAddr.setIndex(index);
+
+            }
+            // index * scale + base
+            else if (lRight instanceof IRConst
+                    && validScales.contains(((IRConst) lRight).value())
+                    && lLeft instanceof IRTemp) {
+                // mov rLeft into rbx = index
+                aasm.add(new AAMove(rsi, tempSpiller.newTemp(((IRTemp) lLeft).name())));
+                index = rsi;
+                scale = ((IRConst) lRight).value();
+                finalAddr = new AAMem();
+                finalAddr.setBase(base);
+                finalAddr.setScale(scale);
+                finalAddr.setIndex(index);
+
+            }
+
+        }
+
+        return new BinOpToAddrParams(finalAddr, aasm, returnTemp);
+    }
+
+    /**
+     * Helper to check for Mem(Binop) optimization into single memory address
+     * @param oldOpr the old mem operand, not optimized
+     * @param asmOpt list of assembly code
+     * @param neighborsOpt list of neighbors later used by the tile
+     * @return the possibly optimized mem, can be a short-handed mem address, or a temp (no optimization)
+     */
+    private AAOperand getOptMem(IRMem oldOpr, List<AAInstruction> asmOpt, List<IRNode> neighborsOpt) {
+        AAOperand optOpr;
+        IRExpr targetAddr = oldOpr.expr();
+        if (targetAddr instanceof IRBinOp) {
+            BinOpToAddrParams targetAddrParams = binopToAddrMode((IRBinOp) targetAddr);
+            if (targetAddrParams.optimized) {
+                optOpr = targetAddrParams.address;
+                asmOpt.addAll(targetAddrParams.assembly);
+            } else {
+                optOpr = oldOpr.getTile().getReturnTemp();
+                neighborsOpt.add(oldOpr);
+            }
+        } else {
+            optOpr = oldOpr.getTile().getReturnTemp();
+            neighborsOpt.add(oldOpr);
+        }
+        return optOpr;
     }
 
 
