@@ -329,51 +329,118 @@ public class Tiler extends IRVisitor {
      * @return a move IR node labeled with its tile of assembly
      */
     private IRNode tileMove(IRMove node) {
-        //TODO: optimization
-//        if (node.source() instanceof IRBinOp && node.target().equals(node.source())) {
-//            List<IRNode> neighbors = new ArrayList<>();
-//            neighbors.add(node.source());
-//            node.setTile(new Tile(new ArrayList<>(), neighbors));
-//        } else {
-        AAOperand operand1;
-        AAOperand operand2;
-        IRNode n1 = node.target();
-        IRNode n2 = node.source();
-        if (n2 instanceof IRTemp && ((IRTemp) n2).name().startsWith("_RV")) {
-            long index = Long.parseLong(((IRTemp) n2).name().replaceFirst("^_RV", ""));
+        // naive
+        AAOperand destNaive;
+        AAOperand srcNaive;
+        ArrayList<IRNode> neighborsNaive = new ArrayList<>();
+
+        IRNode target = node.target();
+        IRNode source = node.source();
+        if (source instanceof IRTemp && ((IRTemp) source).name().startsWith("_RV")) {
+            long index = Long.parseLong(((IRTemp) source).name().replaceFirst("^_RV", ""));
             if (index == 1) {
-                operand2 = rax;
+                srcNaive = rax;
             } else if (index == 2) {
-                operand2 = rdx;
+                srcNaive = rdx;
             } else {
                 AAMem mem = new AAMem();
                 mem.setBase(rdi);
                 mem.setImmediate(new AAImm((index - 2) * 8L));
-                operand2 = mem;
+                srcNaive = mem;
             }
+            // source is not a neighbor in this case since we are covering it under this tile
         } else {
-            Tile t2 = node.source().getTile();
-            operand2 = t2.getReturnTemp();
+            Tile t2 = source.getTile();
+            srcNaive = t2.getReturnTemp();
+            neighborsNaive.add(source); // only here we use the source as neighbor
         }
 
-        Tile t1 = node.target().getTile();
-        operand1 = t1.getReturnTemp();
+        Tile t1 = target.getTile();
+        destNaive = t1.getReturnTemp();
 
-        AAMove m1 = new AAMove(rdx, operand2);
-        AAMove m2 = new AAMove(operand1, rdx);
+        AAMove m1 = new AAMove(rdx, srcNaive);
+        AAMove m2 = new AAMove(destNaive, rdx);
 
-        ArrayList<AAInstruction> asm = new ArrayList<>();
-        asm.addAll(getNeighborAsm(node.source()));
-        asm.addAll(getNeighborAsm(node.target()));
-        asm.add(m1);
-        asm.add(m2);
+        ArrayList<AAInstruction> asmNaive = new ArrayList<>();
+        asmNaive.add(m1);
+        asmNaive.add(m2);
 
-        ArrayList<IRNode> neighbors = new ArrayList<>();
-        neighbors.add(node.source());
-        neighbors.add(node.target());
-        Tile t = new Tile (asm, neighbors);
-        node.setTile(t);
+        neighborsNaive.add(node.target());
+        Tile tileNaive = new Tile(asmNaive, neighborsNaive);
+
+        // check for possible addressing shorthand
+        // possible combinations:
+        // target = mem, source = mem --> check on both
+        // target = temp, source = mem --> check for binop optimization on source
+        // target = mem, source = temp --> check for binop optimization on target
+        // target = temp, source = temp --> no optimization, use naive
+        AAOperand destOpt;
+        AAOperand srcOpt;
+        List<AAInstruction> asmOpt = new ArrayList<>();
+        List<IRNode> neighborsOpt = new ArrayList<>();
+        Tile tileOpt = null;
+        if (target instanceof IRMem && source instanceof IRMem) {
+            // check on target
+            destOpt = getOptMoveOperand(target, asmOpt, neighborsOpt);
+            // check on source
+            srcOpt = getOptMoveOperand(source, asmOpt, neighborsOpt);
+            // since both target and source are mem, mov to a register in between
+            asmOpt.add(new AAMove(rdx, srcOpt)); // optimized binop uses rax and rbx so use rdx to avoid conflict
+            asmOpt.add(new AAMove(destOpt, rdx));
+            tileOpt = new Tile(asmOpt, neighborsOpt);
+        } else if (target instanceof IRTemp && source instanceof IRMem) {
+            // target is a temp, use it directly
+            destOpt = tempSpiller.newTemp(((IRTemp) target).name());
+            // check on source
+            srcOpt = getOptMoveOperand(source, asmOpt, neighborsOpt);
+            asmOpt.add(new AAMove(rdx, srcOpt)); // optimized binop uses rax and rbx so use rdx to avoid conflict
+            asmOpt.add(new AAMove(destOpt, rdx));
+            tileOpt = new Tile(asmOpt, neighborsOpt);
+        } else if (target instanceof IRMem && source instanceof IRTemp) {
+            // check on target
+            destOpt = getOptMoveOperand(target, asmOpt, neighborsOpt);
+            // source is a temp, use it directly
+            srcOpt = tempSpiller.newTemp(((IRTemp) source).name());
+            asmOpt.add(new AAMove(rdx, srcOpt)); // optimized binop uses rax and rbx so use rdx to avoid conflict
+            asmOpt.add(new AAMove(destOpt, rdx));
+            tileOpt = new Tile(asmOpt, neighborsOpt);
+        }
+
+        if (tileOpt == null) {
+            node.setTile(tileNaive);
+        } else if (tileOpt.getCostOfSubTree() <= tileNaive.getCostOfSubTree()) {
+            node.setTile(tileOpt);
+        } else {
+            node.setTile(tileNaive);
+        }
+
         return node;
+    }
+
+    /**
+     * Helper to check for Mem(Binop) optimization into single memory address
+     * @param oldOpr the old mem operand, not optimized
+     * @param asmOpt list of assembly code
+     * @param neighborsOpt list of neighbors later used by the tile
+     * @return the possibly optimized mem operand
+     */
+    private AAOperand getOptMoveOperand(IRNode oldOpr, List<AAInstruction> asmOpt, List<IRNode> neighborsOpt) {
+        AAOperand optOpr;
+        IRExpr targetAddr = ((IRMem) oldOpr).expr();
+        if (targetAddr instanceof IRBinOp) {
+            BinOpToAddrParams targetAddrParams = binopToAddrMode((IRBinOp) targetAddr);
+            if (targetAddrParams.optimized) {
+                optOpr = targetAddrParams.address;
+                asmOpt.addAll(targetAddrParams.assembly);
+            } else {
+                optOpr = oldOpr.getTile().getReturnTemp();
+                neighborsOpt.add(oldOpr);
+            }
+        } else {
+            optOpr = oldOpr.getTile().getReturnTemp();
+            neighborsOpt.add(oldOpr);
+        }
+        return optOpr;
     }
 
     /**
@@ -589,7 +656,7 @@ public class Tiler extends IRVisitor {
                 if (tileInc != null) {
                     allOptions.add(tileInc);
                 }
-                if(tileLea != null){
+                if (tileLea != null){
                     allOptions.add(tileLea);
                 }
                 int minCost = Integer.MAX_VALUE;
