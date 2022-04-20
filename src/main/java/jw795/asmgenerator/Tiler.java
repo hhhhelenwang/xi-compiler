@@ -159,6 +159,7 @@ public class Tiler extends IRVisitor {
         AAReg[] argRegs = new AAReg[]{rsi, rdx, rcx, r8, r9};
         long argSize = funcArgLengths.get(name);
         for (long i = 0L; i < argSize; i++) {
+            System.out.println(i);
             if (i < 5) {
                 asm.add(new AAMove(tempSpiller.newTemp(argNames[(int) i]), argRegs[(int) i]));
             } else {
@@ -223,10 +224,10 @@ public class Tiler extends IRVisitor {
     private List<AAInstruction> concatAsm(IRNode node) {
         List<AAInstruction> asm = new ArrayList<>();
         for (IRNode neighbor : node.getTile().getNeighborIRs()) {
-            asm.addAll(neighbor.getTile().getAssembly());
             asm.addAll(concatAsm(neighbor));
-            asm.addAll(node.getTile().getAssembly());
+            asm.addAll(neighbor.getTile().getAssembly());
         }
+        asm.addAll(node.getTile().getAssembly());
         return asm;
     }
 
@@ -321,6 +322,7 @@ public class Tiler extends IRVisitor {
 
         List<AAInstruction> asm = new ArrayList<>();
         List<IRNode> neighbors = new ArrayList<>(rets);
+
 
         if (ret_size == 0) {
             //do nothing
@@ -421,6 +423,7 @@ public class Tiler extends IRVisitor {
         }
 
         if (tileOpt == null) {
+            System.out.println("tile naive move");
             node.setTile(tileNaive);
         } else if (tileOpt.getCostOfSubTree() <= tileNaive.getCostOfSubTree()) {
             node.setTile(tileOpt);
