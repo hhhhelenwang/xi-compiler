@@ -486,7 +486,9 @@ public class Tiler extends IRVisitor {
             aasm.add(new AAMove(rdx, tempSpiller.newTemp(node.name())));
             aasm.add(new AAMove(target, rdx));
         } else {
-            aasm.add(new AAMove(target, new AALabel(node.name())));
+            AALabel label = new AALabel(node.name());
+            aasm.add(new AAMove(rdx, label));
+            aasm.add(new AAMove(target, rdx));
         }
         Tile labelTile = new Tile(aasm, new ArrayList<>());
         labelTile.setReturnTemp(target);
