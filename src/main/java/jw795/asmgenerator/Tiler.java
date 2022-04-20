@@ -551,7 +551,7 @@ public class Tiler extends IRVisitor {
 
                 // in case that one of the operand is 1, can use inc
                 Tile tileInc = null;
-                if (srcNaive instanceof AAImm) {
+                if (srcNaive instanceof AAImm && ((AAImm) srcNaive).val == 1) {
                     // preserve/reuse the things done when collecting operands
                     List<AAInstruction> aasmInc = new ArrayList<>(aasmNaive);
                     aasmInc.add(new AAInc(destNaive));
@@ -570,6 +570,7 @@ public class Tiler extends IRVisitor {
                     tileLea.setReturnTemp(returnTempLea);
                 }
 
+                // pick the best one
                 List<Tile> allOptions = new ArrayList<>();
                 allOptions.add(tileNaive);
                 allOptions.add(tileInc);
