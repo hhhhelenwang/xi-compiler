@@ -156,7 +156,6 @@ public class Tiler extends IRVisitor {
         AAReg[] argRegs = new AAReg[]{rsi, rdx, rcx, r8, r9};
         long argSize = funcArgLengths.get(name);
         for (long i = 0L; i < argSize; i++) {
-            System.out.println(i);
             if (i < 5) {
                 asm.add(new AAMove(tempSpiller.newTemp("_ARG" + (i + 1)), argRegs[(int) i]));
             } else {
