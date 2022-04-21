@@ -385,20 +385,20 @@ public class Tiler extends IRVisitor {
         Tile tileIncDec = null;
         if (target instanceof IRTemp && source instanceof IRBinOp
                 && (((IRBinOp) source).opType() == IRBinOp.OpType.ADD
-                || ((IRBinOp) source).opType() == IRBinOp.OpType.SUB)) {
+                    || ((IRBinOp) source).opType() == IRBinOp.OpType.SUB)) {
             IRNode left = ((IRBinOp) source).left();
             IRNode right = ((IRBinOp) source).right();
 
             boolean isIncOrDec =
                     left instanceof IRConst
-                            && ((IRConst) left).value() == 1
-                            && right instanceof IRTemp
-                            && ((IRTemp) right).name().equals(((IRTemp) target).name())
-                            ||
-                            right instanceof IRConst
-                                    && ((IRConst) right).value() == 1
-                                    && left instanceof IRTemp
-                                    && ((IRTemp) left).name().equals(((IRTemp) target).name());
+                        && ((IRConst) left).value() == 1
+                        && right instanceof IRTemp
+                        && ((IRTemp) right).name().equals(((IRTemp) target).name())
+                    ||
+                    right instanceof IRConst
+                            && ((IRConst) right).value() == 1
+                            && left instanceof IRTemp
+                            && ((IRTemp) left).name().equals(((IRTemp) target).name());
 
             if (isIncOrDec) {
                 AATemp targetTemp = tempSpiller.newTemp(((IRTemp) target).name());
@@ -453,7 +453,7 @@ public class Tiler extends IRVisitor {
             tileOpt = new Tile(asmOpt, neighborsOpt);
         } else if (target instanceof IRTemp && source instanceof IRConst){
             asmOpt.add(new AAMove(tempSpiller.newTemp(((IRTemp) target).name()),
-                    new AAImm (((IRConst) source).value())));
+                            new AAImm (((IRConst) source).value())));
             tileOpt = new Tile(asmOpt,neighborsOpt);
         }
 
