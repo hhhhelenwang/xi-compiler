@@ -1224,7 +1224,7 @@ public class Tiler extends IRVisitor {
             instructs.add(new AAMove(callerRegs[i], savedRegs[i]));
         }
 
-        Tile callStmtTile = new Tile(instructs, new ArrayList<>());
+        Tile callStmtTile = new Tile(instructs, new ArrayList<>(node.args()));
         node.setTile(callStmtTile);
         return node;
     }
