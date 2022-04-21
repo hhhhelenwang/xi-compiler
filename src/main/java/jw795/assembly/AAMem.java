@@ -56,18 +56,8 @@ public class AAMem extends AAOperand{
                 } else {
                     strOfMem += "-" + scale.get() + "*" + index.get();
                 }
-//            }
-//            else {
-//                if (base.isPresent()){
-//                    strOfMem += "+" + index.get();
-//                } else {
-//                    strOfMem += index.get();
-//                }
-//            }
         }
 
-        //rbp - 1 * 8         + 16
-        //base scale * index  imm(pos)
         if (immediate.isPresent()){
             if (scale.isPresent()){
                 if (index.isPresent()){
