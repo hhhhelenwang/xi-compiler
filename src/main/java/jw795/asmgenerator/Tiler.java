@@ -143,11 +143,9 @@ public class Tiler extends IRVisitor {
         if (curRetSize > 2) {
             if (curArgSize > 5) {
                 argScratchSize = curArgSize - 5;
-                retScratchSize = curRetSize - 2;
                 excessArg = true;
-            } else {
-                retScratchSize = curRetSize - 2;
             }
+            retScratchSize = curRetSize - 2;
             excessRet = true;
         } else {
             if (curArgSize > 6) {
@@ -269,6 +267,7 @@ public class Tiler extends IRVisitor {
      * Recursively traverse root node to get their assembly code
      *
      * @param node root node
+     * @param epi epilogue assembly to de story the call stack
      * @return List of instructions of concatenated optimal assembly code
      */
     private List<AAInstruction> concatAsm(IRNode node, List<AAInstruction> epi) {
@@ -1083,13 +1082,13 @@ public class Tiler extends IRVisitor {
                                 break;
                         }
                     } else {
-                        aasm.add(new AACmp(node.cond().getTile().getReturnTemp(), new AAImm(1)));
+                        aasm.add(new AACmp(node.cond().getTile().getReturnTemp(), new AAImm(0)));
                         aasm.add(new AAJe(new AALabel(target)));
                     }
                     break;
                 case AND:
                 case OR:
-                    aasm.add(new AACmp(node.cond().getTile().getReturnTemp(), new AAImm(1)));
+                    aasm.add(new AACmp(node.cond().getTile().getReturnTemp(), new AAImm(0)));
                     aasm.add(new AAJe(new AALabel(target)));
                     break;
                 case EQ:
@@ -1117,7 +1116,7 @@ public class Tiler extends IRVisitor {
                     break;
             }
         } else if (node.cond() instanceof IRTemp) { //true, false IRTemp
-            aasm.add(new AACmp(node.cond().getTile().getReturnTemp(), new AAImm(1)));
+            aasm.add(new AACmp(node.cond().getTile().getReturnTemp(), new AAImm(0)));
             aasm.add(new AAJe(new AALabel(target)));
         } else {
             System.out.println("should not enter this branch");
@@ -1336,7 +1335,6 @@ public class Tiler extends IRVisitor {
                 finalAddr.setScale(scale);
                 finalAddr.setIndex(index);
             }
-
         }
 
         // looks like a * b + c
@@ -1377,9 +1375,7 @@ public class Tiler extends IRVisitor {
                 finalAddr.setBase(base);
                 finalAddr.setScale(scale);
                 finalAddr.setIndex(index);
-
             }
-
         }
 
         return new BinOpToAddrParams(finalAddr, aasm);
