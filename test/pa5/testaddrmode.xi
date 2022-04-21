@@ -7,6 +7,8 @@ main(args:int[][]){
     a:int;
     b:int;
 
+    a = x + y;
+
     a = x + 2 * y;
     a = 2 * y + x;
     b = x + y * 2;

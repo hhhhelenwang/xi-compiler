@@ -378,8 +378,41 @@ public class Tiler extends IRVisitor {
         asmNaive.add(m1);
         asmNaive.add(m2);
 
-
         Tile tileNaive = new Tile(asmNaive, neighborsNaive);
+
+        // check for possible inc or dec uses
+        List<AAInstruction> asmIncDec = new ArrayList<>();
+        Tile tileIncDec = null;
+        if (target instanceof IRTemp && source instanceof IRBinOp
+                && (((IRBinOp) source).opType() == IRBinOp.OpType.ADD
+                    || ((IRBinOp) source).opType() == IRBinOp.OpType.SUB)) {
+            IRNode left = ((IRBinOp) source).left();
+            IRNode right = ((IRBinOp) source).right();
+
+            boolean isIncOrDec =
+                    left instanceof IRConst
+                        && ((IRConst) left).value() == 1
+                        && right instanceof IRTemp
+                        && ((IRTemp) right).name().equals(((IRTemp) target).name())
+                    ||
+                    right instanceof IRConst
+                            && ((IRConst) right).value() == 1
+                            && left instanceof IRTemp
+                            && ((IRTemp) left).name().equals(((IRTemp) target).name());
+
+            if (isIncOrDec) {
+                AATemp targetTemp = tempSpiller.newTemp(((IRTemp) target).name());
+                if (((IRBinOp) source).opType() == IRBinOp.OpType.ADD) {
+                    asmIncDec.add(new AAInc(targetTemp));
+                } else {
+                    asmIncDec.add(new AADec(targetTemp));
+                }
+                tileIncDec = new Tile(asmIncDec, new ArrayList<>());
+
+            } else {
+                tileIncDec = null;
+            }
+        }
 
         // check for possible addressing shorthand
         // possible combinations:
@@ -418,19 +451,28 @@ public class Tiler extends IRVisitor {
             asmOpt.add(new AAMove(rdi, srcOpt)); // optimized binop uses rax and rbx so use rdx to avoid conflict
             asmOpt.add(new AAMove(destOpt, rdi));
             tileOpt = new Tile(asmOpt, neighborsOpt);
-        }else if( target instanceof IRTemp && source instanceof IRConst){
-
-            asmOpt.add(new AAMove(tempSpiller.newTemp(((IRTemp) target).name()),new AAImm (((IRConst) source).value())));
+        } else if (target instanceof IRTemp && source instanceof IRConst){
+            asmOpt.add(new AAMove(tempSpiller.newTemp(((IRTemp) target).name()),
+                            new AAImm (((IRConst) source).value())));
             tileOpt = new Tile(asmOpt,neighborsOpt);
         }
 
-        if (tileOpt == null) {
-            node.setTile(tileNaive);
-        } else if (tileOpt.getCostOfSubTree() <= tileNaive.getCostOfSubTree()) {
-            node.setTile(tileOpt);
-        } else {
-            node.setTile(tileNaive);
+        List<Tile> allOptions = new ArrayList<>();
+        if (tileIncDec != null) {
+            allOptions.add(tileIncDec);
         }
+        if (tileOpt != null) {
+            allOptions.add(tileOpt);
+        }
+        allOptions.add(tileNaive);
+
+        Tile best = tileNaive;
+        for (Tile option : allOptions) {
+            if (option.getCostOfSubTree() <= best.getCostOfSubTree()) {
+                best = option;
+            }
+        }
+        node.setTile(best);
 
         return node;
     }
@@ -561,25 +603,40 @@ public class Tiler extends IRVisitor {
                 srcNaive = new AAImm(((IRConst) right).value());
 
             } else if (right instanceof IRTemp) {
-                // use right as the target temp and return temp, this tile has no neighbors
-                destNaive = tempSpiller.newTemp(((IRTemp) right).name());
+                // move content of right into a fresh temp, use the fresh temp as return temp
+                AATemp newTemp = tempSpiller.newTemp();
+                AATemp rightTemp = tempSpiller.newTemp(((IRTemp) right).name());
+                aasmNaive.add(new AAMove(rcx, rightTemp));
+                aasmNaive.add(new AAMove(newTemp, rcx));
+                // dest = the new temp with rightTemp's value
+                destNaive = newTemp;
                 srcNaive = new AAImm(((IRConst) left).value());
-                returnTempNaive = (AATemp) destNaive;
+                returnTempNaive = newTemp;
             } else {
-                // use the return temp of right as the target temp and return temp
+                // move content of right temp into a fresh temp
                 Tile rightTile = right.getTile();
-                destNaive = rightTile.getReturnTemp();
+                AATemp rightTemp = rightTile.getReturnTemp();
+                AATemp newTemp = tempSpiller.newTemp();
+                aasmNaive.add(new AAMove(rcx, rightTemp));
+                aasmNaive.add(new AAMove(newTemp, rcx));
+                // dest = the new temp with rightTemp's value
+                destNaive = newTemp;
                 srcNaive = new AAImm(((IRConst) left).value());
-                returnTempNaive = (AATemp) destNaive;
+                returnTempNaive = newTemp;
                 // right is the neighbor
                 neighborsNaive.add(right);
             }
         } else if (left instanceof IRTemp) {
             if (right instanceof IRConst) {
-                // since the left is a temp, use that as the target and return temp, this tile has no neighbors
-                destNaive = tempSpiller.newTemp(((IRTemp) left).name());
-                returnTempNaive = (AATemp) destNaive;
+                // move content of left temp into a new temp
+                AATemp leftTemp = tempSpiller.newTemp(((IRTemp) left).name());
+                AATemp newTemp = tempSpiller.newTemp();
+                aasmNaive.add(new AAMove(rcx, leftTemp));
+                aasmNaive.add(new AAMove(newTemp, rcx));
+
+                destNaive = newTemp;
                 srcNaive = new AAImm(((IRConst) right).value());
+                returnTempNaive = newTemp;
             } else if (right instanceof IRTemp) {
                 // both are temps, we need to move one temp into a register and binop with that register,
                 // this tile has no neighbors
@@ -588,9 +645,8 @@ public class Tiler extends IRVisitor {
                 aasmNaive.add(movRegTemp);
                 destNaive = rcx;
                 srcNaive = tempSpiller.newTemp(((IRTemp) right).name());
-                // later we need to move result from rbx to return temp, for which we continue to use left temp
-                returnTempNaive = leftTemp;
-
+                // later we need to move result from rbx to return temp for which we create a fresh temp
+                returnTempNaive = tempSpiller.newTemp();
             } else {
                 // use left as dest, mov left into rbx, and use right return temp as source
                 AATemp leftTemp = tempSpiller.newTemp(((IRTemp) left).name());
@@ -601,18 +657,22 @@ public class Tiler extends IRVisitor {
                 // right is the neighbor
                 neighborsNaive.add(right);
                 // later we need to move result from rbx to return temp,
-                // for which we continue to use left return temp
-                returnTempNaive = leftTemp;
+                // for which we continue to use a new temp
+                returnTempNaive = tempSpiller.newTemp();
             }
         } else {
             if (right instanceof IRConst) {
-                // use the return temp of left as dest and the return temp for this binop
-                destNaive = left.getTile().getReturnTemp();
+                // move left return temp into a fresh temp
+                AATemp newTemp = tempSpiller.newTemp();
+                AATemp leftTemp = left.getTile().getReturnTemp();
+                aasmNaive.add(new AAMove(rcx, leftTemp));
+                aasmNaive.add(new AAMove(newTemp, rcx));
+
+                destNaive = newTemp;
                 srcNaive = new AAImm(((IRConst) right).value());
-                returnTempNaive = (AATemp) destNaive;
+                returnTempNaive = newTemp;
                 // the left is the neighbor node
                 neighborsNaive.add(left);
-
             } else if (right instanceof IRTemp) {
                 // need one temp to be moved to a register
                 AATemp leftTemp = left.getTile().getReturnTemp();
@@ -621,11 +681,10 @@ public class Tiler extends IRVisitor {
                 // dest is the register
                 destNaive = rcx;
                 srcNaive = tempSpiller.newTemp(((IRTemp) right).name());
-                // need to move result back in temp later, so return temp is left temp
-                returnTempNaive = leftTemp;
+                // need to move result back in a new temp later
+                returnTempNaive = tempSpiller.newTemp();
                 // neighbor is left node
                 neighborsNaive.add(left);
-
             } else {
                 AATemp leftTemp = left.getTile().getReturnTemp();
                 AATemp rightTemp = right.getTile().getReturnTemp();
@@ -636,7 +695,7 @@ public class Tiler extends IRVisitor {
                 destNaive = rcx;
                 srcNaive = rightTemp;
                 // need to move result back in temp later, so return temp is left temp
-                returnTempNaive = leftTemp;
+                returnTempNaive = tempSpiller.newTemp();
                 // both are neighbors
                 neighborsNaive.add(left);
                 neighborsNaive.add(right);
@@ -653,29 +712,20 @@ public class Tiler extends IRVisitor {
                 // basic case
                 AAAdd add = new AAAdd(destNaive, srcNaive);
                 aasmNaive.add(add);
-                if (destNaive instanceof AAReg) {
-                    // if dest is a register, move the result into a temp
+                // if dest and return temp do not points to the same thing, move dest into return temp
+                if (destNaive != returnTempNaive) {
+                    // means dest is a register, move the result into a temp
                     aasmNaive.add(new AAMove(returnTempNaive, destNaive));
                 }
                 tileNaive = new Tile(aasmNaive, neighborsNaive);
                 tileNaive.setReturnTemp(returnTempNaive);
-
-                // in case that one of the operand is 1, can use inc
-                Tile tileInc = null;
-                if (srcNaive instanceof AAImm && ((AAImm) srcNaive).val == 1) {
-                    // preserve/reuse the things done when collecting operands
-                    aasmInc.add(new AAInc(destNaive));
-                    tileInc = new Tile(aasmInc, neighborsNaive);
-                    // same ret temp, also destNaive will not be a reg here according to the cases above
-                    tileInc.setReturnTemp(returnTempNaive);
-                }
 
                 // check for possible lea
                 BinOpToAddrParams params = binopToAddrMode(node);
                 Tile tileLea = null;
                 if (params.optimized) {
                     List<AAInstruction> aasmLea = new ArrayList<>(params.assembly);
-                    AATemp returnTempLea = params.returnTemp;
+                    AATemp returnTempLea = tempSpiller.newTemp();
                     aasmLea.add(new AALea(rcx, params.address)); // the lea instruction (always use rax as dest)
                     aasmLea.add(new AAMove(returnTempLea, rcx)); // mov result to return temp after lea
                     tileLea = new Tile(aasmLea, new ArrayList<>()); // lea do not have neighbors
@@ -683,23 +733,12 @@ public class Tiler extends IRVisitor {
                 }
 
                 // pick the best one
-                List<Tile> allOptions = new ArrayList<>();
-                allOptions.add(tileNaive);
-                if (tileInc != null) {
-                    allOptions.add(tileInc);
+                if (tileLea != null && tileLea.getCostOfSubTree() <= tileNaive.getCostOfSubTree()) {
+                    node.setTile(tileLea);
+                } else {
+                    node.setTile(tileNaive);
                 }
-                if (tileLea != null) {
-                    allOptions.add(tileLea);
-                }
-                int minCost = Integer.MAX_VALUE;
-                Tile bestOption = tileNaive;
-                for (Tile option : allOptions) {
-                    if (option.getCostOfSubTree() <= minCost) {
-                        minCost = option.getCostOfSubTree();
-                        bestOption = option;
-                    }
-                }
-                node.setTile(bestOption);
+
                 return node;
 
             case SUB:
@@ -709,29 +748,14 @@ public class Tiler extends IRVisitor {
 
                 AASub sub = new AASub(destNaive, srcNaive);
                 aasmNaive.add(sub);
-                if (destNaive instanceof AAReg) {
-                    // if dest is a register, move the result into a temp
+                if (destNaive != returnTempNaive) {
+                    // means dest is a register, move the result into a temp
                     aasmNaive.add(new AAMove(returnTempNaive, destNaive));
                 }
+
                 tileNaive = new Tile(aasmNaive, neighborsNaive);
                 tileNaive.setReturnTemp(returnTempNaive);
-
-                Tile tileDec = null;
-                // sub(a, 1) = a - 1 = dec a
-                if (srcNaive instanceof AAImm && ((AAImm) srcNaive).val == 1) {
-                    // preserve/reuse the things done when collecting operands
-                    aasmDec.add(new AADec(destNaive));
-                    tileDec = new Tile(aasmDec, neighborsNaive);
-                    // same ret temp, also destNaive will not be a reg here according to the cases above
-                    tileDec.setReturnTemp(returnTempNaive);
-                }
-
-                if (tileDec != null && tileDec.getCostOfSubTree() <= tileNaive.getCostOfSubTree()) {
-                    node.setTile(tileDec);
-                } else {
-                    node.setTile(tileNaive);
-                }
-                return node;
+                break;
             case MUL:
                 // multiplier in rax, result in rax
                 aasmNaive.add(new AAMove(rax, destNaive));
@@ -786,43 +810,43 @@ public class Tiler extends IRVisitor {
                 break;
             case AND:
                 aasmNaive.add(new AAAnd(destNaive, srcNaive));
-                if (destNaive instanceof AAReg) {
-                    // if dest is a register, move the result into a temp
+                if (destNaive != returnTempNaive) {
+                    // means dest is a register, move the result into a temp
                     aasmNaive.add(new AAMove(returnTempNaive, destNaive));
                 }
                 break;
             case OR:
                 aasmNaive.add(new AAOr(destNaive, srcNaive));
-                if (destNaive instanceof AAReg) {
-                    // if dest is a register, move the result into a temp
+                if (destNaive != returnTempNaive) {
+                    // means dest is a register, move the result into a temp
                     aasmNaive.add(new AAMove(returnTempNaive, destNaive));
                 }
                 break;
             case XOR:
                 aasmNaive.add(new AAXor(destNaive, srcNaive));
-                if (destNaive instanceof AAReg) {
-                    // if dest is a register, move the result into a temp
+                if (destNaive != returnTempNaive) {
+                    // means dest is a register, move the result into a temp
                     aasmNaive.add(new AAMove(returnTempNaive, destNaive));
                 }
                 break;
             case LSHIFT:
                 aasmNaive.add(new AAShl(destNaive, srcNaive));
-                if (destNaive instanceof AAReg) {
-                    // if dest is a register, move the result into a temp
+                if (destNaive != returnTempNaive) {
+                    // means dest is a register, move the result into a temp
                     aasmNaive.add(new AAMove(returnTempNaive, destNaive));
                 }
                 break;
             case RSHIFT:
                 aasmNaive.add(new AAShr(destNaive, srcNaive));
-                if (destNaive instanceof AAReg) {
-                    // if dest is a register, move the result into a temp
+                if (destNaive != returnTempNaive) {
+                    // means dest is a register, move the result into a temp
                     aasmNaive.add(new AAMove(returnTempNaive, destNaive));
                 }
                 break;
             case ARSHIFT:
                 aasmNaive.add(new AASar(destNaive, srcNaive));
-                if (destNaive instanceof AAReg) {
-                    // if dest is a register, move the result into a temp
+                if (destNaive != returnTempNaive) {
+                    // means dest is a register, move the result into a temp
                     aasmNaive.add(new AAMove(returnTempNaive, destNaive));
                 }
                 break;
@@ -1138,14 +1162,12 @@ public class Tiler extends IRVisitor {
         public AAMem address;
         public List<AAInstruction> assembly;
         public boolean optimized;
-        // has return temp if this is for translating binop expression into a single lea
-        public AATemp returnTemp;
 
-        public BinOpToAddrParams(AAMem addr, List<AAInstruction> asm, AATemp retTmp) {
+
+        public BinOpToAddrParams(AAMem addr, List<AAInstruction> asm) {
             address = addr;
             assembly = asm;
             optimized = (addr != null);
-            returnTemp = retTmp;
         }
 
     }
@@ -1157,21 +1179,11 @@ public class Tiler extends IRVisitor {
      * @return a record that contains the translated address and other useful information
      */
     private BinOpToAddrParams binopToAddrMode(IRBinOp node) {
-        // base = rax
-        // index = rbx
-
-        // things that can be optimized using addressing mode:
-        // b + i + o
-        // b + s * i
-        // b + s * i + o
-
-        // b  i + o
-        // b + s * i
-        // b + s * i + o
+        // base = rcx
+        // index = rsi
 
         List<AAInstruction> aasm = new ArrayList<>();
         AAMem finalAddr = null;
-        AATemp returnTemp = null;
 
         Set<Long> validScales = new HashSet<>();
         validScales.add((long) 1);
@@ -1182,7 +1194,6 @@ public class Tiler extends IRVisitor {
         AAReg base;
         AAReg index;
         long scale;
-        AAImm offset;
 
         IRNode left = node.left();
         IRNode right = node.right();
@@ -1196,7 +1207,6 @@ public class Tiler extends IRVisitor {
             AATemp leftTemp = tempSpiller.newTemp((((IRTemp) left).name()));
             aasm.add(new AAMove(rcx, leftTemp));
             base = rcx;
-            returnTemp = leftTemp;
 
             IRNode rLeft = ((IRBinOp) right).left();
             IRNode rRight = ((IRBinOp) right).right();
@@ -1237,7 +1247,6 @@ public class Tiler extends IRVisitor {
             AATemp rightTemp = tempSpiller.newTemp((((IRTemp) right).name()));
             aasm.add(new AAMove(rcx, rightTemp));
             base = rcx;
-            returnTemp = rightTemp;
 
             IRNode lLeft = ((IRBinOp) left).left();
             IRNode lRight = ((IRBinOp) left).right();
@@ -1273,7 +1282,7 @@ public class Tiler extends IRVisitor {
 
         }
 
-        return new BinOpToAddrParams(finalAddr, aasm, returnTemp);
+        return new BinOpToAddrParams(finalAddr, aasm);
     }
 
 
