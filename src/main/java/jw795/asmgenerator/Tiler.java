@@ -37,8 +37,6 @@ public class Tiler extends IRVisitor {
     private final AAReg r15 = new AAReg("r15");
     private final AAReg rip = new AAReg("rip");
 
-    long spillAndAlign = 0L;
-
     public Tiler(IRNodeFactory inf, TempSpiller tsp, HashMap<String, Long> funcArg, HashMap<String, Long> funcRet, HashMap<String, String> names) {
         super(inf);
         tempSpiller = tsp;
@@ -133,41 +131,14 @@ public class Tiler extends IRVisitor {
     private IRNode tileFuncDecl(IRFuncDecl node) {
         String name = node.name();
         IRStmt body = node.body();
-        long curRetSize = funcRetLengths.get(name);
-        long curArgSize = funcArgLengths.get(name);
-        boolean excessArg = false;
-        boolean excessRet = false;
-        long retScratchSize = 0L;
-        long argScratchSize = 0L;
-
-        if (curRetSize > 2) {
-            if (curArgSize > 5) {
-                argScratchSize = curArgSize - 5;
-                retScratchSize = curRetSize - 2;
-                excessArg = true;
-            } else {
-                retScratchSize = curRetSize - 2;
-            }
-            excessRet = true;
-        } else {
-            if (curArgSize > 6) {
-                argScratchSize = curArgSize - 6;
-                excessArg = true;
-            }
-        }
-
         List<IRNode> neighbors = new ArrayList<>();
         List<AAInstruction> asm = new ArrayList<>();
         asm.add(new AADirective(AADirective.DirType.TEXT));
         asm.add(new AADirective(AADirective.DirType.GLOBAL, name));
         asm.add(new AALabelInstr(name));
 
-        // push return address onto stack, if there isn't any, leave empty
-        if(excessRet) {
-            asm.add(new AAPush(rdi));
-        } else {
-            asm.add(new AASub(rsp, new AAImm(8L)));
-        }
+        // return adress
+        asm.add(new AAPush(rdi));
 
         //frame pointer
         asm.add(new AAPush(rbp));
@@ -182,43 +153,18 @@ public class Tiler extends IRVisitor {
         asm.add(new AAPush(r15));
 
         //move function arguments from caller stack and registers to _ARG temps
-        if (excessRet) {
-            AAReg[] argRegs = new AAReg[]{rsi, rdx, rcx, r8, r9};
-            if (excessArg) {
-                for (long i = 0L; i < 5; i++) {
-                    asm.add(new AAMove(tempSpiller.newTemp("_ARG" + (i + 1)), argRegs[(int) i]));
-                }
-                for (long i = 0L; i < argScratchSize; i++) {
-                        long index = i + 1;
-                        AAMem mem = new AAMem();
-                        mem.setBase(rbp);
-                        mem.setImmediate(new AAImm(index * 8L));
-                        asm.add(new AAMove(rax, mem));
-                        asm.add(new AAMove(tempSpiller.newTemp("_ARG" + (i + 6)), rax));
-                }
+        AAReg[] argRegs = new AAReg[]{rsi, rdx, rcx, r8, r9};
+        long argSize = funcArgLengths.get(name);
+        for (long i = 0L; i < argSize; i++) {
+            if (i < 5) {
+                asm.add(new AAMove(tempSpiller.newTemp("_ARG" + (i + 1)), argRegs[(int) i]));
             } else {
-                for (long i = 0L; i < curArgSize; i++) {
-                    asm.add(new AAMove(tempSpiller.newTemp("_ARG" + (i + 1)), argRegs[(int) i]));
-                }
-            }
-        } else {
-            AAReg[] argRegs = new AAReg[]{rdi, rsi, rdx, rcx, r8, r9};
-            if (excessArg) {
-                for (long i = 0L; i < 6; i++) {
-                    asm.add(new AAMove(tempSpiller.newTemp("_ARG" + (i + 1)), argRegs[(int) i]));
-                }
-                for (long i = 0L; i < argScratchSize; i++) {
-                    long index = i + 1;
-                    AAMem mem = new AAMem();
-                    mem.setBase(rbp);
-                    mem.setImmediate(new AAImm(index * 8L));
-                    asm.add(new AAMove(rax, mem));
-                    asm.add(new AAMove(tempSpiller.newTemp("_ARG" + (i + 7)), rax));
-                }
-            } else {
-                for (long i = 0L; i < curArgSize; i++) {
-                    asm.add(new AAMove(tempSpiller.newTemp("_ARG" + (i + 1)), argRegs[(int) i]));
-                }
+                long index = i - 4;
+                AAMem mem = new AAMem();
+                mem.setBase(rbp);
+                mem.setImmediate(new AAImm(index * 8));
+                asm.add(new AAMove(rax, mem));
+                asm.add(new AAMove(tempSpiller.newTemp("_ARG" + (i + 1)), rax));
             }
         }
 
@@ -226,37 +172,36 @@ public class Tiler extends IRVisitor {
         // and translate temp in both asm
         neighbors.add(body);
         node.setTile(new Tile(asm, neighbors));
-        spillAndAlign = allocate(node, tempSpiller);
+        long l = allocate(node, tempSpiller);
         // for alignment
-        if (spillAndAlign % 2 == 0) {
-            spillAndAlign += 1;
+        if (l % 2 == 0) {
+            l += 1;
         }
 
         List<AAInstruction> curAsm = node.getTile().getAssembly();
 
         // allocate space for spilled temps + alignment for all the function calls
-        curAsm.add(new AASub(rsp, new AAImm(8 * spillAndAlign)));
-
-        List<AAInstruction> epi = new ArrayList<>();
-
-        // destroy stack up to callee-saved registers
-        epi.add(new AAAdd(rsp, new AAImm(8 * spillAndAlign)));
-
-        //restore callee-saved registers
-        epi.add(new AAPop(r15));
-        epi.add(new AAPop(r14));
-        epi.add(new AAPop(r13));
-        epi.add(new AAPop(r12));
-        epi.add(new AAPop(rbx));
-        epi.add(new AAPop(rbp));
-
-        //destroy the stack for the return address
-        epi.add(new AAAdd(rsp, new AAImm(8)));
-
-        epi.add(new AARet());
+        curAsm.add(new AASub(rsp, new AAImm(8 * l)));
 
         // add body's asm to fundecl's asm
-        curAsm.addAll(concatAsm(body, epi));
+        curAsm.addAll(concatAsm(body));
+
+        // destroy stack up to callee-saved registers
+        curAsm.add(new AAAdd(rsp, new AAImm(8 * l)));
+
+        //restore callee-saved registers
+        curAsm.add(new AAPop(r15));
+        curAsm.add(new AAPop(r14));
+        curAsm.add(new AAPop(r13));
+        curAsm.add(new AAPop(r12));
+        curAsm.add(new AAPop(rbx));
+        curAsm.add(new AAPop(rbp));
+
+        //destroy the stack for the return adress
+        curAsm.add(new AAAdd(rsp, new AAImm(8)));
+
+        //final ret
+        curAsm.add(new AARet());
 
         // set the final tile of funcdecl with no neighbor
         node.setTile(new Tile(curAsm, new ArrayList<>()));
@@ -272,16 +217,12 @@ public class Tiler extends IRVisitor {
      * @param node root node
      * @return List of instructions of concatenated optimal assembly code
      */
-    private List<AAInstruction> concatAsm(IRNode node, List<AAInstruction> epi) {
+    private List<AAInstruction> concatAsm(IRNode node) {
         List<AAInstruction> asm = new ArrayList<>();
-
         for (IRNode neighbor : node.getTile().getNeighborIRs()) {
-            asm.addAll(concatAsm(neighbor, epi));
+            asm.addAll(concatAsm(neighbor));
         }
         asm.addAll(node.getTile().getAssembly());
-        if (node instanceof IRReturn) {
-            asm.addAll(epi);
-        }
         return asm;
     }
 
@@ -378,7 +319,7 @@ public class Tiler extends IRVisitor {
         List<AAInstruction> asm = new ArrayList<>();
         List<IRNode> neighbors = new ArrayList<>(rets);
 
-        // move rets to their designated place
+
         if (ret_size == 0) {
             //do nothing
         } else if (ret_size == 1) {
@@ -403,7 +344,6 @@ public class Tiler extends IRVisitor {
                 asm.add(new AAAdd(rcx, new AAImm(8L)));
             }
         }
-
         node.setTile(new Tile(asm, neighbors));
         return node;
     }
@@ -972,12 +912,14 @@ public class Tiler extends IRVisitor {
             addrNaive = tempSpiller.newTemp(((IRTemp) addr).name());
             asmNaive.add(new AAMove(rcx, addrNaive)); // move content of temp into a register to be used in mem
             mem.setBase(rcx);
-            asmNaive.add(new AAMove(returnTemp, rcx));
+            asmNaive.add(new AAMove(rsi, mem));
+            asmNaive.add(new AAMove(returnTemp, rsi));
         } else {
             addrNaive = addr.getTile().getReturnTemp();
             asmNaive.add(new AAMove(rcx, addrNaive)); // move content of ret temp into a register to be used in mem
             mem.setBase(rcx);
-            asmNaive.add(new AAMove(returnTemp, rcx));
+            asmNaive.add(new AAMove(rsi, mem));
+            asmNaive.add(new AAMove(returnTemp, rsi));
             neighborsNaive.add(addr);
         }
         Tile tileNaive = new Tile(asmNaive, neighborsNaive);
@@ -1125,27 +1067,7 @@ public class Tiler extends IRVisitor {
         String name = ((IRName) node.target()).name();
         long curRetSize = funcRetLengths.get(name);
         long curArgSize = funcArgLengths.get(name);
-        boolean excessArg = false;
-        boolean excessRet = false;
         boolean aligned = false;
-        long retScratchSize = 0L;
-        long argScratchSize = 0L;
-
-        if (curRetSize > 2) {
-            if (curArgSize > 5) {
-                argScratchSize = curArgSize - 5;
-                retScratchSize = curRetSize - 2;
-                excessArg = true;
-            } else {
-                retScratchSize = curRetSize - 2;
-            }
-            excessRet = true;
-        } else {
-            if (curArgSize > 6) {
-                argScratchSize = curArgSize - 6;
-                excessArg = true;
-            }
-        }
 
         List<AAInstruction> instructs = new ArrayList<>();
 
@@ -1157,21 +1079,25 @@ public class Tiler extends IRVisitor {
             instructs.add(new AAMove(savedRegs[i], callerRegs[i]));
         }
 
-        // total scratch space, number of quad
-        long l = retScratchSize + argScratchSize;
-
+        long l = curRetSize - 2 + curArgSize - 5;
         if (l % 2 != 0) {
             // alignment for scratch spaces
             aligned = true;
             instructs.add(new AASub(rsp, new AAImm(8L)));
         }
 
-        // allocate scratch spaces for excess return from the callee and put arguments into registers
-        if (excessRet) {
-            instructs.add(new AASub(rsp, new AAImm(retScratchSize * 8)));
+        // allocate scratch spaces for excess return from the callee
+        if (curRetSize > 2) {
+            instructs.add(new AASub(rsp, new AAImm((curRetSize - 2) * 8)));
+        }
+
+        if (curRetSize > 2) {
             // put return address into register rdi
+            long offset = max(curArgSize - 5, 0);
             instructs.add(new AAMove(rdi, rsp));
-            // put first five arguments into corresponding registers if there is any
+            instructs.add(new AAAdd(rdi, new AAImm(offset * 8)));
+            // put first five arguments, not including the return address argument,
+            // into corresponding registers if there is any
             AAReg[] argRegs = {rsi, rdx, rcx, r8, r9};
             for (int i = 0; i < min(curArgSize, 5); i++) {
                 instructs.add(new AAMove(argRegs[i], node.args().get(i).getTile().getReturnTemp()));
@@ -1184,27 +1110,18 @@ public class Tiler extends IRVisitor {
         }
 
         // push any excess args on to stack
-        if (excessArg) {
-            if (excessRet) {
-                for (long i = curArgSize - 1; i > 4; i--) {
-                    IRExpr e = node.args().get((int) i);
-                    instructs.add(new AAPush(e.getTile().getReturnTemp()));
-                }
-            } else {
-                for (long i = curArgSize - 1; i > 5; i--) {
-                    IRExpr e = node.args().get((int) i);
-                    instructs.add(new AAPush(e.getTile().getReturnTemp()));
-                }
-            }
+        for (long i = curArgSize - 1; i > 4; i--) {
+            IRExpr e = node.args().get((int) i);
+            instructs.addAll(concatAsm(e));
+            instructs.add(new AAPush(e.getTile().getReturnTemp()));
         }
 
         // store rip on stack, jumps to specific destination
         instructs.add(new AACall(new AALabel(((IRName)node.target()).name())));
 
         // destroy the scratch space for arguments after call
-        if (excessArg) {
-            instructs.add(new AAAdd(rsp, new AAImm(argScratchSize * 8L)));
-        }
+        instructs.add(new AAAdd(rsp, new AAImm(max(curArgSize - 5, 0) * 8L)));
+
         // put the first two returns into RV temps if there is any
         if (curRetSize >= 1) {
             instructs.add(new AAMove(tempSpiller.newTemp("_RV1"), rax));
@@ -1214,10 +1131,8 @@ public class Tiler extends IRVisitor {
         }
 
         // pop excess returns into RV temps
-        if (excessRet) {
-            for (int i = 0; i < retScratchSize; i++) {
-                instructs.add(new AAPop(tempSpiller.newTemp("_RV" + (i + 3))));
-            }
+        for (int i = 0; i < curRetSize - 2; i++) {
+            instructs.add(new AAPop(tempSpiller.newTemp("_RV" + (i + 3))));
         }
 
         // remove any alignment
@@ -1230,7 +1145,7 @@ public class Tiler extends IRVisitor {
             instructs.add(new AAMove(callerRegs[i], savedRegs[i]));
         }
 
-        Tile callStmtTile = new Tile(instructs, new ArrayList<>(node.args()));
+        Tile callStmtTile = new Tile(instructs, new ArrayList<>());
         node.setTile(callStmtTile);
         return node;
     }
