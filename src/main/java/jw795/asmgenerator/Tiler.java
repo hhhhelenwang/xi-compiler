@@ -220,7 +220,6 @@ public class Tiler extends IRVisitor {
                     asm.add(new AAMove(tempSpiller.newTemp("_ARG" + (i + 1)), argRegs[(int) i]));
                 }
             }
-
         }
 
         // let body be fundecl node's neighbor for now in order to calculate number of temp
@@ -254,6 +253,8 @@ public class Tiler extends IRVisitor {
         //destroy the stack for the return address
         epi.add(new AAAdd(rsp, new AAImm(8)));
 
+        epi.add(new AARet());
+
         // add body's asm to fundecl's asm
         curAsm.addAll(concatAsm(body, epi));
 
@@ -280,7 +281,6 @@ public class Tiler extends IRVisitor {
         asm.addAll(node.getTile().getAssembly());
         if (node instanceof IRReturn) {
             asm.addAll(epi);
-            asm.add(new AARet());
         }
         return asm;
     }
@@ -378,7 +378,7 @@ public class Tiler extends IRVisitor {
         List<AAInstruction> asm = new ArrayList<>();
         List<IRNode> neighbors = new ArrayList<>(rets);
 
-
+        // move rets to their designated place
         if (ret_size == 0) {
             //do nothing
         } else if (ret_size == 1) {
