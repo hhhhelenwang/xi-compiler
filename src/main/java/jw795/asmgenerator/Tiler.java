@@ -359,25 +359,35 @@ public class Tiler extends IRVisitor {
         AAOperand destNaive;
         AAOperand srcNaive;
         ArrayList<IRNode> neighborsNaive = new ArrayList<>();
+        ArrayList<AAInstruction> asmNaive = new ArrayList<>();
 
         IRNode target = node.target();
         IRNode source = node.source();
 
-        Tile t2 = source.getTile();
-        srcNaive = t2.getReturnTemp();
-        neighborsNaive.add(source);
+        if (target instanceof IRMem) {
+            // the dest *address* of this move is the expression of target
+            // so we need to make an AAMem from that value
+            IRExpr destAddr = ((IRMem) target).expr();
+            AATemp destAddrTemp = destAddr.getTile().getReturnTemp();
+            asmNaive.add(new AAMove(rcx, destAddrTemp)); // now rcx holds the address
+            AAMem destMem = new AAMem();
+            destMem.setBase(rcx); // create a mem with that address
+            destNaive = destMem;
+            neighborsNaive.add(destAddr);
+        } else { // should be a temp
+            destNaive = tempSpiller.newTemp(((IRTemp) target).name());
+        }
 
-        Tile t1 = target.getTile();
-        destNaive = t1.getReturnTemp();
-        neighborsNaive.add(node.target());
+        if (source instanceof IRTemp) {
+            srcNaive = tempSpiller.newTemp(((IRTemp) source).name());
+        } else {
+            srcNaive = source.getTile().getReturnTemp();
+            neighborsNaive.add(source);
+        }
 
-        AAMove m1 = new AAMove(rcx, srcNaive);
-        AAMove m2 = new AAMove(destNaive, rcx);
-
-        ArrayList<AAInstruction> asmNaive = new ArrayList<>();
-        asmNaive.add(m1);
-        asmNaive.add(m2);
-
+        // dest is either a mem or a temp, source is a temp
+        asmNaive.add(new AAMove(rsi, srcNaive));
+        asmNaive.add(new AAMove(destNaive, rsi));
         Tile tileNaive = new Tile(asmNaive, neighborsNaive);
 
         // check for possible inc or dec uses
@@ -914,6 +924,7 @@ public class Tiler extends IRVisitor {
             mem.setBase(rcx);
             asmNaive.add(new AAMove(rsi, mem));
             asmNaive.add(new AAMove(returnTemp, rsi));
+
         } else {
             addrNaive = addr.getTile().getReturnTemp();
             asmNaive.add(new AAMove(rcx, addrNaive)); // move content of ret temp into a register to be used in mem
