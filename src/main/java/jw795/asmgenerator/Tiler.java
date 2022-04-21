@@ -37,6 +37,8 @@ public class Tiler extends IRVisitor {
     private final AAReg r15 = new AAReg("r15");
     private final AAReg rip = new AAReg("rip");
 
+    long spillAndAlign = 0L;
+
     public Tiler(IRNodeFactory inf, TempSpiller tsp, HashMap<String, Long> funcArg, HashMap<String, Long> funcRet, HashMap<String, String> names) {
         super(inf);
         tempSpiller = tsp;
@@ -135,7 +137,6 @@ public class Tiler extends IRVisitor {
         long curArgSize = funcArgLengths.get(name);
         boolean excessArg = false;
         boolean excessRet = false;
-        boolean aligned = false;
         long retScratchSize = 0L;
         long argScratchSize = 0L;
 
@@ -226,33 +227,35 @@ public class Tiler extends IRVisitor {
         // and translate temp in both asm
         neighbors.add(body);
         node.setTile(new Tile(asm, neighbors));
-        long l = allocate(node, tempSpiller);
+        spillAndAlign = allocate(node, tempSpiller);
         // for alignment
-        if (l % 2 == 0) {
-            l += 1;
+        if (spillAndAlign % 2 == 0) {
+            spillAndAlign += 1;
         }
 
         List<AAInstruction> curAsm = node.getTile().getAssembly();
 
         // allocate space for spilled temps + alignment for all the function calls
-        curAsm.add(new AASub(rsp, new AAImm(8 * l)));
+        curAsm.add(new AASub(rsp, new AAImm(8 * spillAndAlign)));
 
-        // add body's asm to fundecl's asm
-        curAsm.addAll(concatAsm(body));
+        List<AAInstruction> epi = new ArrayList<>();
 
         // destroy stack up to callee-saved registers
-        curAsm.add(new AAAdd(rsp, new AAImm(8 * l)));
+        epi.add(new AAAdd(rsp, new AAImm(8 * spillAndAlign)));
 
         //restore callee-saved registers
-        curAsm.add(new AAPop(r15));
-        curAsm.add(new AAPop(r14));
-        curAsm.add(new AAPop(r13));
-        curAsm.add(new AAPop(r12));
-        curAsm.add(new AAPop(rbx));
-        curAsm.add(new AAPop(rbp));
+        epi.add(new AAPop(r15));
+        epi.add(new AAPop(r14));
+        epi.add(new AAPop(r13));
+        epi.add(new AAPop(r12));
+        epi.add(new AAPop(rbx));
+        epi.add(new AAPop(rbp));
 
         //destroy the stack for the return address
-        curAsm.add(new AAAdd(rsp, new AAImm(8)));
+        epi.add(new AAAdd(rsp, new AAImm(8)));
+
+        // add body's asm to fundecl's asm
+        curAsm.addAll(concatAsm(body, epi));
 
         // set the final tile of funcdecl with no neighbor
         node.setTile(new Tile(curAsm, new ArrayList<>()));
@@ -268,12 +271,17 @@ public class Tiler extends IRVisitor {
      * @param node root node
      * @return List of instructions of concatenated optimal assembly code
      */
-    private List<AAInstruction> concatAsm(IRNode node) {
+    private List<AAInstruction> concatAsm(IRNode node, List<AAInstruction> epi) {
         List<AAInstruction> asm = new ArrayList<>();
+
         for (IRNode neighbor : node.getTile().getNeighborIRs()) {
-            asm.addAll(concatAsm(neighbor));
+            asm.addAll(concatAsm(neighbor, epi));
         }
         asm.addAll(node.getTile().getAssembly());
+        if (node instanceof IRReturn) {
+            asm.addAll(epi);
+            asm.add(new AARet());
+        }
         return asm;
     }
 
@@ -396,7 +404,6 @@ public class Tiler extends IRVisitor {
             }
         }
 
-        asm.add(new AARet());
         node.setTile(new Tile(asm, neighbors));
         return node;
     }
