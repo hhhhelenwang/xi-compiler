@@ -17,6 +17,6 @@ main(args:int[][]){
     a = a + 1;
     b = b - 1;
 
-    print(unparseInt(a));
-    print(unparseInt(b));
+    println(unparseInt(a));
+    println(unparseInt(b));
 }
