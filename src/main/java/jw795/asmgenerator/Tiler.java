@@ -183,34 +183,43 @@ public class Tiler extends IRVisitor {
         //move function arguments from caller stack and registers to _ARG temps
         if (excessRet) {
             AAReg[] argRegs = new AAReg[]{rsi, rdx, rcx, r8, r9};
-
-            for (long i = 0L; i < curArgSize; i++) {
-                if (i < 5) {
+            if (excessArg) {
+                for (long i = 0L; i < 5; i++) {
                     asm.add(new AAMove(tempSpiller.newTemp("_ARG" + (i + 1)), argRegs[(int) i]));
-                } else {
-                    long index = i - 4;
-                    AAMem mem = new AAMem();
-                    mem.setBase(rbp);
-                    mem.setImmediate(new AAImm(index * 8));
-                    asm.add(new AAMove(rax, mem));
-                    asm.add(new AAMove(tempSpiller.newTemp("_ARG" + (i + 1)), rax));
+                }
+                for (long i = 0L; i < argScratchSize; i++) {
+                        long index = i + 1;
+                        AAMem mem = new AAMem();
+                        mem.setBase(rbp);
+                        mem.setImmediate(new AAImm(index * 8L));
+                        asm.add(new AAMove(rax, mem));
+                        asm.add(new AAMove(tempSpiller.newTemp("_ARG" + (i + 6)), rax));
+                }
+            } else {
+                for (long i = 0L; i < curArgSize; i++) {
+                    asm.add(new AAMove(tempSpiller.newTemp("_ARG" + (i + 1)), argRegs[(int) i]));
                 }
             }
         } else {
             AAReg[] argRegs = new AAReg[]{rdi, rsi, rdx, rcx, r8, r9};
-
-            for (long i = 0L; i < curArgSize; i++) {
-                if (i < 6) {
+            if (excessArg) {
+                for (long i = 0L; i < 6; i++) {
                     asm.add(new AAMove(tempSpiller.newTemp("_ARG" + (i + 1)), argRegs[(int) i]));
-                } else {
-                    long index = i - 5;
+                }
+                for (long i = 0L; i < argScratchSize; i++) {
+                    long index = i + 1;
                     AAMem mem = new AAMem();
                     mem.setBase(rbp);
-                    mem.setImmediate(new AAImm(index * 8));
+                    mem.setImmediate(new AAImm(index * 8L));
                     asm.add(new AAMove(rax, mem));
-                    asm.add(new AAMove(tempSpiller.newTemp("_ARG" + (i + 1)), rax));
+                    asm.add(new AAMove(tempSpiller.newTemp("_ARG" + (i + 7)), rax));
+                }
+            } else {
+                for (long i = 0L; i < curArgSize; i++) {
+                    asm.add(new AAMove(tempSpiller.newTemp("_ARG" + (i + 1)), argRegs[(int) i]));
                 }
             }
+
         }
 
         // let body be fundecl node's neighbor for now in order to calculate number of temp
@@ -242,11 +251,8 @@ public class Tiler extends IRVisitor {
         curAsm.add(new AAPop(rbx));
         curAsm.add(new AAPop(rbp));
 
-        //destroy the stack for the return adress
+        //destroy the stack for the return address
         curAsm.add(new AAAdd(rsp, new AAImm(8)));
-
-        //final ret
-        curAsm.add(new AARet());
 
         // set the final tile of funcdecl with no neighbor
         node.setTile(new Tile(curAsm, new ArrayList<>()));
@@ -1118,18 +1124,6 @@ public class Tiler extends IRVisitor {
         long retScratchSize = 0L;
         long argScratchSize = 0L;
 
-        List<AAInstruction> instructs = new ArrayList<>();
-
-        //save caller saved registers rax, rcx, rdx, rsi, rdi, and r8–r11
-        AAReg[] callerRegs = new AAReg[]{rax, rcx, rdx, rsp, rsi, rdi, r8, r9, r10, r11};
-        AATemp[] savedRegs = new AATemp[10];
-        for (int i = 0; i < 10; i++) {
-            savedRegs[i] = tempSpiller.newTemp();
-            instructs.add(new AAMove(savedRegs[i], callerRegs[i]));
-        }
-
-
-
         if (curRetSize > 2) {
             if (curArgSize > 5) {
                 argScratchSize = curArgSize - 5;
@@ -1146,6 +1140,16 @@ public class Tiler extends IRVisitor {
             }
         }
 
+        List<AAInstruction> instructs = new ArrayList<>();
+
+        //save caller saved registers rax, rcx, rdx, rsi, rdi, and r8–r11
+        AAReg[] callerRegs = new AAReg[]{rax, rcx, rdx, rsp, rsi, rdi, r8, r9, r10, r11};
+        AATemp[] savedRegs = new AATemp[10];
+        for (int i = 0; i < 10; i++) {
+            savedRegs[i] = tempSpiller.newTemp();
+            instructs.add(new AAMove(savedRegs[i], callerRegs[i]));
+        }
+
         // total scratch space, number of quad
         long l = retScratchSize + argScratchSize;
 
@@ -1157,13 +1161,10 @@ public class Tiler extends IRVisitor {
 
         // allocate scratch spaces for excess return from the callee and put arguments into registers
         if (excessRet) {
-            instructs.add(new AASub(rsp, new AAImm((curRetSize - 2) * 8)));
+            instructs.add(new AASub(rsp, new AAImm(retScratchSize * 8)));
             // put return address into register rdi
-            long offset = max(curArgSize - 5, 0);
             instructs.add(new AAMove(rdi, rsp));
-            instructs.add(new AAAdd(rdi, new AAImm(offset * 8)));
-            // put first five arguments, not including the return address argument,
-            // into corresponding registers if there is any
+            // put first five arguments into corresponding registers if there is any
             AAReg[] argRegs = {rsi, rdx, rcx, r8, r9};
             for (int i = 0; i < min(curArgSize, 5); i++) {
                 instructs.add(new AAMove(argRegs[i], node.args().get(i).getTile().getReturnTemp()));
@@ -1180,13 +1181,11 @@ public class Tiler extends IRVisitor {
             if (excessRet) {
                 for (long i = curArgSize - 1; i > 4; i--) {
                     IRExpr e = node.args().get((int) i);
-                    instructs.addAll(concatAsm(e));
                     instructs.add(new AAPush(e.getTile().getReturnTemp()));
                 }
             } else {
                 for (long i = curArgSize - 1; i > 5; i--) {
                     IRExpr e = node.args().get((int) i);
-                    instructs.addAll(concatAsm(e));
                     instructs.add(new AAPush(e.getTile().getReturnTemp()));
                 }
             }
