@@ -1047,15 +1047,20 @@ public class Tiler extends IRVisitor {
     private IRNode tileCJump(IRCJump node) {
         List<AAInstruction> aasm = new ArrayList<>();
         List<IRNode> neighbors = new ArrayList<>();
-        neighbors.add(node.cond());
+//        neighbors.add(node.cond());
 
         String target = node.trueLabel();
         if (node.cond() instanceof IRBinOp) {
             switch (((IRBinOp) node.cond()).opType()) {
                 case XOR:
-                    //XOR (binop) (const 1) due to jump reorder
                     if (((IRBinOp) node.cond()).left() instanceof IRBinOp
-                            && ((IRBinOp) node.cond()).right() instanceof IRTemp) {
+                            && ((IRBinOp) node.cond()).right() instanceof IRConst
+                            && (((IRBinOp) node.cond()).right()).constant() == 1L) {
+                        //System.out.println("================");
+                        //System.out.println("enter XOR (binopp) (const1) branch");
+                        //System.out.println(node.toString());
+                        System.out.println(((IRBinOp) ((IRBinOp) node.cond()).left()).toString());
+                        neighbors.add(((IRBinOp) node.cond()).left());
                         switch ((((IRBinOp) ((IRBinOp) node.cond()).left()).opType())) {
                             case EQ:
                                 aasm.add(new AAJne(new AALabel(target)));
@@ -1064,31 +1069,39 @@ public class Tiler extends IRVisitor {
                                 aasm.add(new AAJe(new AALabel(target)));
                                 break;
                             case LT:
-                                aasm.add(new AAJg(new AALabel(target)));
-                                break;
-                            case ULT:
-                                aasm.add(new AAJa(new AALabel(target)));
-                                break;
-                            case GT:
-                                aasm.add(new AAJl(new AALabel(target)));
-                                break;
-                            case LEQ:
                                 aasm.add(new AAJge(new AALabel(target)));
                                 break;
-                            case GEQ:
+                            case ULT:
+                                aasm.add(new AAJae(new AALabel(target)));
+                                break;
+                            case GT:
                                 aasm.add(new AAJle(new AALabel(target)));
+                                break;
+                            case LEQ:
+                                aasm.add(new AAJg(new AALabel(target)));
+                                break;
+                            case GEQ:
+                                aasm.add(new AAJl(new AALabel(target)));
                                 break;
                             default:
                                 break;
                         }
                     } else {
+                        //System.out.println("================");
+                        //System.out.println("enter NOT xor (binopp) (const1) branch");
+                        //System.out.println(node.toString());
+                        neighbors.add(node.cond());
                         aasm.add(new AACmp(node.cond().getTile().getReturnTemp(), new AAImm(0)));
                         aasm.add(new AAJe(new AALabel(target)));
                     }
                     break;
                 case AND:
                 case OR:
-                    aasm.add(new AACmp(node.cond().getTile().getReturnTemp(), new AAImm(0)));
+                    //System.out.println("================");
+                    //System.out.println("enter and/or branch");
+                    //System.out.println(node.toString());
+                    neighbors.add(node.cond());
+                    aasm.add(new AACmp(node.cond().getTile().getReturnTemp(), new AAImm(1)));
                     aasm.add(new AAJe(new AALabel(target)));
                     break;
                 case EQ:
@@ -1116,7 +1129,11 @@ public class Tiler extends IRVisitor {
                     break;
             }
         } else if (node.cond() instanceof IRTemp) { //true, false IRTemp
-            aasm.add(new AACmp(node.cond().getTile().getReturnTemp(), new AAImm(0)));
+            //System.out.println("================");
+            //System.out.println("enter temp branch");
+            //System.out.println(node.toString());
+            neighbors.add(node.cond());
+            aasm.add(new AACmp(node.cond().getTile().getReturnTemp(), new AAImm(1)));
             aasm.add(new AAJe(new AALabel(target)));
         } else {
             System.out.println("should not enter this branch");
