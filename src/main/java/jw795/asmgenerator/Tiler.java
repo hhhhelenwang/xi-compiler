@@ -6,7 +6,6 @@ import jw795.assembly.*;
 
 import java.util.*;
 
-import static java.lang.Math.max;
 import static java.lang.Math.min;
 
 /**
@@ -497,9 +496,9 @@ public class Tiler extends IRVisitor {
         Tile tileOpt = null;
         if (target instanceof IRMem && source instanceof IRMem) {
             // check on target
-            destOpt = getOptMem((IRMem) target, asmOpt, neighborsOpt);
+            destOpt = getOptMem((IRMem) target, asmOpt, neighborsOpt, true);
             // check on source
-            srcOpt = getOptMem((IRMem) source, asmOpt, neighborsOpt);
+            srcOpt = getOptMem((IRMem) source, asmOpt, neighborsOpt, false);
             // since both target and source are mem, mov to a register in between
             asmOpt.add(new AAMove(rdi, srcOpt)); // optimized binop uses rax and rbx so use rdx to avoid conflict
             asmOpt.add(new AAMove(destOpt, rdi));
@@ -508,13 +507,13 @@ public class Tiler extends IRVisitor {
             // target is a temp, use it directly
             destOpt = tempSpiller.newTemp(((IRTemp) target).name());
             // check on source
-            srcOpt = getOptMem((IRMem) source, asmOpt, neighborsOpt);
+            srcOpt = getOptMem((IRMem) source, asmOpt, neighborsOpt, true);
             asmOpt.add(new AAMove(rdi, srcOpt)); // optimized binop uses rcx and rsi so use rdi to avoid conflict
             asmOpt.add(new AAMove(destOpt, rdi));
             tileOpt = new Tile(asmOpt, neighborsOpt);
         } else if (target instanceof IRMem && source instanceof IRTemp) {
             // check on target
-            destOpt = getOptMem((IRMem) target, asmOpt, neighborsOpt);
+            destOpt = getOptMem((IRMem) target, asmOpt, neighborsOpt, false);
             // source is a temp, use it directly
             srcOpt = tempSpiller.newTemp(((IRTemp) source).name());
             asmOpt.add(new AAMove(rdi, srcOpt)); // optimized binop uses rax and rbx so use rdx to avoid conflict
@@ -554,7 +553,7 @@ public class Tiler extends IRVisitor {
      * @param neighborsOpt list of neighbors later used by the tile
      * @return the possibly optimized mem, can be a short-handed mem address, or a temp (no optimization)
      */
-    private AAOperand getOptMem(IRMem oldOpr, List<AAInstruction> asmOpt, List<IRNode> neighborsOpt) {
+    private AAOperand getOptMem(IRMem oldOpr, List<AAInstruction> asmOpt, List<IRNode> neighborsOpt, boolean isTarget) {
         AAOperand optOpr;
         IRExpr targetAddr = oldOpr.expr();
         if (targetAddr instanceof IRBinOp) {
@@ -563,13 +562,32 @@ public class Tiler extends IRVisitor {
                 optOpr = targetAddrParams.address;
                 asmOpt.addAll(targetAddrParams.assembly);
             } else {
+                if (isTarget) {
+                    AATemp destAddrTemp = oldOpr.expr().getTile().getReturnTemp();
+                    asmOpt.add(new AAMove(rcx, destAddrTemp)); // now rcx holds the address
+                    AAMem destMem = new AAMem();
+                    destMem.setBase(rcx); // create a mem with that address
+                    optOpr = destMem;
+                    neighborsOpt.add(oldOpr.expr());
+                } else {
+                    optOpr = oldOpr.expr().getTile().getReturnTemp();
+                    neighborsOpt.add(oldOpr);
+                }
+            }
+        } else {
+            if (isTarget) {
+                AATemp destAddrTemp = oldOpr.expr().getTile().getReturnTemp();
+                asmOpt.add(new AAMove(rcx, destAddrTemp)); // now rcx holds the address
+                AAMem destMem = new AAMem();
+                destMem.setBase(rcx); // create a mem with that address
+                optOpr = destMem;
+                neighborsOpt.add(oldOpr.expr());
+            } else {
                 optOpr = oldOpr.expr().getTile().getReturnTemp();
                 neighborsOpt.add(oldOpr);
             }
-        } else {
-            optOpr = oldOpr.getTile().getReturnTemp();
-            neighborsOpt.add(oldOpr);
         }
+
         return optOpr;
     }
 
