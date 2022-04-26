@@ -47,7 +47,7 @@ public class AssemblyGeneratorAdapter {
      * Generate assembly for file.
      */
     public void generateAssembly() {
-        System.out.println("ASM generated");
+//        System.out.println("ASM generated");
         Tiler asmvisit = new Tiler(new IRNodeFactory_c(),new TempSpiller(), funcArgLengths, funcRetLengths, funcNames);
 
         //after visiting, it should be still IRCompunit

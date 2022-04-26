@@ -1077,7 +1077,7 @@ public class Tiler extends IRVisitor {
                         //System.out.println("================");
                         //System.out.println("enter XOR (binopp) (const1) branch");
                         //System.out.println(node.toString());
-                        System.out.println(((IRBinOp) ((IRBinOp) node.cond()).left()).toString());
+//                        System.out.println(((IRBinOp) ((IRBinOp) node.cond()).left()).toString());
                         neighbors.add(((IRBinOp) node.cond()).left());
                         switch ((((IRBinOp) ((IRBinOp) node.cond()).left()).opType())) {
                             case EQ:
