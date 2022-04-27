@@ -38,6 +38,9 @@ public class Tiler extends IRVisitor {
 
     long spillAndAlign = 0L;
 
+    // epilogue for adding in front of ret later (doesn't include the destroying the spilled temp
+    List<AAInstruction> epi = new ArrayList<>();
+
     public Tiler(IRNodeFactory inf, TempSpiller tsp, HashMap<String, Long> funcArg, HashMap<String, Long> funcRet, HashMap<String, String> names) {
         super(inf);
         tempSpiller = tsp;
@@ -58,6 +61,15 @@ public class Tiler extends IRVisitor {
 
         funcArgLengths.put("_Iassert_pb", 1L);
         funcRetLengths.put("_Iassert_pb", 0L);
+
+        //restore callee-saved registers
+        epi.add(new AAPop(r15));
+        epi.add(new AAPop(r14));
+        epi.add(new AAPop(r13));
+        epi.add(new AAPop(r12));
+        epi.add(new AAPop(rbx));
+        epi.add(new AAPop(rbp));
+        epi.add(new AAAdd(rsp, new AAImm(8L)));
     }
 
     /**
@@ -136,7 +148,6 @@ public class Tiler extends IRVisitor {
         long curArgSize = funcArgLengths.get(name);
         boolean excessArg = false;
         boolean excessRet = false;
-        long retScratchSize = 0L;
         long argScratchSize = 0L;
 
         if (curRetSize > 2) {
@@ -144,7 +155,6 @@ public class Tiler extends IRVisitor {
                 argScratchSize = curArgSize - 5;
                 excessArg = true;
             }
-            retScratchSize = curRetSize - 2;
             excessRet = true;
         } else {
             if (curArgSize > 6) {
@@ -185,13 +195,13 @@ public class Tiler extends IRVisitor {
                 for (long i = 0L; i < 5; i++) {
                     asm.add(new AAMove(tempSpiller.newTemp("_ARG" + (i + 1)), argRegs[(int) i]));
                 }
-                for (long i = 0L; i < argScratchSize; i++) {
-                    long index = i + 1;
+                for (long i = 5L; i < argScratchSize; i++) {
+                    long index = i - 4;
                     AAMem mem = new AAMem();
                     mem.setBase(rbp);
                     mem.setImmediate(new AAImm(index * 8L));
                     asm.add(new AAMove(rax, mem));
-                    asm.add(new AAMove(tempSpiller.newTemp("_ARG" + (i + 6)), rax));
+                    asm.add(new AAMove(tempSpiller.newTemp("_ARG" + (i + 1)), rax));
                 }
             } else {
                 for (long i = 0L; i < curArgSize; i++) {
@@ -204,13 +214,13 @@ public class Tiler extends IRVisitor {
                 for (long i = 0L; i < 6; i++) {
                     asm.add(new AAMove(tempSpiller.newTemp("_ARG" + (i + 1)), argRegs[(int) i]));
                 }
-                for (long i = 0L; i < argScratchSize; i++) {
-                    long index = i + 1;
+                for (long i = 6L; i < argScratchSize; i++) {
+                    long index = i - 5;
                     AAMem mem = new AAMem();
                     mem.setBase(rbp);
                     mem.setImmediate(new AAImm(index * 8L));
                     asm.add(new AAMove(rax, mem));
-                    asm.add(new AAMove(tempSpiller.newTemp("_ARG" + (i + 7)), rax));
+                    asm.add(new AAMove(tempSpiller.newTemp("_ARG" + (i + 1)), rax));
                 }
             } else {
                 for (long i = 0L; i < curArgSize; i++) {
@@ -234,22 +244,6 @@ public class Tiler extends IRVisitor {
 
         // allocate space for spilled temps + alignment for all the function calls
         curAsm.add(new AASub(rsp, new AAImm(8 * spillAndAlign)));
-
-        List<AAInstruction> epi = new ArrayList<>();
-
-        // destroy stack up to callee-saved registers
-        epi.add(new AAAdd(rsp, new AAImm(8 * spillAndAlign)));
-
-        //restore callee-saved registers
-        epi.add(new AAPop(r15));
-        epi.add(new AAPop(r14));
-        epi.add(new AAPop(r13));
-        epi.add(new AAPop(r12));
-        epi.add(new AAPop(rbx));
-        epi.add(new AAPop(rbp));
-
-        //destroy the stack for the return address
-        epi.add(new AAAdd(rsp, new AAImm(8)));
 
         // add body's asm to fundecl's asm
         curAsm.addAll(concatAsm(body, epi));
@@ -277,6 +271,8 @@ public class Tiler extends IRVisitor {
         }
         asm.addAll(node.getTile().getAssembly());
         if (node instanceof IRReturn) {
+            // destroy stack up to callee-saved registers
+            asm.add(new AAAdd(rsp, new AAImm(8 * spillAndAlign)));
             asm.addAll(epi);
             asm.add(new AARet());
         }
