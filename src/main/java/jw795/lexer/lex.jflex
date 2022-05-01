@@ -34,6 +34,8 @@ import java.math.BigInteger;
         ELSE,
         RETURN,
         LENGTH,
+        RECORD,
+        BREAK,
 
         //type name
         INTTYPE,
@@ -44,6 +46,7 @@ import java.math.BigInteger;
         BOOL,
         CHARLIT,
         STRINGLIT,
+        NULL,
 
         //identifier
         ID,
@@ -64,6 +67,7 @@ import java.math.BigInteger;
         NEQ,
         AND,
         OR,
+        DOT,
 
         //punctuation
         COLON,
@@ -153,6 +157,9 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
     "else" {return newsymbol(sym.ELSE);}
     "return" {return newsymbol(sym.RETURN);}
     "length" {return newsymbol(sym.LENGTH);}
+    "record" {return newsymbol(sym.RECORD);}
+    "break"  {return newsymbol(sym.BREAK);}
+    "null"   {return newsymbol(sym.NULL);}
 
     /* type names */
     "int" { return newsymbol(sym.INTTYPE);}
@@ -187,6 +194,7 @@ Identifier = {Letter}({Letter} | {Digit} | _ | ')*
     "!=" {return newsymbol(sym.NEQ);}
     "&" {return newsymbol(sym.AND);}
     "|" {return newsymbol(sym.OR);}
+    "." {return newsymbol(sym.DOT);}
 
     ":" {return newsymbol(sym.COLON);}
     "=" {return newsymbol(sym.ASSIGN);}

@@ -1,0 +1,10 @@
+//as a i/0
+
+print(str: int[])
+
+record Point {}
+
+record Point2 {
+    x : int
+    y, z : bool
+}
