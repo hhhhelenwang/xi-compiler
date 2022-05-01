@@ -231,6 +231,18 @@ public class LexerAdapter {
             case sym.PROGRAM_FILE:
                 res = "program";
                 break;
+            case sym.RECORD:
+                res = "record";
+                break;
+            case sym.DOT:
+                res = ".";
+                break;
+            case sym.BREAK:
+                res = "break";
+                break;
+            case sym.NULL:
+                res = "null";
+                break;
 
             default: res = "Invalid Token Type";
                 break;

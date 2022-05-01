@@ -3,6 +3,8 @@ package jw795.parser;
 import java_cup.runtime.*;
 import java.util.ArrayList;
 import java.util.Optional;
+import java.util.Map;
+import java.util.HashMap;
 import jw795.ast.*;
 import jw795.lexer.Lexer;
 import jw795.lexer.LexerAdapter;
@@ -38,6 +40,7 @@ terminal        USE, IF, WHILE, ELSE, RETURN, LENGTH, NOT, MULT, HIGHMULT, DIV, 
 terminal        PROGRAM_FILE, INTERFACE_FILE;
 terminal        INTTYPE, BOOLTYPE;
 terminal        UNARY;
+terminal        BREAK,NULL, RECORD, DOT;
 
 terminal    BigInteger    INT;
 terminal    Boolean BOOL;
@@ -52,6 +55,7 @@ non terminal file;
 non terminal Interface interface;
 non terminal ArrayList<ProcFuncDecl> procFuncDeclLst;
 non terminal ProcFuncDecl procFuncDecl;
+non terminal RecordDecl recordDecl;
 
 // program
 non terminal Program program;
@@ -67,6 +71,7 @@ non terminal ArrayList<FunProcArgs> optArgLst;
 non terminal ArrayList<FunProcArgs> argLst;
 non terminal FunProcArgs argument;
 non terminal Type argRetType;
+non terminal ArrayList<String> idList;
 
 // type
 non terminal Type type;
@@ -93,6 +98,8 @@ non terminal VarDeclareStmt varDecl;
 non terminal VarDeclareStmt varDeclInitiable;
 non terminal LValue lftValueMulti;
 non terminal ArrayList<LValue> lftValueMultiLst;
+non terminal ArrayList<HashMap<String,Type>> fieldList;
+
 
 // expressions
 non terminal Expr expr;
@@ -100,6 +107,7 @@ non terminal ArrayList<Expr> exprLst;
 non terminal LValue lftValue;
 non terminal ArrIndexExpr arrIndexExpr;
 non terminal FunCallExpr funCall;
+non terminal HashMap<String,Type> fieldStmt;
 
 // punctuation
 non terminal optSemi;
@@ -154,7 +162,44 @@ procFuncDecl ::= ID:i LPAREN optArgLst:a RPAREN
     {: RESULT = new ProcedureDeclare(i, a, ileft, iright); :}
     | ID:i LPAREN optArgLst:a RPAREN COLON argRetTypeLst:t
     {: RESULT = new FunctionDeclare(i, a, t, ileft, iright); :}
+    | RECORD ID:i LBRACK fieldList:t RBRACK
+    {: RESULT = new RecordDeclare(i, t, ileft, iright); :}
     ;
+
+
+fieldList ::= fieldStmt:f optSemi fieldList:t
+        {: t.add(0,f) ; RESULT = t;:}
+        | fieldStmt:f optSemi
+        {: ArrayList<HashMap<String,Type>> lst = new ArrayList<HashMap<String,Type>>();
+           lst.add(f);
+           RESULT = lst; :}
+        ;
+
+fieldStmt ::= idList:i INTTYPE:t
+        {:  HashMap<String,Type> mp = new HashMap<>();
+            IntType thetype = new IntType(tleft, tright);
+            for(String s:i){mp.put(s,thetype);}
+            RESULT = mp;
+        :}
+        | idList:i  BOOLTYPE:t
+        {:  HashMap<String,Type> mp = new HashMap<>();
+            BoolType thetype = new BoolType(tleft, tright);
+            for(String s:i){mp.put(s,thetype);}
+            RESULT = mp;
+        :}
+        | idList:i ID:t
+        {:  RecordType rt = new RecordType(t, ileft, iright);
+            HashMap<String,Type> mp = new HashMap<>();
+            for(String s:i){mp.put(s,rt);}
+            RESULT = mp;
+        :}
+        ;
+
+idList ::= ID:i COMMA idList:t
+        {: t.add(0,i); RESULT = t; :}
+        | ID:i COLON
+        {: ArrayList<String> lst = new ArrayList<String>(); lst.add(i); RESULT = lst; :}
+        ;
 
 // list of arguments, can be empty
 optArgLst ::= argLst:a
@@ -182,6 +227,8 @@ argRetType ::= INTTYPE:t
     {: RESULT = new BoolType(tleft, tright); :}
     | argRetType:t LBRACK RBRACK
     {: RESULT = new ArrayType(t, t.getLine(), t.getCol()); :}
+    | ID:i
+    {: RESULT = new RecordType(i, ileft, iright); :}
     ;
 
 // list of argRetType, used at the return type of a function declaration or definition
