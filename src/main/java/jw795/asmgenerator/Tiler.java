@@ -230,9 +230,9 @@ public class Tiler extends IRVisitor {
 
         // set the final tile of funcdecl with no neighbor
         node.setTile(new Tile(asm, new ArrayList<>()));
-        long val = allocate(node, tempSpiller);
+        long val = spill(node, tempSpiller);
         if (val % 2 == 0) {
-            val += 1;
+            val += 8;
         }
         spillAndAlign.setVal(val);
 
@@ -267,10 +267,10 @@ public class Tiler extends IRVisitor {
      * @param tmpsp temp spiller
      * @return how many temps are spilled to stack
      */
-    private long allocate(IRNode node, TempSpiller tmpsp) {
+    private long spill(IRNode node, TempSpiller tmpsp) {
         Tile cur = node.getTile();
         for (IRNode irn : cur.getNeighborIRs()) {
-            allocate(irn, tmpsp);
+            spill(irn, tmpsp);
         }
         for (AAInstruction a : cur.getAssembly()) {
             AAOperand a1;
