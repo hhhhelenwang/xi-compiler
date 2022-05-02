@@ -9,6 +9,10 @@ public class AAImm extends AAOperand{
         val = value;
     }
 
+    public long val() {
+        return val;
+    }
+
     @Override
     public String toString() {
         return String.valueOf(val);
