@@ -7,7 +7,7 @@ import java.util.Optional;
  */
 public class AAMem extends AAOperand{
     // cases: [base], [base + scale * index], [base + scale * imm], [scale * index], [scale * imm],
-    // [base + index] (scale assumed to be 1), [base + imm] (scale assumed to be 1), [imm].
+    // [base + index] (scale assumed to be 1), [base + imm] (scale assumed to be 1), [imm], [base + Label].
     Optional<AAReg> base;
     Optional<AAReg> index;
     Optional<Long> scale;
@@ -45,36 +45,39 @@ public class AAMem extends AAOperand{
         String strOfMem = "[";
 
         if (base.isPresent()) {
-            strOfMem += base.get();
-        }
-
-        if (index.isPresent()){
-                if (scale.get() > 0){
-                    if (base.isPresent()){
-                        strOfMem += "+";
-                    }
-                    strOfMem += scale.get() + "*" + index.get();
-                } else {
-                    strOfMem += "-" + scale.get() + "*" + index.get();
-                }
-        }
-
-        if (immediate.isPresent()){
-            if (index.isPresent()){
-                if (base.isPresent()){
+            strOfMem += base.get(); //base
+            if (scale.isPresent()) {
+                if (scale.get() >= 0) {
                     strOfMem += "+";
                 }
-                strOfMem += immediate.get();
-            } else {
-                if (scale.get() < 0){
-                    strOfMem += "-" + immediate.get();
+                strOfMem += scale.get() + "*";
+                if (index.isPresent()) {
+                    strOfMem += index.get(); //base + scale * index
+                } else {
+                    strOfMem += immediate.get(); //base + scale * imm
                 }
+            } else {
+                if (index.isPresent()) {
+                    strOfMem += "+" + index.get(); //base + index
+                } else if (immediate.isPresent()) {
+                    strOfMem += "+" + immediate.get(); //base + imm
+                } else if (label.isPresent()) {
+                    strOfMem += "+" + label.get(); //base + label
+                }
+            }
+        } else {
+            if (scale.isPresent()) {
+                strOfMem += scale.get() + "*";
+                if (index.isPresent()) {
+                    strOfMem += index.get(); //scale * index
+                } else {
+                    strOfMem += immediate.get(); //scale * imm
+                }
+            } else {
+                strOfMem += immediate.get(); //imm
             }
         }
 
-        if (label.isPresent()){
-            strOfMem += "+" + label.get();
-        }
         strOfMem += "]";
 
         return strOfMem;
