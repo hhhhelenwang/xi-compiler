@@ -230,7 +230,8 @@ public class Tiler extends IRVisitor {
 
         // set the final tile of funcdecl with no neighbor
         node.setTile(new Tile(asm, new ArrayList<>()));
-        allocate(node, tempSpiller);
+        long val = allocate(node, tempSpiller);
+        spillAndAlign.setVal(val);
 
         // reset temp spiller and spillAndAlign for the next fundecl to use
         tempSpiller = new TempSpiller();
