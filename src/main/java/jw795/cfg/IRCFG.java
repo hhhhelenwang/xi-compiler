@@ -6,17 +6,15 @@ import java.util.HashMap;
 import java.util.List;
 
 public class IRCFG extends CFG<IRStmt> {
-    private IRNodeFactory_c irFactory = new IRNodeFactory_c();
-
 
     public IRCFG(CFGNode<IRStmt> start) {
         super(start);
     }
 
     /**
-     * build an IRCFG from IRFuncDecl node
+     * build an IRCFG from an IRFuncDecl node
      * @param funcDecl IR node
-     * @return start node of CFG graph for given IRFuncDecl
+     * @return CFG graph for given IRFuncDecl
      */
     public IRCFG toIRCFG (IRFuncDecl funcDecl){
         IRStmt body = funcDecl.body();
@@ -26,23 +24,29 @@ public class IRCFG extends CFG<IRStmt> {
 
             // a map storing all IRStmt to CFGNode
             HashMap<IRStmt, CFGNode<IRStmt>> map = new HashMap<>();
+            HashMap<String, IRLabel> labels = new HashMap<>();
             for (IRStmt stmt : stmts){
                 map.put(stmt, new CFGNode<>(stmt));
+                if (stmt instanceof IRLabel){
+                    labels.put(((IRLabel) stmt).name(), (IRLabel) stmt);
+                }
             }
 
             int size = stmts.size();
             IRStmt nextStmt;
-
             for (int i = 0; i < size; i++) {
                 IRStmt curStmt = stmts.get(i);
                 CFGNode<IRStmt> curNode = map.get(curStmt);
 
                 if (curStmt instanceof IRJump) {
-                    nextStmt = irFactory.IRLabel(((IRName)((IRJump) curStmt).target()).name());
+                    String targetLabel = ((IRName)((IRJump) curStmt).target()).name();
+                    nextStmt = labels.get(targetLabel);
                     CFGNode<IRStmt> nextNode = map.get(nextStmt);
+
                     connect(curNode, nextNode);
                 } else if (curStmt instanceof IRCJump){
-                    nextStmt = irFactory.IRLabel(((IRCJump) curStmt).trueLabel());
+                    String targetLabel = ((IRCJump) curStmt).trueLabel();
+                    nextStmt = labels.get(targetLabel);
                     connect(curNode, map.get(nextStmt));
 
                     //add fall through node
@@ -67,14 +71,5 @@ public class IRCFG extends CFG<IRStmt> {
         return cfg;
     }
 
-    /**
-     * Helper to connect two CFGNodes. Specifically, make next to cur's successor, and cur to next's predecessor
-     * @param cur
-     * @param next
-     */
-    private void connect(CFGNode<IRStmt> cur, CFGNode<IRStmt> next){
-        next.addPredecessor(cur);
-        cur.addSuccessor(next);
-    }
 
 }

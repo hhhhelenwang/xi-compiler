@@ -38,7 +38,7 @@ public abstract class CFG<T> {
      * @param visited visited CFGNode
      * @return list of IRStmt
      */
-    private List<CFGNode<T>> getAllSuccessors(CFGNode<T> cur, HashSet<CFGNode<T>> visited){
+     List<CFGNode<T>> getAllSuccessors(CFGNode<T> cur, HashSet<CFGNode<T>> visited){
         List<CFGNode<T>> res = new ArrayList<>();
 
         if (!visited.contains(cur)){
@@ -50,6 +50,16 @@ public abstract class CFG<T> {
         }
 
         return res;
+    }
+
+    /**
+     * Helper to connect two CFGNodes. Specifically, make next to cur's successor, and cur to next's predecessor
+     * @param cur
+     * @param next
+     */
+    void connect(CFGNode<T> cur, CFGNode<T> next){
+        next.addPredecessor(cur);
+        cur.addSuccessor(next);
     }
 
     // TODO: work in progress

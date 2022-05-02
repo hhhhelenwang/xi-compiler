@@ -14,7 +14,6 @@ public class AALabel extends AAOperand{
         name = labelName;
     }
 
-
     @Override
     public String toString() {
         return name;

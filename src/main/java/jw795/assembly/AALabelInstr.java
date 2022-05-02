@@ -16,6 +16,10 @@ public class AALabelInstr extends AAInstruction{
         name = labelName;
     }
 
+    public String getName(){
+        return this.name;
+    }
+
     @Override
     public String toString() {
         return name + ":";
