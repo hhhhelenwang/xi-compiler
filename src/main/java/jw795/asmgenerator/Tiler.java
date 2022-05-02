@@ -186,7 +186,7 @@ public class Tiler extends IRVisitor {
                     asm.add(new AAMove(tempSpiller.newTemp("_ARG" + (i + 1)), argRegs[(int) i]));
                 }
                 for (long i = 0L; i < argScratchSize; i++) {
-                    long index = i + 1;
+                    long index = i + 2;
                     AAMem mem = new AAMem();
                     mem.setBase(rbp);
                     mem.setImmediate(new AAImm(index * 8L));
@@ -205,7 +205,7 @@ public class Tiler extends IRVisitor {
                     asm.add(new AAMove(tempSpiller.newTemp("_ARG" + (i + 1)), argRegs[(int) i]));
                 }
                 for (long i = 0L; i < argScratchSize; i++) {
-                    long index = i + 1;
+                    long index = i + 2;
                     AAMem mem = new AAMem();
                     mem.setBase(rbp);
                     mem.setImmediate(new AAImm(index * 8L));
