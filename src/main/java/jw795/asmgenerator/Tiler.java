@@ -476,18 +476,19 @@ public class Tiler extends IRVisitor {
         // target = mem, source = temp --> check for binop optimization on target
         // target = temp, source = imm --> use single line command
         // target = temp, source = temp --> no optimization, use naive
+        // target = temp, source = temp --> no optimization, use naive
         AAOperand destOpt;
         AAOperand srcOpt;
         List<AAInstruction> asmOpt = new ArrayList<>();
         List<IRNode> neighborsOpt = new ArrayList<>();
         Tile tileOpt = null;
         if (target instanceof IRMem && source instanceof IRMem) {
-            // check on target
-            destOpt = getOptMem((IRMem) target, asmOpt, neighborsOpt, true);
             // check on source
             srcOpt = getOptMem((IRMem) source, asmOpt, neighborsOpt, false);
             // since both target and source are mem, mov to a register in between
             asmOpt.add(new AAMove(rdi, srcOpt)); // optimized binop uses rax and rbx so use rdx to avoid conflict
+            // check on target
+            destOpt = getOptMem((IRMem) target, asmOpt, neighborsOpt, true);
             asmOpt.add(new AAMove(destOpt, rdi));
             tileOpt = new Tile(asmOpt, neighborsOpt);
         } else if (target instanceof IRTemp && source instanceof IRMem) {

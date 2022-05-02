@@ -5,6 +5,10 @@ xic ("Test --help") "--help" {
     ;
 }
 
+xic ("Test --irgen -O") ["./test/pa4"]"-libpath $(testpath) --irgen -O" {
+    testarrayindexoutofbound.xi;
+}
+
 
 xic ("Test -target linux -O") ["./test/pa5"]"-libpath $(testpath) -target linux -O" {
     testiftrue.xi;
