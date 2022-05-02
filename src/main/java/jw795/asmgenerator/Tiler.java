@@ -1053,7 +1053,6 @@ public class Tiler extends IRVisitor {
     private IRNode tileCJump(IRCJump node) {
         List<AAInstruction> aasm = new ArrayList<>();
         List<IRNode> neighbors = new ArrayList<>();
-//        neighbors.add(node.cond());
 
         String target = node.trueLabel();
         if (node.cond() instanceof IRBinOp) {
@@ -1062,10 +1061,6 @@ public class Tiler extends IRVisitor {
                     if (((IRBinOp) node.cond()).left() instanceof IRBinOp
                             && ((IRBinOp) node.cond()).right() instanceof IRConst
                             && (((IRBinOp) node.cond()).right()).constant() == 1L) {
-                        //System.out.println("================");
-                        //System.out.println("enter XOR (binopp) (const1) branch");
-                        //System.out.println(node.toString());
-//                        System.out.println(((IRBinOp) ((IRBinOp) node.cond()).left()).toString());
                         neighbors.add(((IRBinOp) node.cond()).left());
                         switch ((((IRBinOp) ((IRBinOp) node.cond()).left()).opType())) {
                             case EQ:
@@ -1093,9 +1088,6 @@ public class Tiler extends IRVisitor {
                                 break;
                         }
                     } else {
-                        //System.out.println("================");
-                        //System.out.println("enter NOT xor (binopp) (const1) branch");
-                        //System.out.println(node.toString());
                         neighbors.add(node.cond());
                         aasm.add(new AACmp(node.cond().getTile().getReturnTemp(), new AAImm(1)));
                         aasm.add(new AAJe(new AALabel(target)));
@@ -1103,9 +1095,6 @@ public class Tiler extends IRVisitor {
                     break;
                 case AND:
                 case OR:
-                    //System.out.println("================");
-                    //System.out.println("enter and/or branch");
-                    //System.out.println(node.toString());
                     neighbors.add(node.cond());
                     aasm.add(new AACmp(node.cond().getTile().getReturnTemp(), new AAImm(1)));
                     aasm.add(new AAJe(new AALabel(target)));
@@ -1135,9 +1124,6 @@ public class Tiler extends IRVisitor {
                     break;
             }
         } else if (node.cond() instanceof IRTemp) { //true, false IRTemp
-            //System.out.println("================");
-            //System.out.println("enter temp branch");
-            //System.out.println(node.toString());
             neighbors.add(node.cond());
             aasm.add(new AACmp(node.cond().getTile().getReturnTemp(), new AAImm(1)));
             aasm.add(new AAJe(new AALabel(target)));
