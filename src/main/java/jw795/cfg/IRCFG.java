@@ -16,7 +16,8 @@ public class IRCFG extends CFG<IRStmt> {
      * @param funcDecl IR node
      * @return CFG graph for given IRFuncDecl
      */
-    public IRCFG toIRCFG (IRFuncDecl funcDecl){
+//    public IRCFG toIRCFG (IRFuncDecl funcDecl){
+    public CFGNode<IRStmt> toIRCFG (IRFuncDecl funcDecl){
         IRStmt body = funcDecl.body();
         IRCFG cfg;
         if (body instanceof IRSeq){
@@ -64,11 +65,14 @@ public class IRCFG extends CFG<IRStmt> {
                 }
             }
             cfg = new IRCFG(map.get(stmts.get(0)));
+            return map.get(stmts.get(0));
+
         } else {
             cfg = new IRCFG(new CFGNode<>(body));
+            return new CFGNode<>(body);
         }
 
-        return cfg;
+//        return cfg;
     }
 
 

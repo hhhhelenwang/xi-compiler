@@ -3,12 +3,18 @@ package jw795.irgenerator;
 import edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 import edu.cornell.cs.cs4120.util.SExpPrinter;
 import edu.cornell.cs.cs4120.xic.ir.IRCompUnit;
+import edu.cornell.cs.cs4120.xic.ir.IRFuncDecl;
+import edu.cornell.cs.cs4120.xic.ir.IRStmt;
 import jw795.Visitor;
 import jw795.ast.Program;
+import jw795.cfg.CFGNode;
+import jw795.cfg.IRCFG;
 import jw795.typechecker.*;
 
 import java.io.*;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import static jw795.util.FileUtil.generateTargetFile;
@@ -25,20 +31,28 @@ public class IRGeneratorAdapter {
     HashMap<String, Long> funcRetLengths = new HashMap<>();
     HashMap<String, Long> funcArgLengths = new HashMap<>();
     boolean optimize;
-    boolean genFile;
+    boolean genIRFile;
+    boolean beforeOpt;
+    boolean genCFGFile;
+    String optType;
 
-    public IRGeneratorAdapter(String fileName, String dest, String lib, boolean opt, boolean generateFile) {
+    public IRGeneratorAdapter(String fileName, String dest, String lib, boolean opt,
+                              boolean generateIRFile, boolean beforeOpt,
+                              boolean generateCFGFile, String optType) {
         this.destPath = dest;
         this.libPath = lib;
         this.fileName = fileName;
         this.optimize = opt;
+        this.beforeOpt = beforeOpt;
+        this.genCFGFile = generateCFGFile;
+        this.optType = optType;
         try {
             FileReader fr = new FileReader(fileName);
             typeCheckerAdapter = new TypeCheckerAdapter(fr, fileName, dest, lib, false);
         } catch (FileNotFoundException e) {
             System.out.println(fileName + ": " + " " + "File not found.");
         }
-        this.genFile = generateFile;
+        this.genIRFile = generateIRFile;
     }
 
 
@@ -66,7 +80,7 @@ public class IRGeneratorAdapter {
             FileWriter targetWriter = null;
 
             try{
-                if (genFile) {
+                if (genIRFile) {
                     File targetIrsol = generateTargetFile(fileName, destPath, "ir");
                     targetWriter = new FileWriter(targetIrsol);
                 }
@@ -83,7 +97,12 @@ public class IRGeneratorAdapter {
                 JumpReorder jumpReorder = new JumpReorder();
                 reorderedIR = jumpReorder.reorder(lowerIR);
 
-                if (genFile) {
+                //generate IRCFG for optimization
+                Iterator<IRFuncDecl> funcs = reorderedIR.functions().values().iterator();
+
+//                CFGNode<IRStmt> cfg = IRCFG.toIRCFG(funcs.next());
+
+                if (genIRFile) {
                     // Writing to target file
                     targetWriter.write(prettyPrint(reorderedIR));
                     targetWriter.close();

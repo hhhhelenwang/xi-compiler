@@ -60,6 +60,11 @@ public class Compiler {
         options.addOption("irrun", "irrun", false,
                 "generate and interpret intermediate code");
 
+        options.addOption("optir", "optir", true,
+                        "Report the intermediate code at the specified phase of optimization");
+        options.addOption("optcfg", "optcfg", true,
+                "Report the control-flow graph at the specified phase of optimization");
+
         options.addOption("sourcepath", "sourcepath", true,
                 "specify where to find input source files");
         options.addOption("libpath", "libpath", true,
@@ -203,10 +208,15 @@ public class Compiler {
      * @return an IRCompUnit which is the root node of generated IR
      */
     public IRCompUnit generateIRForFile(String fileName) {
-        boolean generateFile = cmd.hasOption("irrun") || cmd.hasOption("irgen");
+        boolean generateIRFile = cmd.hasOption("irrun") || cmd.hasOption("irgen") || cmd.hasOption("optir");
+        boolean beforeOpt = true;
+        if (cmd.hasOption("optir") && (cmd.getOptionValue("optir")).equals("final")){
+                beforeOpt = false;
+        }
+
         boolean optimize = !cmd.hasOption("O");
         IRGeneratorAdapter irGeneratorAdapter = new IRGeneratorAdapter(
-                fileName, this.destPath, this.libPath, optimize, generateFile);
+                fileName, this.destPath, this.libPath, optimize, generateIRFile, beforeOpt, false, "false");
 
         IRCompUnit sourceIR = irGeneratorAdapter.generateIR();
         funcNames = irGeneratorAdapter.getFuncNames();
@@ -225,8 +235,8 @@ public class Compiler {
                 generateIRForFile(file);
             }
         }
-
     }
+
 
     /**
      * Generate and run IR for all input files.
@@ -242,6 +252,55 @@ public class Compiler {
                 }
             }
 
+        }
+    }
+
+    /**
+     * Generate the intermediate representation for fileName
+     * @param fileName the input xi file
+     * @return an IRCompUnit which is the root node of generated IR
+     */
+    public IRCompUnit generateCFGForFile(String fileName) {
+        boolean generateFile = cmd.hasOption("optcfg") || cmd.hasOption("irgen") || cmd.hasOption("optir");
+        boolean beforeOpt = true;
+        if (cmd.hasOption("optir") && (cmd.getOptionValue("optir")).equals("final")){
+            beforeOpt = false;
+        }
+
+        boolean optimize = !cmd.hasOption("O");
+        IRGeneratorAdapter irGeneratorAdapter = new IRGeneratorAdapter(
+                fileName, this.destPath, this.libPath, optimize, true, beforeOpt, true, "true");
+
+        IRCompUnit sourceIR = irGeneratorAdapter.generateIR();
+        funcNames = irGeneratorAdapter.getFuncNames();
+        funcArgLengths = irGeneratorAdapter.getFuncArgLengths();
+        funcRetLengths = irGeneratorAdapter.getFuncRetLengths();
+        return sourceIR; // nullable
+    }
+    /**
+     * Generate IR for all input file.
+     */
+    public void generateCFG() {
+        if (cmd.hasOption("irgen")) {
+            this.files = cmd.getArgList();
+            for (String file : files) {
+                generateIRForFile(file);
+            }
+        }
+
+    }
+
+    // TODO
+    public void reportCFG(){
+        if (cmd.hasOption("optcfg")){
+            if (cmd.hasOption("RegAlloc")){
+                //Do sth
+            } else if (cmd.hasOption("ConstProp")) {
+                //Do sth
+            } else if (cmd.hasOption("DeadElimination")){
+                //Do sth
+
+            }
         }
     }
 

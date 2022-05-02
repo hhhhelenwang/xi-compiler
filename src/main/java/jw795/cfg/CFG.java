@@ -1,8 +1,12 @@
 package jw795.cfg;
 
-import edu.cornell.cs.cs4120.xic.ir.IRStmt;
-import jw795.irgenerator.JumpReorder;
+import java_cup.runtime.Symbol;
+import jw795.util.FileUtil;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -62,9 +66,34 @@ public abstract class CFG<T> {
         cur.addSuccessor(next);
     }
 
-    // TODO: work in progress
-//    public toDotFormat(){
-//
-//    }
+    /**
+     * Convert CFG to dot format and save it to a file
+     * @param fileName
+     * @param path
+     * @param graphID
+     */
+    public void toDotFormat(String fileName, String path, String graphID){
+          //generate the target .lexed file
+          File targetDotFile = FileUtil.generateTargetFile(fileName, path, ".txt");
+
+          try{
+              FileWriter writer = new FileWriter(targetDotFile, Charset.forName("UTF-8"));
+              List<CFGNode<T>> nodes = flatten();
+              writer.write("digraph "+ graphID + " {");
+              for (CFGNode<T> node : nodes){
+                  String curNodeName = node.toString().replaceAll(" ", "_");
+                  writer.write(curNodeName + ";");
+                  for (CFGNode<T> successor : node.getSuccessors()){
+                      String successorName = successor.toString().replaceAll(" ", "_");
+                      writer.write(curNodeName + " -> " + successorName + ";");
+                  }
+              }
+              writer.write("}");
+              writer.close();
+          }
+          catch (IOException ex){
+              System.out.println("IO Error when writing lexed file: " + ex.getMessage());
+          }
+    }
 
 }
