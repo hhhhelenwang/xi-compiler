@@ -5,123 +5,6 @@ xic ("Test --help") "--help" {
     ;
 }
 
-xic ("Test --lex") ["./test/pa1"]"--lex" {
-    test1.xi;
-    test2.xi;
-    testcomment.xi;
-    testchar.xi;
-    teststring.xi;
-    testearly_stop.xi;
-    testeofstring.xi;
-    testeofchar.xi;
-    // testescape_char.xi;
-    testescape_string.xi;
-    testid.xi;
-    testsample_1.xi
-    testtype.xi;
-}
-xic ("Test --parse") ["./test/pa2"]"--parse" {
-    test_declare_assign.xi;
-    test_func_no_arg_type.xi;
-    test_function_definition.xi;
-    test_function_mult_results.xi;
-    test_variable_declares.xi;
-    test_arr_init1.xi;
-    test_arr_init2.xi;
-    test_arr_init3.xi;
-}
-xic ("Test --parse") ["./test/pa2/pa2-failed"]"--parse" {
-    assign02.xi;
-    assign04.xi;
-}
-
-xic ("Test --typecheck") ["./test/pa3"]"-libpath $(testpath) --typecheck" {
-    test_interface.xi;
-    testaddmessage.xi;
-    testarraytype.xi;
-    testgeneral.xi;
-    testmultiassign.xi;
-    testprocedureret.xi;
-    testscope.xi;
-    testwrongscope.xi;
-    testinterfacesamedeclare.xi;
-    testintrange.xi;
-    teststringchar.xi;
-    test_interface.xi;
-    testaddmessage.xi;
-    testarraytype.xi;
-    testgeneral.xi;
-    testinterfacedifdeclare.xi;
-    testinterfacesamedeclare.xi;
-    testinvalidarray1.xi;
-    testmultiassign.xi;
-    testprocedureret.xi;
-    testprocewrongret.xi;
-    testscope.xi;
-    teststringchar.xi;
-    testwrongscope.xi;
-    arrayinit_illegal_mismatchType.xi;
-    block01_legal.xi;
-    block02_IllegalIfElseType.xi;
-    block03_onlyLastStmtCanEvalToVoid.xi;
-    ex13_assign_illegal_intArrToInt.xi;
-    ex14_legal_assign.xi;
-    ex15_scope_legal.xi;
-    testinvalidlength.xi;
-}
-
-
-xic ("Test --irgen") ["./test/pa4"]"-libpath $(testpath) --irgen" {
-    testiftrue.xi;
-    testiffalse.xi;
-    testwhilefalse.xi;
-    testifelse01.xi;
-    testifelse02.xi;
-    testbasictry.xi;
-    testfoldbinop.xi;
-    testbasicarray.xi;
-    testbasictry.xi;
-    testfoldbinop.xi;
-    testfuncallfold.xi;
-    test_commute.xi;
-    testarrayconcat.xi;
-    testarrayindexoutofbound.xi;
-    testbasic.xi
-    testbasictype.xi;
-     testbinops.xi;
-     testprocedure.xi;
-     testjumps.xi;
-     testLastBlockNotFallThrough.xi;
-     testCJumpFallThrough.xi;
-     testsideeffect.xi;
-     testlength.xi;
-}
-
-xic ("Test --irgen -O") ["./test/pa4"]"-libpath $(testpath) --irgen -O" {
-    testiftrue.xi;
-    testiffalse.xi;
-    testwhilefalse.xi;
-    testifelse01.xi;
-    testifelse02.xi;
-    testbasictry.xi;
-    testfoldbinop.xi;
-    testbasicarray.xi;
-    testbasictry.xi;
-    testfoldbinop.xi;
-    testfuncallfold.xi;
-    test_commute.xi;
-    testarrayconcat.xi;
-    testarrayindexoutofbound.xi;
-    testbasic.xi
-    testbasictype.xi;
-     testbinops.xi;
-     testprocedure.xi;
-     testjumps.xi;
-     testLastBlockNotFallThrough.xi;
-     testCJumpFallThrough.xi;
-     testsideeffect.xi;
-     testlength.xi;
-  }
 
 
 xic ("Test -target linux -O") ["./test/pa5"]"-libpath $(testpath) -target linux -O" {
@@ -150,5 +33,9 @@ xic ("Test -target linux -O") ["./test/pa5"]"-libpath $(testpath) -target linux 
     testlength.xi;
     testaddrmode.xi;
     testset.xi;
+    test5_5.xi;
+    test6_1.xi;
+    test10_1.xi;
+    test10_5.xi;
 }
 
