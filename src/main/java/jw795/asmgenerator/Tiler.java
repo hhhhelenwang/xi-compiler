@@ -1097,7 +1097,7 @@ public class Tiler extends IRVisitor {
                         //System.out.println("enter NOT xor (binopp) (const1) branch");
                         //System.out.println(node.toString());
                         neighbors.add(node.cond());
-                        aasm.add(new AACmp(node.cond().getTile().getReturnTemp(), new AAImm(0)));
+                        aasm.add(new AACmp(node.cond().getTile().getReturnTemp(), new AAImm(1)));
                         aasm.add(new AAJe(new AALabel(target)));
                     }
                     break;
