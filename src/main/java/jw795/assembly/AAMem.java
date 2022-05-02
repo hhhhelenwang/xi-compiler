@@ -6,7 +6,8 @@ import java.util.Optional;
  * A memory address in abstract assembly
  */
 public class AAMem extends AAOperand{
-    // Memory operands are of the form [base + scale * index] or [base + scale * imm]. All are optional.
+    // cases: [base], [base + scale * index], [base + scale * imm], [scale * index], [scale * imm],
+    // [base + index] (scale assumed to be 1), [base + imm] (scale assumed to be 1), [imm].
     Optional<AAReg> base;
     Optional<AAReg> index;
     Optional<Long> scale;
@@ -59,16 +60,14 @@ public class AAMem extends AAOperand{
         }
 
         if (immediate.isPresent()){
-            if (scale.isPresent()){
-                if (index.isPresent()){
-                    if (base.isPresent()){
-                        strOfMem += "+";
-                    }
-                    strOfMem += immediate.get();
-                } else {
-                    if (scale.get() < 0){
-                        strOfMem += "-" + immediate.get();
-                    }
+            if (index.isPresent()){
+                if (base.isPresent()){
+                    strOfMem += "+";
+                }
+                strOfMem += immediate.get();
+            } else {
+                if (scale.get() < 0){
+                    strOfMem += "-" + immediate.get();
                 }
             }
         }

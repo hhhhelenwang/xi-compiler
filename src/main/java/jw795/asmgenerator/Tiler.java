@@ -185,13 +185,13 @@ public class Tiler extends IRVisitor {
                 for (long i = 0L; i < 5; i++) {
                     asm.add(new AAMove(tempSpiller.newTemp("_ARG" + (i + 1)), argRegs[(int) i]));
                 }
-                for (long i = 5L; i < argScratchSize; i++) {
-                    long index = i - 4;
+                for (long i = 0L; i < argScratchSize; i++) {
+                    long index = i + 1;
                     AAMem mem = new AAMem();
                     mem.setBase(rbp);
                     mem.setImmediate(new AAImm(index * 8L));
                     asm.add(new AAMove(rax, mem));
-                    asm.add(new AAMove(tempSpiller.newTemp("_ARG" + (i + 1)), rax));
+                    asm.add(new AAMove(tempSpiller.newTemp("_ARG" + (i + 6)), rax));
                 }
             } else {
                 for (long i = 0L; i < curArgSize; i++) {
@@ -204,13 +204,13 @@ public class Tiler extends IRVisitor {
                 for (long i = 0L; i < 6; i++) {
                     asm.add(new AAMove(tempSpiller.newTemp("_ARG" + (i + 1)), argRegs[(int) i]));
                 }
-                for (long i = 6L; i < argScratchSize; i++) {
-                    long index = i - 5;
+                for (long i = 0L; i < argScratchSize; i++) {
+                    long index = i + 1;
                     AAMem mem = new AAMem();
                     mem.setBase(rbp);
                     mem.setImmediate(new AAImm(index * 8L));
                     asm.add(new AAMove(rax, mem));
-                    asm.add(new AAMove(tempSpiller.newTemp("_ARG" + (i + 1)), rax));
+                    asm.add(new AAMove(tempSpiller.newTemp("_ARG" + (i + 7)), rax));
                 }
             } else {
                 for (long i = 0L; i < curArgSize; i++) {
