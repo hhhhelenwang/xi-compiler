@@ -226,10 +226,11 @@ public class Tiler extends IRVisitor {
         // add body's asm to fundecl's asm
         asm.addAll(concatAsm(body));
 
-        asm = allocate(asm, spillAndAlign);
+//        asm = regAllocation(asm, spillAndAlign);
 
         // set the final tile of funcdecl with no neighbor
         node.setTile(new Tile(asm, new ArrayList<>()));
+        allocate(node, tempSpiller);
 
         // reset temp spiller and spillAndAlign for the next fundecl to use
         tempSpiller = new TempSpiller();
