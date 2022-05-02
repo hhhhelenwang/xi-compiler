@@ -12,7 +12,6 @@ import static java.lang.Math.min;
  * A visitor that traverse an IR tree and translate IR into tiles of abstract assembly.
  */
 public class Tiler extends IRVisitor {
-    public TempSpiller tempSpiller;
     HashMap<String, Long> funcArgLengths;
     HashMap<String, Long> funcRetLengths;
 
@@ -36,10 +35,9 @@ public class Tiler extends IRVisitor {
     private final AAReg r15 = new AAReg("r15");
     private final AAReg rip = new AAReg("rip");
 
-    long spillAndAlign = 0L;
+    public TempSpiller tempSpiller;
 
-    // epilogue for adding in front of ret later (doesn't include the destroying the spilled temp
-    List<AAInstruction> epi = new ArrayList<>();
+    AADynamic spillAndAlign;
 
     public Tiler(IRNodeFactory inf, TempSpiller tsp, HashMap<String, Long> funcArg, HashMap<String, Long> funcRet, HashMap<String, String> names) {
         super(inf);
@@ -62,14 +60,7 @@ public class Tiler extends IRVisitor {
         funcArgLengths.put("_Iassert_pb", 1L);
         funcRetLengths.put("_Iassert_pb", 0L);
 
-        //restore callee-saved registers
-        epi.add(new AAPop(r15));
-        epi.add(new AAPop(r14));
-        epi.add(new AAPop(r13));
-        epi.add(new AAPop(r12));
-        epi.add(new AAPop(rbx));
-        epi.add(new AAPop(rbp));
-        epi.add(new AAAdd(rsp, new AAImm(8L)));
+        spillAndAlign = new AADynamic();
     }
 
     /**
@@ -163,7 +154,6 @@ public class Tiler extends IRVisitor {
             }
         }
 
-        List<IRNode> neighbors = new ArrayList<>();
         List<AAInstruction> asm = new ArrayList<>();
         asm.add(new AADirective(AADirective.DirType.TEXT));
         asm.add(new AADirective(AADirective.DirType.GLOBAL, name));
@@ -230,29 +220,21 @@ public class Tiler extends IRVisitor {
 
         }
 
-        // let body be fundecl node's neighbor for now in order to calculate number of temp
-        // and translate temp in both asm
-        neighbors.add(body);
-        node.setTile(new Tile(asm, neighbors));
-        spillAndAlign = allocate(node, tempSpiller);
-        // for alignment
-        if (spillAndAlign % 2 == 0) {
-            spillAndAlign += 1;
-        }
-
-        List<AAInstruction> curAsm = node.getTile().getAssembly();
-
         // allocate space for spilled temps + alignment for all the function calls
-        curAsm.add(new AASub(rsp, new AAImm(8 * spillAndAlign)));
+        asm.add(new AASub(rsp, spillAndAlign));
 
         // add body's asm to fundecl's asm
-        curAsm.addAll(concatAsm(body, epi));
+        asm.addAll(concatAsm(body));
+
+        asm = allocate(asm, spillAndAlign);
 
         // set the final tile of funcdecl with no neighbor
-        node.setTile(new Tile(curAsm, new ArrayList<>()));
+        node.setTile(new Tile(asm, new ArrayList<>()));
 
-        // reset temp spiller for the next fundecl to use
+        // reset temp spiller and spillAndAlign for the next fundecl to use
         tempSpiller = new TempSpiller();
+        spillAndAlign = new AADynamic();
+
         return node;
     }
 
@@ -260,22 +242,16 @@ public class Tiler extends IRVisitor {
      * Recursively traverse root node to get their assembly code
      *
      * @param node root node
-     * @param epi epilogue assembly to de story the call stack
      * @return List of instructions of concatenated optimal assembly code
      */
-    private List<AAInstruction> concatAsm(IRNode node, List<AAInstruction> epi) {
+    private List<AAInstruction> concatAsm(IRNode node) {
         List<AAInstruction> asm = new ArrayList<>();
 
         for (IRNode neighbor : node.getTile().getNeighborIRs()) {
-            asm.addAll(concatAsm(neighbor, epi));
+            asm.addAll(concatAsm(neighbor));
         }
         asm.addAll(node.getTile().getAssembly());
-        if (node instanceof IRReturn) {
-            // destroy stack up to callee-saved registers
-            asm.add(new AAAdd(rsp, new AAImm(8 * spillAndAlign)));
-            asm.addAll(epi);
-            asm.add(new AARet());
-        }
+
         return asm;
     }
 
@@ -372,7 +348,6 @@ public class Tiler extends IRVisitor {
         List<AAInstruction> asm = new ArrayList<>();
         List<IRNode> neighbors = new ArrayList<>(rets);
 
-
         if (ret_size == 0) {
             //do nothing
         } else if (ret_size == 1) {
@@ -397,6 +372,17 @@ public class Tiler extends IRVisitor {
                 asm.add(new AAAdd(rcx, new AAImm(8L)));
             }
         }
+
+        asm.add(new AAAdd(rsp, spillAndAlign));
+        //restore callee-saved registers
+        asm.add(new AAPop(r15));
+        asm.add(new AAPop(r14));
+        asm.add(new AAPop(r13));
+        asm.add(new AAPop(r12));
+        asm.add(new AAPop(rbx));
+        asm.add(new AAPop(rbp));
+        asm.add(new AAAdd(rsp, new AAImm(8L)));
+        asm.add(new AARet());
 
         node.setTile(new Tile(asm, neighbors));
         return node;
