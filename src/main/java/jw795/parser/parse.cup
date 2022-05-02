@@ -55,7 +55,6 @@ non terminal file;
 non terminal Interface interface;
 non terminal ArrayList<ProcFuncDecl> procFuncDeclLst;
 non terminal ProcFuncDecl procFuncDecl;
-non terminal RecordDecl recordDecl;
 
 // program
 non terminal Program program;
@@ -162,7 +161,9 @@ procFuncDecl ::= ID:i LPAREN optArgLst:a RPAREN
     {: RESULT = new ProcedureDeclare(i, a, ileft, iright); :}
     | ID:i LPAREN optArgLst:a RPAREN COLON argRetTypeLst:t
     {: RESULT = new FunctionDeclare(i, a, t, ileft, iright); :}
-    | RECORD ID:i LBRACK fieldList:t RBRACK
+    | RECORD ID:i LBRACE RBRACE
+    {: RESULT = new RecordDeclare(i, ileft, iright); :}
+    | RECORD ID:i LBRACE fieldList:t RBRACE
     {: RESULT = new RecordDeclare(i, t, ileft, iright); :}
     ;
 
@@ -312,6 +313,10 @@ procFuncDef ::= procDef:d
     {: RESULT = d; :}
     | funcDef:d
     {: RESULT = d; :}
+    | RECORD ID:i LBRACE RBRACE
+    {: RESULT = new RecordDeclare(i, ileft, iright); :}
+    | RECORD ID:i LBRACE fieldList:t RBRACE
+    {: RESULT = new RecordDeclare(i, t, ileft, iright); :}
     ;
 
 // procedure definition
@@ -367,6 +372,8 @@ stmt ::= ifStmt:s
     {: RESULT = s;:}
     | varDecl:s
     {: RESULT = s; :}
+    | BREAK:s
+    {:RESULT = new BreakStmt(sleft, sright);:}
     ;
 
 //if statement
@@ -401,6 +408,8 @@ lftValue ::= ID:i
     {: RESULT = a; :}
     | UNDERSCORE:u
     {: RESULT = new WildCard(uleft, uright); :}
+    |ID:i DOT ID:f
+    {: RESULT = new Dot(i, f, ileft, iright);:}
     ;
 
 type ::= typeInitiable:t
@@ -487,6 +496,8 @@ expr ::= INT: i
     {: RESULT = new And(e1, e2, e1.getLine(), e1.getCol());:}
     | expr:e1 OR expr:e2
     {: RESULT = new Or(e1, e2, e1.getLine(), e1.getCol());:}
+    | ID:i DOT ID:f
+    {: RESULT = new Dot(i, f, ileft, iright);:}
     | ID:i
     {: RESULT = new VarExpr(i, ileft, iright); :}
     | funCall: f
@@ -497,6 +508,8 @@ expr ::= INT: i
     {: RESULT = new ArrIndexExpr(e1, e2, e1.getLine(), e1.getCol()); :}
     | LBRACE:l exprLst:e RBRACE
     {: RESULT = new ArrayExpr(e, lleft, lright); :}
+    | NULL:i
+    {: RESULT = new Null(ileft, iright);:}
     ;
 
 // expression of indexing an array. can be used as left hand side value of an assignment
