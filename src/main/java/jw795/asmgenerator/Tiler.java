@@ -230,8 +230,8 @@ public class Tiler extends IRVisitor {
 
         // set the final tile of funcdecl with no neighbor
         node.setTile(new Tile(asm, new ArrayList<>()));
-        long val = spill(node, tempSpiller);
-        if (val % 2 == 0) {
+        long val = spill(node, tempSpiller) * 8L;
+        if (val % 16 == 0) {
             val += 8;
         }
         spillAndAlign.setVal(val);
