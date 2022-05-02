@@ -52,7 +52,7 @@ public class AAMem extends AAOperand{
                     if (scale.get() == 1) {
                         strOfMem += "+";
                     } else {
-                        strOfMem += scale.get() + "*";
+                        strOfMem += "+" + scale.get() + "*";
                     }
                 } else {
                     if (scale.get() == -1) {
