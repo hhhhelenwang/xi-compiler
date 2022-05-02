@@ -49,7 +49,7 @@ push [rbp-136]
 push [rbp-128]
 call _If_i
 addq rsp, 32
-mov [rbp-240], rax // return
+mov [rbp-240], rax
 mov rax, [rbp-160]
 mov rcx, [rbp-168]
 mov rdx, [rbp-176]
@@ -60,11 +60,10 @@ mov r8, [rbp-208]
 mov r9, [rbp-216]
 mov r10, [rbp-224]
 mov r11, [rbp-232]
-
-mov rsi, [rbp-240] // 240 = return (rax) from f
-mov [rbp-248], rsi //
+mov rsi, [rbp-240]
+mov [rbp-248], rsi
 mov rsi, [rbp-248]
-mov [rbp-256], rsi // 256 = y
+mov [rbp-256], rsi
 mov rsi, [rbp-256]
 mov [rbp-264], rsi
 mov [rbp-272], rax
@@ -143,28 +142,36 @@ mov [rbp-72], rdx
 mov [rbp-80], rcx
 mov [rbp-88], r8
 mov [rbp-96], r9
+mov rax, [rbp+8]
+mov [rbp-104], rax
+mov rax, [rbp+16]
+mov [rbp-112], rax
+mov rax, [rbp+24]
+mov [rbp-120], rax
+mov rax, [rbp+32]
+mov [rbp-128], rax
 sub rsp, 168
-mov rsi, [rbp-56] //a
-mov [rbp-104], rsi
-mov rsi, [rbp-64] //b
-mov [rbp-112], rsi
-mov rsi, [rbp-72] //c
-mov [rbp-120], rsi
-mov rsi, [rbp-80] //d
-mov [rbp-128], rsi
-mov rsi, [rbp-88] //e
+mov rsi, [rbp-56]
 mov [rbp-136], rsi
-mov rsi, [rbp-96] //f
+mov rsi, [rbp-64]
 mov [rbp-144], rsi
-mov rsi, [rbp-152] //g
+mov rsi, [rbp-72]
+mov [rbp-152], rsi
+mov rsi, [rbp-80]
 mov [rbp-160], rsi
-mov rsi, [rbp-168] //h
+mov rsi, [rbp-88]
+mov [rbp-168], rsi
+mov rsi, [rbp-96]
 mov [rbp-176], rsi
-mov rsi, [rbp-184] //i
+mov rsi, [rbp-104]
+mov [rbp-184], rsi
+mov rsi, [rbp-112]
 mov [rbp-192], rsi
-mov rsi, [rbp-200] //j
+mov rsi, [rbp-120]
+mov [rbp-200], rsi
+mov rsi, [rbp-128]
 mov [rbp-208], rsi
-mov rsi, [rbp-208] // j to t14
+mov rsi, [rbp-208]
 mov [rbp-216], rsi
 mov rax, [rbp-208]
 add rsp, 168
