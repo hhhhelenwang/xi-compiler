@@ -283,7 +283,6 @@ public class Tiler extends IRVisitor {
                     AAMem mem = new AAMem();
                     mem.setBase(rbp);
                     mem.setImmediate(offset);
-                    mem.setScale(-1L);
                     a.reseta1(mem);
                 }
             }
@@ -295,7 +294,6 @@ public class Tiler extends IRVisitor {
                     AAMem mem = new AAMem();
                     mem.setBase(rbp);
                     mem.setImmediate(offset);
-                    mem.setScale(-1L);
                     a.reseta2(mem);
                 }
             }
