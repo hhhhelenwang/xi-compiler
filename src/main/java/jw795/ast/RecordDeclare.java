@@ -8,10 +8,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class RecordDeclare extends ASTNode implements ProcFuncDecl{
+public class RecordDeclare extends ASTNode implements ProcFuncDecl, Definition{
     public String name;
     public Map<String, Type> fieldtypelst;
 //    public List<HashMap<Integer,Integer>> s;
+    public RecordDeclare(String n, int li, int co) {
+        super(li, co);
+        name = n;
+        fieldtypelst = new HashMap<>();
+    }
     public RecordDeclare(String n, ArrayList<HashMap<String, Type>> lst, int li, int co) {
         super(li, co);
         name = n;

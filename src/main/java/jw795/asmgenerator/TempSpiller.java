@@ -70,7 +70,7 @@ public class TempSpiller {
      * @return the mem for where the temp is spilled.
      */
     public AAImm getOffsetOfTemp(AATemp temp) {
-        long offset = stackOffsetOfTemp.get(temp.name());
+        long offset = -stackOffsetOfTemp.get(temp.name());
         AAImm offset_imm = new AAImm(offset);
         return offset_imm;
     }

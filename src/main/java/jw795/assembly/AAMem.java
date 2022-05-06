@@ -6,7 +6,9 @@ import java.util.Optional;
  * A memory address in abstract assembly
  */
 public class AAMem extends AAOperand{
-    // Memory operands are of the form [base + scale * index] or [base + scale * imm]. All are optional.
+    // a memory operand can contain two registers: base and index
+    // and one immediate offset: immediate
+    // and a constant scale that can be (+/-) (1, 2, 4, 8) can can be applied to index
     Optional<AAReg> base;
     Optional<AAReg> index;
     Optional<Long> scale;
@@ -44,38 +46,69 @@ public class AAMem extends AAOperand{
         String strOfMem = "[";
 
         if (base.isPresent()) {
-            strOfMem += base.get();
-        }
-
-        if (index.isPresent()){
-                if (scale.get() > 0){
-                    if (base.isPresent()){
+            strOfMem += base.get(); //base
+            if (scale.isPresent()) {
+                if (scale.get() >= 0) {
+                    if (scale.get() == 1) {
                         strOfMem += "+";
+                    } else {
+                        strOfMem += "+" + scale.get() + "*";
                     }
-                    strOfMem += scale.get() + "*" + index.get();
                 } else {
-                    strOfMem += "-" + scale.get() + "*" + index.get();
+                    if (scale.get() == -1) {
+                        strOfMem += "-";
+                    } else {
+                        strOfMem += scale.get() + "*";
+                    }
                 }
-        }
 
-        if (immediate.isPresent()){
-            if (scale.isPresent()){
-                if (index.isPresent()){
-                    if (base.isPresent()){
-                        strOfMem += "+";
-                    }
-                    strOfMem += immediate.get();
+                if (index.isPresent()) {
+                    strOfMem += index.get(); //base + scale * index
+                }
+
+            } else {
+                if (index.isPresent()) {
+                    strOfMem += "+" + index.get(); //base + index
+                }
+            }
+
+            if (immediate.isPresent()) {
+                if (immediate.get().val() >= 0) {
+                    strOfMem += "+" + immediate.get(); // base + imm
                 } else {
-                    if (scale.get() < 0){
-                        strOfMem += "-" + immediate.get();
+                    strOfMem += immediate.get();
+                }
+            }
+            if (label.isPresent()) {
+                strOfMem += "+" + label.get(); //base + label
+            }
+        } else {
+            if (scale.isPresent()) {
+                if (scale.get() >= 0) {
+                    if (scale.get() == 1) {
+                        strOfMem += "+";
+                    } else {
+                        strOfMem += scale.get() + "*";
+                    }
+                } else {
+                    if (scale.get() == -1) {
+                        strOfMem += "-";
+                    } else {
+                        strOfMem += scale.get() + "*";
                     }
                 }
             }
+            //  no base so add index directly if present
+            if (index.isPresent()) {
+                strOfMem += index.get(); //scale * index
+            }
+
+            if (immediate.isPresent()) {
+               strOfMem += immediate.get(); //imm
+            }
+
         }
 
-        if (label.isPresent()){
-            strOfMem += "+" + label.get();
-        }
         strOfMem += "]";
 
         return strOfMem;

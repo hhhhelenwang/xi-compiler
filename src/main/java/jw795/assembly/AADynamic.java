@@ -1,16 +1,19 @@
 package jw795.assembly;
 
-public class AAImm extends AAOperand{
-
+public class AADynamic extends AAOperand{
     public long val;
 
-    public AAImm(long value) {
+    public AADynamic() {
+        super();
+    }
+
+    public AADynamic(long value) {
         super();
         val = value;
     }
 
-    public long val() {
-        return val;
+    public void setVal(long val) {
+        this.val = val;
     }
 
     @Override
