@@ -16,7 +16,7 @@ import java.util.Map;
  */
 public abstract class DataFlowAnalysis<V, R> {
     CFG<R> cfg;
-    Map<CFGNode<R>, V> nodeToValueMap; // map each node to its data flow value = out set
+    Map<CFGNode<R>, V> nodeToValueMap; // map each node to its data flow value = the node's out set
     List<CFGNode<R>> listOfNodes; // ?? keep it here for now but not sure if we need this
 
     public DataFlowAnalysis(CFG<R> cfg) {

@@ -1,0 +1,52 @@
+
+IFSx=''
+echo "build" >> ./pa5Failed/xthScript
+echo "xic (\"Test -target linux -O\") \"-libpath \$(testpath) -target linux -O\" {" >> ./pa5Failed/xthScript
+
+while IFS= read line;
+do
+    if [[ $line =~  \#\ xic-ref\ \(-target\ linux\ \[([\ a-zA-Z0-9\-]*)\]\):\ ([a-zA-Z0-9\_]*).i?xi ]]
+    then
+        outputfile=${BASH_REMATCH[2]}
+        outputdir=${BASH_REMATCH[1]}
+
+        echo "$(tr ' ' '_' <<<$outputdir)"/$outputfile.xi";" >> ./pa5Failed/xthScript
+        outputdir=pa5Failed/"$(tr ' ' '_' <<<$outputdir)"
+        echo "matched part is $outputfile"
+        echo "matched part is $outputdir"
+        mkdir -p  $outputdir
+#        echo $outputdir/$outputfile.xi";" >> ./pa5Failed/xthScriptFailed
+    fi
+
+
+    if [[ $line =~ \#\#\ Content\ of\ test\ case: ]]
+    then
+        echo -n "" > $outputdir/$outputfile.xi
+        IFS= read line
+        IFS= read line
+        echo $line
+        IFS= read line
+        until [[ $line == \`\`\` ]]; do
+            echo $line >> $outputdir/$outputfile.xi
+            IFS= read line
+        done
+    fi
+
+    if [[ $line == "## Expected result:" ]]
+    then
+        echo -n "" > $outputdir/$outputfile.ssol.nml
+        IFS= read line
+        IFS= read line
+        echo $line
+        IFS= read line
+        until [[ $line == \`\`\` ]]; do
+     if [[ $line != "" ]]
+     then
+             echo $line >> $outputdir/$outputfile.ssol.nml
+     fi
+            IFS= read line
+        done
+    fi
+
+done < pa5.md
+echo "}" >> ./pa5Failed/xthScript
