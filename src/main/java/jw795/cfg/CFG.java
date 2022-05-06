@@ -15,6 +15,7 @@ import java.util.Optional;
 
 public abstract class CFG<T> {
     private CFGNode<T> start;
+    private CFGNode<T> exit;
 
     public CFG(CFGNode<T> start){
         this.start = start;
@@ -27,6 +28,8 @@ public abstract class CFG<T> {
     public CFGNode<T> start(){
         return start;
     }
+
+    public CFGNode<T> exit() { return exit; }
 
     /**
      * Flatten a CFG to a list of CFGNode
