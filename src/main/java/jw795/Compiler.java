@@ -203,20 +203,28 @@ public class Compiler {
     }
 
     /**
-     * Generate the intermediate representation for fileName
+     * Generate the intermediate representation or CFG for fileName
      * @param fileName the input xi file
      * @return an IRCompUnit which is the root node of generated IR
      */
-    public IRCompUnit generateIRForFile(String fileName) {
+    public IRCompUnit generateIRorCFGForFile(String fileName) {
         boolean generateIRFile = cmd.hasOption("irrun") || cmd.hasOption("irgen") || cmd.hasOption("optir");
         boolean beforeOpt = true;
         if (cmd.hasOption("optir") && (cmd.getOptionValue("optir")).equals("final")){
                 beforeOpt = false;
         }
 
+        boolean generateCFGFile = cmd.hasOption("optcfg");
+        String optType = cmd.getOptionValue("optcfg");
+
+        if (generateCFGFile && !((cmd.getOptionValue("optcfg").equals("reg")
+                || cmd.getOptionValue("optcfg").equals("cp") || cmd.getOptionValue("optcfg").equals("dce")))) {
+                System.out.println(cmd.getOptionValue("optcfg") + " optimization is not supported");
+        }
+
         boolean optimize = !cmd.hasOption("O");
         IRGeneratorAdapter irGeneratorAdapter = new IRGeneratorAdapter(
-                fileName, this.destPath, this.libPath, optimize, generateIRFile, beforeOpt, false, "false");
+                fileName, this.destPath, this.libPath, optimize, generateIRFile, beforeOpt, generateCFGFile, optType);
 
         IRCompUnit sourceIR = irGeneratorAdapter.generateIR();
         funcNames = irGeneratorAdapter.getFuncNames();
@@ -229,10 +237,10 @@ public class Compiler {
      * Generate IR for all input file.
      */
     public void generateIR() {
-        if (cmd.hasOption("irgen")) {
+        if (cmd.hasOption("irgen") || cmd.hasOption("optcfg")) {
             this.files = cmd.getArgList();
             for (String file : files) {
-                generateIRForFile(file);
+                generateIRorCFGForFile(file);
             }
         }
     }
@@ -245,7 +253,7 @@ public class Compiler {
         if (cmd.hasOption("irrun")) {
             this.files = cmd.getArgList();
             for (String file : files) {
-                IRCompUnit ir = generateIRForFile(file);
+                IRCompUnit ir = generateIRorCFGForFile(file);
                 if (ir != null) {
                     IRSimulator sim = new IRSimulator(ir);
                     long result = sim.call("_Imain_paai", 1);
@@ -256,60 +264,11 @@ public class Compiler {
     }
 
     /**
-     * Generate the intermediate representation for fileName
-     * @param fileName the input xi file
-     * @return an IRCompUnit which is the root node of generated IR
-     */
-    public IRCompUnit generateCFGForFile(String fileName) {
-        boolean generateFile = cmd.hasOption("optcfg") || cmd.hasOption("irgen") || cmd.hasOption("optir");
-        boolean beforeOpt = true;
-        if (cmd.hasOption("optir") && (cmd.getOptionValue("optir")).equals("final")){
-            beforeOpt = false;
-        }
-
-        boolean optimize = !cmd.hasOption("O");
-        IRGeneratorAdapter irGeneratorAdapter = new IRGeneratorAdapter(
-                fileName, this.destPath, this.libPath, optimize, true, beforeOpt, true, "true");
-
-        IRCompUnit sourceIR = irGeneratorAdapter.generateIR();
-        funcNames = irGeneratorAdapter.getFuncNames();
-        funcArgLengths = irGeneratorAdapter.getFuncArgLengths();
-        funcRetLengths = irGeneratorAdapter.getFuncRetLengths();
-        return sourceIR; // nullable
-    }
-    /**
-     * Generate IR for all input file.
-     */
-    public void generateCFG() {
-        if (cmd.hasOption("irgen")) {
-            this.files = cmd.getArgList();
-            for (String file : files) {
-                generateIRForFile(file);
-            }
-        }
-
-    }
-
-    // TODO
-    public void reportCFG(){
-        if (cmd.hasOption("optcfg")){
-            if (cmd.hasOption("RegAlloc")){
-                //Do sth
-            } else if (cmd.hasOption("ConstProp")) {
-                //Do sth
-            } else if (cmd.hasOption("DeadElimination")){
-                //Do sth
-
-            }
-        }
-    }
-
-    /**
      * Compile a single file into assembly.
      * @param filename source file
      */
     public void compileFile(String filename) {
-        IRCompUnit ir = generateIRForFile(filename);
+        IRCompUnit ir = generateIRorCFGForFile(filename);
         if (ir != null) {
             AssemblyGeneratorAdapter asmAdapter = new AssemblyGeneratorAdapter(
                     filename, ir, destPathAsm, !cmd.hasOption("O"), funcArgLengths, funcRetLengths, funcNames);

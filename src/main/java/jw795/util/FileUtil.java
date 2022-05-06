@@ -1,6 +1,7 @@
 package jw795.util;
 
 import java.io.File;
+import java.util.Optional;
 
 /**
  * FileUtil: include utilities for file-related actions including building output file,
@@ -19,6 +20,21 @@ public class FileUtil {
      * @return targetFile
      */
     public static File generateTargetFile(String fileName, String path, String fileType){
+        return generateTargetFileWithFuncName(fileName, path, fileType, Optional.empty());
+    }
+
+    /**
+     * Constructs a new target file
+     *
+     * @param fileName, filename to the source file
+     * @param path, path to put the diagnostic file in
+     * @param fileType, type of file produced
+     * @param funcName, function name of the function for the generated file
+     *
+     * @return targetFile
+     */
+    public static File generateTargetFileWithFuncName(String fileName, String path,
+                                                      String fileType, Optional<String> funcName) {
         // build the full directory to put the generated file in
         String[] dirs = fileName.split("/");
         String fullPath = path + "/";
@@ -30,10 +46,15 @@ public class FileUtil {
         String file = dirs[dirs.length - 1];
         String processedFile;
         String end = file.substring(file.length()-3);
+        String xiFileName = file.substring(0,file.length()-3);
+        String ixiFileName = file.substring(0,file.length()-4);
+
         if(end.equals(".xi")) {
-            processedFile =file.substring(0,file.length()-3)  + "." + fileType;
+            processedFile = funcName.isPresent() ?
+                    xiFileName + funcName.get() + "." + fileType : xiFileName + "." + fileType;
         }else{
-            processedFile =file.substring(0,file.length()-4)  + "." + fileType;
+            processedFile = funcName.isPresent() ?
+                    ixiFileName + funcName.get() + "." + fileType : ixiFileName + "." + fileType;
         }
 
         // check if directory to put the lexed file in exists, create a new dir if doesn't
@@ -46,5 +67,4 @@ public class FileUtil {
 
         return targetFile;
     }
-
 }

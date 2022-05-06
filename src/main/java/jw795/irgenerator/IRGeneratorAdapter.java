@@ -7,15 +7,14 @@ import edu.cornell.cs.cs4120.xic.ir.IRFuncDecl;
 import edu.cornell.cs.cs4120.xic.ir.IRStmt;
 import jw795.Visitor;
 import jw795.ast.Program;
+import jw795.cfg.CFG;
+import jw795.cfg.CFGGenerator;
 import jw795.cfg.CFGNode;
 import jw795.cfg.IRCFG;
 import jw795.typechecker.*;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static jw795.util.FileUtil.generateTargetFile;
 
@@ -97,11 +96,6 @@ public class IRGeneratorAdapter {
                 JumpReorder jumpReorder = new JumpReorder();
                 reorderedIR = jumpReorder.reorder(lowerIR);
 
-                //generate IRCFG for optimization
-                Iterator<IRFuncDecl> funcs = reorderedIR.functions().values().iterator();
-
-//                CFGNode<IRStmt> cfg = IRCFG.toIRCFG(funcs.next());
-
                 if (genIRFile) {
                     // Writing to target file
                     targetWriter.write(prettyPrint(reorderedIR));
@@ -109,6 +103,23 @@ public class IRGeneratorAdapter {
                 }
             } catch (Exception e) {
                 System.out.println("unknown error while generating IR: "+ e.getMessage());
+            }
+
+            try {
+                if (genCFGFile){
+                    System.out.println("enter irGenerator");
+                    //generate IRCFG for optimization
+                    Collection<IRFuncDecl> funcs = reorderedIR.functions().values();
+
+                    CFGGenerator ircfg = new CFGGenerator();
+
+                    for (IRFuncDecl func : funcs){
+                        CFG cffg = ircfg.toIRCFG(func);
+                        cffg.toDotFormat(fileName, destPath, func.name());
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println("unknown error while generating IRCFG : "+ e.getMessage());
             }
 
             return reorderedIR;

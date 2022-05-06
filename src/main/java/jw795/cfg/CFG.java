@@ -10,6 +10,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 
 
 public abstract class CFG<T> {
@@ -57,16 +58,6 @@ public abstract class CFG<T> {
     }
 
     /**
-     * Helper to connect two CFGNodes. Specifically, make next to cur's successor, and cur to next's predecessor
-     * @param cur
-     * @param next
-     */
-    void connect(CFGNode<T> cur, CFGNode<T> next){
-        next.addPredecessor(cur);
-        cur.addSuccessor(next);
-    }
-
-    /**
      * Convert CFG to dot format and save it to a file
      * @param fileName
      * @param path
@@ -74,17 +65,24 @@ public abstract class CFG<T> {
      */
     public void toDotFormat(String fileName, String path, String graphID){
           //generate the target .lexed file
-          File targetDotFile = FileUtil.generateTargetFile(fileName, path, ".txt");
+          File targetDotFile = FileUtil.generateTargetFileWithFuncName(fileName, path,
+                  "dot", Optional.of(graphID));
 
           try{
               FileWriter writer = new FileWriter(targetDotFile, Charset.forName("UTF-8"));
               List<CFGNode<T>> nodes = flatten();
               writer.write("digraph "+ graphID + " {");
+              //nodes
               for (CFGNode<T> node : nodes){
-                  String curNodeName = node.toString().replaceAll(" ", "_");
-                  writer.write(curNodeName + ";");
+                  String nodeName = nodeName(node.getStmt().toString());
+                  writer.write(nodeName);
+              }
+
+              // relations
+              for (CFGNode<T> node : nodes){
+                  String curNodeName = nodeName(node.getStmt().toString());
                   for (CFGNode<T> successor : node.getSuccessors()){
-                      String successorName = successor.toString().replaceAll(" ", "_");
+                      String successorName = nodeName(successor.getStmt().toString());
                       writer.write(curNodeName + " -> " + successorName + ";");
                   }
               }
@@ -94,6 +92,15 @@ public abstract class CFG<T> {
           catch (IOException ex){
               System.out.println("IO Error when writing lexed file: " + ex.getMessage());
           }
+    }
+
+    /**
+     * Helper function to generate node name by simply removing (, ), and spaces
+     * */
+    private String nodeName(String stmt){
+        String name = stmt.replaceAll(" ", "_");
+        name = name.replaceAll("\\(","").replaceAll("\\)","");
+        return name;
     }
 
 }
