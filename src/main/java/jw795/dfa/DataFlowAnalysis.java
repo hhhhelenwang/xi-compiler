@@ -3,10 +3,7 @@ package jw795.dfa;
 import jw795.cfg.CFG;
 import jw795.cfg.CFGNode;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 /**
@@ -16,12 +13,62 @@ import java.util.Map;
  */
 public abstract class DataFlowAnalysis<V, R> {
     CFG<R> cfg;
-    Map<CFGNode<R>, V> nodeToValueMap; // map each node to its data flow value = the node's out set
-    List<CFGNode<R>> listOfNodes; // ?? keep it here for now but not sure if we need this
+    Map<CFGNode<R>, V> nodeToValueMap; // map each node to its value set (out set for forward, in set for backward analysis)
 
     public DataFlowAnalysis(CFG<R> cfg) {
         this.cfg = cfg;
         this.nodeToValueMap = new HashMap<>();
+    }
+
+    /**
+     * forward analysis
+     * @return hashmap of cfg node to value
+     */
+    public Map<CFGNode<R>, V> forward () {
+        Queue<CFGNode<R>> worklist = new LinkedList<>(cfg.getAllSuccessors(cfg.start(), new HashSet<>()));
+
+        while (!worklist.isEmpty()) {
+            CFGNode<R> cur = worklist.poll();
+            List<CFGNode<R>> predecessors = cur.getPredecessors();
+            List<V> outSets = new ArrayList<>();
+            for (CFGNode<R> pred : predecessors) {
+               outSets.add(nodeToValueMap.get(pred));
+            }
+            V in = meet(outSets);
+            V newOut = fn(in, gen(cur), kill(cur));
+            V oldOut = nodeToValueMap.get(cur);
+            if (oldOut == null || !oldOut.equals(newOut)) {
+                nodeToValueMap.put(cur, newOut);
+                worklist.addAll(cur.getSuccessors());
+            }
+        }
+
+        return nodeToValueMap;
+    }
+
+    /**
+     * backward analysis
+     * @return hashmap of cfg node to value
+     */
+    public Map<CFGNode<R>, V> backward () {
+        Queue<CFGNode<R>> worklist = new LinkedList<>(cfg.getAllPredecessors(cfg.exit(), new HashSet<>()));
+
+        while (!worklist.isEmpty()) {
+            CFGNode<R> cur = worklist.poll();
+            List<CFGNode<R>> successors = cur.getSuccessors();
+            List<V> inSets = new ArrayList<>();
+            for (CFGNode<R> succ : successors) {
+                inSets.add(nodeToValueMap.get(succ));
+            }
+            V out = meet(inSets);
+            V newIn = fn(out, gen(cur), kill(cur));
+            V oldIn = nodeToValueMap.get(cur);
+            if (oldIn == null || !oldIn.equals(newIn)) {
+                nodeToValueMap.put(cur, newIn);
+                worklist.addAll(cur.getPredecessors());
+            }
+        }
+        return nodeToValueMap;
     }
 
     /**
@@ -32,39 +79,13 @@ public abstract class DataFlowAnalysis<V, R> {
     public abstract V meet(List<V> input);
 
     /**
-     * Compute the in set of a cfg node by taking in = meet(out(n')) for all n' where n'
-     * is the predecessor or successor of n, depending on direction of analysis. Here we implemented
-     * the case of predecessor since we only implemented forward analysis.
-     * @return in set of node
-     */
-    public V inSet(CFGNode<R> node) {
-        List<CFGNode<R>> predecessors = node.getPredecessors();
-        // get all the out sets of predecessors
-        List<V> outSets = new ArrayList<>();
-        for (CFGNode<R> pred : predecessors) {
-            outSets.add(nodeToValueMap.get(pred));
-        }
-        // take a meet on the out sets
-        return meet(outSets);
-    }
-
-    /**
-     * Get the out set of a cfg node
-     * @param node cfg node
-     * @return out set of the cfg node
-     */
-    public V outSet(CFGNode<V> node) {
-        return nodeToValueMap.get(node);
-    }
-
-    /**
      * The transfer function of the data flow analysis on a single node n.
      * @param l input data flow value/lattice element
      * @param gen gen set
      * @param kill kill set
      * @return F_n(l)
      */
-    public abstract V F_n(V l, V gen, V kill);
+    public abstract V fn(V l, V gen, V kill);
 
     /**
      * Get the gen set for a cfg node
@@ -79,29 +100,4 @@ public abstract class DataFlowAnalysis<V, R> {
      * @return kill set of the cfg node
      */
     public abstract V kill(CFGNode<R> node);
-
-    /**
-     * The transfer function applied to all nodes in a cfg.
-     * @return true if applying the function to all nodes make changes on the data
-     * flow values, false otherwise
-     */
-    public abstract boolean F_all();
-
-    /**
-     * The iterative solving algorithm. Repeatedly apply F_all to the cfg until converges.
-     */
-    public void iterativeSolving() {
-        boolean notConverged = false;
-        while (notConverged) {
-            notConverged = F_all();
-        }
-
-    }
-
-
-
-
-
-
-
 }
