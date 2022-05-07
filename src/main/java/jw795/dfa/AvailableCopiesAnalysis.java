@@ -24,11 +24,10 @@ public class AvailableCopiesAnalysis
     }
 
     @Override
-    public HashSet<Pair<String, String>> F_n(HashSet<Pair<String, String>> l,
-                                             HashSet<Pair<String, String>> gen,
-                                             HashSet<Pair<String, String>> kill) {
+    public HashSet<Pair<String, String>> fn(HashSet<Pair<String, String>> l, HashSet<Pair<String, String>> gen, HashSet<Pair<String, String>> kill) {
         return null;
     }
+
 
     @Override
     public HashSet<Pair<String, String>> gen(CFGNode<AAInstruction> node) {
@@ -40,8 +39,4 @@ public class AvailableCopiesAnalysis
         return null;
     }
 
-    @Override
-    public boolean F_all() {
-        return false;
-    }
 }
