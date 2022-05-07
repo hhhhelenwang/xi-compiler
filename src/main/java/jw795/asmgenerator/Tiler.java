@@ -676,7 +676,6 @@ public class Tiler extends IRVisitor {
                 srcNaive = new AAImm(((IRConst) right).value());
 
             } else if (right instanceof IRTemp) {
-                System.out.println(node);
                 // move left constant into a register
                 aasmNaive.add(new AAMove(rcx, new AAImm(((IRConst) left).value())));
                 returnTempNaive = tempSpiller.newTemp(); // a fresh temp for return
