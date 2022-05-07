@@ -676,28 +676,24 @@ public class Tiler extends IRVisitor {
                 srcNaive = new AAImm(((IRConst) right).value());
 
             } else if (right instanceof IRTemp) {
-                // move content of right into a fresh temp, use the fresh temp as return temp
-                AATemp newTemp = tempSpiller.newTemp();
-                AATemp rightTemp = tempSpiller.newTemp(((IRTemp) right).name());
-                aasmNaive.add(new AAMove(rcx, rightTemp));
-                aasmNaive.add(new AAMove(newTemp, rcx));
-                // dest = the new temp with rightTemp's value
-                destNaive = newTemp;
-                srcNaive = new AAImm(((IRConst) left).value());
-                returnTempNaive = newTemp;
+                System.out.println(node);
+                // move left constant into a register
+                aasmNaive.add(new AAMove(rcx, new AAImm(((IRConst) left).value())));
+                returnTempNaive = tempSpiller.newTemp(); // a fresh temp for return
+                destNaive = rcx;
+                srcNaive = new AATemp(((IRTemp) right).name()); // right temp is src
+
             } else {
-                // move content of right temp into a fresh temp
+                // move left const into a register
+                aasmNaive.add(new AAMove(rcx, new AAImm(((IRConst) left).value())));
+                returnTempNaive = tempSpiller.newTemp(); // fresh return temp
+
                 Tile rightTile = right.getTile();
                 AATemp rightTemp = rightTile.getReturnTemp();
-                AATemp newTemp = tempSpiller.newTemp();
-                aasmNaive.add(new AAMove(rcx, rightTemp));
-                aasmNaive.add(new AAMove(newTemp, rcx));
-                // dest = the new temp with rightTemp's value
-                destNaive = newTemp;
-                srcNaive = new AAImm(((IRConst) left).value());
-                returnTempNaive = newTemp;
-                // right is the neighbor
-                neighborsNaive.add(right);
+                destNaive = rcx; // dest is rcx which holds the constant
+                srcNaive = rightTemp; // right return temp is src
+                neighborsNaive.add(right); // since we use right's return temp add it to neighbors
+
             }
         } else if (left instanceof IRTemp) {
             if (right instanceof IRConst) {
@@ -780,7 +776,6 @@ public class Tiler extends IRVisitor {
             case ADD:
                 // for later use of inc, but since we do not want the normal add
                 // but still want the previous instruction we do it here
-                List<AAInstruction> aasmInc = new ArrayList<>(aasmNaive);
 
                 // basic case
                 AAAdd add = new AAAdd(destNaive, srcNaive);
