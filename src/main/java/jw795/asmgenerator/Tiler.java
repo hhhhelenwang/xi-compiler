@@ -35,6 +35,8 @@ public class Tiler extends IRVisitor {
     private final AAReg r15 = new AAReg("r15");
     private final AAReg rip = new AAReg("rip");
 
+    private final AAReg sil = new AAReg("sil"); // lowest byte of rsi
+
     public TempSpiller tempSpiller;
 
     AADynamic spillAndAlign;
@@ -918,32 +920,50 @@ public class Tiler extends IRVisitor {
                 }
                 break;
             case EQ:
+                aasmNaive.add(new AAXor(rsi, rsi));
                 aasmNaive.add(new AACmp(destNaive, srcNaive));
-                aasmNaive.add(new AASetcc(returnTempNaive, AASetcc.Condition.EQ));
+                // Fun fact: Setcc sets a *byte* according if the cc flag is set in the previous cmp instruction,
+                // but we use qword through out. Setcc will only set the lowest byte of the qword and therefore
+                // if there is anything left in the higher bytes it can mess with the result. So we need to clear
+                // rcx, set the cl (the lowest byte of rcx) to hold the result, and move the result to return temp
+                aasmNaive.add(new AASetcc(sil, AASetcc.Condition.EQ));
+                aasmNaive.add(new AAMove(returnTempNaive, rsi));
                 break;
             case NEQ:
+                aasmNaive.add(new AAXor(rsi, rsi));
                 aasmNaive.add(new AACmp(destNaive, srcNaive));
-                aasmNaive.add(new AASetcc(returnTempNaive, AASetcc.Condition.NEQ));
+                aasmNaive.add(new AASetcc(sil, AASetcc.Condition.NEQ));
+                aasmNaive.add(new AAMove(returnTempNaive, rsi));
                 break;
             case LT:
+                aasmNaive.add(new AAXor(rsi, rsi));
                 aasmNaive.add(new AACmp(destNaive, srcNaive));
-                aasmNaive.add(new AASetcc(returnTempNaive, AASetcc.Condition.LT));
+                aasmNaive.add(new AASetcc(sil, AASetcc.Condition.LT));
+                aasmNaive.add(new AAMove(returnTempNaive, rsi));
                 break;
             case ULT:
+                aasmNaive.add(new AAXor(rsi, rsi));
                 aasmNaive.add(new AACmp(destNaive, srcNaive));
-                aasmNaive.add(new AASetcc(returnTempNaive, AASetcc.Condition.ULT));
+                aasmNaive.add(new AASetcc(sil, AASetcc.Condition.ULT));
+                aasmNaive.add(new AAMove(returnTempNaive, rsi));
                 break;
             case GT:
+                aasmNaive.add(new AAXor(rsi, rsi));
                 aasmNaive.add(new AACmp(destNaive, srcNaive));
-                aasmNaive.add(new AASetcc(returnTempNaive, AASetcc.Condition.GT));
+                aasmNaive.add(new AASetcc(sil, AASetcc.Condition.GT));
+                aasmNaive.add(new AAMove(returnTempNaive, rsi));
                 break;
             case LEQ:
+                aasmNaive.add(new AAXor(rsi, rsi));
                 aasmNaive.add(new AACmp(destNaive, srcNaive));
-                aasmNaive.add(new AASetcc(returnTempNaive, AASetcc.Condition.LEQ));
+                aasmNaive.add(new AASetcc(sil, AASetcc.Condition.LEQ));
+                aasmNaive.add(new AAMove(returnTempNaive, rsi));
                 break;
             case GEQ:
+                aasmNaive.add(new AAXor(rsi, rsi));
                 aasmNaive.add(new AACmp(destNaive, srcNaive));
-                aasmNaive.add(new AASetcc(returnTempNaive, AASetcc.Condition.GEQ));
+                aasmNaive.add(new AASetcc(sil, AASetcc.Condition.GEQ));
+                aasmNaive.add(new AAMove(returnTempNaive, rsi));
                 break;
             default:
                 break;
