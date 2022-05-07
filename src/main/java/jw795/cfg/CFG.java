@@ -1,6 +1,5 @@
 package jw795.cfg;
 
-import java_cup.runtime.Symbol;
 import jw795.util.FileUtil;
 
 import java.io.File;
@@ -41,12 +40,12 @@ public abstract class CFG<T> {
     }
 
     /**
-     * Helper that uses dfs to get all CFG nodes
+     * Helper that uses dfs to get all successors of a CFG node
      * @param cur current CFGNode
      * @param visited visited CFGNode
      * @return list of IRStmt
      */
-     List<CFGNode<T>> getAllSuccessors(CFGNode<T> cur, HashSet<CFGNode<T>> visited){
+     public List<CFGNode<T>> getAllSuccessors(CFGNode<T> cur, HashSet<CFGNode<T>> visited){
         List<CFGNode<T>> res = new ArrayList<>();
 
         if (!visited.contains(cur)){
@@ -54,6 +53,26 @@ public abstract class CFG<T> {
             visited.add(cur);
             for (CFGNode<T> successor: cur.getSuccessors()){
                 res.addAll(getAllSuccessors(successor, visited));
+            }
+        }
+
+        return res;
+    }
+
+    /**
+     * Helper that uses dfs to get all predecessors of a CFG node
+     * @param cur current CFGNode
+     * @param visited visited CFGNode
+     * @return list of IRStmt
+     */
+    public List<CFGNode<T>> getAllPredecessors(CFGNode<T> cur, HashSet<CFGNode<T>> visited){
+        List<CFGNode<T>> res = new ArrayList<>();
+
+        if (!visited.contains(cur)){
+            res.add(cur);
+            visited.add(cur);
+            for (CFGNode<T> predecessor: cur.getPredecessors()){
+                res.addAll(getAllPredecessors(predecessor, visited));
             }
         }
 
