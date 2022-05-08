@@ -425,14 +425,18 @@ public class Tiler extends IRVisitor {
 
         if (source instanceof IRTemp) {
             srcNaive = tempSpiller.newTemp(((IRTemp) source).name());
+            asmNaive.add(new AAMove(rsi, srcNaive));
+            asmNaive.add(new AAMove(destNaive, rsi));
+        } else if (source instanceof IRConst) {
+            srcNaive = new AAImm(((IRConst) source).value());
+            asmNaive.add(new AAMove(destNaive, srcNaive));
         } else {
             srcNaive = source.getTile().getReturnTemp();
+            asmNaive.add(new AAMove(rsi, srcNaive));
+            asmNaive.add(new AAMove(destNaive, rsi));
             neighborsNaive.add(source);
         }
 
-        // dest is either a mem or a temp, source is a temp
-        asmNaive.add(new AAMove(rsi, srcNaive));
-        asmNaive.add(new AAMove(destNaive, rsi));
         Tile tileNaive = new Tile(asmNaive, neighborsNaive);
 
         // check for possible inc or dec uses
@@ -507,11 +511,13 @@ public class Tiler extends IRVisitor {
             asmOpt.add(new AAMove(rdi, srcOpt)); // optimized binop uses rax and rbx so use rdx to avoid conflict
             asmOpt.add(new AAMove(destOpt, rdi));
             tileOpt = new Tile(asmOpt, neighborsOpt);
-        } else if (target instanceof IRTemp && source instanceof IRConst){
-            asmOpt.add(new AAMove(tempSpiller.newTemp(((IRTemp) target).name()),
-                            new AAImm (((IRConst) source).value())));
-            tileOpt = new Tile(asmOpt,neighborsOpt);
         }
+
+//        else if (target instanceof IRTemp && source instanceof IRConst){
+//            asmOpt.add(new AAMove(tempSpiller.newTemp(((IRTemp) target).name()),
+//                            new AAImm (((IRConst) source).value())));
+//            tileOpt = new Tile(asmOpt,neighborsOpt);
+//        }
 
         List<Tile> allOptions = new ArrayList<>();
         if (tileIncDec != null) {
@@ -682,7 +688,7 @@ public class Tiler extends IRVisitor {
                 aasmNaive.add(new AAMove(rcx, new AAImm(((IRConst) left).value())));
                 returnTempNaive = tempSpiller.newTemp(); // a fresh temp for return
                 destNaive = rcx;
-                srcNaive = new AATemp(((IRTemp) right).name()); // right temp is src
+                srcNaive = tempSpiller.newTemp(((IRTemp) right).name()); // right temp is src
 
             } else {
                 // move left const into a register
@@ -852,8 +858,13 @@ public class Tiler extends IRVisitor {
                 aasmNaive.add(new AAMove(returnTempNaive, rdx));
                 break;
             case DIV:
-                // op1 = dividend in rax, result in rax
+                // result in rax
+                // dividend for an 8-byte divisor is put in rdx + rax,
+                // rdx = 63-32 bit, rax = 31-0 bit
                 aasmNaive.add(new AAMove(rax, destNaive));
+                // sign extend rax to rdx by copying rax to rdx and arithmetic right shift rdx by 63 bits
+                aasmNaive.add(new AAMove(rdx, rax));
+                aasmNaive.add(new AASar(rdx, new AAImm(63)));
                 if (srcNaive instanceof AAImm) {
                     // div only takes register or memory location
                     AATemp tmp = tempSpiller.newTemp();
@@ -865,8 +876,13 @@ public class Tiler extends IRVisitor {
                 aasmNaive.add(new AAMove(returnTempNaive, rax));
                 break;
             case MOD:
-                // div puts remainder in rdx
+                // dividend for an 8-byte divisor is put in rdx + rax,
+                // rdx = 63-32 bit, rax = 31-0 bit
+                // result in rax
                 aasmNaive.add(new AAMove(rax, destNaive));
+                // sign extend rax to rdx by copying rax to rdx and arithmetic right shift rdx by 63 bits
+                aasmNaive.add(new AAMove(rdx, rax));
+                aasmNaive.add(new AASar(rdx, new AAImm(63)));
                 if (srcNaive instanceof AAImm) {
                     // div only takes register or memory location
                     AATemp tmp = tempSpiller.newTemp();

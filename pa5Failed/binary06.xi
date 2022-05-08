@@ -4,12 +4,12 @@ use conv
 main(args: int[][]) {
 println(b2s(f(true) == f(true)))
 println(b2s(f(true) == f(false)))
-println(b2s(f(false) == f(true)))
+println(b2s(f(false) == f(true))) /////// 1
 println(b2s(f(false) == f(false)))
 println(b2s(f(true) != f(true)))
 println(b2s(f(true) != f(false)))
 println(b2s(f(false) != f(true)))
-println(b2s(f(false) != f(false)))
+println(b2s(f(false) != f(false))) /////////// 1
 println(b2s(f(true) & f(true)))
 println(b2s(f(true) & f(false)))
 println(b2s(f(false) & f(true)))
