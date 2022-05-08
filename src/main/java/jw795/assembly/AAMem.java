@@ -9,11 +9,11 @@ public class AAMem extends AAOperand{
     // a memory operand can contain two registers: base and index
     // and one immediate offset: immediate
     // and a constant scale that can be (+/-) (1, 2, 4, 8) can can be applied to index
-    Optional<AAReg> base;
-    Optional<AAReg> index;
-    Optional<Long> scale;
-    Optional<AAImm> immediate;
-    Optional<AALabel> label;
+    public Optional<AAReg> base;
+    public Optional<AAReg> index;
+    public Optional<Long> scale;
+    public Optional<AAImm> immediate;
+    public Optional<AALabel> label;
 
     public AAMem() {
         base = Optional.empty();
