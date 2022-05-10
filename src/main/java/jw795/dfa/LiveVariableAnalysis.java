@@ -13,7 +13,9 @@ public class LiveVariableAnalysis extends DataFlowAnalysis<HashSet<AAOperand>, A
 
     @Override
     public void initialize() {
-
+        for (CFGNode<AAInstruction> node : worklist) {
+            nodeToValueMap.put(node, new HashSet<>());
+        }
     }
 
     @Override

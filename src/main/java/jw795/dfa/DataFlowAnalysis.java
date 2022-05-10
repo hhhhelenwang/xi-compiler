@@ -15,6 +15,8 @@ public abstract class DataFlowAnalysis<V, R> {
     CFG<R> cfg;
     Map<CFGNode<R>, V> nodeToValueMap; // map each node to its value set (out set for forward, in set for backward analysis)
 
+    Queue<CFGNode<R>> worklist;
+
     public DataFlowAnalysis(CFG<R> cfg) {
         this.cfg = cfg;
         this.nodeToValueMap = new HashMap<>();
@@ -27,7 +29,7 @@ public abstract class DataFlowAnalysis<V, R> {
      * @return hashmap of cfg node to value
      */
     public Map<CFGNode<R>, V> forward (Map<CFGNode<R>, V> T) {
-        Queue<CFGNode<R>> worklist = new LinkedList<>(cfg.getAllSuccessors(cfg.start(), new HashSet<>()));
+         worklist = new LinkedList<>(cfg.getAllSuccessors(cfg.start(), new HashSet<>()));
         initialize();
 
         while (!worklist.isEmpty()) {
