@@ -27,8 +27,8 @@ public abstract class DataFlowAnalysis<V, R> {
      * @return hashmap of cfg node to value
      */
     public Map<CFGNode<R>, V> forward (Map<CFGNode<R>, V> T) {
-        initialize();
         Queue<CFGNode<R>> worklist = new LinkedList<>(cfg.getAllSuccessors(cfg.start(), new HashSet<>()));
+        initialize();
 
         while (!worklist.isEmpty()) {
             CFGNode<R> cur = worklist.poll();
@@ -54,8 +54,8 @@ public abstract class DataFlowAnalysis<V, R> {
      * @return hashmap of cfg node to value
      */
     public Map<CFGNode<R>, V> backward (Map<CFGNode<R>, V> T) {
-        initialize();
         Queue<CFGNode<R>> worklist = new LinkedList<>(cfg.getAllPredecessors(cfg.exit(), new HashSet<>()));
+        initialize();
 
         while (!worklist.isEmpty()) {
             CFGNode<R> cur = worklist.poll();

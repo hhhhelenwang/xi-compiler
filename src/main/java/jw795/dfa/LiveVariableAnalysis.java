@@ -12,6 +12,11 @@ public class LiveVariableAnalysis extends DataFlowAnalysis<HashSet<AAOperand>, A
     }
 
     @Override
+    public void initialize() {
+
+    }
+
+    @Override
     public HashSet<AAOperand> meet(List<HashSet<AAOperand>> input) {
         HashSet<AAOperand> result = new HashSet<>();
         for (HashSet<AAOperand> in : input) {
