@@ -8,10 +8,14 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
-// the lattice:
-// a map from variable names to its possible values
+// TODO: the current lattice value is not right
+// the lattice: a tuple
+// first of tuple: boolean
+// second of tuple: a map from variable names to its possible values
 // done on AA
-public class ConditionalConstantPropagation extends DataFlowAnalysis<HashMap<String, HashSet<Integer>>, AAInstruction> {
+public class ConditionalConstantPropagation
+        extends DataFlowAnalysis<HashMap<String, HashSet<Integer>>, AAInstruction> {
+
     public ConditionalConstantPropagation(CFG<AAInstruction> cfg) {
         super(cfg);
     }
