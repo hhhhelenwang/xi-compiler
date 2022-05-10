@@ -19,6 +19,10 @@ public class CFGNode<T> {
         this.successors = new ArrayList<>();
     }
 
+    public String getName() {
+        return name;
+    }
+
     public T getStmt(){
         return this.stmt;
     }
