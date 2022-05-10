@@ -1,7 +1,6 @@
 package jw795.dfa;
 import jw795.assembly.*;
 import jw795.cfg.AsmCFG;
-import jw795.cfg.CFG;
 import jw795.cfg.CFGNode;
 
 import java.util.HashSet;
@@ -32,7 +31,7 @@ public class LiveVariableAnalysis extends DataFlowAnalysis<HashSet<AAOperand>, A
     }
 
     @Override
-    public HashSet<AAOperand> gen(CFGNode<AAInstruction> node) {
+    public HashSet<AAOperand> gen(CFGNode<AAInstruction> node, HashSet<AAOperand> l) {
         HashSet<AAOperand> result = new HashSet<>();
         AAInstruction ins = node.getStmt();
         if (ins instanceof AALabelInstr) {
@@ -74,7 +73,7 @@ public class LiveVariableAnalysis extends DataFlowAnalysis<HashSet<AAOperand>, A
     }
 
     @Override
-    public HashSet<AAOperand> kill(CFGNode<AAInstruction> node) {
+    public HashSet<AAOperand> kill(CFGNode<AAInstruction> node, HashSet<AAOperand> l) {
         HashSet<AAOperand> result = new HashSet<>();
         AAInstruction ins = node.getStmt();
         if ((ins instanceof AAMove) && ((ins.operand1.get() instanceof AATemp) || (ins.operand1.get() instanceof AAReg))) {

@@ -61,17 +61,19 @@ public class AvailableCopiesAnalysis
      * start                |  empty set
      * return e1, ..., e2   |  empty set
      * @param node cfg node
+     * @param l in set
      * @return gen[node]
      */
     @Override
-    public HashSet<Pair<String, String>> gen(CFGNode<AAInstruction> node) {
+    public HashSet<Pair<String, String>> gen(CFGNode<AAInstruction> node, HashSet<Pair<String, String>> l) {
         HashSet<Pair<String, String>> gen_n = new HashSet<>();
         AAInstruction instr = node.getStmt();
         if (instr instanceof AAMove) {
             AAOperand dest = instr.operand1.get(); // AAMove must have two operands so get() should not throw exn
             AAOperand src = instr.operand2.get();
-            if (dest instanceof AATemp  || dest instanceof AAReg && src instanceof AATemp) {
-                gen_n.add(new Pair<>(((AATemp) dest).name(), ((AATemp) src).name()));
+            if (dest instanceof AATemp || dest instanceof AAReg
+                    && src instanceof AATemp || src instanceof AAReg) {
+                gen_n.add(new Pair<>(dest.toString(), src.toString())); // toString give the name of temp or reg
             }
         }
         return gen_n;
@@ -87,13 +89,26 @@ public class AvailableCopiesAnalysis
      * start                |  all nodes
      * return e1, ..., e2   |  empty set
      * @param node cfg node
-     * @return gen[node]
+     * @param l in set
+     * @return kill[node]
      */
     @Override
-    public HashSet<Pair<String, String>> kill(CFGNode<AAInstruction> node) {
+    public HashSet<Pair<String, String>> kill(CFGNode<AAInstruction> node, HashSet<Pair<String, String>> l) {
         HashSet<Pair<String, String>> kill_n = new HashSet<>();
         AAInstruction instr = node.getStmt();
-        return null;
+        if (instr instanceof AAMove) {
+            AAOperand dest = instr.operand1.get();
+            if (dest instanceof AATemp  || dest instanceof AAReg) {
+                // kill all equalities involving dest as long as dest is def-ed
+                String destName = dest.toString();
+                for (Pair<String, String> pair : l) {
+                    if (pair.part1().equals(destName) || pair.part2().equals(destName)) {
+                        kill_n.add(pair);
+                    }
+                }
+            }
+        }
+        return kill_n;
     }
 
 }

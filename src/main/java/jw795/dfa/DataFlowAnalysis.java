@@ -35,7 +35,7 @@ public abstract class DataFlowAnalysis<V, R> {
                outSets.add(nodeToValueMap.get(pred));
             }
             V in = meet(outSets);
-            V newOut = fn(in, gen(cur), kill(cur));
+            V newOut = fn(in, gen(cur, in), kill(cur, in));
             V oldOut = nodeToValueMap.get(cur);
             if (oldOut == null || !oldOut.equals(newOut)) {
                 nodeToValueMap.put(cur, newOut);
@@ -61,7 +61,7 @@ public abstract class DataFlowAnalysis<V, R> {
                 inSets.add(nodeToValueMap.get(succ));
             }
             V out = meet(inSets);
-            V newIn = fn(out, gen(cur), kill(cur));
+            V newIn = fn(out, gen(cur, out), kill(cur, out));
             V oldIn = nodeToValueMap.get(cur);
             if (oldIn == null || !oldIn.equals(newIn)) {
                 nodeToValueMap.put(cur, newIn);
@@ -90,14 +90,16 @@ public abstract class DataFlowAnalysis<V, R> {
     /**
      * Get the gen set for a cfg node
      * @param node cfg node
+     * @param l input data flow value to the transfer function
      * @return gen set of the cfg node
      */
-    public abstract V gen(CFGNode<R> node);
+    public abstract V gen(CFGNode<R> node, V l);
 
     /**
      * Get the kill set for a cfg node
      * @param node cfg node
+     * @param l input data flow value to the transfer function
      * @return kill set of the cfg node
      */
-    public abstract V kill(CFGNode<R> node);
+    public abstract V kill(CFGNode<R> node, V l);
 }
