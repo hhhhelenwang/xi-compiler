@@ -45,7 +45,10 @@ public abstract class Visitor {
     public abstract void visitLessEq(LessEq node) throws Exception;
     public abstract void visitGreaterThan(GreaterThan node) throws Exception;
     public abstract void visitGreaterEq(GreaterEq node) throws Exception;
+    public abstract void visitDot(Dot node)throws Exception;
 
+    //Record
+    public abstract void visitRecordDeclare(RecordDeclare node) throws Exception;
     // Procedure call
     public abstract void visitPrCall(ProcCallStmt node) throws Exception;
     // Function call
@@ -62,7 +65,11 @@ public abstract class Visitor {
     public abstract void visitRet(ReturnStmt node) throws Exception;
     //Assign stmt
     public abstract void visitAssign(AssignStmt node) throws Exception;
+    //Break stmt
+    public abstract void visitBreak(BreakStmt node) throws Exception;
 
+
+    public abstract void visitNull(Null node);
     // wildcard
     public abstract void visitWildCard(WildCard node);
 

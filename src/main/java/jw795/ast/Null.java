@@ -15,6 +15,6 @@ public class Null extends Expr{
 
     @Override
     public void accept(Visitor visitor) throws Exception {
-
+        visitor.visitNull(this);
     }
 }

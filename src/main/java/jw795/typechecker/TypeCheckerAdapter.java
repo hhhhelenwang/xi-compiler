@@ -9,6 +9,7 @@ import jw795.util.SyntacticErrorException;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -113,6 +114,7 @@ public class TypeCheckerAdapter {
                     targetWriter.close();
                 }
             } catch (Exception e) {
+                System.out.println(Arrays.toString(e.getStackTrace()));
                 System.out.println("Unknown error while type checking " + fileName);
                 if (genFile) {
                     targetWriter.write("Unknown error");
@@ -153,6 +155,8 @@ public class TypeCheckerAdapter {
                 procDefFirstPass((ProcedureDefine) def, visitor);
             } else if (def instanceof GlobDeclare) {
                 globDeclFirstPass((GlobDeclare) def, visitor);
+            } else if (def instanceof RecordDeclare){
+                recordDeclFirstPass((RecordDeclare) def, visitor);
             }
         }
     }
@@ -240,6 +244,10 @@ public class TypeCheckerAdapter {
         } else {
             visitor.env.addVar(globDecl.identifier, new Var(visitor.typeToTau(globDecl.varType)));
         }
+    }
+
+    private void recordDeclFirstPass(RecordDeclare def, TypeChecker visitor) throws SemanticErrorException{
+        visitor.env.addRecord(def.name, def.fieldtypelst);
     }
 
     public HashMap<String, Sigma> getFunctions() {
