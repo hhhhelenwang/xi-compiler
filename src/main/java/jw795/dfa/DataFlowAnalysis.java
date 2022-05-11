@@ -22,6 +22,7 @@ public abstract class DataFlowAnalysis<V, R> {
         this.nodeToValueMap = new HashMap<>();
     }
 
+
     public abstract void initialize ();
 
     /**
@@ -29,7 +30,7 @@ public abstract class DataFlowAnalysis<V, R> {
      * @return hashmap of cfg node to value
      */
     public Map<CFGNode<R>, V> forward (Map<CFGNode<R>, V> T) {
-         worklist = new LinkedList<>(cfg.getAllSuccessors(cfg.start(), new HashSet<>()));
+        worklist = new LinkedList<>(cfg.getAllSuccessors(cfg.start(), new HashSet<>()));
         initialize();
 
         while (!worklist.isEmpty()) {

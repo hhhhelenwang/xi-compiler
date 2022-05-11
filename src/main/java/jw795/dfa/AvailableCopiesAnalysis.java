@@ -6,6 +6,7 @@ import jw795.cfg.CFGNode;
 import polyglot.util.Pair;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 /**
@@ -18,8 +19,38 @@ public class AvailableCopiesAnalysis
         super(cfg);
     }
 
+    /**
+     * Initialize the out set of all nodes to the set of all possible equalites
+     */
     @Override
     public void initialize() {
+        // get the set of all variables
+        LinkedHashSet<String> allVars = new LinkedHashSet<>();
+        for (CFGNode<AAInstruction> node : worklist) {
+            AAInstruction instr = node.getStmt();
+            if (instr instanceof AAMove) {
+                AAOperand dest = instr.operand1.get();
+                AAOperand src = instr.operand2.get();
+                if (dest instanceof AAReg || dest instanceof AATemp) {
+                    allVars.add(dest.toString());
+                }
+                if (src instanceof AAReg || src instanceof AATemp) {
+                    allVars.add(src.toString());
+                }
+            }
+        }
+        // iterate through all vars to get all possible equalities
+        HashSet<Pair<String, String>> allEqualities = new HashSet<>();
+        for (String var1 : allVars) {
+            for (String var2: allVars) {
+                Pair<String, String> newEq = new Pair<>(var1, var2);
+                allEqualities.add(newEq);
+            }
+        }
+        // initialize the out set of all nodes
+        for (CFGNode<AAInstruction> node : worklist) {
+            nodeToValueMap.put(node, allEqualities);
+        }
 
     }
 
@@ -44,7 +75,7 @@ public class AvailableCopiesAnalysis
      * @param l input data flow value/lattice element
      * @param gen gen set
      * @param kill kill set
-     * @return
+     * @return fn(in[n])
      */
     @Override
     public HashSet<Pair<String, String>> fn(HashSet<Pair<String, String>> l,
