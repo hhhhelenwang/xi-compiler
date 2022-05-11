@@ -2,16 +2,13 @@ package jw795.assembly;
 
 public class AALea extends AAInstruction{
 
-    private AAReg dest;
-    private AAMem src;
-
-    public AALea(AAReg d, AAMem s) {
-        dest = d;
-        src = s;
+    // Requires: opr1 is an AAReg, opr2 is an AAMem
+    public AALea(AAOperand opr1, AAOperand opr2) {
+        super(opr1, opr2);
     }
 
     @Override
     public String toString() {
-        return "lea" + " " + dest + ", " + src;
+        return "lea" + " " + operand1.get() + ", " + operand2.get();
     }
 }
