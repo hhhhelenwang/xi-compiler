@@ -3,6 +3,7 @@ package jw795.asmgenerator;
 import edu.cornell.cs.cs4120.xic.ir.*;
 import edu.cornell.cs.cs4120.xic.ir.visit.IRVisitor;
 import jw795.assembly.*;
+import jw795.optimizer.RegisterAllocator;
 
 import java.util.*;
 
@@ -228,7 +229,8 @@ public class Tiler extends IRVisitor {
         // add body's asm to fundecl's asm
         asm.addAll(concatAsm(body));
 
-//        asm = regAllocation(asm, spillAndAlign);
+        RegisterAllocator regAlloc = new RegisterAllocator(asm);
+
 
         // set the final tile of funcdecl with no neighbor
         node.setTile(new Tile(asm, new ArrayList<>()));
