@@ -14,7 +14,6 @@ public class SymbolTable {
     LinkedList<HashMap<String, Sigma>> variables;
     LinkedList<HashMap<String, Sigma>> functions;
     HashMap<String, Record> records;
-    HashMap<String, Record> recordobjects;
 
     public SymbolTable() {
         variables = new LinkedList<>();
@@ -208,7 +207,7 @@ public class SymbolTable {
     }
 
     /**
-     * If the context contains a mapping for id.
+     * If the context contains a record type name id.
      * @param id identifier for the Record to check for
      * @return true if context contains id, false otherwise
      */

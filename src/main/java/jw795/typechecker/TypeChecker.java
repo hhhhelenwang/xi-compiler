@@ -314,7 +314,6 @@ public class TypeChecker extends Visitor {
     public void visitPrCall(ProcCallStmt node) throws SemanticErrorException {
         // a procedure need to be fn T -> unit
         if(env.containsRecord(node.name)){
-            System.out.println("get into this branch");
             node.type = (R) env.findTypeofRecord(node.name);
             return;
         }
@@ -570,13 +569,9 @@ public class TypeChecker extends Visitor {
             }
         }else if(node.leftVal instanceof VarDeclareStmt){ //x:tau = e
             if(((VarDeclareStmt) node.leftVal).varType instanceof  RecordType){
-                System.out.print("get into the branch");
                 if(node.expr.type instanceof  Record){
-                    System.out.print("get into the branch");
                     String name1 = ((RecordType) ((VarDeclareStmt) node.leftVal).varType).name;
-                    System.out.println(name1);
                     String name2 = ((Record) node.expr.type).name;
-                    System.out.println(name2);
                     if( name1 == name2){
                         node.type = new Unit();
                         return;
@@ -871,6 +866,8 @@ public class TypeChecker extends Visitor {
             }else{
                 return new TypedArray(typeToTau(((ArrayType) t).elemType));
             }
+        }else if(t instanceof RecordType){
+            return env.records.get(((RecordType) t).name);
         }
         return null;
     }
@@ -882,20 +879,27 @@ public class TypeChecker extends Visitor {
 
     @Override
     public void visitDot(Dot node){
-        Record therecord = this.env.findTypeofRecord(node.recordname);
-        if(therecord != null){
-            if(therecord.fields.containsKey(node.fieldname)){
-                node.type = therecord.fields.get(node.fieldname);
-                if(node.type instanceof Record){
-                    node.type = env.findTypeofRecord(((Record) node.type).name);
+        Sigma therecord = env.findTypeofVar(node.recordname);
+        if(therecord instanceof Var){
+            if(((Var) therecord).varType instanceof Record){
+                Record actualrecord = env.findTypeofRecord(((Record) ((Var) therecord).varType).name);
+                if(actualrecord.fields.containsKey(node.fieldname)){
+                    node.type = actualrecord.fields.get(node.fieldname);
+                    if(node.type instanceof Record){
+                        node.type = env.findTypeofRecord(((Record) node.type).name);
+                    }
                 }
-            }
-            else{
-                String errorMsg = errorstart(node.getLine(), node.getCol()) + node.recordname + " does not have this field" + node.fieldname;
+                else{
+                    String errorMsg = errorstart(node.getLine(), node.getCol()) + node.recordname + " does not have this field" + node.fieldname;
+                    throw new SemanticErrorException(errorMsg);
+                }
+            }else{
+                String errorMsg = errorstart(node.getLine(), node.getCol()) + node.recordname + " record is not defined.";
                 throw new SemanticErrorException(errorMsg);
             }
-        }else{
-            String errorMsg = errorstart(node.getLine(), node.getCol()) + node.recordname + " record is not defined.";
+        }
+        else{
+            String errorMsg = errorstart(node.getLine(), node.getCol()) + node.recordname + " is not a var.";
             throw new SemanticErrorException(errorMsg);
         }
 
