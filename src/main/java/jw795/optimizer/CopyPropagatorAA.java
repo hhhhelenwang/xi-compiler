@@ -16,10 +16,11 @@ import java.util.List;
 public class CopyPropagatorAA {
 
     CFG<AAInstruction> cfg;
-    HashMap<CFGNode<AAInstruction>, LinkedHashSet<Pair<String, String>>> nodeToValueMap;
+    HashMap<CFGNode<AAInstruction>, LinkedHashSet<Pair<AAOperand, AAOperand>>> nodeToValueMap;
 
     public CopyPropagatorAA(CFG<AAInstruction> cfg,
-                            HashMap<CFGNode<AAInstruction>, LinkedHashSet<Pair<String, String>>> nodeToValueMap) {
+                            HashMap<CFGNode<AAInstruction>,
+                                    LinkedHashSet<Pair<AAOperand, AAOperand>>> nodeToValueMap) {
         this.cfg = cfg;
         this.nodeToValueMap = nodeToValueMap;
     }
@@ -31,18 +32,31 @@ public class CopyPropagatorAA {
         List<CFGNode<AAInstruction>> cfgNodes = cfg.flatten();
 
         for (CFGNode<AAInstruction> node : cfgNodes) {
-            AAInstruction instr = node.getStmt();
-
+            findAndReplace(node, nodeToValueMap.get(node));
         }
-
     }
 
     /**
-     * For a cfg node, find if any variables
+     * For a cfg node, find if any variables has a copy available and replace.
      * @param node node to update
      */
-    private void findAndReplace(CFGNode<AAInstruction> node) {
+    private void findAndReplace(CFGNode<AAInstruction> node, LinkedHashSet<Pair<AAOperand, AAOperand>> eqSet) {
         AAInstruction instr = node.getStmt();
+        HashSet<AAOperand> useSet = instr.use();
+        for (AAOperand var : useSet) {
+            for (Pair<AAOperand, AAOperand> pair : eqSet) {
+                if (pair.part1().equals(var)) {
+                    // the current var in use set has an equality, replace it
+                    // TODO: does find and replace both operands work?
+
+                }
+            }
+
+        }
+    }
+
+    private AAOperand replaceInOperand(AAOperand opr, AAOperand oldVar, AAOperand newVar) {
+        return null;
     }
 
     /**
