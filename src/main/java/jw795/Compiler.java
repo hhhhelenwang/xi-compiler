@@ -223,7 +223,11 @@ public class Compiler {
         }
 
         boolean optimize = !cmd.hasOption("O");
-        List<String> optTypes = Arrays.asList(cmd.getOptionValues("O"));
+        List<String> optTypes = new ArrayList<>();
+        // TODO: double check adding --o flag is optimizze or not optimize
+        if (cmd.hasOption("O") && cmd.getOptionValues("O").length != 0){
+            optTypes = Arrays.asList(cmd.getOptionValues("O"));
+        }
         IRGeneratorAdapter irGeneratorAdapter = new IRGeneratorAdapter(
                 fileName, this.destPath, this.libPath, optimize, generateIRFile,
             generateOptIRFile, phases, generateCFGFile, optTypes);
@@ -314,6 +318,7 @@ public class Compiler {
             System.out.println(e.getMessage());
         }
         compiler.help();
+        compiler.printAllOpt();
         compiler.setPaths();
         compiler.lex();
         compiler.parse();
