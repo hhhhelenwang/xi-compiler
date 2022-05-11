@@ -1,5 +1,7 @@
 package jw795.assembly;
 
+import java.util.HashSet;
+
 public class AACmp extends AAInstruction{
 
     public AACmp (AAOperand opr1, AAOperand opr2) {
@@ -13,5 +15,10 @@ public class AACmp extends AAInstruction{
         } else {
             return "cmp " + this.operand1.get() + ", " + this.operand2.get();
         }
+    }
+
+    @Override
+    public HashSet<AAOperand> def() {
+        return new HashSet<>();
     }
 }

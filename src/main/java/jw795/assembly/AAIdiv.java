@@ -19,6 +19,15 @@ public class AAIdiv extends AAInstruction{
     }
 
     @Override
+    public HashSet<AAOperand> def() {
+        HashSet<AAOperand> defSet = super.def();
+        defSet.add(Tiler.rax);
+        defSet.add(Tiler.rdx);
+        return defSet;
+    }
+
+
+    @Override
     public String toString() {
         return "idivq " + operand1.get();
     }
