@@ -12,11 +12,6 @@ public class AARet extends AAInstruction{
 
     @Override
     public String toString() {
-        if (this.operand1.isPresent()) {
-            return "ret " + this.operand1.get();
-        }
-        else {
-            return "ret";
-        }
+        return this.operand1.map(operand -> "ret " + operand).orElse("ret");
     }
 }
