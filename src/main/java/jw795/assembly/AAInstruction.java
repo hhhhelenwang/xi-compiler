@@ -42,6 +42,17 @@ public abstract class AAInstruction {
         return useSet;
     }
 
+    public HashSet<AAOperand> def() {
+        HashSet<AAOperand> defSet =  new HashSet<>();
+        if (operand1.isPresent()) {
+            AAOperand opr = operand1.get();
+            if (opr instanceof AATemp || opr instanceof AAReg) {
+                defSet.add(opr);
+            }
+        }
+        return defSet;
+    }
+
     /**
      * The set of variables used by an AAOperand expr
      * @return variables used by expr
