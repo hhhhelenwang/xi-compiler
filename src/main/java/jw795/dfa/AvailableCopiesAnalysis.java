@@ -18,6 +18,11 @@ public class AvailableCopiesAnalysis
         super(cfg);
     }
 
+    @Override
+    public void initialize() {
+
+    }
+
     /**
      * meet = intersection for available copies analysis
      * @param input lattice elements/data flow values to take meet on
@@ -95,6 +100,13 @@ public class AvailableCopiesAnalysis
     @Override
     public HashSet<Pair<String, String>> kill(CFGNode<AAInstruction> node, HashSet<Pair<String, String>> l) {
         HashSet<Pair<String, String>> kill_n = new HashSet<>();
+
+        // on start node, kill everything
+        if (node.getName().equals("start")) {
+            kill_n.addAll(l);
+            return kill_n;
+        }
+
         AAInstruction instr = node.getStmt();
         if (instr instanceof AAMove) {
             AAOperand dest = instr.operand1.get();

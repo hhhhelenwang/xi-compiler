@@ -47,7 +47,6 @@ public abstract class DataFlowAnalysis<V, R> {
                 worklist.addAll(cur.getSuccessors());
             }
         }
-
         return nodeToValueMap;
     }
 
