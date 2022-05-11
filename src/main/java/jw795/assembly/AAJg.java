@@ -1,5 +1,7 @@
 package jw795.assembly;
 
+import java.util.HashSet;
+
 public class AAJg extends AAInstruction{
     /**
      * jump if greater
@@ -12,5 +14,10 @@ public class AAJg extends AAInstruction{
     @Override
     public String toString() {
         return "jg "+ operand1.get();
+    }
+
+    @Override
+    public HashSet<AAOperand> use() {
+        return new HashSet<>();
     }
 }

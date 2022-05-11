@@ -1,5 +1,7 @@
 package jw795.assembly;
 
+import java.util.HashSet;
+
 public class AAJe extends AAInstruction{
 
     public AAJe(AAOperand opr) {
@@ -9,5 +11,10 @@ public class AAJe extends AAInstruction{
     @Override
     public String toString() {
         return "je " + operand1.get();
+    }
+
+    @Override
+    public HashSet<AAOperand> use() {
+        return new HashSet<>();
     }
 }
