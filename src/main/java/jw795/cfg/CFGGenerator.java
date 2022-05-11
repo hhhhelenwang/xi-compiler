@@ -32,7 +32,7 @@ public class CFGGenerator {
             AAInstruction curAsm = asm.get(i);
             CFGNode<AAInstruction> curNode = map.get(curAsm);
 
-            if (curAsm instanceof AAJmp || curAsm instanceof AAJa || curAsm instanceof AAJae || curAsm instanceof AAJb
+            if (curAsm instanceof AAJmp || curAsm instanceof AAJae || curAsm instanceof AAJb
                     || curAsm instanceof AAJbe || curAsm instanceof AAJe || curAsm instanceof AAJg || curAsm instanceof AAJge
                     || curAsm instanceof AAJl || curAsm instanceof AAJle || curAsm instanceof AAJne){
                 String label = curAsm.operand1.toString();

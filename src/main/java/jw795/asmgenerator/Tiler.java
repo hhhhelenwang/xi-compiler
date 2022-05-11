@@ -17,25 +17,25 @@ public class Tiler extends IRVisitor {
 
     String[] argNames = new String[6];
 
-    private final AAReg rax = new AAReg("rax");
-    private final AAReg rbx = new AAReg("rbx");
-    private final AAReg rcx = new AAReg("rcx");
-    private final AAReg rdx = new AAReg("rdx");
-    private final AAReg rsp = new AAReg("rsp");
-    private final AAReg rbp = new AAReg("rbp");
-    private final AAReg rsi = new AAReg("rsi");
-    private final AAReg rdi = new AAReg("rdi");
-    private final AAReg r8 = new AAReg("r8");
-    private final AAReg r9 = new AAReg("r9");
-    private final AAReg r10 = new AAReg("r10");
-    private final AAReg r11 = new AAReg("r11");
-    private final AAReg r12 = new AAReg("r12");
-    private final AAReg r13 = new AAReg("r13");
-    private final AAReg r14 = new AAReg("r14");
-    private final AAReg r15 = new AAReg("r15");
-    private final AAReg rip = new AAReg("rip");
+    public static AAReg rax = new AAReg("rax");
+    public static AAReg rbx = new AAReg("rbx");
+    public static AAReg rcx = new AAReg("rcx");
+    public static AAReg rdx = new AAReg("rdx");
+    public static AAReg rsp = new AAReg("rsp");
+    public static AAReg rbp = new AAReg("rbp");
+    public static AAReg rsi = new AAReg("rsi");
+    public static AAReg rdi = new AAReg("rdi");
+    public static AAReg r8 = new AAReg("r8");
+    public static AAReg r9 = new AAReg("r9");
+    public static AAReg r10 = new AAReg("r10");
+    public static AAReg r11 = new AAReg("r11");
+    public static AAReg r12 = new AAReg("r12");
+    public static AAReg r13 = new AAReg("r13");
+    public static AAReg r14 = new AAReg("r14");
+    public static AAReg r15 = new AAReg("r15");
+    public static AAReg rip = new AAReg("rip");
 
-    private final AAReg sil = new AAReg("sil"); // lowest byte of rsi
+    public static AAReg sil = new AAReg("sil"); // lowest byte of rsi
 
     public TempSpiller tempSpiller;
 
