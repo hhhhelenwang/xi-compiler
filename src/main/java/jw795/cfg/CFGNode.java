@@ -19,8 +19,19 @@ public class CFGNode<T> {
         this.successors = new ArrayList<>();
     }
 
+    public CFGNode(T stmt, String name){
+        this.name = name;
+        this.stmt = stmt;
+        this.predecessors = new ArrayList<>();
+        this.successors = new ArrayList<>();
+    }
+
     public T getStmt(){
         return this.stmt;
+    }
+
+    public String getName() {
+        return this.name;
     }
 
     public List<CFGNode<T>> getPredecessors(){
@@ -39,17 +50,14 @@ public class CFGNode<T> {
         this.successors.add(node);
     }
 
-    private String generateName(T stmt) {
-        String name = "";
-        if (stmt instanceof IRStmt){
-            name = stmt.toString();
-        } else if(stmt instanceof AAInstruction){
 
-
-        } else {
-            System.out.println("Unsupported type was passed into CFGNode");
-        }
-
-        return name;
-    }
+//    private String generateName(T stmt) {
+//        if (stmt instanceof IRStmt){
+//            switch (stmt){
+//
+//            }
+//        } else if (stmt instanceof AAInstruction){
+//
+//        }
+//    }
 }
