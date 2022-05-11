@@ -57,23 +57,6 @@ public class CopyPropagatorAA {
         return null;
     }
 
-//    /**
-//     * The set of variables used by an AAOperand expr
-//     * @return variables used by expr
-//     */
-//    private HashSet<AAOperand> vars(AAOperand expr) {
-//        HashSet<AAOperand> result = new HashSet<>();
-//        if (expr instanceof AAImm || expr instanceof AADynamic) {
-//            return result;
-//        } else if (expr instanceof AAReg || expr instanceof AATemp) {
-//            result.add(expr);
-//        } else if (expr instanceof AAMem) {
-//            ((AAMem) expr).base.ifPresent(result::add);
-//            ((AAMem) expr).base.ifPresent(result::add);
-//        }
-//        return result;
-//    }
-
 
 
 }

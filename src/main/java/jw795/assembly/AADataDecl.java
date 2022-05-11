@@ -12,10 +12,11 @@ public class AADataDecl extends AADirective{
         value = val;
     }
 
-
     @Override
     public String toString() {
         return super.toString() + " " + value;
 
     }
+
+
 }

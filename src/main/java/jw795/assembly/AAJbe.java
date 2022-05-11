@@ -17,4 +17,9 @@ public class AAJbe extends AAInstruction{
     public HashSet<AAOperand> use() {
         return new HashSet<>();
     }
+
+    @Override
+    public HashSet<AAOperand> def() {
+        return new HashSet<>();
+    }
 }
