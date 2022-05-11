@@ -47,6 +47,6 @@ public class RecordDeclare extends ASTNode implements ProcFuncDecl, Definition{
 
     @Override
     public void accept(Visitor visitor) throws Exception {
-
+        visitor.visitRecordDeclare(this);
     }
 }

@@ -573,7 +573,9 @@ varDecl ::= ID:i COLON type:t
 
 // variable declarations that can be initialized
 varDeclInitiable ::= ID:i COLON typeInitiable:t
-    {: RESULT = new VarDeclareStmt(i, t, ileft, iright); :}
+     {: RESULT = new VarDeclareStmt(i, t, ileft, iright); :}
+     | ID:i COLON ID:t
+     {: RESULT = new VarDeclareStmt(i, t, ileft, iright); :}
     ;
 
 // wildcard

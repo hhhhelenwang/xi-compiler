@@ -3,6 +3,9 @@ package jw795.ast;
 import edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
 import edu.cornell.cs.cs4120.xic.ir.IRExpr;
 import jw795.Visitor;
+import jw795.typechecker.Record;
+
+import java.util.HashMap;
 
 /**
  * Representation of a variable declaration.
@@ -15,6 +18,11 @@ public class VarDeclareStmt extends Statement implements LValue {
         super(line, col);
         identifier = id;
         varType = t;
+    }
+    public VarDeclareStmt(String id, String t, int line, int col) {
+        super(line, col);
+        identifier = id;
+        varType = new RecordType(t,line, col);
     }
 
     @Override

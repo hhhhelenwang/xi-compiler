@@ -17,23 +17,25 @@ public class Tiler extends IRVisitor {
 
     String[] argNames = new String[6];
 
-    private final AAReg rax = new AAReg("rax");
-    private final AAReg rbx = new AAReg("rbx");
-    private final AAReg rcx = new AAReg("rcx");
-    private final AAReg rdx = new AAReg("rdx");
-    private final AAReg rsp = new AAReg("rsp");
-    private final AAReg rbp = new AAReg("rbp");
-    private final AAReg rsi = new AAReg("rsi");
-    private final AAReg rdi = new AAReg("rdi");
-    private final AAReg r8 = new AAReg("r8");
-    private final AAReg r9 = new AAReg("r9");
-    private final AAReg r10 = new AAReg("r10");
-    private final AAReg r11 = new AAReg("r11");
-    private final AAReg r12 = new AAReg("r12");
-    private final AAReg r13 = new AAReg("r13");
-    private final AAReg r14 = new AAReg("r14");
-    private final AAReg r15 = new AAReg("r15");
-    private final AAReg rip = new AAReg("rip");
+    public static AAReg rax = new AAReg("rax");
+    public static AAReg rbx = new AAReg("rbx");
+    public static AAReg rcx = new AAReg("rcx");
+    public static AAReg rdx = new AAReg("rdx");
+    public static AAReg rsp = new AAReg("rsp");
+    public static AAReg rbp = new AAReg("rbp");
+    public static AAReg rsi = new AAReg("rsi");
+    public static AAReg rdi = new AAReg("rdi");
+    public static AAReg r8 = new AAReg("r8");
+    public static AAReg r9 = new AAReg("r9");
+    public static AAReg r10 = new AAReg("r10");
+    public static AAReg r11 = new AAReg("r11");
+    public static AAReg r12 = new AAReg("r12");
+    public static AAReg r13 = new AAReg("r13");
+    public static AAReg r14 = new AAReg("r14");
+    public static AAReg r15 = new AAReg("r15");
+    public static AAReg rip = new AAReg("rip");
+
+    public static AAReg sil = new AAReg("sil"); // lowest byte of rsi
 
     public TempSpiller tempSpiller;
 
@@ -423,14 +425,18 @@ public class Tiler extends IRVisitor {
 
         if (source instanceof IRTemp) {
             srcNaive = tempSpiller.newTemp(((IRTemp) source).name());
+            asmNaive.add(new AAMove(rsi, srcNaive));
+            asmNaive.add(new AAMove(destNaive, rsi));
+        } else if (source instanceof IRConst) {
+            srcNaive = new AAImm(((IRConst) source).value());
+            asmNaive.add(new AAMove(destNaive, srcNaive));
         } else {
             srcNaive = source.getTile().getReturnTemp();
+            asmNaive.add(new AAMove(rsi, srcNaive));
+            asmNaive.add(new AAMove(destNaive, rsi));
             neighborsNaive.add(source);
         }
 
-        // dest is either a mem or a temp, source is a temp
-        asmNaive.add(new AAMove(rsi, srcNaive));
-        asmNaive.add(new AAMove(destNaive, rsi));
         Tile tileNaive = new Tile(asmNaive, neighborsNaive);
 
         // check for possible inc or dec uses
@@ -505,11 +511,13 @@ public class Tiler extends IRVisitor {
             asmOpt.add(new AAMove(rdi, srcOpt)); // optimized binop uses rax and rbx so use rdx to avoid conflict
             asmOpt.add(new AAMove(destOpt, rdi));
             tileOpt = new Tile(asmOpt, neighborsOpt);
-        } else if (target instanceof IRTemp && source instanceof IRConst){
-            asmOpt.add(new AAMove(tempSpiller.newTemp(((IRTemp) target).name()),
-                            new AAImm (((IRConst) source).value())));
-            tileOpt = new Tile(asmOpt,neighborsOpt);
         }
+
+//        else if (target instanceof IRTemp && source instanceof IRConst){
+//            asmOpt.add(new AAMove(tempSpiller.newTemp(((IRTemp) target).name()),
+//                            new AAImm (((IRConst) source).value())));
+//            tileOpt = new Tile(asmOpt,neighborsOpt);
+//        }
 
         List<Tile> allOptions = new ArrayList<>();
         if (tileIncDec != null) {
@@ -676,28 +684,23 @@ public class Tiler extends IRVisitor {
                 srcNaive = new AAImm(((IRConst) right).value());
 
             } else if (right instanceof IRTemp) {
-                // move content of right into a fresh temp, use the fresh temp as return temp
-                AATemp newTemp = tempSpiller.newTemp();
-                AATemp rightTemp = tempSpiller.newTemp(((IRTemp) right).name());
-                aasmNaive.add(new AAMove(rcx, rightTemp));
-                aasmNaive.add(new AAMove(newTemp, rcx));
-                // dest = the new temp with rightTemp's value
-                destNaive = newTemp;
-                srcNaive = new AAImm(((IRConst) left).value());
-                returnTempNaive = newTemp;
+                // move left constant into a register
+                aasmNaive.add(new AAMove(rcx, new AAImm(((IRConst) left).value())));
+                returnTempNaive = tempSpiller.newTemp(); // a fresh temp for return
+                destNaive = rcx;
+                srcNaive = tempSpiller.newTemp(((IRTemp) right).name()); // right temp is src
+
             } else {
-                // move content of right temp into a fresh temp
+                // move left const into a register
+                aasmNaive.add(new AAMove(rcx, new AAImm(((IRConst) left).value())));
+                returnTempNaive = tempSpiller.newTemp(); // fresh return temp
+
                 Tile rightTile = right.getTile();
                 AATemp rightTemp = rightTile.getReturnTemp();
-                AATemp newTemp = tempSpiller.newTemp();
-                aasmNaive.add(new AAMove(rcx, rightTemp));
-                aasmNaive.add(new AAMove(newTemp, rcx));
-                // dest = the new temp with rightTemp's value
-                destNaive = newTemp;
-                srcNaive = new AAImm(((IRConst) left).value());
-                returnTempNaive = newTemp;
-                // right is the neighbor
-                neighborsNaive.add(right);
+                destNaive = rcx; // dest is rcx which holds the constant
+                srcNaive = rightTemp; // right return temp is src
+                neighborsNaive.add(right); // since we use right's return temp add it to neighbors
+
             }
         } else if (left instanceof IRTemp) {
             if (right instanceof IRConst) {
@@ -780,7 +783,6 @@ public class Tiler extends IRVisitor {
             case ADD:
                 // for later use of inc, but since we do not want the normal add
                 // but still want the previous instruction we do it here
-                List<AAInstruction> aasmInc = new ArrayList<>(aasmNaive);
 
                 // basic case
                 AAAdd add = new AAAdd(destNaive, srcNaive);
@@ -856,8 +858,13 @@ public class Tiler extends IRVisitor {
                 aasmNaive.add(new AAMove(returnTempNaive, rdx));
                 break;
             case DIV:
-                // op1 = dividend in rax, result in rax
+                // result in rax
+                // dividend for an 8-byte divisor is put in rdx + rax,
+                // rdx = 63-32 bit, rax = 31-0 bit
                 aasmNaive.add(new AAMove(rax, destNaive));
+                // sign extend rax to rdx by copying rax to rdx and arithmetic right shift rdx by 63 bits
+                aasmNaive.add(new AAMove(rdx, rax));
+                aasmNaive.add(new AASar(rdx, new AAImm(63)));
                 if (srcNaive instanceof AAImm) {
                     // div only takes register or memory location
                     AATemp tmp = tempSpiller.newTemp();
@@ -869,8 +876,13 @@ public class Tiler extends IRVisitor {
                 aasmNaive.add(new AAMove(returnTempNaive, rax));
                 break;
             case MOD:
-                // div puts remainder in rdx
+                // dividend for an 8-byte divisor is put in rdx + rax,
+                // rdx = 63-32 bit, rax = 31-0 bit
+                // result in rax
                 aasmNaive.add(new AAMove(rax, destNaive));
+                // sign extend rax to rdx by copying rax to rdx and arithmetic right shift rdx by 63 bits
+                aasmNaive.add(new AAMove(rdx, rax));
+                aasmNaive.add(new AASar(rdx, new AAImm(63)));
                 if (srcNaive instanceof AAImm) {
                     // div only takes register or memory location
                     AATemp tmp = tempSpiller.newTemp();
@@ -924,32 +936,50 @@ public class Tiler extends IRVisitor {
                 }
                 break;
             case EQ:
+                aasmNaive.add(new AAXor(rsi, rsi));
                 aasmNaive.add(new AACmp(destNaive, srcNaive));
-                aasmNaive.add(new AASetcc(returnTempNaive, AASetcc.Condition.EQ));
+                // Fun fact: Setcc sets a *byte* according if the cc flag is set in the previous cmp instruction,
+                // but we use qword through out. Setcc will only set the lowest byte of the qword and therefore
+                // if there is anything left in the higher bytes it can mess with the result. So we need to clear
+                // rcx, set the cl (the lowest byte of rcx) to hold the result, and move the result to return temp
+                aasmNaive.add(new AASetcc(sil, AASetcc.Condition.EQ));
+                aasmNaive.add(new AAMove(returnTempNaive, rsi));
                 break;
             case NEQ:
+                aasmNaive.add(new AAXor(rsi, rsi));
                 aasmNaive.add(new AACmp(destNaive, srcNaive));
-                aasmNaive.add(new AASetcc(returnTempNaive, AASetcc.Condition.NEQ));
+                aasmNaive.add(new AASetcc(sil, AASetcc.Condition.NEQ));
+                aasmNaive.add(new AAMove(returnTempNaive, rsi));
                 break;
             case LT:
+                aasmNaive.add(new AAXor(rsi, rsi));
                 aasmNaive.add(new AACmp(destNaive, srcNaive));
-                aasmNaive.add(new AASetcc(returnTempNaive, AASetcc.Condition.LT));
+                aasmNaive.add(new AASetcc(sil, AASetcc.Condition.LT));
+                aasmNaive.add(new AAMove(returnTempNaive, rsi));
                 break;
             case ULT:
+                aasmNaive.add(new AAXor(rsi, rsi));
                 aasmNaive.add(new AACmp(destNaive, srcNaive));
-                aasmNaive.add(new AASetcc(returnTempNaive, AASetcc.Condition.ULT));
+                aasmNaive.add(new AASetcc(sil, AASetcc.Condition.ULT));
+                aasmNaive.add(new AAMove(returnTempNaive, rsi));
                 break;
             case GT:
+                aasmNaive.add(new AAXor(rsi, rsi));
                 aasmNaive.add(new AACmp(destNaive, srcNaive));
-                aasmNaive.add(new AASetcc(returnTempNaive, AASetcc.Condition.GT));
+                aasmNaive.add(new AASetcc(sil, AASetcc.Condition.GT));
+                aasmNaive.add(new AAMove(returnTempNaive, rsi));
                 break;
             case LEQ:
+                aasmNaive.add(new AAXor(rsi, rsi));
                 aasmNaive.add(new AACmp(destNaive, srcNaive));
-                aasmNaive.add(new AASetcc(returnTempNaive, AASetcc.Condition.LEQ));
+                aasmNaive.add(new AASetcc(sil, AASetcc.Condition.LEQ));
+                aasmNaive.add(new AAMove(returnTempNaive, rsi));
                 break;
             case GEQ:
+                aasmNaive.add(new AAXor(rsi, rsi));
                 aasmNaive.add(new AACmp(destNaive, srcNaive));
-                aasmNaive.add(new AASetcc(returnTempNaive, AASetcc.Condition.GEQ));
+                aasmNaive.add(new AASetcc(sil, AASetcc.Condition.GEQ));
+                aasmNaive.add(new AAMove(returnTempNaive, rsi));
                 break;
             default:
                 break;

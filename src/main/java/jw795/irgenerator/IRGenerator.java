@@ -4,6 +4,7 @@ import edu.cornell.cs.cs4120.xic.ir.*;
 import jw795.Visitor;
 import jw795.ast.*;
 import jw795.typechecker.*;
+import jw795.typechecker.Void;
 
 import java.util.*;
 
@@ -389,6 +390,16 @@ public class IRGenerator extends Visitor {
     }
 
     @Override
+    public void visitDot(Dot node) throws Exception {
+
+    }
+
+    @Override
+    public void visitRecordDeclare(RecordDeclare node) throws Exception {
+
+    }
+
+    @Override
     public void visitPrCall(ProcCallStmt node) {
         String procName = funcNames.get(node.name);
         ArrayList<IRExpr> argsIR = new ArrayList<>();
@@ -555,6 +566,16 @@ public class IRGenerator extends Visitor {
         } else {
             node.ir = irFactory.IRMove(node.leftVal.getir(), node.expr.ir);
         }
+    }
+
+    @Override
+    public void visitBreak(BreakStmt node) throws Exception {
+        node.type = new Void();
+    }
+
+    @Override
+    public void visitNull(Null node) {
+
     }
 
     @Override

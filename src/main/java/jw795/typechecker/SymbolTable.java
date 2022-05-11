@@ -1,9 +1,8 @@
 package jw795.typechecker;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Set;
+import jw795.ast.*;
+
+import java.util.*;
 
 /**
  * Representation of a symbol table that acts as the gamma-context.
@@ -14,11 +13,13 @@ public class SymbolTable {
     // end of linked-list = top of stack
     LinkedList<HashMap<String, Sigma>> variables;
     LinkedList<HashMap<String, Sigma>> functions;
+    HashMap<String, Record> records;
 
     public SymbolTable() {
         variables = new LinkedList<>();
         variables.add(new HashMap<>());
         functions = new LinkedList<>();
+        records = new HashMap<>();
 
         // add io support
         HashMap<String, Sigma> initialMap = new HashMap<>();
@@ -162,6 +163,59 @@ public class SymbolTable {
     public void addFun(String name, Sigma t){
         HashMap<String, Sigma> lastOne = this.functions.getLast();
         lastOne.put(name, t);
+    }
+
+    /**
+     * Add name and field with type Record to the symbol table
+     * Since Record declare appear in both interface and program,
+     * latter record would replace previous record
+     * @param name id
+     * @param fields map of field name with type
+     */
+    public void addRecord(String name, Map<String, Type> fields){
+        HashMap<String, Tau> fty =new HashMap<>();
+        for(Map.Entry<String, Type> entry: fields.entrySet()){
+
+            if(entry.getValue() instanceof IntType){
+                fty.put(entry.getKey(),  new Int());
+            }else if(entry.getValue() instanceof BoolType){
+                fty.put(entry.getKey(),  new Bool());
+            }else if(entry.getValue() instanceof RecordType){
+                Record thetype = this.findTypeofRecord(entry.getKey());
+                if(thetype != null){fty.put(entry.getKey(), thetype);}
+                else{
+                    fty.put(entry.getKey(), new Record(entry.getKey(),new HashMap<>()));
+                }
+            }else{
+                System.out.println("got an unhandled case");
+            }
+
+        }
+        Record stype = new Record(name, fty );
+
+        records.put(name, stype);
+
+
+    }
+
+    public Record findTypeofRecord(String id){
+        if (records.containsKey(id)) {
+            return records.get(id);
+        }
+
+        return null;
+    }
+
+    /**
+     * If the context contains a record type name id.
+     * @param id identifier for the Record to check for
+     * @return true if context contains id, false otherwise
+     */
+    public boolean containsRecord(String id) {
+        if (records.containsKey(id)) {
+            return true;
+        }
+        return false;
     }
 
     /**

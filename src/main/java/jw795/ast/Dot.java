@@ -5,8 +5,8 @@ import edu.cornell.cs.cs4120.xic.ir.IRExpr;
 import jw795.Visitor;
 
 public class Dot extends Expr implements LValue{
-    String recordname;
-    String fieldname;
+    public String recordname;
+    public String fieldname;
 
     public Dot(String i, String d, int li, int co) {
         super(li, co);
@@ -23,7 +23,7 @@ public class Dot extends Expr implements LValue{
 
     @Override
     public void accept(Visitor visitor) throws Exception {
-
+        visitor.visitDot(this);
     }
 
     @Override

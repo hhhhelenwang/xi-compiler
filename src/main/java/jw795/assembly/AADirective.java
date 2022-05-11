@@ -1,5 +1,7 @@
 package jw795.assembly;
 
+import java.util.HashSet;
+
 /**
  * An assembly directive.
  */
@@ -45,5 +47,15 @@ public class AADirective extends AAInstruction{
     @Override
     public String toString() {
         return dirType.toString()+sofname;
+    }
+
+    @Override
+    public HashSet<AAOperand> use() {
+        return new HashSet<>();
+    }
+
+    @Override
+    public HashSet<AAOperand> def() {
+        return new HashSet<>();
     }
 }

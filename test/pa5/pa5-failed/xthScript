@@ -1,8 +1,0 @@
-# build compiler first
-build
-
-
-xic ("Test -target linux -O") ["./test/pa5"]"-libpath $(testpath) -target linux -O" {
-
-}
-

@@ -1,5 +1,7 @@
 package jw795.assembly;
 
+import java.util.HashSet;
+
 public class AASetcc extends AAInstruction{
 
     public enum Condition {
@@ -41,9 +43,13 @@ public class AASetcc extends AAInstruction{
         cond = cc;
     }
 
-
     @Override
     public String toString() {
         return "set" + cond + " " + operand1.get();
+    }
+
+    @Override
+    public HashSet<AAOperand> use() {
+        return new HashSet<>();
     }
 }

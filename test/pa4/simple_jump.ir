@@ -1,0 +1,49 @@
+(COMPUNIT
+ simple_jump
+ (DATA string_const1
+  (13 72 101 108 108 111 44 32 87 111 114 108 100 33))
+ (FUNC
+  _Imain_paai
+  (SEQ
+   (MOVE (TEMP a) (TEMP _ARG1))
+   (MOVE (TEMP t5) (CONST 0))
+   (MOVE (TEMP t_lower1) (ADD (MUL (TEMP t5) (CONST 8)) (CONST 8)))
+   (CALL_STMT 1 (NAME _xi_alloc) (TEMP t_lower1))
+   (MOVE (TEMP t_lower2) (TEMP _RV1))
+   (MOVE (TEMP t6) (TEMP t_lower2))
+   (MOVE (TEMP t7) (ADD (TEMP t6) (CONST 8)))
+   (MOVE (MEM (TEMP t6)) (TEMP t5))
+   (MOVE (TEMP b) (TEMP t7))
+   (MOVE (TEMP t_lower3) (CONST 16))
+   (CALL_STMT 1 (NAME _xi_alloc) (TEMP t_lower3))
+   (MOVE (TEMP t_lower4) (TEMP _RV1))
+   (MOVE (TEMP t8) (TEMP t_lower4))
+   (MOVE (MEM (TEMP t8)) (CONST 1))
+   (MOVE (MEM (ADD (TEMP t8) (CONST 8))) (CONST 1))
+   (MOVE (TEMP b) (ADD (TEMP t8) (CONST 8)))
+   (MOVE (TEMP t_lower5) (TEMP b))
+   (CALL_STMT 1 (NAME _If_iai) (TEMP t_lower5))
+   (MOVE (TEMP t_lower6) (TEMP _RV1))
+   (CJUMP (XOR (LT (CONST 1) (TEMP t_lower6)) (CONST 1)) l6)
+   (MOVE (TEMP t9) (NAME string_const1))
+   (MOVE (TEMP t10) (ADD (TEMP t9) (CONST 8)))
+   (MOVE (TEMP t_lower7) (TEMP t10))
+   (CALL_STMT 0 (NAME _Iprintln_pai) (TEMP t_lower7))
+   (LABEL l6)
+   (RETURN)))
+ (FUNC
+  _If_iai
+  (SEQ
+   (MOVE (TEMP arr) (TEMP _ARG1))
+   (MOVE (TEMP t3) (TEMP arr))
+   (MOVE (TEMP t4) (CONST 0))
+   (CJUMP (XOR (ULT (TEMP t4) (MEM (SUB (TEMP t3) (CONST 8)))) (CONST 1)) l4)
+   (LABEL l3)
+   (MOVE (MEM (ADD (TEMP t3) (MUL (TEMP t4) (CONST 8)))) (CONST 2))
+   (MOVE (TEMP t_lower0) (CONST 2))
+   (RETURN (CONST 2))
+   (JUMP (NAME done1))
+   (LABEL l4)
+   (CALL_STMT 0 (NAME _xi_out_of_bounds))
+   (JUMP (NAME l3))
+   (LABEL done1))))

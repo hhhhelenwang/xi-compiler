@@ -13,6 +13,7 @@ public class TypeChecker extends Visitor {
 
     public SymbolTable env;
 
+
     @Override
     public void enterScope() {
         env.enterScope();
@@ -217,10 +218,17 @@ public class TypeChecker extends Visitor {
         } else if (node.expr1.type instanceof Array){
             // if the first operand is an array, check for array concatenation
             setArrayCompareType(node);
+        } else if (node.expr1.type instanceof Record){
+            if(node.expr2.type instanceof Record){
+                    node.type = new Bool();
+            }else if(node.expr2 instanceof Null){
+                    node.type = new Bool();
+            }
+
         } else {
             // definitely cannot add on operand 1 now so report!
             String pos = errorstart(node.expr1.getLine(), node.expr1.getCol());
-            String err = pos + "Operand of == must be int, bool, or array";
+            String err = pos + "Operand of == must be int, bool, or array, or record";
             throw new SemanticErrorException(err);
         }
     }
@@ -305,6 +313,10 @@ public class TypeChecker extends Visitor {
     @Override
     public void visitPrCall(ProcCallStmt node) throws SemanticErrorException {
         // a procedure need to be fn T -> unit
+        if(env.containsRecord(node.name)){
+            node.type = (R) env.findTypeofRecord(node.name);
+            return;
+        }
         Sigma prType = this.env.findTypeofFun(node.name);
         if(prType == null){
             String errorMsg = errorstart(node.getLine(), node.getCol());
@@ -332,7 +344,9 @@ public class TypeChecker extends Visitor {
         // special case for length
         if (node.name.equals("length"))  {
             checkLength(node);
-        } else {
+        } else if(env.containsRecord(node.name)){
+            node.type = env.findTypeofRecord(node.name);
+        }else {
             Sigma fnType = this.env.findTypeofFun(node.name);
             // check function types
             if(fnType == null){
@@ -554,16 +568,46 @@ public class TypeChecker extends Visitor {
                 throw new SemanticErrorException( res);
             }
         }else if(node.leftVal instanceof VarDeclareStmt){ //x:tau = e
-            Tau lefttype = typeToTau(((VarDeclareStmt) node.leftVal).varType);
-            if((node.expr.type).equals(lefttype)){
-                node.type = new Unit();
+            if(((VarDeclareStmt) node.leftVal).varType instanceof  RecordType){
+                if(node.expr.type instanceof  Record){
+                    String name1 = ((RecordType) ((VarDeclareStmt) node.leftVal).varType).name;
+                    String name2 = ((Record) node.expr.type).name;
+                    if( name1 == name2){
+                        node.type = new Unit();
+                        return;
+                    }
+                }
             }else{
-                String res = errorstart(node.getLine(), node.getCol());
-                res += "Cannot assign " +node.expr.type.toStr() +" to "+ lefttype.toStr();
-                throw new SemanticErrorException( res);
+                Tau lefttype = typeToTau(((VarDeclareStmt) node.leftVal).varType);
+                if((node.expr.type).equals(lefttype)){
+                    node.type = new Unit();
+                }else{
+                    String res = errorstart(node.getLine(), node.getCol());
+                    res += "Cannot assign " +node.expr.type.toStr() +" to "+ lefttype.toStr();
+                    throw new SemanticErrorException( res);
+                }
             }
+
         }
-        else{
+        else if(node.leftVal instanceof  Dot) {
+            if(((Dot) node.leftVal).type instanceof Int){
+                if(node.expr.type instanceof Int){
+                    node.type = new Unit();
+                }
+            }else if(((Dot) node.leftVal).type instanceof Bool){
+                if(node.expr.type instanceof Bool){
+                    node.type = new Unit();
+                }
+            }else if(((Dot) node.leftVal).type instanceof Record){
+                if(node.expr.type instanceof Record){
+                    if(((Record) node.expr.type).name == ((Record) ((Dot) node.leftVal).type).name){
+                        node.type = new Unit();
+                    }
+                }else if(node.expr instanceof Null){
+
+                }
+            }
+        }else{
             String res = errorstart(node.getLine(), node.getCol());
             throw new SemanticErrorException(res + "invalid object to assign to");
         }
@@ -822,9 +866,58 @@ public class TypeChecker extends Visitor {
             }else{
                 return new TypedArray(typeToTau(((ArrayType) t).elemType));
             }
+        }else if(t instanceof RecordType){
+            return env.records.get(((RecordType) t).name);
         }
         return null;
     }
+
+    @Override
+    public void visitRecordDeclare(RecordDeclare node){
+        this.env.addRecord(node.name, node.fieldtypelst);
+    }
+
+    @Override
+    public void visitDot(Dot node){
+        Sigma therecord = env.findTypeofVar(node.recordname);
+        if(therecord instanceof Var){
+            if(((Var) therecord).varType instanceof Record){
+                Record actualrecord = env.findTypeofRecord(((Record) ((Var) therecord).varType).name);
+                if(actualrecord.fields.containsKey(node.fieldname)){
+                    node.type = actualrecord.fields.get(node.fieldname);
+                    if(node.type instanceof Record){
+                        node.type = env.findTypeofRecord(((Record) node.type).name);
+                    }
+                }
+                else{
+                    String errorMsg = errorstart(node.getLine(), node.getCol()) + node.recordname + " does not have this field" + node.fieldname;
+                    throw new SemanticErrorException(errorMsg);
+                }
+            }else{
+                String errorMsg = errorstart(node.getLine(), node.getCol()) + node.recordname + " record is not defined.";
+                throw new SemanticErrorException(errorMsg);
+            }
+        }
+        else{
+            String errorMsg = errorstart(node.getLine(), node.getCol()) + node.recordname + " is not a var.";
+            throw new SemanticErrorException(errorMsg);
+        }
+
+    }
+
+    @Override
+    public void visitBreak(BreakStmt node){
+        node.type = new Void();
+
+    }
+
+    @Override
+    public void visitNull(Null node){
+        //mannually checked by mother stmt so this function should not be called
+        node.type = new Tau();
+    }
+
+
 
     /** Generate the common error message starter. */
     public String errorstart(int line, int colmn){
