@@ -45,31 +45,9 @@ public class LiveVariableAnalysis extends DataFlowAnalysis<HashSet<AAOperand>, A
         return ins.use();
     }
 
-    private HashSet<AAOperand> vars(AAOperand e) {
-        HashSet<AAOperand> result = new HashSet<>();
-        if (e instanceof AAImm || e instanceof AADynamic) {
-            return result;
-        } else if (e instanceof AAReg || e instanceof AATemp) {
-            result.add(e);
-            return result;
-        } else if (e instanceof AAMem) {
-            ((AAMem) e).base.ifPresent(result::add);
-            ((AAMem) e).index.ifPresent(result::add);
-            return result;
-        } else if (e instanceof AALabel) {
-            return result;
-        }
-        return result;
-    }
-
     @Override
     public HashSet<AAOperand> kill(CFGNode<AAInstruction> node, HashSet<AAOperand> l) {
-        HashSet<AAOperand> result = new HashSet<>();
         AAInstruction ins = node.getStmt();
-        if ((ins instanceof AAMove) && ((ins.operand1.get() instanceof AATemp) || (ins.operand1.get() instanceof AAReg))) {
-            result.add(ins.operand1.get());
-            return result;
-        }
-        return result;
+        return ins.def();
     }
 }
