@@ -6,10 +6,6 @@ public class AARet extends AAInstruction{
         super();
     }
 
-    public AARet (AAOperand opr) {
-        super(opr);
-    }
-
     @Override
     public String toString() {
         return this.operand1.map(operand -> "ret " + operand).orElse("ret");
