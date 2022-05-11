@@ -46,7 +46,7 @@ public abstract class AAInstruction {
      * The set of variables used by an AAOperand expr
      * @return variables used by expr
      */
-    private HashSet<AAOperand> vars(AAOperand expr) {
+    public HashSet<AAOperand> vars(AAOperand expr) {
         HashSet<AAOperand> result = new HashSet<>();
         if (expr instanceof AAImm || expr instanceof AADynamic) {
             return result;
