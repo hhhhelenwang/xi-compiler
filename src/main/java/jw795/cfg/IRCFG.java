@@ -10,6 +10,4 @@ public class IRCFG extends CFG<IRStmt> {
     public IRCFG(CFGNode<IRStmt> start) {
         super(start);
     }
-
-
 }

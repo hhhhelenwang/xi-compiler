@@ -85,10 +85,10 @@ public abstract class CFG<T> {
      * @param path
      * @param graphID
      */
-    public void toDotFormat(String fileName, String path, String graphID){
+    public void toDotFormat(String fileName, String path, String graphID, String phase){
           //generate the target .lexed file
           File targetDotFile = FileUtil.generateTargetFileWithFuncName(fileName, path,
-                  "dot", Optional.of(graphID));
+                  "dot", Optional.of(graphID), Optional.of(phase));
 
           try{
               FileWriter writer = new FileWriter(targetDotFile, Charset.forName("UTF-8"));

@@ -50,13 +50,6 @@ public class CFGNode<T> {
         this.successors.add(node);
     }
 
-    private String generateName(T stmt) {
-        String name = "";
-        if (stmt instanceof IRStmt){
-            name = stmt.toString();
-        } else if(stmt instanceof AAInstruction) {
-        }
-    }
 
 //    private String generateName(T stmt) {
 //        if (stmt instanceof IRStmt){

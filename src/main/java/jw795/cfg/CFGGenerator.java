@@ -17,7 +17,7 @@ public class CFGGenerator {
      * @param asm list of instructions of a function body
      * @return CFG graph made up of list of CFGNode<AAInstruction>
      */
-    public AsmCFG toAsmCFG(List<AAInstruction> asm){
+    public AsmCFG toAsmCFG(List<AAInstruction> asm, String funcName){
         int size = asm.size();
 
         HashMap<AAInstruction, CFGNode<AAInstruction>> instrToCFG = new HashMap<>();
@@ -117,10 +117,13 @@ public class CFGGenerator {
     /**
      * build an IRCFG from an IRFuncDecl node
      * @param funcDecl IR node
+     * @param funcName used for generate IRLabel as start node
      * @return CFG graph for given IRFuncDecl
      */
-    public IRCFG toIRCFG (IRFuncDecl funcDecl){
+    public IRCFG toIRCFG (IRFuncDecl funcDecl, String funcName){
         IRStmt body = funcDecl.body();
+        CFGNode<IRStmt> start = new CFGNode(new IRLabel(funcName), "start");
+        CFGNode<IRStmt> end = new CFGNode(new IRLabel("emd"), "end");
         IRCFG cfg;
 
         if (body instanceof IRSeq){
@@ -132,9 +135,6 @@ public class CFGGenerator {
             HashMap<String, IRLabel> labels = new HashMap<>();
             //maps from label to the starting stmt following the label
             HashMap<IRLabel, IRStmt> firstStmts = new HashMap<>();
-
-            CFGNode<IRStmt> start = new CFGNode(new IRLabel("start"), "start");
-            CFGNode<IRStmt> end = new CFGNode(new IRLabel("end"), "end");
 
             // populate hashmap: irToCFG
             int size = stmts.size();
@@ -214,10 +214,13 @@ public class CFGGenerator {
                 connectIR(irToCFG.get(lastStmt), end);
             }
             connectIR(start, irToCFG.get(stmts.get(0)));
-            cfg = new IRCFG(start);
         } else {
-            cfg = new IRCFG(new CFGNode<>(body));
+            CFGNode<IRStmt> bodyNode = new CFGNode<>(body);
+            connectIR(start, bodyNode);
+            connectIR(bodyNode, end);
         }
+
+        cfg = new IRCFG(start);
         return cfg;
     }
 
