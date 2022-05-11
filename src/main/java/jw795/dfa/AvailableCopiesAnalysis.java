@@ -14,7 +14,8 @@ import java.util.List;
  * Data flow value: set of equalities
  */
 public class AvailableCopiesAnalysis
-        extends DataFlowAnalysis<HashSet<Pair<String, String>>, AAInstruction> {
+        extends DataFlowAnalysis<LinkedHashSet<Pair<String, String>>, AAInstruction> {
+    // use LinkedHashSet to preserve the order of addition
     public AvailableCopiesAnalysis(CFG<AAInstruction> cfg) {
         super(cfg);
     }
@@ -40,7 +41,7 @@ public class AvailableCopiesAnalysis
             }
         }
         // iterate through all vars to get all possible equalities
-        HashSet<Pair<String, String>> allEqualities = new HashSet<>();
+        LinkedHashSet<Pair<String, String>> allEqualities = new LinkedHashSet<>();
         for (String var1 : allVars) {
             for (String var2: allVars) {
                 Pair<String, String> newEq = new Pair<>(var1, var2);
@@ -60,8 +61,8 @@ public class AvailableCopiesAnalysis
      * @return intersection of all sets in input
      */
     @Override
-    public HashSet<Pair<String, String>> meet(List<HashSet<Pair<String, String>>> input) {
-        HashSet<Pair<String, String>> metSet = new HashSet<>(input.get(0));
+    public LinkedHashSet<Pair<String, String>> meet(List<LinkedHashSet<Pair<String, String>>> input) {
+        LinkedHashSet<Pair<String, String>> metSet = new LinkedHashSet<>(input.get(0));
         for (HashSet<Pair<String, String>> in : input) {
             // retainAll remove keeps elements in metSet that are also in the set in
             metSet.retainAll(in);
@@ -78,10 +79,10 @@ public class AvailableCopiesAnalysis
      * @return fn(in[n])
      */
     @Override
-    public HashSet<Pair<String, String>> fn(HashSet<Pair<String, String>> l,
-                                            HashSet<Pair<String, String>> gen,
-                                            HashSet<Pair<String, String>> kill) {
-        HashSet<Pair<String, String>> fn_l = new HashSet<>(l);
+    public LinkedHashSet<Pair<String, String>> fn(LinkedHashSet<Pair<String, String>> l,
+                                                LinkedHashSet<Pair<String, String>> gen,
+                                                LinkedHashSet<Pair<String, String>> kill) {
+        LinkedHashSet<Pair<String, String>> fn_l = new LinkedHashSet<>(l);
         fn_l.removeAll(kill);
         fn_l.addAll(gen);
         return fn_l;
@@ -101,8 +102,8 @@ public class AvailableCopiesAnalysis
      * @return gen[node]
      */
     @Override
-    public HashSet<Pair<String, String>> gen(CFGNode<AAInstruction> node, HashSet<Pair<String, String>> l) {
-        HashSet<Pair<String, String>> gen_n = new HashSet<>();
+    public LinkedHashSet<Pair<String, String>> gen(CFGNode<AAInstruction> node, LinkedHashSet<Pair<String, String>> l) {
+        LinkedHashSet<Pair<String, String>> gen_n = new LinkedHashSet<>();
         AAInstruction instr = node.getStmt();
         if (instr instanceof AAMove) {
             AAOperand dest = instr.operand1.get(); // AAMove must have two operands so get() should not throw exn
@@ -129,8 +130,8 @@ public class AvailableCopiesAnalysis
      * @return kill[node]
      */
     @Override
-    public HashSet<Pair<String, String>> kill(CFGNode<AAInstruction> node, HashSet<Pair<String, String>> l) {
-        HashSet<Pair<String, String>> kill_n = new HashSet<>();
+    public LinkedHashSet<Pair<String, String>> kill(CFGNode<AAInstruction> node, LinkedHashSet<Pair<String, String>> l) {
+        LinkedHashSet<Pair<String, String>> kill_n = new LinkedHashSet<>();
 
         // on start node, kill everything
         if (node.getName().equals("start")) {
@@ -141,7 +142,7 @@ public class AvailableCopiesAnalysis
         AAInstruction instr = node.getStmt();
         if (instr instanceof AAMove) {
             AAOperand dest = instr.operand1.get();
-            if (dest instanceof AATemp  || dest instanceof AAReg) {
+            if (dest instanceof AATemp || dest instanceof AAReg) {
                 // kill all equalities involving dest as long as dest is def-ed
                 String destName = dest.toString();
                 for (Pair<String, String> pair : l) {

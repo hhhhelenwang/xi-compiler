@@ -1,5 +1,6 @@
 package jw795.assembly;
 
+import java.util.HashSet;
 import java.util.Optional;
 
 public abstract class AAInstruction {
@@ -29,8 +30,34 @@ public abstract class AAInstruction {
         this.operand2 = Optional.of(a2);
     }
 
-    // TODO: build up classes for each kinds of assembly instruction that we might use.
-    //  See lecture notes for a somewhat comprehensive list of opcodes we use.
+
+    /**
+     * The use set of this instruction. This is a default implementation
+     * @return use(instr)
+     */
+    public HashSet<AAOperand> use() {
+        HashSet<AAOperand> useSet =  new HashSet<>();
+        operand1.ifPresent(operand -> useSet.addAll(vars(operand)));
+        operand2.ifPresent(operand -> useSet.addAll(vars(operand)));
+        return useSet;
+    }
+
+    /**
+     * The set of variables used by an AAOperand expr
+     * @return variables used by expr
+     */
+    private HashSet<AAOperand> vars(AAOperand expr) {
+        HashSet<AAOperand> result = new HashSet<>();
+        if (expr instanceof AAImm || expr instanceof AADynamic) {
+            return result;
+        } else if (expr instanceof AAReg || expr instanceof AATemp) {
+            result.add(expr);
+        } else if (expr instanceof AAMem) {
+            ((AAMem) expr).base.ifPresent(result::add);
+            ((AAMem) expr).base.ifPresent(result::add);
+        }
+        return result;
+    }
 
     public abstract String toString();
 }
