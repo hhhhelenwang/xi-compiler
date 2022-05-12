@@ -11,10 +11,12 @@ import java.util.*;
 
 public abstract class CFG<T> {
     private CFGNode<T> start;
+    private CFGNode<T> exit;
     private HashMap<T, CFGNode<T>> insToCFG;
 
-    public CFG(CFGNode<T> start, HashMap<T, CFGNode<T>> insToCFG){
+    public CFG(CFGNode<T> start, CFGNode<T> exit, HashMap<T, CFGNode<T>> insToCFG){
         this.start = start;
+        this.exit = exit;
         this.insToCFG = insToCFG;
     }
 
@@ -25,6 +27,11 @@ public abstract class CFG<T> {
     public CFGNode<T> start(){
         return start;
     }
+
+    public CFGNode<T> exit(){
+        return exit;
+    }
+
 
     /**
      * Flatten a CFG to a list of CFGNode

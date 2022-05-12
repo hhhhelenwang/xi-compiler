@@ -8,7 +8,7 @@ import java.util.List;
 
 public class IRCFG extends CFG<IRStmt> {
 
-    public IRCFG(CFGNode<IRStmt> start, HashMap<IRStmt, CFGNode<IRStmt>> instrToCFG) {
-        super(start, instrToCFG);
+    public IRCFG(CFGNode<IRStmt> start, CFGNode<IRStmt> exit, HashMap<IRStmt, CFGNode<IRStmt>> instrToCFG) {
+        super(start, exit, instrToCFG);
     }
 }

@@ -70,7 +70,7 @@ public class CFGGenerator {
             }
         }
 
-        return new AsmCFG(start, instrToCFG);
+        return new AsmCFG(start, end, instrToCFG);
     }
 
     /**
@@ -136,7 +136,7 @@ public class CFGGenerator {
             irToNode.put(body, curNode);
         }
 
-        IRCFG cfg = new IRCFG(start, irToNode);
+        IRCFG cfg = new IRCFG(start, end, irToNode);
         return cfg;
     }
 
