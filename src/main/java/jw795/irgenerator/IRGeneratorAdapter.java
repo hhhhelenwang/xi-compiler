@@ -30,6 +30,7 @@ public class IRGeneratorAdapter {
     HashMap<String, String> funcNames = new HashMap<>();
     HashMap<String, Long> funcRetLengths = new HashMap<>();
     HashMap<String, Long> funcArgLengths = new HashMap<>();
+    HashMap<String, ArrayList<String>> recordfields;
     boolean optimize;
     boolean genIRFile;
     boolean genOptIRFile;
@@ -71,11 +72,12 @@ public class IRGeneratorAdapter {
                 checkedProgram = confold.fold();
             }
             funProcess();
+            this.recordfields = this.getRecordFieldNames();
             // create irVisitor
             String[] name = fileName.split("/");
             String dotXiName = name[name.length - 1];
             String finalName = dotXiName.split("\\.")[0];
-            Visitor irVisitor = new IRGenerator(finalName, funcNames, funcRetLengths);
+            Visitor irVisitor = new IRGenerator(finalName, funcNames, funcRetLengths, recordfields);
             IRCompUnit lowerIR = null;
             IRCompUnit reorderedIR = null;
             // generate the target .ir file
@@ -213,7 +215,9 @@ public class IRGeneratorAdapter {
             return "b";
         } else if (inputType instanceof TypedArray) {
             return "a" + inputNameBuild(((TypedArray) inputType).elementType);
-        } else if (inputType instanceof Unit) {
+        }else if(inputType instanceof Record){
+            return "r"+((Record) inputType).name.length() + ((Record) inputType).name;
+        }else if (inputType instanceof Unit) {
             return "";
         } else if (inputType instanceof Prod){
             String result = "";
@@ -285,5 +289,15 @@ public class IRGeneratorAdapter {
 
     public HashMap<String, String> getFuncNames() {
         return funcNames;
+    }
+
+    public HashMap<String, ArrayList<String>> getRecordFieldNames(){
+        HashMap<String,Record> ori = typeCheckerAdapter.getRecords();
+        HashMap<String, ArrayList<String>> result = new HashMap<>();
+        for(Map.Entry<String,Record> mpe: ori.entrySet()){
+            ArrayList<String> temp = new ArrayList<String>(mpe.getValue().fields.keySet());
+            result.put(mpe.getKey(),temp );
+        }
+        return result;
     }
 }
