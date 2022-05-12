@@ -2,6 +2,8 @@ package edu.cornell.cs.cs4120.xic.ir;
 
 import edu.cornell.cs.cs4120.util.SExpPrinter;
 
+import java.util.HashSet;
+
 /** An intermediate representation for named memory address NAME(n) */
 public class IRName extends IRExpr_c {
     private String name;
@@ -26,5 +28,10 @@ public class IRName extends IRExpr_c {
         p.printAtom("NAME");
         p.printAtom(name);
         p.endList();
+    }
+
+    @Override
+    public HashSet<IRTemp> vars() {
+        return new HashSet<>();
     }
 }

@@ -7,6 +7,7 @@ import edu.cornell.cs.cs4120.xic.ir.visit.IRVisitor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -93,5 +94,33 @@ public class IRCallStmt extends IRStmt {
         target.printSExp(p);
         for (IRExpr arg : args) arg.printSExp(p);
         p.endList();
+    }
+
+    @Override
+    public HashSet<IRTemp> use() {
+        HashSet<IRTemp> use = new HashSet<>();
+        for (IRExpr expr : args) {
+            use.addAll(expr.vars());
+        }
+        return use;
+    }
+
+    @Override
+    public HashSet<IRTemp> def() {
+        // IRCallStmt defs all _RVi
+        HashSet<IRTemp> def = new HashSet<>();
+        for (int i = 0; i < n_returns(); i ++) {
+            def.add(new IRTemp("_RV" + i));
+        }
+        return def;
+    }
+
+    @Override
+    public HashSet<IRTemp> vars() {
+        HashSet<IRTemp> vars = new HashSet<>();
+        for (IRExpr expr : args) {
+            vars.addAll(expr.vars());
+        }
+        return vars;
     }
 }

@@ -7,6 +7,7 @@ import edu.cornell.cs.cs4120.xic.ir.visit.IRVisitor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 /** An intermediate representation for a function call CALL(e_target, e_1, ..., e_n) */
@@ -83,5 +84,11 @@ public class IRCall extends IRExpr_c {
         target.printSExp(p);
         for (IRExpr arg : args) arg.printSExp(p);
         p.endList();
+    }
+
+    @Override
+    public HashSet<IRTemp> vars() {
+        System.out.println("IRCall expr in cfg");
+        return new HashSet<>(); // this should not be called
     }
 }

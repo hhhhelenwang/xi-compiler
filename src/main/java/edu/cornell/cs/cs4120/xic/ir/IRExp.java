@@ -5,6 +5,8 @@ import edu.cornell.cs.cs4120.xic.ir.visit.AggregateVisitor;
 import edu.cornell.cs.cs4120.xic.ir.visit.CheckCanonicalIRVisitor;
 import edu.cornell.cs.cs4120.xic.ir.visit.IRVisitor;
 
+import java.util.HashSet;
+
 /**
  * An intermediate representation for evaluating an expression for side effects, discarding the
  * result EXP(e)
@@ -53,5 +55,26 @@ public class IRExp extends IRStmt {
         p.printAtom("EXP");
         expr.printSExp(p);
         p.endList();
+    }
+
+    // this node should not present in lower IR
+    @Override
+    public HashSet<IRTemp> use() {
+        // should not be called
+        System.out.println("IRExp in cfg");
+        return new HashSet<>();
+    }
+
+    @Override
+    public HashSet<IRTemp> def() {
+        // should not be called
+        System.out.println("IRExp in cfg");
+        return new HashSet<>();
+    }
+
+    @Override
+    public HashSet<IRTemp> vars() {
+        System.out.println("IRExp in cfg");
+        return new HashSet<>();
     }
 }

@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CFGNode<T> {
-    private String name;
+    private String name; //used to distinguish start or end
     private T stmt;
     private List<CFGNode<T>> predecessors;
     private List<CFGNode<T>> successors;

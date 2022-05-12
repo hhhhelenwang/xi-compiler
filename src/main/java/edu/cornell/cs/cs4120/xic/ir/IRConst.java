@@ -2,6 +2,8 @@ package edu.cornell.cs.cs4120.xic.ir;
 
 import edu.cornell.cs.cs4120.util.SExpPrinter;
 
+import java.util.HashSet;
+
 /** An intermediate representation for a 64-bit integer constant. CONST(n) */
 public class IRConst extends IRExpr_c {
     private long value;
@@ -28,6 +30,11 @@ public class IRConst extends IRExpr_c {
     @Override
     public long constant() {
         return value;
+    }
+
+    @Override
+    public HashSet<IRTemp> vars() {
+        return new HashSet<>();
     }
 
     @Override
