@@ -17,6 +17,7 @@ import java.io.*;
 import java.util.*;
 
 import static jw795.util.FileUtil.generateTargetFile;
+import static jw795.util.FileUtil.generateTargetFileWithFuncName;
 
 /**
  * Take in an input source file and produce an IR for it.
@@ -31,19 +32,21 @@ public class IRGeneratorAdapter {
     HashMap<String, Long> funcArgLengths = new HashMap<>();
     boolean optimize;
     boolean genIRFile;
-    boolean beforeOpt;
+    boolean genOptIRFile;
+    List<String> phases;
     boolean genCFGFile;
-    String optType;
+    List<String> optType;
 
     public IRGeneratorAdapter(String fileName, String dest, String lib, boolean opt,
-                              boolean generateIRFile, boolean beforeOpt,
-                              boolean generateCFGFile, String optType) {
+                              boolean generateIRFile, boolean generateOptFile,
+                              List<String> phases, boolean generateCFGFile, List<String> optType) {
         this.destPath = dest;
         this.libPath = lib;
         this.fileName = fileName;
         this.optimize = opt;
-        this.beforeOpt = beforeOpt;
+        this.phases = phases;
         this.genCFGFile = generateCFGFile;
+        this.genOptIRFile = generateOptFile;
         this.optType = optType;
         try {
             FileReader fr = new FileReader(fileName);
@@ -83,7 +86,6 @@ public class IRGeneratorAdapter {
                     File targetIrsol = generateTargetFile(fileName, destPath, "ir");
                     targetWriter = new FileWriter(targetIrsol);
                 }
-
                 // Generating IR
                 checkedProgram.accept(irVisitor);
                 IRCompUnit root = checkedProgram.ir;
@@ -107,19 +109,50 @@ public class IRGeneratorAdapter {
 
             try {
                 if (genCFGFile){
-                    System.out.println("enter irGenerator");
-                    //generate IRCFG for optimization
-                    Collection<IRFuncDecl> funcs = reorderedIR.functions().values();
+                    for (String phase : phases){
+                        Map<String, IRFuncDecl> funcs = new HashMap<>();
+                        if (phase.equals("initial")){
+                            funcs = reorderedIR.functions();
+                        } else if (phase.equals("final")){
+                            funcs = reorderedIR.functions(); //TODO: change this ir to the IR after all optimizations
+                        } else {
+                            System.out.println("The phase "+ phase +" is not supported");
+                        }
 
-                    CFGGenerator ircfg = new CFGGenerator();
+                        CFGGenerator ircfg = new CFGGenerator();
 
-                    for (IRFuncDecl func : funcs){
-                        CFG cffg = ircfg.toIRCFG(func);
-                        cffg.toDotFormat(fileName, destPath, func.name());
+                        for (String funcName : funcs.keySet()){
+                            IRFuncDecl func = funcs.get(funcName);
+                            CFG cfg = ircfg.toIRCFG(func, funcName);
+                            cfg.toDotFormat(fileName, destPath, func.name(), phase);
+                        }
                     }
                 }
             } catch (Exception e) {
                 System.out.println("unknown error while generating IRCFG : "+ e.getMessage());
+            }
+
+
+            try{
+                if (genOptIRFile) {
+                    for (String phase : phases){
+                        File targetIrsol = generateTargetFileWithFuncName(fileName, destPath, "ir",
+                                Optional.empty(), Optional.of(phase));
+                        targetWriter = new FileWriter(targetIrsol);
+
+                        if (phase.equals("initial")){
+                            targetWriter.write(prettyPrint(reorderedIR));
+                            targetWriter.close();
+                        } else if (phase.equals("final")){
+                            //TODO: change this ir to the IR after all optimizations
+                        } else {
+                            System.out.println("The phase "+ phase +" is not supported");
+                        }
+
+                    }
+                }
+            }catch (Exception e) {
+                System.out.println("unknown error while generating OptIRFile : "+ e.getMessage());
             }
 
             return reorderedIR;

@@ -20,7 +20,7 @@ public class FileUtil {
      * @return targetFile
      */
     public static File generateTargetFile(String fileName, String path, String fileType){
-        return generateTargetFileWithFuncName(fileName, path, fileType, Optional.empty());
+        return generateTargetFileWithFuncName(fileName, path, fileType, Optional.empty(), Optional.empty());
     }
 
     /**
@@ -34,7 +34,8 @@ public class FileUtil {
      * @return targetFile
      */
     public static File generateTargetFileWithFuncName(String fileName, String path,
-                                                      String fileType, Optional<String> funcName) {
+                                                      String fileType, Optional<String> funcName,
+                                                      Optional<String> phase) {
         // build the full directory to put the generated file in
         String[] dirs = fileName.split("/");
         String fullPath = path + "/";
@@ -48,13 +49,13 @@ public class FileUtil {
         String end = file.substring(file.length()-3);
         String xiFileName = file.substring(0,file.length()-3);
         String ixiFileName = file.substring(0,file.length()-4);
+        String phaseName = phase.isPresent() ? "_" + phase.get() : "";
+        String funName = funcName.isPresent() ? funcName.get(): "";
 
         if(end.equals(".xi")) {
-            processedFile = funcName.isPresent() ?
-                    xiFileName + funcName.get() + "." + fileType : xiFileName + "." + fileType;
+            processedFile = xiFileName + funName + phaseName + "." + fileType;
         }else{
-            processedFile = funcName.isPresent() ?
-                    ixiFileName + funcName.get() + "." + fileType : ixiFileName + "." + fileType;
+            processedFile = ixiFileName + funName + phaseName + "." + fileType;
         }
 
         // check if directory to put the lexed file in exists, create a new dir if doesn't

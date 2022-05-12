@@ -1,7 +1,9 @@
 package jw795.dfa;
+import jw795.asmgenerator.Tiler;
 import jw795.assembly.*;
 import jw795.cfg.AsmCFG;
 import jw795.cfg.CFGNode;
+import jw795.asmgenerator.Tiler.*;
 
 import java.util.HashSet;
 import java.util.List;
@@ -39,54 +41,13 @@ public class LiveVariableAnalysis extends DataFlowAnalysis<HashSet<AAOperand>, A
 
     @Override
     public HashSet<AAOperand> gen(CFGNode<AAInstruction> node, HashSet<AAOperand> l) {
-        HashSet<AAOperand> result = new HashSet<>();
         AAInstruction ins = node.getStmt();
-        if (ins instanceof AALabelInstr) {
-            return result;
-        } else if ((ins instanceof AAMove) && (ins.operand1.get() instanceof AAMem)) {
-            result.addAll(vars(ins.operand1.get()));
-            result.addAll(vars(ins.operand2.get()));
-            return result;
-        } else {
-            if (ins.operand2.isPresent()) {
-                result.addAll(vars(ins.operand2.get()));
-                return result;
-            } else if (ins.operand1.isPresent()) {
-                result.addAll(vars(ins.operand1.get()));
-                return result;
-            } else {
-                return result;
-            }
-        }
-    }
-
-    private HashSet<AAOperand> vars(AAOperand e) {
-        HashSet<AAOperand> result = new HashSet<>();
-        if (e instanceof AAImm || e instanceof AADynamic) {
-            return result;
-        } else if (e instanceof AAReg || e instanceof AATemp) {
-            result.add(e);
-            return result;
-        } else if (e instanceof AAMem) {
-            if (((AAMem) e).base.isPresent()) {
-                result.add(e);
-            }
-            if (((AAMem) e).index.isPresent()) {
-                result.add(e);
-            }
-            return result;
-        }
-        return result;
+        return ins.use();
     }
 
     @Override
     public HashSet<AAOperand> kill(CFGNode<AAInstruction> node, HashSet<AAOperand> l) {
-        HashSet<AAOperand> result = new HashSet<>();
         AAInstruction ins = node.getStmt();
-        if ((ins instanceof AAMove) && ((ins.operand1.get() instanceof AATemp) || (ins.operand1.get() instanceof AAReg))) {
-            result.add(ins.operand1.get());
-            return result;
-        }
-        return result;
+        return ins.def();
     }
 }

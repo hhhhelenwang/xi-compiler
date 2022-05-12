@@ -1,5 +1,7 @@
 package jw795.assembly;
 
+import java.util.HashSet;
+
 public class AALea extends AAInstruction{
 
     // Requires: opr1 is an AAReg, opr2 is an AAMem
@@ -10,5 +12,10 @@ public class AALea extends AAInstruction{
     @Override
     public String toString() {
         return "lea" + " " + operand1.get() + ", " + operand2.get();
+    }
+
+    @Override
+    public HashSet<AAOperand> use() {
+        return vars(operand2.get());
     }
 }

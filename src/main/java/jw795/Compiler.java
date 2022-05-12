@@ -96,7 +96,6 @@ public class Compiler {
             String footer = "Have fun!";
             HelpFormatter helpFormatter = new HelpFormatter();
             helpFormatter.printHelp(syntax, header, options, footer);
-
         }
     }
 
@@ -208,23 +207,30 @@ public class Compiler {
      * @return an IRCompUnit which is the root node of generated IR
      */
     public IRCompUnit generateIRorCFGForFile(String fileName) {
-        boolean generateIRFile = cmd.hasOption("irrun") || cmd.hasOption("irgen") || cmd.hasOption("optir");
-        boolean beforeOpt = true;
-        if (cmd.hasOption("optir") && (cmd.getOptionValue("optir")).equals("final")){
-                beforeOpt = false;
+        boolean generateIRFile = cmd.hasOption("irrun") || cmd.hasOption("irgen");
+        boolean generateOptIRFile = cmd.hasOption("optir");
+
+        List<String> phases = new ArrayList<>();
+        if (generateOptIRFile){
+                phases = Arrays.asList(cmd.getOptionValues("optir"));
         }
 
         boolean generateCFGFile = cmd.hasOption("optcfg");
-        String optType = cmd.getOptionValue("optcfg");
-
         if (generateCFGFile && !((cmd.getOptionValue("optcfg").equals("reg")
-                || cmd.getOptionValue("optcfg").equals("cp") || cmd.getOptionValue("optcfg").equals("dce")))) {
+                || cmd.getOptionValue("optcfg").equals("copy") || cmd.getOptionValue("optcfg").equals("dce")
+                || cmd.getOptionValue("optcfg").equals("lu")))) {
                 System.out.println(cmd.getOptionValue("optcfg") + " optimization is not supported");
         }
 
         boolean optimize = !cmd.hasOption("O");
+        List<String> optTypes = new ArrayList<>();
+        // TODO: double check adding --o flag is optimizze or not optimize
+        if (cmd.hasOption("O") && cmd.getOptionValues("O").length != 0){
+            optTypes = Arrays.asList(cmd.getOptionValues("O"));
+        }
         IRGeneratorAdapter irGeneratorAdapter = new IRGeneratorAdapter(
-                fileName, this.destPath, this.libPath, optimize, generateIRFile, beforeOpt, generateCFGFile, optType);
+                fileName, this.destPath, this.libPath, optimize, generateIRFile,
+            generateOptIRFile, phases, generateCFGFile, optTypes);
 
         IRCompUnit sourceIR = irGeneratorAdapter.generateIR();
         funcNames = irGeneratorAdapter.getFuncNames();
@@ -290,6 +296,20 @@ public class Compiler {
         }
     }
 
+    /**
+     * Output (only) a list of optimizations supported by the compiler
+     */
+    public void printAllOpt(){
+        if (cmd.hasOption("report-opts")){
+            System.out.println("List of optimizations supported are");
+            System.out.println("cf: Constant Folding");
+            System.out.println("reg: Register Allocation");
+            System.out.println("copy: Copy Propagation");
+            System.out.println("dce: Dead Code Elimination");
+            System.out.println("lu: Loop Unrolling");
+        }
+    }
+
     public static void main(String[] args) {
         Compiler compiler = new Compiler();
         try {
@@ -298,6 +318,7 @@ public class Compiler {
             System.out.println(e.getMessage());
         }
         compiler.help();
+        compiler.printAllOpt();
         compiler.setPaths();
         compiler.lex();
         compiler.parse();

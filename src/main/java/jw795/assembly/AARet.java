@@ -6,17 +6,8 @@ public class AARet extends AAInstruction{
         super();
     }
 
-    public AARet (AAOperand opr) {
-        super(opr);
-    }
-
     @Override
     public String toString() {
-        if (this.operand1.isPresent()) {
-            return "ret " + this.operand1.get();
-        }
-        else {
-            return "ret";
-        }
+        return this.operand1.map(operand -> "ret " + operand).orElse("ret");
     }
 }

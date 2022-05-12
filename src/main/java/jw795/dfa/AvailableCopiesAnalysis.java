@@ -14,7 +14,8 @@ import java.util.List;
  * Data flow value: set of equalities
  */
 public class AvailableCopiesAnalysis
-        extends DataFlowAnalysis<HashSet<Pair<String, String>>, AAInstruction> {
+        extends DataFlowAnalysis<LinkedHashSet<Pair<AAOperand, AAOperand>>, AAInstruction> {
+    // use LinkedHashSet to preserve the order of addition
     public AvailableCopiesAnalysis(CFG<AAInstruction> cfg) {
         super(cfg);
     }
@@ -25,25 +26,25 @@ public class AvailableCopiesAnalysis
     @Override
     public void initialize() {
         // get the set of all variables
-        LinkedHashSet<String> allVars = new LinkedHashSet<>();
+        LinkedHashSet<AAOperand> allVars = new LinkedHashSet<>();
         for (CFGNode<AAInstruction> node : worklist) {
             AAInstruction instr = node.getStmt();
             if (instr instanceof AAMove) {
                 AAOperand dest = instr.operand1.get();
                 AAOperand src = instr.operand2.get();
                 if (dest instanceof AAReg || dest instanceof AATemp) {
-                    allVars.add(dest.toString());
+                    allVars.add(dest);
                 }
                 if (src instanceof AAReg || src instanceof AATemp) {
-                    allVars.add(src.toString());
+                    allVars.add(src);
                 }
             }
         }
         // iterate through all vars to get all possible equalities
-        HashSet<Pair<String, String>> allEqualities = new HashSet<>();
-        for (String var1 : allVars) {
-            for (String var2: allVars) {
-                Pair<String, String> newEq = new Pair<>(var1, var2);
+        LinkedHashSet<Pair<AAOperand, AAOperand>> allEqualities = new LinkedHashSet<>();
+        for (AAOperand var1 : allVars) {
+            for (AAOperand var2: allVars) {
+                Pair<AAOperand, AAOperand> newEq = new Pair<>(var1, var2);
                 allEqualities.add(newEq);
             }
         }
@@ -60,9 +61,9 @@ public class AvailableCopiesAnalysis
      * @return intersection of all sets in input
      */
     @Override
-    public HashSet<Pair<String, String>> meet(List<HashSet<Pair<String, String>>> input) {
-        HashSet<Pair<String, String>> metSet = new HashSet<>(input.get(0));
-        for (HashSet<Pair<String, String>> in : input) {
+    public LinkedHashSet<Pair<AAOperand, AAOperand>> meet(List<LinkedHashSet<Pair<AAOperand, AAOperand>>> input) {
+        LinkedHashSet<Pair<AAOperand, AAOperand>> metSet = new LinkedHashSet<>(input.get(0));
+        for (HashSet<Pair<AAOperand, AAOperand>> in : input) {
             // retainAll remove keeps elements in metSet that are also in the set in
             metSet.retainAll(in);
         }
@@ -78,10 +79,10 @@ public class AvailableCopiesAnalysis
      * @return fn(in[n])
      */
     @Override
-    public HashSet<Pair<String, String>> fn(HashSet<Pair<String, String>> l,
-                                            HashSet<Pair<String, String>> gen,
-                                            HashSet<Pair<String, String>> kill) {
-        HashSet<Pair<String, String>> fn_l = new HashSet<>(l);
+    public LinkedHashSet<Pair<AAOperand, AAOperand>> fn(LinkedHashSet<Pair<AAOperand, AAOperand>> l,
+                                                LinkedHashSet<Pair<AAOperand, AAOperand>> gen,
+                                                LinkedHashSet<Pair<AAOperand, AAOperand>> kill) {
+        LinkedHashSet<Pair<AAOperand, AAOperand>> fn_l = new LinkedHashSet<>(l);
         fn_l.removeAll(kill);
         fn_l.addAll(gen);
         return fn_l;
@@ -101,15 +102,16 @@ public class AvailableCopiesAnalysis
      * @return gen[node]
      */
     @Override
-    public HashSet<Pair<String, String>> gen(CFGNode<AAInstruction> node, HashSet<Pair<String, String>> l) {
-        HashSet<Pair<String, String>> gen_n = new HashSet<>();
+    public LinkedHashSet<Pair<AAOperand, AAOperand>> gen(CFGNode<AAInstruction> node,
+                                                   LinkedHashSet<Pair<AAOperand, AAOperand>> l) {
+        LinkedHashSet<Pair<AAOperand, AAOperand>> gen_n = new LinkedHashSet<>();
         AAInstruction instr = node.getStmt();
         if (instr instanceof AAMove) {
             AAOperand dest = instr.operand1.get(); // AAMove must have two operands so get() should not throw exn
             AAOperand src = instr.operand2.get();
             if (dest instanceof AATemp || dest instanceof AAReg
                     && src instanceof AATemp || src instanceof AAReg) {
-                gen_n.add(new Pair<>(dest.toString(), src.toString())); // toString give the name of temp or reg
+                gen_n.add(new Pair<>(dest, src)); // toString give the name of temp or reg
             }
         }
         return gen_n;
@@ -129,8 +131,9 @@ public class AvailableCopiesAnalysis
      * @return kill[node]
      */
     @Override
-    public HashSet<Pair<String, String>> kill(CFGNode<AAInstruction> node, HashSet<Pair<String, String>> l) {
-        HashSet<Pair<String, String>> kill_n = new HashSet<>();
+    public LinkedHashSet<Pair<AAOperand, AAOperand>> kill(CFGNode<AAInstruction> node,
+                                                    LinkedHashSet<Pair<AAOperand, AAOperand>> l) {
+        LinkedHashSet<Pair<AAOperand, AAOperand>> kill_n = new LinkedHashSet<>();
 
         // on start node, kill everything
         if (node.getName().equals("start")) {
@@ -141,11 +144,10 @@ public class AvailableCopiesAnalysis
         AAInstruction instr = node.getStmt();
         if (instr instanceof AAMove) {
             AAOperand dest = instr.operand1.get();
-            if (dest instanceof AATemp  || dest instanceof AAReg) {
+            if (dest instanceof AATemp || dest instanceof AAReg) {
                 // kill all equalities involving dest as long as dest is def-ed
-                String destName = dest.toString();
-                for (Pair<String, String> pair : l) {
-                    if (pair.part1().equals(destName) || pair.part2().equals(destName)) {
+                for (Pair<AAOperand, AAOperand> pair : l) {
+                    if (pair.part1().equals(dest) || pair.part2().equals(dest)) {
                         kill_n.add(pair);
                     }
                 }
