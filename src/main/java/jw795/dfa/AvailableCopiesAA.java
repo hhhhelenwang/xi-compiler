@@ -12,10 +12,10 @@ import java.util.List;
  * Implementation for available copies analysis
  * Data flow value: set of equalities
  */
-public class AvailableCopiesAnalysisAA
+public class AvailableCopiesAA
         extends DataFlowAnalysis<LinkedHashSet<Pair<AAOperand, AAOperand>>, AAInstruction> {
     // use LinkedHashSet to preserve the order of addition
-    public AvailableCopiesAnalysisAA(CFG<AAInstruction> cfg) {
+    public AvailableCopiesAA(CFG<AAInstruction> cfg) {
         super(cfg);
         // set up top
         top = computeTop();
@@ -46,8 +46,10 @@ public class AvailableCopiesAnalysisAA
         LinkedHashSet<Pair<AAOperand, AAOperand>> allEqualities = new LinkedHashSet<>();
         for (AAOperand var1 : allVars) {
             for (AAOperand var2: allVars) {
-                Pair<AAOperand, AAOperand> newEq = new Pair<>(var1, var2);
-                allEqualities.add(newEq);
+                if (!var1.equals(var2)) {
+                    Pair<AAOperand, AAOperand> newEq = new Pair<>(var1, var2);
+                    allEqualities.add(newEq);
+                }
             }
         }
         return allEqualities;
@@ -131,13 +133,14 @@ public class AvailableCopiesAnalysisAA
     @Override
     public LinkedHashSet<Pair<AAOperand, AAOperand>> kill(CFGNode<AAInstruction> node,
                                                     LinkedHashSet<Pair<AAOperand, AAOperand>> l) {
+
         LinkedHashSet<Pair<AAOperand, AAOperand>> kill_n = new LinkedHashSet<>();
 
-        // on start node, kill everything
-//        if (node.getStmt() instanceof AABogus && ((AABogus)node.getStmt()).name().equals("start")) {
-//            kill_n.addAll(l);
-//            return kill_n;
-//        }
+        //on start node, kill everything
+        if (node.getStmt() instanceof AAStart) {
+            kill_n.addAll(l);
+            return kill_n;
+        }
 
         AAInstruction instr = node.getStmt();
         if (instr instanceof AAMove) {
