@@ -5,6 +5,8 @@ import edu.cornell.cs.cs4120.xic.ir.visit.AggregateVisitor;
 import edu.cornell.cs.cs4120.xic.ir.visit.CheckCanonicalIRVisitor;
 import edu.cornell.cs.cs4120.xic.ir.visit.IRVisitor;
 
+import java.util.HashSet;
+
 /**
  * An intermediate representation for an expression evaluated under side effects ESEQ(stmt, expr)
  */
@@ -64,5 +66,13 @@ public class IRESeq extends IRExpr_c {
         stmt.printSExp(p);
         expr.printSExp(p);
         p.endList();
+    }
+
+    @Override
+    public HashSet<IRTemp> vars() {
+        // should not be called
+        System.out.println("IRESeq in cfg");
+        return new HashSet<>();
+
     }
 }

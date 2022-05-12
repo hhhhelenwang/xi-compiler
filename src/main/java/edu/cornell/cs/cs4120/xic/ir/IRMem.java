@@ -5,8 +5,12 @@ import edu.cornell.cs.cs4120.util.SExpPrinter;
 import edu.cornell.cs.cs4120.xic.ir.visit.AggregateVisitor;
 import edu.cornell.cs.cs4120.xic.ir.visit.IRVisitor;
 
+import java.util.HashSet;
+
 /** An intermediate representation for a memory location MEM(e) */
 public class IRMem extends IRExpr_c {
+
+
     public enum MemType {
         NORMAL,
         IMMUTABLE;
@@ -71,5 +75,10 @@ public class IRMem extends IRExpr_c {
         p.printAtom(memType.toString());
         expr.printSExp(p);
         p.endList();
+    }
+
+    @Override
+    public HashSet<IRTemp> vars() {
+        return expr().vars();
     }
 }

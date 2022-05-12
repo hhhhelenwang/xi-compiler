@@ -1,17 +1,16 @@
 package jw795.dfa;
-import jw795.asmgenerator.Tiler;
-import jw795.assembly.*;
+import jw795.assembly.AAInstruction;
+import jw795.assembly.AAOperand;
 import jw795.cfg.AsmCFG;
 import jw795.cfg.CFGNode;
-import jw795.asmgenerator.Tiler.*;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 
 public class LiveVariableAnalysis extends DataFlowAnalysis<HashSet<AAOperand>, AAInstruction> {
     public LiveVariableAnalysis(AsmCFG cfg) {
         super(cfg);
+        top = new HashSet<>();
     }
 
     @Override

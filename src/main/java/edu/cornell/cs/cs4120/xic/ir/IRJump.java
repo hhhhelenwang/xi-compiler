@@ -4,6 +4,8 @@ import edu.cornell.cs.cs4120.util.SExpPrinter;
 import edu.cornell.cs.cs4120.xic.ir.visit.AggregateVisitor;
 import edu.cornell.cs.cs4120.xic.ir.visit.IRVisitor;
 
+import java.util.HashSet;
+
 /** An intermediate representation for a transfer of control */
 public class IRJump extends IRStmt {
     private IRExpr target;
@@ -44,5 +46,20 @@ public class IRJump extends IRStmt {
         p.printAtom("JUMP");
         target.printSExp(p);
         p.endList();
+    }
+
+    @Override
+    public HashSet<IRTemp> use() {
+        return target().vars();
+    }
+
+    @Override
+    public HashSet<IRTemp> def() {
+        return new HashSet<>();
+    }
+
+    @Override
+    public HashSet<IRTemp> vars() {
+        return target().vars();
     }
 }

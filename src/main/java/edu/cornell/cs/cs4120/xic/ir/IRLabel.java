@@ -3,6 +3,8 @@ package edu.cornell.cs.cs4120.xic.ir;
 import edu.cornell.cs.cs4120.util.SExpPrinter;
 import edu.cornell.cs.cs4120.xic.ir.visit.InsnMapsBuilder;
 
+import java.util.HashSet;
+
 /** An intermediate representation for naming a memory address */
 public class IRLabel extends IRStmt {
     private String name;
@@ -33,5 +35,20 @@ public class IRLabel extends IRStmt {
         p.printAtom("LABEL");
         p.printAtom(name);
         p.endList();
+    }
+
+    @Override
+    public HashSet<IRTemp> use() {
+        return new HashSet<>();
+    }
+
+    @Override
+    public HashSet<IRTemp> def() {
+        return new HashSet<>();
+    }
+
+    @Override
+    public HashSet<IRTemp> vars() {
+        return new HashSet<>();
     }
 }

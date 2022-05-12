@@ -5,7 +5,6 @@ import jw795.cfg.CFG;
 import jw795.cfg.CFGNode;
 import polyglot.util.Pair;
 
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 
@@ -13,21 +12,24 @@ import java.util.List;
  * Implementation for available copies analysis
  * Data flow value: set of equalities
  */
-public class AvailableCopiesAnalysis
+public class AvailableCopiesAA
         extends DataFlowAnalysis<LinkedHashSet<Pair<AAOperand, AAOperand>>, AAInstruction> {
     // use LinkedHashSet to preserve the order of addition
-    public AvailableCopiesAnalysis(CFG<AAInstruction> cfg) {
+    public AvailableCopiesAA(CFG<AAInstruction> cfg) {
         super(cfg);
+        // set up top
+        top = computeTop();
+
     }
 
     /**
-     * Initialize the out set of all nodes to the set of all possible equalites
+     * Compute all possible equalities to be used as top.
+     * @return all possible equalities
      */
-    @Override
-    public void initialize() {
+    private LinkedHashSet<Pair<AAOperand, AAOperand>> computeTop() {
         // get the set of all variables
         LinkedHashSet<AAOperand> allVars = new LinkedHashSet<>();
-        for (CFGNode<AAInstruction> node : worklist) {
+        for (CFGNode<AAInstruction> node : cfg.flatten()) {
             AAInstruction instr = node.getStmt();
             if (instr instanceof AAMove) {
                 AAOperand dest = instr.operand1.get();
@@ -44,15 +46,13 @@ public class AvailableCopiesAnalysis
         LinkedHashSet<Pair<AAOperand, AAOperand>> allEqualities = new LinkedHashSet<>();
         for (AAOperand var1 : allVars) {
             for (AAOperand var2: allVars) {
-                Pair<AAOperand, AAOperand> newEq = new Pair<>(var1, var2);
-                allEqualities.add(newEq);
+                if (!var1.equals(var2)) {
+                    Pair<AAOperand, AAOperand> newEq = new Pair<>(var1, var2);
+                    allEqualities.add(newEq);
+                }
             }
         }
-        // initialize the out set of all nodes
-        for (CFGNode<AAInstruction> node : worklist) {
-            nodeToValueMap.put(node, allEqualities);
-        }
-
+        return allEqualities;
     }
 
     /**
@@ -63,7 +63,7 @@ public class AvailableCopiesAnalysis
     @Override
     public LinkedHashSet<Pair<AAOperand, AAOperand>> meet(List<LinkedHashSet<Pair<AAOperand, AAOperand>>> input) {
         LinkedHashSet<Pair<AAOperand, AAOperand>> metSet = new LinkedHashSet<>(input.get(0));
-        for (HashSet<Pair<AAOperand, AAOperand>> in : input) {
+        for (LinkedHashSet<Pair<AAOperand, AAOperand>> in : input) {
             // retainAll remove keeps elements in metSet that are also in the set in
             metSet.retainAll(in);
         }
@@ -80,8 +80,8 @@ public class AvailableCopiesAnalysis
      */
     @Override
     public LinkedHashSet<Pair<AAOperand, AAOperand>> fn(LinkedHashSet<Pair<AAOperand, AAOperand>> l,
-                                                LinkedHashSet<Pair<AAOperand, AAOperand>> gen,
-                                                LinkedHashSet<Pair<AAOperand, AAOperand>> kill) {
+                                                        LinkedHashSet<Pair<AAOperand, AAOperand>> gen,
+                                                        LinkedHashSet<Pair<AAOperand, AAOperand>> kill) {
         LinkedHashSet<Pair<AAOperand, AAOperand>> fn_l = new LinkedHashSet<>(l);
         fn_l.removeAll(kill);
         fn_l.addAll(gen);
@@ -103,7 +103,7 @@ public class AvailableCopiesAnalysis
      */
     @Override
     public LinkedHashSet<Pair<AAOperand, AAOperand>> gen(CFGNode<AAInstruction> node,
-                                                   LinkedHashSet<Pair<AAOperand, AAOperand>> l) {
+                                                         LinkedHashSet<Pair<AAOperand, AAOperand>> l) {
         LinkedHashSet<Pair<AAOperand, AAOperand>> gen_n = new LinkedHashSet<>();
         AAInstruction instr = node.getStmt();
         if (instr instanceof AAMove) {
@@ -133,10 +133,11 @@ public class AvailableCopiesAnalysis
     @Override
     public LinkedHashSet<Pair<AAOperand, AAOperand>> kill(CFGNode<AAInstruction> node,
                                                     LinkedHashSet<Pair<AAOperand, AAOperand>> l) {
+
         LinkedHashSet<Pair<AAOperand, AAOperand>> kill_n = new LinkedHashSet<>();
 
-        // on start node, kill everything
-        if (node.getName().equals("start")) {
+        //on start node, kill everything
+        if (node.getStmt() instanceof AAStart) {
             kill_n.addAll(l);
             return kill_n;
         }

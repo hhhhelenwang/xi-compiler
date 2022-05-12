@@ -17,7 +17,7 @@ public class CFGGenerator {
      * @return CFG graph made up of list of CFGNode<AAInstruction>
      */
     public AsmCFG toAsmCFG(List<AAInstruction> asm){
-        AABogus endInstr = new AABogus("end");
+        AAEnd endInstr = new AAEnd();
         List<AAInstruction> asmWithEnd = new ArrayList<>();
         asmWithEnd.addAll(asm);
         asmWithEnd.add(endInstr);
@@ -27,8 +27,8 @@ public class CFGGenerator {
         HashMap<AAInstruction, CFGNode<AAInstruction>> instrToCFG = new HashMap<>();
         HashMap<String, AALabelInstr> labels = new HashMap<>();
 
-        CFGNode<AAInstruction> start = new CFGNode(new AABogus("start"));
-        CFGNode<AAInstruction> end = new CFGNode(endInstr);
+        CFGNode<AAInstruction> start = new CFGNode(new AAStart(), "start");
+        CFGNode<AAInstruction> end = new CFGNode(endInstr, "end");
 
         for (AAInstruction instruct : asmWithEnd){
             instrToCFG.put(instruct, new CFGNode<>(instruct));
@@ -80,8 +80,8 @@ public class CFGGenerator {
      */
     public IRCFG toIRCFG (IRFuncDecl funcDecl){
         IRStmt body = funcDecl.body();
-        CFGNode<IRStmt> start = new CFGNode(new IRBogus("start"), "start");
-        IRStmt endStmt = new IRBogus("end");
+        CFGNode<IRStmt> start = new CFGNode(new IRStart(), "start");
+        IRStmt endStmt = new IREnd();
         CFGNode<IRStmt> end = new CFGNode(endStmt, "end");
         HashMap<IRStmt, CFGNode<IRStmt>> irToNode = new HashMap<>();
 

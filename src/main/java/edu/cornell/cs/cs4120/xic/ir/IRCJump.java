@@ -5,6 +5,8 @@ import edu.cornell.cs.cs4120.xic.ir.visit.AggregateVisitor;
 import edu.cornell.cs.cs4120.xic.ir.visit.CheckCanonicalIRVisitor;
 import edu.cornell.cs.cs4120.xic.ir.visit.IRVisitor;
 
+import java.util.HashSet;
+
 /**
  * An intermediate representation for a conditional transfer of control CJUMP(expr, trueLabel,
  * falseLabel)
@@ -84,5 +86,20 @@ public class IRCJump extends IRStmt {
         p.printAtom(trueLabel);
         if (hasFalseLabel()) p.printAtom(falseLabel);
         p.endList();
+    }
+
+    @Override
+    public HashSet<IRTemp> use() {
+        return cond().vars();
+    }
+
+    @Override
+    public HashSet<IRTemp> def() {
+        return new HashSet<>();
+    }
+
+    @Override
+    public HashSet<IRTemp> vars() {
+        return cond.vars();
     }
 }
