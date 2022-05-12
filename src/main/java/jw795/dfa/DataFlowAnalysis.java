@@ -24,7 +24,9 @@ public abstract class DataFlowAnalysis<V, R> {
         this.nodeToValueMap = new HashMap<>();
     }
 
-
+    /**
+     * Initialize the dataflow values for all nodes to be the top value.
+     */
     public void initialize () {
         for (CFGNode<R> node : worklist) {
             nodeToValueMap.put(node, top);
