@@ -1,18 +1,21 @@
 package jw795.optimizer;
 
-import jw795.assembly.*;
+import jw795.assembly.AAInstruction;
+import jw795.assembly.AAMove;
+import jw795.assembly.AAOperand;
 import jw795.cfg.AsmCFG;
 import jw795.cfg.CFGGenerator;
 import jw795.cfg.CFGNode;
 import jw795.dfa.LiveVariableAnalysis;
 
-import java.awt.*;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 public class RegisterAllocator {
     List<AAInstruction> instructionList;
+    AsmCFG cfg;
     HashMap<AAInstruction, HashSet<AAOperand>> liveVar = new HashMap<>();
 
     HashSet<GraphNode> precolored;
@@ -38,9 +41,6 @@ public class RegisterAllocator {
     HashMap<GraphNode, HashSet<AAMove>> moveList;
     HashMap<GraphNode, GraphNode> alias;
 
-
-    List<String> usableRegs = Arrays.asList("rax", "rbx", "rcx", "rdx", "r8", "r9", "r10", "r11", "r12",
-            "r13", "r14", "r15","rsi","rdi","rsp","rbp");
     int K = 16; //number of usable registers
 
     public RegisterAllocator(List<AAInstruction> instructionList) {
@@ -67,38 +67,56 @@ public class RegisterAllocator {
     }
 
     public void registerAllocate() {
+        livenessAnalysis();
+        build();
+        makeWorklist();
+        while (!(simplifyWorklist.isEmpty() && worklistMoves.isEmpty() && freezeWorklist.isEmpty() && spillWorklist.isEmpty())) {
+            if (!simplifyWorklist.isEmpty()) simplify();
+            else if (!worklistMoves.isEmpty()) coalesce();
+            else if (!freezeWorklist.isEmpty()) freeze();
+            else selectSpill();
+        }
+        assignColors();
+        if (!spilledNodes.isEmpty()) {
+            rewriteProgram(spilledNodes);
+            registerAllocate();
+        }
+    }
+
+    public void livenessAnalysis() {
         CFGGenerator cfgGenerator = new CFGGenerator();
-        AsmCFG cfg = cfgGenerator.toAsmCFG(instructionList);
+        cfg = cfgGenerator.toAsmCFG(instructionList);
         LiveVariableAnalysis liveVariableAnalysis = new LiveVariableAnalysis(cfg);
         HashMap<CFGNode<AAInstruction>, HashSet<AAOperand>> analysis = liveVariableAnalysis.backward();
         liveVar = new HashMap<>();
         for (Map.Entry<CFGNode<AAInstruction>, HashSet<AAOperand>> entry : analysis.entrySet()) {
             liveVar.put(entry.getKey().getStmt(), entry.getValue());
         }
-        build();
-        makeWorklist();
-        do {
-            if (!simplifyWorklist.isEmpty()) Simplify();
-            else if (!worklistMoves.isEmpty()) Coalesce();
-            else if (!freezeWorklist.isEmpty()) Freeze();
-            else if (!spillWorklist.isEmpty()) SelectSpill();
-        } while (true);
-
-    }
-
-    private void SelectSpill() {
-    }
-
-    private void Freeze() {
-    }
-
-    private void Coalesce() {
-    }
-
-    private void Simplify() {
     }
 
     public void build() {
+        HashSet<AAOperand> live = new HashSet<>();
+        for (AAInstruction ins : instructionList) {
+            for ()
+        }
+    }
+
+    public void coalesce() {
+
+    }
+    public void freeze() {
+
+    }
+    public void selectSpill() {
+
+    }
+
+    public void assignColors() {
+
+    }
+
+    public void rewriteProgram(HashSet<GraphNode> spilledNodes) {
+
     }
 
     private void addEdge(AATemp u, AATemp v){
