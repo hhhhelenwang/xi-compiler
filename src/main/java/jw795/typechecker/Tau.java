@@ -11,7 +11,13 @@ public class Tau implements T{
             if (!(this instanceof Array)) {
                 if ((this instanceof Int && type instanceof Int) || (this instanceof Bool && type instanceof Bool)){
                     return true;
-                } else {
+                } else if(this instanceof Record && type instanceof Record){
+                    if(((Record) this).name.equals(((Record) type).name)){
+                        return true;
+                    }else{
+                        return false;
+                    }
+                }else {
                     return false;
                 }
             } else {

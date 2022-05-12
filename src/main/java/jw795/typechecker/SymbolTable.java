@@ -14,12 +14,14 @@ public class SymbolTable {
     LinkedList<HashMap<String, Sigma>> variables;
     LinkedList<HashMap<String, Sigma>> functions;
     HashMap<String, Record> records;
+    int insideloop;
 
     public SymbolTable() {
         variables = new LinkedList<>();
         variables.add(new HashMap<>());
         functions = new LinkedList<>();
         records = new HashMap<>();
+        insideloop = 0;
 
         // add io support
         HashMap<String, Sigma> initialMap = new HashMap<>();
@@ -181,10 +183,10 @@ public class SymbolTable {
             }else if(entry.getValue() instanceof BoolType){
                 fty.put(entry.getKey(),  new Bool());
             }else if(entry.getValue() instanceof RecordType){
-                Record thetype = this.findTypeofRecord(entry.getKey());
+                Record thetype = this.findTypeofRecord(((RecordType) entry.getValue()).name);
                 if(thetype != null){fty.put(entry.getKey(), thetype);}
                 else{
-                    fty.put(entry.getKey(), new Record(entry.getKey(),new HashMap<>()));
+                    fty.put(entry.getKey(), new Record(((RecordType) entry.getValue()).name,new HashMap<>()));
                 }
             }else{
                 System.out.println("got an unhandled case");
@@ -216,6 +218,18 @@ public class SymbolTable {
             return true;
         }
         return false;
+    }
+
+    public void getinloop(){
+        insideloop +=1;
+    }
+
+    public void getoutloop(){
+        insideloop -=1;
+    }
+
+    public int getloopnum(){
+        return insideloop;
     }
 
     /**

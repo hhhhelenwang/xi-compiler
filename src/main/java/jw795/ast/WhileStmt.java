@@ -2,6 +2,7 @@ package jw795.ast;
 
 import jw795.Visitor;
 import edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
+import jw795.typechecker.TypeChecker;
 
 /**
  * Representation of a while statement in AST.
@@ -29,7 +30,9 @@ public class WhileStmt extends Statement {
     public void accept(Visitor visitor) throws Exception {
         condition.accept(visitor);
         visitor.enterScope();
+        if(visitor instanceof TypeChecker){ ((TypeChecker) visitor).env.getinloop();}
         loopBody.accept(visitor);
+        if(visitor instanceof TypeChecker){ ((TypeChecker) visitor).env.getoutloop();}
         visitor.leaveScope();
         visitor.visitWhileStmt(this);
 
