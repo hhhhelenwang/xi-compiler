@@ -81,4 +81,13 @@ public class IRReturn extends IRStmt {
     public HashSet<IRTemp> def() {
         return new HashSet<>();
     }
+
+    @Override
+    public HashSet<IRTemp> vars() {
+        HashSet<IRTemp> vars = new HashSet<>();
+        for (IRExpr expr : rets()) {
+            vars.addAll(expr.vars());
+        }
+        return vars;
+    }
 }

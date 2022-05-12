@@ -97,4 +97,9 @@ public class IRCJump extends IRStmt {
     public HashSet<IRTemp> def() {
         return new HashSet<>();
     }
+
+    @Override
+    public HashSet<IRTemp> vars() {
+        return cond.vars();
+    }
 }

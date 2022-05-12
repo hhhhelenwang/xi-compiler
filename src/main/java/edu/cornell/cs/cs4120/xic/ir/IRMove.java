@@ -85,4 +85,12 @@ public class IRMove extends IRStmt {
         }
         return def;
     }
+
+    @Override
+    public HashSet<IRTemp> vars() {
+        // all variables in both dest and source
+        HashSet<IRTemp> vars = new HashSet<>(target().vars());
+        vars.addAll(source().vars());
+        return vars;
+    }
 }

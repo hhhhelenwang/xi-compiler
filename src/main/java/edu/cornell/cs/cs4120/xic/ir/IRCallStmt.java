@@ -114,4 +114,13 @@ public class IRCallStmt extends IRStmt {
         }
         return def;
     }
+
+    @Override
+    public HashSet<IRTemp> vars() {
+        HashSet<IRTemp> vars = new HashSet<>();
+        for (IRExpr expr : args) {
+            vars.addAll(expr.vars());
+        }
+        return vars;
+    }
 }

@@ -71,4 +71,10 @@ public class IRExp extends IRStmt {
         System.out.println("IRExp in cfg");
         return new HashSet<>();
     }
+
+    @Override
+    public HashSet<IRTemp> vars() {
+        System.out.println("IRExp in cfg");
+        return new HashSet<>();
+    }
 }

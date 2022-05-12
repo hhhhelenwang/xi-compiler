@@ -90,4 +90,10 @@ public class IRSeq extends IRStmt {
         System.out.println("IRSeq in cfg");
         return new HashSet<>();
     }
+
+    @Override
+    public HashSet<IRTemp> vars() {
+        System.out.println("IRSeq in cfg");
+        return new HashSet<>();
+    }
 }

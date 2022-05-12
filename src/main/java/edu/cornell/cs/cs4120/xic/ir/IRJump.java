@@ -57,4 +57,9 @@ public class IRJump extends IRStmt {
     public HashSet<IRTemp> def() {
         return new HashSet<>();
     }
+
+    @Override
+    public HashSet<IRTemp> vars() {
+        return target().vars();
+    }
 }
