@@ -37,6 +37,8 @@ public class CFGGenerator {
             }
         }
 
+        connectAAInstr(start, instrToCFG.get(asmWithEnd.get(0)));
+
         for (int i = 0; i < size; i++){
             AAInstruction curAsm = asmWithEnd.get(i);
             CFGNode<AAInstruction> curNode = instrToCFG.get(curAsm);
@@ -52,14 +54,11 @@ public class CFGGenerator {
                 CFGNode<AAInstruction> nextNode = instrToCFG.get(labels.get(label));
                 connectAAInstr(curNode, nextNode);
 
-                // connect to fallthrough instructions if it exits
-                if (i != size - 1){
-                    AAInstruction nextAsm = asmWithEnd.get(i + 1);
-                    nextNode = instrToCFG.get(nextAsm);
-                    connectAAInstr(curNode, nextNode);
-                } else {
-                    connectAAInstr(curNode, end);
-                }
+                // connect to fallthrough instructions
+                AAInstruction nextAsm = asmWithEnd.get(i + 1);
+                nextNode = instrToCFG.get(nextAsm);
+                connectAAInstr(curNode, nextNode);
+
             } else if (curAsm instanceof AARet){
                 connectAAInstr(curNode, end);
             } else {
@@ -67,18 +66,9 @@ public class CFGGenerator {
                     AAInstruction nextAsm = asmWithEnd.get(i + 1);
                     CFGNode<AAInstruction> nextNode = instrToCFG.get(nextAsm);
                     connectAAInstr(curNode, nextNode);
-                } else {
-                    connectAAInstr(curNode, end);
                 }
             }
         }
-        //connect last instruction with end, connect first instruction to start
-//        AAInstruction lastInstr = asm.get(size-1);
-//        if (!(lastInstr instanceof AALabelInstr)){
-//            connectAAInstr(instrToCFG.get(lastInstr), end);
-//        }
-
-        connectAAInstr(start, instrToCFG.get(asmWithEnd.get(0)));
 
         return new AsmCFG(start);
     }
