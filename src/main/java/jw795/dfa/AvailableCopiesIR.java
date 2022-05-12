@@ -1,9 +1,6 @@
 package jw795.dfa;
 
-import edu.cornell.cs.cs4120.xic.ir.IRExpr;
-import edu.cornell.cs.cs4120.xic.ir.IRMove;
-import edu.cornell.cs.cs4120.xic.ir.IRStmt;
-import edu.cornell.cs.cs4120.xic.ir.IRTemp;
+import edu.cornell.cs.cs4120.xic.ir.*;
 import jw795.cfg.CFG;
 import jw795.cfg.CFGNode;
 import polyglot.util.Pair;
@@ -32,8 +29,11 @@ public class AvailableCopiesIR extends DataFlowAnalysis<LinkedHashSet<Pair<IRTem
         LinkedHashSet<Pair<IRTemp, IRTemp>> allEqualities = new LinkedHashSet<>();
         for (IRTemp var1 : allVars) {
             for (IRTemp var2: allVars) {
-                Pair<IRTemp, IRTemp> newEq = new Pair<>(var1, var2);
-                allEqualities.add(newEq);
+                if (!var1.equals(var2)) {
+                    Pair<IRTemp, IRTemp> newEq = new Pair<>(var1, var2);
+                    allEqualities.add(newEq);
+                }
+
             }
         }
 
@@ -116,8 +116,31 @@ public class AvailableCopiesIR extends DataFlowAnalysis<LinkedHashSet<Pair<IRTem
      * @return kill[node]
      */
     @Override
-    public LinkedHashSet<Pair<IRTemp, IRTemp>> kill(CFGNode<IRStmt> node, LinkedHashSet<Pair<IRTemp, IRTemp>> l) {
-        return null;
+    public LinkedHashSet<Pair<IRTemp, IRTemp>> kill(CFGNode<IRStmt> node,
+                                                    LinkedHashSet<Pair<IRTemp, IRTemp>> l) {
+
+        LinkedHashSet<Pair<IRTemp, IRTemp>> kill_n = new LinkedHashSet<>();
+
+        IRStmt stmt = node.getStmt();
+        if (stmt instanceof IRStart) {
+            // kill everything
+            kill_n.addAll(l);
+            return kill_n;
+        }
+
+        if (stmt instanceof IRMove) {
+            IRExpr dest = ((IRMove) stmt).target();
+            if (dest instanceof IRTemp) {
+                // kill all equalities that contains
+                for (Pair<IRTemp, IRTemp> pair : l) {
+                    if (pair.part1().equals(dest) || pair.part2().equals(dest)) {
+                        kill_n.add(pair);
+                    }
+                }
+            }
+        }
+
+        return kill_n;
     }
 
 
