@@ -7,17 +7,11 @@ import jw795.asmgenerator.Tiler.*;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 public class LiveVariableAnalysis extends DataFlowAnalysis<HashSet<AAOperand>, AAInstruction> {
     public LiveVariableAnalysis(AsmCFG cfg) {
         super(cfg);
-    }
-
-    @Override
-    public void initialize() {
-        for (CFGNode<AAInstruction> node : worklist) {
-            nodeToValueMap.put(node, new HashSet<>());
-        }
     }
 
     @Override
