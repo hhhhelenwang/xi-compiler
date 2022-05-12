@@ -8,10 +8,7 @@ import jw795.cfg.CFGGenerator;
 import jw795.cfg.CFGNode;
 import jw795.dfa.LiveVariableAnalysis;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class RegisterAllocator {
     List<AAInstruction> instructionList;
@@ -26,7 +23,7 @@ public class RegisterAllocator {
     HashSet<GraphNode> spilledNodes;
     HashSet<GraphNode> coalescedNodes;
     HashSet<GraphNode> coloredNodes;
-    HashSet<GraphNode> selectStack;
+    Stack<GraphNode> selectStack;
 
     //move sets
     HashSet<AAMove> coalescedMoves;
@@ -53,7 +50,7 @@ public class RegisterAllocator {
         this.spilledNodes = new HashSet<>();
         this.coalescedNodes = new HashSet<>();
         this.coloredNodes = new HashSet<>();
-        this.selectStack = new HashSet<>();
+        this.selectStack = new Stack<>();
         this.coalescedMoves = new HashSet<>();
         this.constrainedMoves = new HashSet<>();
         this.frozenMoves = new HashSet<>();
@@ -102,24 +99,132 @@ public class RegisterAllocator {
     }
 
     public void coalesce() {
+        //conservative coalescing
+        AAMove m = worklistMoves.stream().findFirst().orElse(null);
+
+        if (m != null) {
+
+            AAOperand to = m.operand1.get();
+            AAOperand from = m.operand2.get();
+
+            // getAlias of node corresponding to the AAexpr
+            GraphNode x = getAlias();
+            GraphNode y = getAlias();
+
+            GraphNode u;
+            GraphNode v;
+            if (precolored.contains(y)) {
+                u = y;
+                v = x;
+            } else {
+                u = x;
+                v = y;
+            }
+
+            worklistMoves.remove(m);
+
+            if (u.equals(v)) {
+                coalescedMoves.add(m);
+                addWorkList(u);
+            } else if (precolored.contains(v) || adjSet.contains(new GraphEdge(u, v))) {
+                constrainedMoves.add(m);
+                addWorkList(u);
+                addWorkList(v);
+            } else if ((precolored.contains(u) && adjacent(u).stream().allMatch(entry -> ok(entry, u)))
+                    || (!precolored.contains(u) && conservative(union(adjacent(u), adjacent(v))))) {
+                constrainedMoves.add(m);
+                combine(u, v);
+                addWorkList(u);
+            } else {
+                activeMoves.add(m);
+            }
+        } else {
+            return;
+        }
 
     }
+
+    private void combine(GraphNode u, GraphNode v){
+        if (freezeWorklist.contains(v)){
+            freezeWorklist.remove(v);
+        } else {
+            spillWorklist.remove(v);
+        }
+        coalescedNodes.add(v);
+        alias.put(v, u);
+        moveList.put(u, union(moveList.get(u), moveList.get(v)));
+        enableMoves(new HashSet<>(Arrays.asList(v)));
+
+        for (GraphNode n : adjacent(v)){
+            //TODO: get temp from interference graph
+//            addEdge();
+            decrementDegree(n);
+        }
+
+        if (degree.get(u) >= K && freezeWorklist.contains(u)){
+            freezeWorklist.remove(u);
+            spillWorklist.add(u);
+        }
+    }
+
+
+    private GraphNode getAlias(GraphNode n) {
+        if (coalescedNodes.contains(n)){
+            return getAlias(alias.get(n));
+        }
+        return n;
+    }
+
     public void freeze() {
-
+        GraphNode u = freezeWorklist.stream().findFirst().orElse(null);
+        if (u == null) return;
+        
+        freezeWorklist.remove(u);
+        simplifyWorklist.add(u);
+        freezeMoves(u);
     }
-    public void selectSpill() {
 
+    private void freezeMoves(GraphNode u) {
+        for (AAMove m : nodeMoves(u)){
+            //TODO: get the GraphNode corresponding to the x and y operand
+            GraphNode x;
+            GraphNode y;
+            GraphNode v;
+            if (getAlias(y).equals(getAlias(u))){
+                v = getAlias(x);
+            } else {
+                v = getAlias(y);
+            }
+
+            activeMoves.remove(m);
+            activeMoves.add(m);
+            if( freezeWorklist.contains(v) && nodeMoves(v).size() == 0){
+                freezeWorklist.remove(v);
+                simplifyWorklist.add(v);
+            }
+        }
+    }
+
+    public void selectSpill() {
+        //TODO: select which temp to spill: choose the one with longest live range
+
+        GraphNode m;
+        spillWorklist.remove(m);
+        simplifyWorklist.add(m);
+        freezeMoves(m);
     }
 
     public void assignColors() {
-
+        while(!selectStack.isEmpty()){
+            GraphNode n = selectStack.pop();
+        }
     }
 
     public void rewriteProgram(HashSet<GraphNode> spilledNodes) {
 
     }
 
-    private void addEdge(AATemp u, AATemp v){
+    private void addEdge(AAOperand u, AAOperand v){
         //TODO: get uNode and vNode from interference graph, null init is temp
         GraphNode uNode = null;
         GraphNode vNode = null;
@@ -178,7 +283,7 @@ public class RegisterAllocator {
     private void simplify(){
         for (GraphNode n : simplifyWorklist){
             simplifyWorklist.remove(n);
-            selectStack.add(n);
+            selectStack.push(n);
 
             for (GraphNode m : adjacent(n)){
                 decrementDegree(m);
@@ -233,6 +338,18 @@ public class RegisterAllocator {
             }
         }
         return k<K;
+    }
+
+    /**
+     * Helper function to take the union of two sets
+     * @param set1
+     * @param set2
+     * @return a hashset that is the union of two set
+     * */
+    private HashSet union(HashSet set1, HashSet set2){
+        HashSet union = new HashSet(set1);
+        union.addAll(set2);
+        return union;
     }
 
 }
