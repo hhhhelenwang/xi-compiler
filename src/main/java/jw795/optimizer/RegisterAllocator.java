@@ -3,15 +3,14 @@ package jw795.optimizer;
 import jw795.assembly.AAInstruction;
 import jw795.assembly.AAMove;
 import jw795.assembly.AAOperand;
+import jw795.assembly.AATemp;
 import jw795.cfg.AsmCFG;
 import jw795.cfg.CFGGenerator;
 import jw795.cfg.CFGNode;
 import jw795.dfa.LiveVariableAnalysis;
+import polyglot.util.Pair;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class RegisterAllocator {
     List<AAInstruction> instructionList;
@@ -40,10 +39,30 @@ public class RegisterAllocator {
     HashMap<GraphNode, AAMove> moveList;
     HashMap<GraphNode, GraphNode> alias;
 
+    List<String> regs = Arrays.asList("rax", "rbx", "rcx", "rdx", "r8", "r9", "r10", "r11", "r12",
+            "r13", "r14", "r15","rsi","rdi","rsp","rbp");
 
     public RegisterAllocator(List<AAInstruction> instructionList) {
-
         this.instructionList = instructionList;
+        this.precolored = new HashSet<>();
+        this.initial = new HashSet<>();
+        this.simplifyWorklist = new HashSet<>();
+        this.freezeWorklist = new HashSet<>();
+        this.spillWorklist = new HashSet<>();
+        this.spilledNodes = new HashSet<>();
+        this.coalescedNodes = new HashSet<>();
+        this.coloredNodes = new HashSet<>();
+        this.selectStack = new HashSet<>();
+        this.coalescedMoves = new HashSet<>();
+        this.constrainedMoves = new HashSet<>();
+        this.frozenMoves = new HashSet<>();
+        this.worklistMoves = new HashSet<>();
+        this.activeMoves = new HashSet<>();
+        this.adjSet = new HashSet<>();
+        this.adjList = new HashMap<>();
+        this.degree = new HashMap<>();
+        this.moveList = new HashMap<>();
+        this.alias = new HashMap<>();
     }
 
     public void registerAllocate() {
@@ -64,14 +83,44 @@ public class RegisterAllocator {
             else if (!spillWorklist.isEmpty()) SelectSpill();
         } while (true);
 
-        return null;
+    }
+
+    private void SelectSpill() {
+    }
+
+    private void Freeze() {
+    }
+
+    private void Coalesce() {
+    }
+
+    private void Simplify() {
     }
 
     public void build() {
-
     }
 
     public void makeWorklist() {
 
+    }
+
+    private void addEdge(AATemp u, AATemp v){
+        //TODO: get uNode and vNode from interference graph, null init is temp
+        GraphNode uNode = null;
+        GraphNode vNode = null;
+        GraphEdge uvEdge = new GraphEdge(uNode, vNode);
+        if (!adjSet.contains(uvEdge) && !u.equals(v)){
+            adjSet.add(uvEdge);
+            adjSet.add(new GraphEdge(vNode, uNode));
+
+            if (precolored.contains(uNode)){
+                adjList.get(uNode).add(vNode);
+                degree.put(uNode, degree.get(uNode)+1);
+            }
+            if (precolored.contains(vNode)){
+                adjList.get(vNode).add(uNode);
+                degree.put(vNode, degree.get(vNode)+1);
+            }
+        }
     }
 }

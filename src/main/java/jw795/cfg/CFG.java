@@ -32,6 +32,9 @@ public abstract class CFG<T> {
         return exit;
     }
 
+    public CFGNode<T> getNode(T instr) {
+        return insToCFG.get(instr);
+    }
 
     /**
      * Flatten a CFG to a list of CFGNode

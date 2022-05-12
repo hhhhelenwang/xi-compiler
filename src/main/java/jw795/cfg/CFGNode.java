@@ -51,13 +51,4 @@ public class CFGNode<T> {
     }
 
 
-//    private String generateName(T stmt) {
-//        if (stmt instanceof IRStmt){
-//            switch (stmt){
-//
-//            }
-//        } else if (stmt instanceof AAInstruction){
-//
-//        }
-//    }
 }
