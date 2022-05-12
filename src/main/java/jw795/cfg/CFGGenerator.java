@@ -3,113 +3,82 @@ package jw795.cfg;
 import edu.cornell.cs.cs4120.xic.ir.*;
 import jw795.assembly.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 public class CFGGenerator {
 
-    public CFGGenerator(){
-
-    }
+    public CFGGenerator(){ }
 
     /**
      * build an IRCFG from a list of AAInstruction of a function
      * @param asm list of instructions of a function body
      * @return CFG graph made up of list of CFGNode<AAInstruction>
      */
-    public AsmCFG toAsmCFG(List<AAInstruction> asm, String funcName){
-        int size = asm.size();
+    public AsmCFG toAsmCFG(List<AAInstruction> asm){
+        AABogus endInstr = new AABogus("end");
+        List<AAInstruction> asmWithEnd = new ArrayList<>();
+        asmWithEnd.addAll(asm);
+        asmWithEnd.add(endInstr);
+
+        int size = asmWithEnd.size();
 
         HashMap<AAInstruction, CFGNode<AAInstruction>> instrToCFG = new HashMap<>();
         HashMap<String, AALabelInstr> labels = new HashMap<>();
-        //maps from label to the starting stmt following the label
-        HashMap<AALabelInstr, AAInstruction> firstIntrs = new HashMap<>();
 
-        CFGNode<AAInstruction> start = new CFGNode(new AALabel("start"), "start");
-        CFGNode<AAInstruction> end = new CFGNode(new AALabel("end"), "end");
+        CFGNode<AAInstruction> start = new CFGNode(new AABogus("start"));
+        CFGNode<AAInstruction> end = new CFGNode(endInstr);
 
-        // populate hashmap: instrToCFG
+        for (AAInstruction instruct : asmWithEnd){
+            instrToCFG.put(instruct, new CFGNode<>(instruct));
+            if (instruct instanceof AALabelInstr){
+                labels.put(((AALabelInstr)instruct).getName(), (AALabelInstr) instruct);
+            }
+        }
+
         for (int i = 0; i < size; i++){
-            AAInstruction instr = asm.get(i);
-            if (instr instanceof AALabelInstr){
-                labels.put(((AALabelInstr) instr).getName(), (AALabelInstr) instr);
-                if (((AALabelInstr) instr).getName().length()>4 &&
-                        ((AALabelInstr) instr).getName().substring(0,5).equals("done")){
-                    instrToCFG.put(instr, end);
-                }
-            } else {
-                instrToCFG.put(instr, new CFGNode<>(instr));
-            }
-        }
-
-        //populate firstStmts
-        for (int i = 0; i < size-1; i++){
-            AAInstruction instr = asm.get(i);
-            if (instr instanceof AALabelInstr){
-                int nextNonLabelInstr = i+1;
-                //get the first non-label stmt following the label
-                while(nextNonLabelInstr < size && asm.get(nextNonLabelInstr) instanceof AALabelInstr) {
-                    nextNonLabelInstr++;
-                }
-                firstIntrs.put((AALabelInstr) instr, asm.get(nextNonLabelInstr));
-            }
-        }
-
-        AAInstruction lstInstr = asm.get(size-1);
-        if (lstInstr instanceof AALabelInstr  && ((AALabelInstr)lstInstr).getName().length()>5 &&
-                ((AALabelInstr)lstInstr).getName().substring(0,5).equals("done")){
-            firstIntrs.put((AALabelInstr) lstInstr, lstInstr);
-        }
-
-        for (int i = 0; i < size-1; i++){
-            AAInstruction curAsm = asm.get(i);
+            AAInstruction curAsm = asmWithEnd.get(i);
             CFGNode<AAInstruction> curNode = instrToCFG.get(curAsm);
 
-            if (curAsm instanceof AALabelInstr || curAsm instanceof AAJmp){
-                continue;
-            } else if (curAsm instanceof AARet){
-                connectAAInstr(curNode, end);
+            if (curAsm instanceof AAJmp){
+                String label = curAsm.operand1.toString();
+                CFGNode<AAInstruction> nextNode = instrToCFG.get(labels.get(label));
+                connectAAInstr(curNode, nextNode);
             } else if (curAsm instanceof AAJa || curAsm instanceof AAJae || curAsm instanceof AAJb
                     || curAsm instanceof AAJbe || curAsm instanceof AAJe || curAsm instanceof AAJg || curAsm instanceof AAJge
-                    || curAsm instanceof AAJl || curAsm instanceof AAJle || curAsm instanceof AAJne) {
-                String targetLabel = (curAsm.operand1.get()).toString();
-                AALabelInstr targetLabelInstr = labels.get(targetLabel);
-                AAInstruction nextInstr = firstIntrs.get(targetLabelInstr);
-                connectAAInstr(curNode, instrToCFG.get(nextInstr));
+                    || curAsm instanceof AAJl || curAsm instanceof AAJle || curAsm instanceof AAJne){
+                String label = curAsm.operand1.toString();
+                CFGNode<AAInstruction> nextNode = instrToCFG.get(labels.get(label));
+                connectAAInstr(curNode, nextNode);
 
-                // add fall through
-                if (i != size-1){
-                    nextInstr = asm.get(i+1);
-                    if (nextInstr instanceof AALabelInstr){
-                        nextInstr = firstIntrs.get(nextInstr);
-                    }
-                    connectAAInstr(curNode, instrToCFG.get(nextInstr));
+                // connect to fallthrough instructions if it exits
+                if (i != size - 1){
+                    AAInstruction nextAsm = asmWithEnd.get(i + 1);
+                    nextNode = instrToCFG.get(nextAsm);
+                    connectAAInstr(curNode, nextNode);
+                } else {
+                    connectAAInstr(curNode, end);
                 }
+            } else if (curAsm instanceof AARet){
+                connectAAInstr(curNode, end);
             } else {
                 if (i < size - 1){
-                    AAInstruction nextAsm = asm.get(i + 1);
-
-                    // if cur is not the last instruction, connect with the next aa instruction
-                    if (curAsm instanceof AALabelInstr){
-                        nextAsm = firstIntrs.get(nextAsm);
-                    } else if (curAsm instanceof AAJmp){
-                        String targetLabel = (curAsm.operand1.get()).toString();
-                        AALabelInstr targetLabelInstr = labels.get(targetLabel);
-                        nextAsm = firstIntrs.get(targetLabelInstr);
-                    }
-
-                    connectAAInstr(curNode, instrToCFG.get(nextAsm));
+                    AAInstruction nextAsm = asmWithEnd.get(i + 1);
+                    CFGNode<AAInstruction> nextNode = instrToCFG.get(nextAsm);
+                    connectAAInstr(curNode, nextNode);
+                } else {
+                    connectAAInstr(curNode, end);
                 }
             }
         }
-
         //connect last instruction with end, connect first instruction to start
-        AAInstruction lastInstr = asm.get(size-1);
-        if (!(lastInstr instanceof AALabelInstr)){
-            connectAAInstr(instrToCFG.get(lastInstr), end);
-        }
+//        AAInstruction lastInstr = asm.get(size-1);
+//        if (!(lastInstr instanceof AALabelInstr)){
+//            connectAAInstr(instrToCFG.get(lastInstr), end);
+//        }
 
-        connectAAInstr(start, instrToCFG.get(asm.get(0)));
+        connectAAInstr(start, instrToCFG.get(asmWithEnd.get(0)));
 
         return new AsmCFG(start);
     }
@@ -117,12 +86,11 @@ public class CFGGenerator {
     /**
      * build an IRCFG from an IRFuncDecl node
      * @param funcDecl IR node
-     * @param funcName used for generate IRLabel as start node
      * @return CFG graph for given IRFuncDecl
      */
-    public IRCFG toIRCFG (IRFuncDecl funcDecl, String funcName){
+    public IRCFG toIRCFG (IRFuncDecl funcDecl){
         IRStmt body = funcDecl.body();
-        CFGNode<IRStmt> start = new CFGNode(new IRLabel(funcName), "start");
+        CFGNode<IRStmt> start = new CFGNode(new IRLabel("start"), "start");
         CFGNode<IRStmt> end = new CFGNode(new IRLabel("emd"), "end");
         IRCFG cfg;
 
