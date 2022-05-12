@@ -3,15 +3,20 @@ package jw795.optimizer;
 import edu.cornell.cs.cs4120.xic.ir.IRCompUnit;
 import edu.cornell.cs.cs4120.xic.ir.IRFuncDecl;
 import edu.cornell.cs.cs4120.xic.ir.*;
+import jw795.cfg.CFG;
+import jw795.cfg.CFGGenerator;
+import jw795.cfg.CFGNode;
+import jw795.cfg.IRCFG;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class DeadcodeEliminator {
     private IRNodeFactory_c irFactory;
+    private CFGGenerator cfgGenerator;
 
     public DeadcodeEliminator(){
         this.irFactory = new IRNodeFactory_c();
+        this.cfgGenerator = new CFGGenerator();
     }
 
     /**
@@ -32,11 +37,22 @@ public class DeadcodeEliminator {
     /**
      * Removes dead code. Dead-code is defined as any assignment x = e where x is not live
      * out of the node.
-     * @param func
+     * @param funcDecl
      * @return IRFuncDecl with all dead code removed
      */
-    private IRFuncDecl removeDeadcode(IRFuncDecl func){
-        //TODO
-        return irFactory.IRFuncDecl(func.name(), func.body());
+    private IRFuncDecl removeDeadcode(IRFuncDecl funcDecl){
+        IRCFG cfg = cfgGenerator.toIRCFG(funcDecl);
+        //TODO: run and get liveVar DFA
+
+
+        if (funcDecl.body() instanceof IRSeq){
+            List<IRStmt> stmts = ((IRSeq) funcDecl.body()).stmts();
+            for (int i = 0; i < stmts.size(); i++){
+                //TODO: choose whether add this instruction or not
+            }
+        } else {
+                //
+        }
+        return irFactory.IRFuncDecl(funcDecl.name(), funcDecl.body()); //TODO: change body to updated func body
     }
 }
