@@ -21,15 +21,17 @@ public class IRGenerator extends Visitor {
     //currently make it a hashmap, but should it?
     HashMap<String, String> funcNames;
     HashMap<String, Long> funcRetLengths;
+    HashMap<String, ArrayList<String>> recordfields;
 
     int stringCounter;
     int labelCounter;
     int tempCounter;
 
-    public IRGenerator(String filename, HashMap<String, String> funcNames, HashMap<String, Long> funcRetLengths){
+    public IRGenerator(String filename, HashMap<String, String> funcNames, HashMap<String, Long> funcRetLengths, HashMap<String, ArrayList<String>> recordfields ){
         this.filename = filename;
         this.funcNames = funcNames;
         this.funcRetLengths = funcRetLengths;
+        this.recordfields = recordfields;
         this.globalData = new HashMap<>();
         this.stringCounter = 1;
         this.labelCounter = 1;
@@ -389,14 +391,28 @@ public class IRGenerator extends Visitor {
         node.ir = irFactory.IRBinOp(GEQ, node.expr1.ir, node.expr2.ir);
     }
 
+    /*
+    should be just like arrIndexExpr, since the final record type is fixed length
+     */
     @Override
     public void visitDot(Dot node) throws Exception {
-
+        ArrayList<String> theoffset = recordfields.get(node.recordname);
+        int indx = theoffset.indexOf(node.fieldname);
+        if(indx>0){
+            node.ir = irFactory.IRMem(
+                    irFactory.IRBinOp(
+                            ADD,
+                            irFactory.IRConst(8*indx),
+                            irFactory.IRTemp(node.recordname)
+                            ));
+        }else{
+            node.ir = irFactory.IRMem(irFactory.IRTemp(node.recordname));
+        }
     }
 
     @Override
     public void visitRecordDeclare(RecordDeclare node) throws Exception {
-
+        //should not generate any ir code
     }
 
     @Override

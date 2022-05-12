@@ -253,4 +253,7 @@ public class TypeCheckerAdapter {
     public HashMap<String, Sigma> getFunctions() {
         return visitor.env.getFunctions();
     }
+    public HashMap<String, Record> getRecords() {
+        return visitor.env.records;
+    }
 }
