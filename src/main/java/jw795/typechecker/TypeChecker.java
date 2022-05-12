@@ -345,6 +345,7 @@ public class TypeChecker extends Visitor {
         if (node.name.equals("length"))  {
             checkLength(node);
         } else if(env.containsRecord(node.name)){
+            System.out.println("get a funcall");
             node.type = env.findTypeofRecord(node.name);
         }else {
             Sigma fnType = this.env.findTypeofFun(node.name);
@@ -543,10 +544,14 @@ public class TypeChecker extends Visitor {
         } else if (node.leftVal instanceof LeftValueList) {// d1..dn = e
             checkMultiAssign(node);
         } else if (node.leftVal instanceof VarExpr) {//x = e
+            System.out.println("get a var");
             Sigma t = this.env.findTypeofVar(((VarExpr) node.leftVal).identifier);
             if (t instanceof Var) {
                 if (node.expr.type instanceof Tau) {
                     if (((Var) t).varType.equals(node.expr.type)) {
+                        node.type = new Unit();
+                    }
+                    if(((Var) t).varType instanceof Record && node.expr instanceof Null){
                         node.type = new Unit();
                     }
                 }
@@ -568,16 +573,16 @@ public class TypeChecker extends Visitor {
                 throw new SemanticErrorException( res);
             }
         }else if(node.leftVal instanceof VarDeclareStmt){ //x:tau = e
-            if(((VarDeclareStmt) node.leftVal).varType instanceof  RecordType){
-                if(node.expr.type instanceof  Record){
-                    String name1 = ((RecordType) ((VarDeclareStmt) node.leftVal).varType).name;
-                    String name2 = ((Record) node.expr.type).name;
-                    if( name1 == name2){
-                        node.type = new Unit();
-                        return;
-                    }
-                }
-            }else{
+//            if(((VarDeclareStmt) node.leftVal).varType instanceof  RecordType){
+//                if(node.expr.type instanceof  Record){
+//                    String name1 = ((RecordType) ((VarDeclareStmt) node.leftVal).varType).name;
+//                    String name2 = ((Record) node.expr.type).name;
+//                    if( name1.equals(name2)){
+//                        node.type = new Unit();
+//                        return;
+//                    }
+//                }
+//            }else{
                 Tau lefttype = typeToTau(((VarDeclareStmt) node.leftVal).varType);
                 if((node.expr.type).equals(lefttype)){
                     node.type = new Unit();
@@ -586,7 +591,7 @@ public class TypeChecker extends Visitor {
                     res += "Cannot assign " +node.expr.type.toStr() +" to "+ lefttype.toStr();
                     throw new SemanticErrorException( res);
                 }
-            }
+//            }
 
         }
         else if(node.leftVal instanceof  Dot) {
@@ -604,7 +609,7 @@ public class TypeChecker extends Visitor {
                         node.type = new Unit();
                     }
                 }else if(node.expr instanceof Null){
-
+                    node.type = new Unit();
                 }
             }
         }else{
@@ -907,8 +912,13 @@ public class TypeChecker extends Visitor {
 
     @Override
     public void visitBreak(BreakStmt node){
-        node.type = new Void();
-
+        if(env.getloopnum() > 0){
+            System.out.println(env.getloopnum());
+            node.type = new Void();
+        }else{
+            String errorMsg = errorstart(node.getLine(), node.getCol()) + "break not in a loop";
+            throw new SemanticErrorException(errorMsg);
+        }
     }
 
     @Override
