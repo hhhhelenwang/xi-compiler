@@ -121,9 +121,8 @@ public class IRGeneratorAdapter {
 
                         CFGGenerator ircfg = new CFGGenerator();
 
-                        for (String funcName : funcs.keySet()){
-                            IRFuncDecl func = funcs.get(funcName);
-                            CFG cfg = ircfg.toIRCFG(func, funcName);
+                        for (IRFuncDecl func : funcs.values()){
+                            CFG cfg = ircfg.toIRCFG(func);
                             cfg.toDotFormat(fileName, destPath, func.name(), phase);
                         }
                     }
