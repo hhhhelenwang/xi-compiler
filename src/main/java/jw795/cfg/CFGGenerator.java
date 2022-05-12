@@ -80,105 +80,61 @@ public class CFGGenerator {
      */
     public IRCFG toIRCFG (IRFuncDecl funcDecl){
         IRStmt body = funcDecl.body();
-        CFGNode<IRStmt> start = new CFGNode(new IRLabel("start"), "start");
-        CFGNode<IRStmt> end = new CFGNode(new IRLabel("emd"), "end");
-        IRCFG cfg;
+        CFGNode<IRStmt> start = new CFGNode(new IRBogus("start"), "start");
+        IRStmt endStmt = new IRBogus("end");
+        CFGNode<IRStmt> end = new CFGNode(endStmt, "end");
 
         if (body instanceof IRSeq){
             List<IRStmt> stmts = ((IRSeq) body).stmts();
+            stmts.add(endStmt);
 
             // a map storing all IRStmt to CFGNode
-            HashMap<IRStmt, CFGNode<IRStmt>> irToCFG = new HashMap<>();
-            //maps from label name to IRLabel
+            HashMap<IRStmt, CFGNode<IRStmt>> irToNode = new HashMap<>();
             HashMap<String, IRLabel> labels = new HashMap<>();
-            //maps from label to the starting stmt following the label
-            HashMap<IRLabel, IRStmt> firstStmts = new HashMap<>();
-
-            // populate hashmap: irToCFG
-            int size = stmts.size();
-            for (int i = 0; i < size; i++){
-                IRStmt stmt = stmts.get(i);
+            for (IRStmt stmt : stmts){
+                irToNode.put(stmt, new CFGNode<>(stmt));
                 if (stmt instanceof IRLabel){
                     labels.put(((IRLabel) stmt).name(), (IRLabel) stmt);
-                    if (((IRLabel)stmt).name().length()>4 && ((IRLabel)stmt).name().substring(0,5).equals("done")){
-                        irToCFG.put(stmt, end);
-                    }
-                } else {
-                    irToCFG.put(stmt, new CFGNode<>(stmt));
                 }
             }
 
-            //populate firstStmts
-            for (int i = 0; i < size-1; i++){
-                IRStmt stmt = stmts.get(i);
-                if (stmt instanceof IRLabel){
-                    int nextNonLabelStmt = i+1;
-                    //get the first non-label stmt following the label
-                    while(nextNonLabelStmt < size-1 && stmts.get(nextNonLabelStmt) instanceof IRLabel) {
-                        nextNonLabelStmt++;
-                    }
-                    firstStmts.put((IRLabel) stmt, stmts.get(nextNonLabelStmt));
-                }
-            }
+            connectIR(start, irToNode.get(stmts.get(0)));
 
-            IRStmt lstStmt = stmts.get(size-1);
-            if (lstStmt instanceof IRLabel  && ((IRLabel)lstStmt).name().length()>4 &&
-            ((IRLabel)lstStmt).name().substring(0,5).equals("done")){
-                firstStmts.put((IRLabel) lstStmt, lstStmt);
-            }
-
+            int size = stmts.size();
             IRStmt nextStmt;
             for (int i = 0; i < size; i++) {
                 IRStmt curStmt = stmts.get(i);
-                CFGNode<IRStmt> curNode = irToCFG.get(curStmt);
+                CFGNode<IRStmt> curNode = irToNode.get(curStmt);
 
-                if (curStmt instanceof IRCJump){
+                if (curStmt instanceof IRJump) {
+                    String targetLabel = ((IRName)((IRJump) curStmt).target()).name();
+                    nextStmt = labels.get(targetLabel);
+                    CFGNode<IRStmt> nextNode = irToNode.get(nextStmt);
+                    connectIR(curNode, nextNode);
+                } else if (curStmt instanceof IRCJump){
                     String targetLabel = ((IRCJump) curStmt).trueLabel();
-                    IRLabel nextLabel = labels.get(targetLabel);
-                    nextStmt = firstStmts.get(nextLabel);
-                    connectIR(curNode, irToCFG.get(nextStmt));
+                    nextStmt = labels.get(targetLabel);
+                    connectIR(curNode, irToNode.get(nextStmt));
 
                     //add fall through node
-                    if (i != size - 1){
-                        nextStmt = stmts.get(i+1);
-                        if (nextStmt instanceof IRLabel){
-                            nextStmt = firstStmts.get(nextStmt);
-                        }
-                        connectIR(curNode, irToCFG.get(nextStmt));
-                    }
-                } else if (curStmt instanceof IRJump || curStmt instanceof IRLabel) {
-                    continue;
+                    nextStmt = stmts.get(i+1);
+                    connectIR(curNode, irToNode.get(nextStmt));
                 } else if (curStmt instanceof IRReturn){
                     connectIR(curNode, end);
                 } else {
                     // if cur is not the last stmt, connect with the next ir stmt
                     if (i != size - 1){
-                        nextStmt = stmts.get(i+1);
-                        if (nextStmt instanceof IRLabel){
-                            nextStmt = firstStmts.get(nextStmt);
-                        } else if (nextStmt instanceof IRJump){
-                            String targetLabel = ((IRName)((IRJump) nextStmt).target()).name();
-                            IRStmt irLabel = labels.get(targetLabel);
-                            nextStmt = firstStmts.get(irLabel);
-                        }
-
-                        connectIR(curNode, irToCFG.get(nextStmt));
+                        connectIR(curNode, irToNode.get(stmts.get(i+1)));
                     }
                 }
             }
-
-            IRStmt lastStmt = stmts.get(size-1);
-            if (!(lastStmt instanceof IRLabel)){
-                connectIR(irToCFG.get(lastStmt), end);
-            }
-            connectIR(start, irToCFG.get(stmts.get(0)));
         } else {
-            CFGNode<IRStmt> bodyNode = new CFGNode<>(body);
-            connectIR(start, bodyNode);
-            connectIR(bodyNode, end);
+            CFGNode curNode = new CFGNode(body);
+            connectIR(start, curNode);
+            connectIR(curNode, end);
         }
 
-        cfg = new IRCFG(start);
+        IRCFG cfg = new IRCFG(start);
         return cfg;
     }
 

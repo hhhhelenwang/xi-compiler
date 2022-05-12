@@ -65,6 +65,9 @@ public class Compiler {
         options.addOption("optcfg", "optcfg", true,
                 "Report the control-flow graph at the specified phase of optimization");
 
+        options.addOption("reportopts", "report-opts", false,
+                "Output the optimizations supported by this compiler");
+
         options.addOption("sourcepath", "sourcepath", true,
                 "specify where to find input source files");
         options.addOption("libpath", "libpath", true,
@@ -209,24 +212,28 @@ public class Compiler {
     public IRCompUnit generateIRorCFGForFile(String fileName) {
         boolean generateIRFile = cmd.hasOption("irrun") || cmd.hasOption("irgen");
         boolean generateOptIRFile = cmd.hasOption("optir");
+        boolean generateCFGFile = cmd.hasOption("optcfg");
 
         List<String> phases = new ArrayList<>();
         if (generateOptIRFile){
-                phases = Arrays.asList(cmd.getOptionValues("optir"));
+            phases = Arrays.asList(cmd.getOptionValues("optir"));
+        } else if (generateCFGFile) {
+            phases = Arrays.asList(cmd.getOptionValues("optcfg"));
         }
 
-        boolean generateCFGFile = cmd.hasOption("optcfg");
-        if (generateCFGFile && !((cmd.getOptionValue("optcfg").equals("reg")
-                || cmd.getOptionValue("optcfg").equals("copy") || cmd.getOptionValue("optcfg").equals("dce")
-                || cmd.getOptionValue("optcfg").equals("lu")))) {
-                System.out.println(cmd.getOptionValue("optcfg") + " optimization is not supported");
-        }
 
         boolean optimize = !cmd.hasOption("O");
         List<String> optTypes = new ArrayList<>();
         // TODO: double check adding --o flag is optimizze or not optimize
         if (cmd.hasOption("O") && cmd.getOptionValues("O").length != 0){
-            optTypes = Arrays.asList(cmd.getOptionValues("O"));
+            if ((cmd.getOptionValue("O").equals("reg")
+                    || cmd.getOptionValue("O").equals("copy")
+                    || cmd.getOptionValue("O").equals("dce")
+                    || cmd.getOptionValue("O").equals("lu"))){
+                optTypes = Arrays.asList(cmd.getOptionValues("O"));
+            } else {
+                System.out.println(cmd.getOptionValue("O") + " optimization is not supported");
+            }
         }
         IRGeneratorAdapter irGeneratorAdapter = new IRGeneratorAdapter(
                 fileName, this.destPath, this.libPath, optimize, generateIRFile,
@@ -301,12 +308,12 @@ public class Compiler {
      */
     public void printAllOpt(){
         if (cmd.hasOption("report-opts")){
-            System.out.println("List of optimizations supported are");
-            System.out.println("cf: Constant Folding");
-            System.out.println("reg: Register Allocation");
-            System.out.println("copy: Copy Propagation");
-            System.out.println("dce: Dead Code Elimination");
-            System.out.println("lu: Loop Unrolling");
+            System.out.println("List of optimizations supported are:");
+            System.out.println("-cf: Constant Folding");
+            System.out.println("-reg: Register Allocation");
+            System.out.println("-copy: Copy Propagation");
+            System.out.println("-dce: Dead Code Elimination");
+            System.out.println("-lu: Loop Unrolling");
         }
     }
 
