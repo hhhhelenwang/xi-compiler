@@ -2,6 +2,8 @@ package edu.cornell.cs.cs4120.xic.ir;
 
 import edu.cornell.cs.cs4120.util.SExpPrinter;
 
+import java.util.HashSet;
+
 /** An intermediate representation for a temporary register TEMP(name) */
 public class IRTemp extends IRExpr_c {
     private String name;
@@ -39,5 +41,12 @@ public class IRTemp extends IRExpr_c {
                 return true;
             }
         }
+    }
+
+    @Override
+    public HashSet<IRTemp> vars() {
+        HashSet<IRTemp> vars = new HashSet<>();
+        vars.add(this);
+        return vars;
     }
 }

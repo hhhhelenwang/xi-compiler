@@ -50,7 +50,7 @@ public class RegisterAllocator {
         CFGGenerator cfgGenerator = new CFGGenerator();
         AsmCFG cfg = cfgGenerator.toAsmCFG(instructionList);
         LiveVariableAnalysis liveVariableAnalysis = new LiveVariableAnalysis(cfg);
-        HashMap<CFGNode<AAInstruction>, HashSet<AAOperand>> analysis = liveVariableAnalysis.backward(new HashSet<>());
+        HashMap<CFGNode<AAInstruction>, HashSet<AAOperand>> analysis = liveVariableAnalysis.backward();
         liveVar = new HashMap<>();
         for (Map.Entry<CFGNode<AAInstruction>, HashSet<AAOperand>> entry : analysis.entrySet()) {
             liveVar.put(entry.getKey().getStmt(), entry.getValue());

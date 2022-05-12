@@ -6,6 +6,8 @@ import edu.cornell.cs.cs4120.xic.ir.visit.AggregateVisitor;
 import edu.cornell.cs.cs4120.xic.ir.visit.CheckConstFoldedIRVisitor;
 import edu.cornell.cs.cs4120.xic.ir.visit.IRVisitor;
 
+import java.util.HashSet;
+
 /** An intermediate representation for a binary operation OP(left, right) */
 public class IRBinOp extends IRExpr_c {
 
@@ -139,6 +141,13 @@ public class IRBinOp extends IRExpr_c {
     @Override
     public boolean isConstant() {
         return left.isConstant() && right.isConstant();
+    }
+
+    @Override
+    public HashSet<IRTemp> vars() {
+        HashSet<IRTemp> vars = new HashSet<>(left().vars());
+        vars.addAll(right().vars());
+        return vars;
     }
 
     @Override

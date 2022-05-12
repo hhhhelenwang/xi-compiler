@@ -5,6 +5,8 @@ import edu.cornell.cs.cs4120.xic.ir.visit.AggregateVisitor;
 import edu.cornell.cs.cs4120.xic.ir.visit.CheckCanonicalIRVisitor;
 import edu.cornell.cs.cs4120.xic.ir.visit.IRVisitor;
 
+import java.util.HashSet;
+
 /** An intermediate representation for a move statement MOVE(target, expr) */
 public class IRMove extends IRStmt {
     private IRExpr target;
@@ -62,5 +64,25 @@ public class IRMove extends IRStmt {
         target.printSExp(p);
         src.printSExp(p);
         p.endList();
+    }
+
+    @Override
+    public HashSet<IRTemp> use() {
+        HashSet<IRTemp> use = new HashSet<>(source().vars()); // temps in source are always used
+        if (!(target() instanceof IRTemp)) {
+            // if target is not a temp, the temps in that expression are used to evaluate target
+            use.addAll(target().vars());
+        }
+        return use;
+    }
+
+    @Override
+    public HashSet<IRTemp> def() {
+        HashSet<IRTemp> def = new HashSet<>();
+        if (target() instanceof IRTemp) {
+            // only def target if target is an ir temp
+            def.add((IRTemp) target());
+        }
+        return def;
     }
 }

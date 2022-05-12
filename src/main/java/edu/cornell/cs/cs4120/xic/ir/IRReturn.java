@@ -6,6 +6,7 @@ import edu.cornell.cs.cs4120.xic.ir.visit.IRVisitor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 /** RETURN statement */
@@ -65,5 +66,19 @@ public class IRReturn extends IRStmt {
         p.printAtom("RETURN");
         for (IRExpr ret : rets) ret.printSExp(p);
         p.endList();
+    }
+
+    @Override
+    public HashSet<IRTemp> use() {
+        HashSet<IRTemp> use = new HashSet<>();
+        for (IRExpr expr : rets()) {
+            use.addAll(expr.vars());
+        }
+        return use;
+    }
+
+    @Override
+    public HashSet<IRTemp> def() {
+        return new HashSet<>();
     }
 }

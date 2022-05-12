@@ -7,6 +7,7 @@ import edu.cornell.cs.cs4120.xic.ir.visit.IRVisitor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 /** An intermediate representation for a sequence of statements SEQ(s1,...,sn) */
@@ -75,5 +76,18 @@ public class IRSeq extends IRStmt {
         p.printAtom("SEQ");
         for (IRStmt stmt : stmts) stmt.printSExp(p);
         p.endList();
+    }
+
+    @Override
+    public HashSet<IRTemp> use() {
+        // should not appear in cfg
+        System.out.println("IRSeq in cfg");
+        return new HashSet<>();
+    }
+
+    @Override
+    public HashSet<IRTemp> def() {
+        System.out.println("IRSeq in cfg");
+        return new HashSet<>();
     }
 }

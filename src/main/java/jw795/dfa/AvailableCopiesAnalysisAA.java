@@ -13,18 +13,21 @@ import java.util.List;
  * Implementation for available copies analysis
  * Data flow value: set of equalities
  */
-public class AvailableCopiesAnalysis
+public class AvailableCopiesAnalysisAA
         extends DataFlowAnalysis<LinkedHashSet<Pair<AAOperand, AAOperand>>, AAInstruction> {
     // use LinkedHashSet to preserve the order of addition
-    public AvailableCopiesAnalysis(CFG<AAInstruction> cfg) {
+    public AvailableCopiesAnalysisAA(CFG<AAInstruction> cfg) {
         super(cfg);
+        // set up top
+        top = computeTop();
+
     }
 
     /**
-     * Initialize the out set of all nodes to the set of all possible equalites
+     * Compute all possible equalities to be used as top.
+     * @return all possible equalities
      */
-    @Override
-    public void initialize() {
+    private LinkedHashSet<Pair<AAOperand, AAOperand>> computeTop() {
         // get the set of all variables
         LinkedHashSet<AAOperand> allVars = new LinkedHashSet<>();
         for (CFGNode<AAInstruction> node : worklist) {
@@ -48,9 +51,17 @@ public class AvailableCopiesAnalysis
                 allEqualities.add(newEq);
             }
         }
+        return allEqualities;
+    }
+
+    /**
+     * Initialize the out set of all nodes to the set of all possible equalites
+     */
+    @Override
+    public void initialize() {
         // initialize the out set of all nodes
         for (CFGNode<AAInstruction> node : worklist) {
-            nodeToValueMap.put(node, allEqualities);
+            nodeToValueMap.put(node, top);
         }
 
     }
