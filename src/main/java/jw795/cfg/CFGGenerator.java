@@ -70,7 +70,7 @@ public class CFGGenerator {
             }
         }
 
-        return new AsmCFG(start);
+        return new AsmCFG(start, instrToCFG);
     }
 
     /**
@@ -83,13 +83,13 @@ public class CFGGenerator {
         CFGNode<IRStmt> start = new CFGNode(new IRBogus("start"), "start");
         IRStmt endStmt = new IRBogus("end");
         CFGNode<IRStmt> end = new CFGNode(endStmt, "end");
+        HashMap<IRStmt, CFGNode<IRStmt>> irToNode = new HashMap<>();
 
         if (body instanceof IRSeq){
             List<IRStmt> stmts = ((IRSeq) body).stmts();
             stmts.add(endStmt);
 
             // a map storing all IRStmt to CFGNode
-            HashMap<IRStmt, CFGNode<IRStmt>> irToNode = new HashMap<>();
             HashMap<String, IRLabel> labels = new HashMap<>();
             for (IRStmt stmt : stmts){
                 irToNode.put(stmt, new CFGNode<>(stmt));
@@ -132,9 +132,11 @@ public class CFGGenerator {
             CFGNode curNode = new CFGNode(body);
             connectIR(start, curNode);
             connectIR(curNode, end);
+
+            irToNode.put(body, curNode);
         }
 
-        IRCFG cfg = new IRCFG(start);
+        IRCFG cfg = new IRCFG(start, irToNode);
         return cfg;
     }
 

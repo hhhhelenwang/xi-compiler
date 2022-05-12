@@ -6,18 +6,16 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 
 public abstract class CFG<T> {
     private CFGNode<T> start;
-    private CFGNode<T> exit;
+    private HashMap<T, CFGNode<T>> insToCFG;
 
-    public CFG(CFGNode<T> start){
+    public CFG(CFGNode<T> start, HashMap<T, CFGNode<T>> insToCFG){
         this.start = start;
+        this.insToCFG = insToCFG;
     }
 
     /**
@@ -27,8 +25,6 @@ public abstract class CFG<T> {
     public CFGNode<T> start(){
         return start;
     }
-
-    public CFGNode<T> exit() { return exit; }
 
     /**
      * Flatten a CFG to a list of CFGNode

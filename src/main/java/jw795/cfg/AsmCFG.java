@@ -7,8 +7,8 @@ import java.util.List;
 
 public class AsmCFG extends CFG<AAInstruction> {
 
-    public AsmCFG(CFGNode<AAInstruction> start) {
-        super(start);
+    public AsmCFG(CFGNode<AAInstruction> start, HashMap<AAInstruction, CFGNode<AAInstruction>> insToCFG) {
+        super(start, insToCFG);
     }
 
 }
