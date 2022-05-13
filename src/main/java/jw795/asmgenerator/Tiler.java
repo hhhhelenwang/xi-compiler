@@ -229,7 +229,7 @@ public class Tiler extends IRVisitor {
         // add body's asm to fundecl's asm
         asm.addAll(concatAsm(body));
 
-        RegisterAllocator regAlloc = new RegisterAllocator(asm);
+        RegisterAllocator regAlloc = new RegisterAllocator(asm, tempSpiller);
 
 
         // set the final tile of funcdecl with no neighbor
