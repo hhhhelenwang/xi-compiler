@@ -1,8 +1,5 @@
 package jw795.cfg;
 
-import edu.cornell.cs.cs4120.xic.ir.IRStmt;
-import jw795.assembly.AAInstruction;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,6 +29,10 @@ public class CFGNode<T> {
 
     public String getName() {
         return this.name;
+    }
+
+    public void setStmt(T stmt) {
+        this.stmt = stmt;
     }
 
     public List<CFGNode<T>> getPredecessors(){
