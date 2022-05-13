@@ -235,12 +235,12 @@ public class RegisterAllocator {
 
         if (m != null) {
 
-            AAOperand to = m.operand1.get();
-            AAOperand from = m.operand2.get();
+            AAOperand xOp = m.operand1.get();
+            AAOperand yOp = m.operand2.get();
 
             // getAlias of node corresponding to the AAexpr
-            AAOperand x = getAlias();
-            AAOperand y = getAlias();
+            AAOperand x = getAlias(xOp);
+            AAOperand y = getAlias(yOp);
 
             AAOperand u;
             AAOperand v;
@@ -286,10 +286,9 @@ public class RegisterAllocator {
         moveList.put(u, union(moveList.get(u), moveList.get(v)));
         enableMoves(new HashSet<>(Arrays.asList(v)));
 
-        for (AAOperand n : adjacent(v)){
-            //TODO: get temp from interference graph
-//            addEdge();
-            decrementDegree(n);
+        for (AAOperand t : adjacent(v)){
+            addEdge(t, u);
+            decrementDegree(t);
         }
 
         if (degree.get(u) >= K && freezeWorklist.contains(u)){
@@ -297,7 +296,6 @@ public class RegisterAllocator {
             spillWorklist.add(u);
         }
     }
-
 
     private AAOperand getAlias(AAOperand n) {
         if (coalescedNodes.contains(n)){
@@ -317,9 +315,8 @@ public class RegisterAllocator {
 
     private void freezeMoves(AAOperand u) {
         for (AAMove m : nodeMoves(u)){
-            //TODO: get the AAOperand corresponding to the x and y operand
-            AAOperand x;
-            AAOperand y;
+            AAOperand x = m.operand1.get();
+            AAOperand y = m.operand2.get();
             AAOperand v;
             if (getAlias(y).equals(getAlias(u))){
                 v = getAlias(x);
