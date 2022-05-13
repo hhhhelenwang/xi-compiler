@@ -38,6 +38,7 @@ public class TypeCheckerAdapter {
         this.cup_parser = new parser(scanner);
         this.genFile = gen;
         this.visitor = new TypeChecker();
+        this.ending = ending;
     }
 
     /**
