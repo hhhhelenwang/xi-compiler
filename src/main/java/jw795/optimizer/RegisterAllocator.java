@@ -6,24 +6,23 @@ import jw795.assembly.AAOperand;
 import jw795.cfg.AsmCFG;
 import jw795.cfg.CFGGenerator;
 import jw795.cfg.CFGNode;
-import jw795.dfa.LiveVariableAnalysisAA;
+import jw795.dfa.LiveVariableAnalysis;
 
 import java.util.*;
 
 public class RegisterAllocator {
     List<AAInstruction> instructionList;
     AsmCFG cfg;
-    HashMap<AAInstruction, HashSet<AAOperand>> liveVar = new HashMap<>();
-
-    HashSet<GraphNode> precolored;
-    HashSet<GraphNode> initial;
-    HashSet<GraphNode> simplifyWorklist;
-    HashSet<GraphNode> freezeWorklist;
-    HashSet<GraphNode> spillWorklist;
-    HashSet<GraphNode> spilledNodes;
-    HashSet<GraphNode> coalescedNodes;
-    HashSet<GraphNode> coloredNodes;
-    Stack<GraphNode> selectStack;
+    HashMap<CFGNode<AAInstruction>, HashSet<AAOperand>> liveVar;
+    HashSet<AAOperand> precolored;
+    HashSet<AAOperand> initial;
+    HashSet<AAOperand> simplifyWorklist;
+    HashSet<AAOperand> freezeWorklist;
+    HashSet<AAOperand> spillWorklist;
+    HashSet<AAOperand> spilledNodes;
+    HashSet<AAOperand> coalescedNodes;
+    HashSet<AAOperand> coloredNodes;
+    Stack<AAOperand> selectStack;
 
     //move sets
     HashSet<AAMove> coalescedMoves;
@@ -33,15 +32,18 @@ public class RegisterAllocator {
     HashSet<AAMove> activeMoves;
 
     HashSet<GraphEdge> adjSet;
-    HashMap<GraphNode, HashSet<GraphNode>> adjList;
-    HashMap<GraphNode, Long> degree;
-    HashMap<GraphNode, HashSet<AAMove>> moveList;
-    HashMap<GraphNode, GraphNode> alias;
+    HashMap<AAOperand, HashSet<AAOperand>> adjList;
+    HashMap<AAOperand, Long> degree;
+    HashMap<AAOperand, HashSet<AAMove>> moveList;
+    HashMap<AAOperand, AAOperand> alias;
+
+    HashMap<AAOperand, NodeColor> color;
 
     int K = 16; //number of usable registers
 
     public RegisterAllocator(List<AAInstruction> instructionList) {
         this.instructionList = instructionList;
+        this.liveVar = new HashMap<>();
         this.precolored = new HashSet<>();
         this.initial = new HashSet<>();
         this.simplifyWorklist = new HashSet<>();
@@ -61,9 +63,11 @@ public class RegisterAllocator {
         this.degree = new HashMap<>();
         this.moveList = new HashMap<>();
         this.alias = new HashMap<>();
+        this.color = new HashMap<>();
     }
 
     public void registerAllocate() {
+        //TODO: assign precolored and initial
         livenessAnalysis();
         build();
         makeWorklist();
@@ -83,19 +87,146 @@ public class RegisterAllocator {
     public void livenessAnalysis() {
         CFGGenerator cfgGenerator = new CFGGenerator();
         cfg = cfgGenerator.toAsmCFG(instructionList);
-        LiveVariableAnalysisAA liveVariableAnalysis = new LiveVariableAnalysisAA(cfg);
-        HashMap<CFGNode<AAInstruction>, HashSet<AAOperand>> analysis = liveVariableAnalysis.backward();
-        liveVar = new HashMap<>();
-        for (Map.Entry<CFGNode<AAInstruction>, HashSet<AAOperand>> entry : analysis.entrySet()) {
-            liveVar.put(entry.getKey().getStmt(), entry.getValue());
-        }
+        LiveVariableAnalysis liveVariableAnalysis = new LiveVariableAnalysis(cfg);
+        liveVar = liveVariableAnalysis.backward();
     }
 
     public void build() {
-        HashSet<AAOperand> live = new HashSet<>();
         for (AAInstruction ins : instructionList) {
-            for ()
+            CFGNode<AAInstruction> node = cfg.getNode(ins);
+            HashSet<AAOperand> live = new HashSet<>();
+            for (CFGNode<AAInstruction> suc : node.getSuccessors()) {
+                live.addAll(liveVar.get(suc));
+            }
+            if (ins instanceof AAMove) {
+                live.removeAll(ins.use());
+                HashSet<AAOperand> mentioned = new HashSet<>();
+                mentioned.addAll(ins.def());
+                mentioned.addAll(ins.use());
+                for (AAOperand n : mentioned) {
+                    HashSet<AAMove> newMoveList = new HashSet<>(moveList.get(n));
+                    newMoveList.add((AAMove) ins);
+                    moveList.put(n, newMoveList);
+                }
+                worklistMoves.add((AAMove) ins);
+            }
+            live.addAll(ins.def());
+            for (AAOperand d : ins.def()) {
+                for (AAOperand l : live) {
+                    addEdge(l, d);
+                }
+            }
         }
+    }
+
+
+    private void addEdge(AAOperand u, AAOperand v){
+        GraphEdge uvEdge = new GraphEdge(u, v);
+        if (!adjSet.contains(uvEdge) && !u.equals(v)){
+            adjSet.add(uvEdge);
+            adjSet.add(new GraphEdge(v, u));
+
+            if (!precolored.contains(u)){
+                adjList.get(u).add(v);
+                degree.put(u, degree.get(u)+1);
+            }
+            if (!precolored.contains(v)){
+                adjList.get(v).add(u);
+                degree.put(v, degree.get(v)+1);
+            }
+        }
+    }
+
+    private void makeWorklist() {
+        for (AAOperand n : initial){
+            initial.remove(n);
+            if (degree.get(n) >= K){
+                spillWorklist.add(n);
+            } else if (moveRelated(n)){
+                freezeWorklist.add(n);
+            } else {
+                simplifyWorklist.add(n);
+            }
+        }
+    }
+
+    private HashSet<AAOperand> adjacent(AAOperand n){
+        HashSet<AAOperand> adjSet = new HashSet<>(adjList.get(n));
+        selectStack.forEach(adjSet::remove);
+        coalescedNodes.forEach(adjSet::remove);
+        return adjSet;
+    }
+
+    private HashSet<AAMove> nodeMoves(AAOperand n) {
+        HashSet<AAMove> activeM = new HashSet<>(activeMoves);
+        activeM.addAll(worklistMoves);
+        HashSet<AAMove> moveLst = new HashSet<>(moveList.get(n));
+        moveLst.removeAll(activeM);
+        return moveLst;
+    }
+
+    private boolean moveRelated(AAOperand n) {
+        return !nodeMoves(n).isEmpty();
+    }
+
+    private void simplify(){
+        for (AAOperand n : simplifyWorklist){
+            simplifyWorklist.remove(n);
+            selectStack.push(n);
+
+            for (AAOperand m : adjacent(n)){
+                decrementDegree(m);
+            }
+        }
+    }
+
+    private void decrementDegree(AAOperand m) {
+        Long d = degree.get(m);
+        degree.put(m, degree.get(m)-1);
+        if (d == K){
+            HashSet adjNodes = adjacent(m);
+            adjNodes.add(m);
+            enableMoves(adjNodes);
+            spillWorklist.remove(m);
+            if (moveRelated(m)){
+                freezeWorklist.add(m);
+            } else {
+                simplifyWorklist.add(m);
+            }
+        }
+    }
+
+    private void enableMoves(HashSet<AAOperand> nodes) {
+        for (AAOperand n : nodes){
+            for (AAMove m : nodeMoves(n)){
+                if (activeMoves.contains(m)){
+                    activeMoves.remove(m);
+                    worklistMoves.add(m);
+                }
+            }
+        }
+    }
+
+    private void addWorkList(AAOperand u){
+        if (!precolored.contains(u) && !(moveRelated(u) && degree.get(u) < K)){
+            freezeWorklist.remove(u);
+            simplifyWorklist.add(u);
+        }
+    }
+
+    private boolean ok(AAOperand t, AAOperand r){
+        // TODO: double check adjSet.contains(new GraphEdge) would work: compare by value
+        return degree.get(r) < K && precolored.contains(t) && adjSet.contains(new GraphEdge(t, r));
+    }
+
+    private boolean conservative(HashSet<AAOperand> nodes){
+        int k = 0;
+        for (AAOperand n : nodes){
+            if (degree.get(n) >= K){
+                k++;
+            }
+        }
+        return k<K;
     }
 
     public void coalesce() {
@@ -108,11 +239,11 @@ public class RegisterAllocator {
             AAOperand from = m.operand2.get();
 
             // getAlias of node corresponding to the AAexpr
-            GraphNode x = getAlias();
-            GraphNode y = getAlias();
+            AAOperand x = getAlias();
+            AAOperand y = getAlias();
 
-            GraphNode u;
-            GraphNode v;
+            AAOperand u;
+            AAOperand v;
             if (precolored.contains(y)) {
                 u = y;
                 v = x;
@@ -144,7 +275,7 @@ public class RegisterAllocator {
 
     }
 
-    private void combine(GraphNode u, GraphNode v){
+    private void combine(AAOperand u, AAOperand v){
         if (freezeWorklist.contains(v)){
             freezeWorklist.remove(v);
         } else {
@@ -155,7 +286,7 @@ public class RegisterAllocator {
         moveList.put(u, union(moveList.get(u), moveList.get(v)));
         enableMoves(new HashSet<>(Arrays.asList(v)));
 
-        for (GraphNode n : adjacent(v)){
+        for (AAOperand n : adjacent(v)){
             //TODO: get temp from interference graph
 //            addEdge();
             decrementDegree(n);
@@ -168,7 +299,7 @@ public class RegisterAllocator {
     }
 
 
-    private GraphNode getAlias(GraphNode n) {
+    private AAOperand getAlias(AAOperand n) {
         if (coalescedNodes.contains(n)){
             return getAlias(alias.get(n));
         }
@@ -176,7 +307,7 @@ public class RegisterAllocator {
     }
 
     public void freeze() {
-        GraphNode u = freezeWorklist.stream().findFirst().orElse(null);
+        AAOperand u = freezeWorklist.stream().findFirst().orElse(null);
         if (u == null) return;
         
         freezeWorklist.remove(u);
@@ -184,12 +315,12 @@ public class RegisterAllocator {
         freezeMoves(u);
     }
 
-    private void freezeMoves(GraphNode u) {
+    private void freezeMoves(AAOperand u) {
         for (AAMove m : nodeMoves(u)){
-            //TODO: get the GraphNode corresponding to the x and y operand
-            GraphNode x;
-            GraphNode y;
-            GraphNode v;
+            //TODO: get the AAOperand corresponding to the x and y operand
+            AAOperand x;
+            AAOperand y;
+            AAOperand v;
             if (getAlias(y).equals(getAlias(u))){
                 v = getAlias(x);
             } else {
@@ -208,7 +339,7 @@ public class RegisterAllocator {
     public void selectSpill() {
         //TODO: select which temp to spill: choose the one with longest live range
 
-        GraphNode m;
+        AAOperand m;
         spillWorklist.remove(m);
         simplifyWorklist.add(m);
         freezeMoves(m);
@@ -216,128 +347,12 @@ public class RegisterAllocator {
 
     public void assignColors() {
         while(!selectStack.isEmpty()){
-            GraphNode n = selectStack.pop();
+            AAOperand n = selectStack.pop();
         }
     }
 
-    public void rewriteProgram(HashSet<GraphNode> spilledNodes) {
+    public void rewriteProgram(HashSet<AAOperand> spilledNodes) {
 
-    }
-
-    private void addEdge(AAOperand u, AAOperand v){
-        //TODO: get uNode and vNode from interference graph, null init is temp
-        GraphNode uNode = null;
-        GraphNode vNode = null;
-        GraphEdge uvEdge = new GraphEdge(uNode, vNode);
-        if (!adjSet.contains(uvEdge) && !u.equals(v)){
-            adjSet.add(uvEdge);
-            adjSet.add(new GraphEdge(vNode, uNode));
-
-            if (precolored.contains(uNode)){
-                adjList.get(uNode).add(vNode);
-                degree.put(uNode, degree.get(uNode)+1);
-            }
-            if (precolored.contains(vNode)){
-                adjList.get(vNode).add(uNode);
-                degree.put(vNode, degree.get(vNode)+1);
-            }
-        }
-    }
-
-    private HashSet<GraphNode> adjacent(GraphNode n){
-        HashSet adjSet = new HashSet(adjList.get(n));
-        HashSet union = new HashSet(selectStack);
-        union.addAll(coalescedNodes);
-        adjSet.removeAll(union);
-        return adjSet;
-    }
-
-    private void makeWorklist() {
-        for (GraphNode n : initial){
-            initial.remove(n);
-            if (degree.get(n) >= K){
-                spillWorklist.add(n);
-            } else if (moveRelated(n)){
-                freezeWorklist.add(n);
-            } else {
-                simplifyWorklist.add(n);
-            }
-        }
-    }
-
-    private boolean moveRelated(GraphNode n) {
-        return nodeMoves(n).size() != 0;
-    }
-
-    private HashSet<AAMove> nodeMoves(GraphNode n) {
-        HashSet<AAMove> activeM = new HashSet<>(activeMoves);
-        HashSet<AAMove> worklistM = new HashSet<>(worklistMoves);
-        HashSet<AAMove> moveLst = new HashSet<>(moveList.get(n));
-
-        activeM.addAll(worklistM);
-        moveLst.removeAll(activeM);
-
-        return moveLst;
-    }
-
-    private void simplify(){
-        for (GraphNode n : simplifyWorklist){
-            simplifyWorklist.remove(n);
-            selectStack.push(n);
-
-            for (GraphNode m : adjacent(n)){
-                decrementDegree(m);
-            }
-        }
-    }
-
-    private void decrementDegree(GraphNode m) {
-        Long d = degree.get(m);
-        degree.put(m, degree.get(m)-1);
-        if (d == K){
-            HashSet adjNodes = adjacent(m);
-            adjNodes.add(m);
-            enableMoves(adjNodes);
-            spillWorklist.remove(m);
-            if (moveRelated(m)){
-                freezeWorklist.add(m);
-            } else {
-                simplifyWorklist.add(m);
-            }
-        }
-    }
-
-    private void enableMoves(HashSet<GraphNode> nodes) {
-        for (GraphNode n : nodes){
-            for (AAMove m : nodeMoves(n)){
-                if (activeMoves.contains(m)){
-                    activeMoves.remove(m);
-                    worklistMoves.add(m);
-                }
-            }
-        }
-    }
-
-    private void addWorkList(GraphNode u){
-        if (!precolored.contains(u) && !(moveRelated(u) && degree.get(u) < K)){
-            freezeWorklist.remove(u);
-            simplifyWorklist.add(u);
-        }
-    }
-
-    private boolean ok(GraphNode t, GraphNode r){
-        // TODO: double check adjSet.contains(new GraphEdge) would work: compare by value
-        return degree.get(r) < K && precolored.contains(t) && adjSet.contains(new GraphEdge(t, r));
-    }
-
-    private boolean conservative(HashSet<GraphNode> nodes){
-        int k = 0;
-        for (GraphNode n : nodes){
-            if (degree.get(n) >= K){
-                k++;
-            }
-        }
-        return k<K;
     }
 
     /**
@@ -351,5 +366,4 @@ public class RegisterAllocator {
         union.addAll(set2);
         return union;
     }
-
 }
