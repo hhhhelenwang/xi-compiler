@@ -1,11 +1,14 @@
 package jw795.optimizer;
 
-import jw795.assembly.*;
+import jw795.assembly.AAInstruction;
+import jw795.assembly.AAMove;
+import jw795.assembly.AAOperand;
+import jw795.assembly.AAReg;
+import jw795.assembly.AATemp;
 import jw795.cfg.AsmCFG;
 import jw795.cfg.CFGGenerator;
 import jw795.cfg.CFGNode;
 import jw795.dfa.LiveVariableAnalysis;
-import jw795.typechecker.Array;
 
 import java.util.*;
 
@@ -66,7 +69,6 @@ public class RegisterAllocator {
     }
 
     public void registerAllocate() {
-        //TODO: assign precolored and initial
         livenessAnalysis();
         build();
         makeWorklist();
@@ -131,19 +133,6 @@ public class RegisterAllocator {
                 for (AAOperand l : live) {
                     addEdge(l, d);
                 }
-            }
-        }
-
-        List<AAReg> allRegisters = new ArrayList<>(Arrays.asList(new AAReg("rax"), new AAReg("rbx"),
-                new AAReg("rcx"), new AAReg("rdx"), new AAReg("rsp"), new AAReg("rbp"),
-                new AAReg("rsi"), new AAReg("rdi"), new AAReg("r8"), new AAReg("r9"),
-                new AAReg("r10"), new AAReg("r11"), new AAReg("r12"), new AAReg("r13"),
-                new AAReg("r14"), new AAReg("r15")));
-        //initialize colors in HashMap color for registers, in case it was not seen in instructionList
-        for (AAReg reg : allRegisters){
-            if (!initializedOp.contains(reg)){
-                precolored.add(reg);
-                color.put(reg, NodeColor.valueOf(reg.toString()));
             }
         }
     }
