@@ -1,27 +1,38 @@
 package jw795.optimizer;
 
-public class GraphEdge {
-    private GraphNode start;
-    private GraphNode dest;
+import jw795.assembly.AAOperand;
 
-    public GraphEdge (GraphNode start, GraphNode dest) {
+public class GraphEdge {
+    private AAOperand start;
+    private AAOperand dest;
+
+    public GraphEdge (AAOperand start, AAOperand dest) {
         this.start = start;
         this.dest = dest;
     }
 
-    public void setStart(GraphNode start) {
+    public void setStart(AAOperand start) {
         this.start = start;
     }
 
-    public GraphNode getStart() {
+    public AAOperand getStart() {
         return start;
     }
 
-    public void setDest(GraphNode dest) {
+    public void setDest(AAOperand dest) {
         this.dest = dest;
     }
 
-    public GraphNode getDest() {
+    public AAOperand getDest() {
         return dest;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof GraphEdge) {
+            return this.start.equals(((GraphEdge) obj).getStart()) && this.dest.equals(((GraphEdge) obj).getDest());
+        } else {
+            return false;
+        }
     }
 }
