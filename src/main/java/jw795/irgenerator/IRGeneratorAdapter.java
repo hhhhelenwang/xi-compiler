@@ -49,9 +49,10 @@ public class IRGeneratorAdapter {
         this.genCFGFile = generateCFGFile;
         this.genOptIRFile = generateOptFile;
         this.optType = optType;
+        String ends = fileName.endsWith("rh")? ".ri": ".ixi";
         try {
             FileReader fr = new FileReader(fileName);
-            typeCheckerAdapter = new TypeCheckerAdapter(fr, fileName, dest, lib, false);
+            typeCheckerAdapter = new TypeCheckerAdapter(fr, fileName, dest, lib, false,ends );
         } catch (FileNotFoundException e) {
             System.out.println(fileName + ": " + " " + "File not found.");
         }
