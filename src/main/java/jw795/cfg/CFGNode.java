@@ -51,5 +51,13 @@ public class CFGNode<T> {
         this.successors.add(node);
     }
 
+    public void removePredecessor(CFGNode<T> node){
+        this.predecessors.remove(node);
+    }
+
+    public void removeSuccessor(CFGNode <T> node){
+        this.successors.remove(node);
+    }
+
 
 }

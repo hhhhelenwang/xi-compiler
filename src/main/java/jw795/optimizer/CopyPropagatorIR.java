@@ -12,18 +12,15 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 /**
- * Carries out copy propagation on lower IR of the program
+ * Carries out copy propagation on a cfg of lower IR
  */
 public class CopyPropagatorIR {
 
     CFG<IRStmt> cfg;
-    HashMap<CFGNode<IRStmt>, LinkedHashSet<Pair<IRTemp, IRTemp>>> nodeToValueMap;
     boolean noChange; // if there are changes during this run of copy propagation
 
-    public CopyPropagatorIR(CFG<IRStmt> cfg,
-                            HashMap<CFGNode<IRStmt>, LinkedHashSet<Pair<IRTemp, IRTemp>>> nodeToValueMap) {
+    public CopyPropagatorIR(CFG<IRStmt> cfg) {
         this.cfg = cfg;
-        this.nodeToValueMap = nodeToValueMap;
         this.noChange = true; // initialize to true, set to false when a variable is replaced
     }
 
@@ -37,7 +34,7 @@ public class CopyPropagatorIR {
     public CFG<IRStmt> copyPropagate() {
         // do an available copies analysis
         AvailableCopiesIR availableCopiesIR = new AvailableCopiesIR(cfg);
-        nodeToValueMap = availableCopiesIR.forward();
+        HashMap<CFGNode<IRStmt>, LinkedHashSet<Pair<IRTemp, IRTemp>>> nodeToValueMap = availableCopiesIR.forward();
 
         // find and replace variables for all nodes
         for (CFGNode<IRStmt> node : cfg.flatten()) {
