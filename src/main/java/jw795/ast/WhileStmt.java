@@ -2,6 +2,7 @@ package jw795.ast;
 
 import jw795.Visitor;
 import edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
+import jw795.irgenerator.IRGenerator;
 import jw795.typechecker.TypeChecker;
 
 /**
@@ -30,9 +31,11 @@ public class WhileStmt extends Statement {
     public void accept(Visitor visitor) throws Exception {
         condition.accept(visitor);
         visitor.enterScope();
-        if(visitor instanceof TypeChecker){ ((TypeChecker) visitor).env.getinloop();}
+        if(visitor instanceof TypeChecker){((TypeChecker) visitor).env.getinloop();}
+        if(visitor instanceof IRGenerator){((IRGenerator) visitor).addlooplayer();}
         loopBody.accept(visitor);
         if(visitor instanceof TypeChecker){ ((TypeChecker) visitor).env.getoutloop();}
+        if(visitor instanceof IRGenerator){((IRGenerator) visitor).peeklooplayer();}
         visitor.leaveScope();
         visitor.visitWhileStmt(this);
 

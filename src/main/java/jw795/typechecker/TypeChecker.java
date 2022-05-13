@@ -217,12 +217,41 @@ public class TypeChecker extends Visitor {
             setBinOpBoolType(node);
         } else if (node.expr1.type instanceof Array){
             // if the first operand is an array, check for array concatenation
-            setArrayCompareType(node);
+            if(node.expr2.type instanceof Record){
+                node.type = new Bool();
+            }else if(node.expr2 instanceof Null){
+                node.type = new Bool();
+            }else{
+                setArrayCompareType(node);
+            }
         } else if (node.expr1.type instanceof Record){
             if(node.expr2.type instanceof Record){
+                if(((Record) node.expr1.type).name != ((Record) node.expr2.type).name){
                     node.type = new Bool();
+                }else{
+                    String pos = errorstart(node.expr1.getLine(), node.expr1.getCol());
+                    String err = pos + "cannot compare different record type";
+                    throw new SemanticErrorException(err);
+                }
             }else if(node.expr2 instanceof Null){
                     node.type = new Bool();
+            }else{
+                String pos = errorstart(node.expr1.getLine(), node.expr1.getCol());
+                String err = pos + "cannot compare record with other type";
+                throw new SemanticErrorException(err);
+            }
+
+        }else if(node.expr1.type instanceof Null){
+            if(node.expr2.type instanceof Record){
+                node.type = new Bool();
+            }else if(node.expr2 instanceof Null){
+                node.type = new Bool();
+            }else if(node.expr2.type instanceof Array){
+                node.type = new Bool();
+            }else{
+                String pos = errorstart(node.expr1.getLine(), node.expr1.getCol());
+                String err = pos + "null cannot compare to this type";
+                throw new SemanticErrorException(err);
             }
 
         } else {
