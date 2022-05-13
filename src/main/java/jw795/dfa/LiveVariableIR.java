@@ -21,7 +21,7 @@ public class LiveVariableIR extends DataFlowAnalysis<HashSet<IRTemp>, IRStmt>{
     /**
      * meet = union
      * @param input lattice elements/data flow values to take meet on
-     * @return
+     * @return result of meet
      */
     @Override
     public HashSet<IRTemp> meet(List<HashSet<IRTemp>> input) {
