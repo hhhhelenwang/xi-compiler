@@ -1,12 +1,11 @@
 package jw795.optimizer;
 
-import jw795.assembly.AAInstruction;
-import jw795.assembly.AAMove;
-import jw795.assembly.AAOperand;
+import jw795.assembly.*;
 import jw795.cfg.AsmCFG;
 import jw795.cfg.CFGGenerator;
 import jw795.cfg.CFGNode;
 import jw795.dfa.LiveVariableAnalysis;
+import jw795.typechecker.Array;
 
 import java.util.*;
 
@@ -92,12 +91,29 @@ public class RegisterAllocator {
     }
 
     public void build() {
+        HashSet<AAOperand> initializedOp = new HashSet<>();
+
         for (AAInstruction ins : instructionList) {
             CFGNode<AAInstruction> node = cfg.getNode(ins);
             HashSet<AAOperand> live = new HashSet<>();
             for (CFGNode<AAInstruction> suc : node.getSuccessors()) {
                 live.addAll(liveVar.get(suc));
             }
+
+            //initialize correct starting set for each unique reg/temp operand
+            for (AAOperand op : getAllRegsOrTemps(ins)){
+                if (!initializedOp.contains(op)){
+                    if (op instanceof AAReg){
+                        precolored.add(op);
+                    } else {
+                        initial.add(op);
+                    }
+                    adjList.put(op, new HashSet<>());
+                    degree.put(op, 0L);
+                    initializedOp.add(op);
+                }
+            }
+
             if (ins instanceof AAMove) {
                 live.removeAll(ins.use());
                 HashSet<AAOperand> mentioned = new HashSet<>();
@@ -117,6 +133,40 @@ public class RegisterAllocator {
                 }
             }
         }
+
+        List<AAReg> allRegisters = new ArrayList<>(Arrays.asList(new AAReg("rax"), new AAReg("rbx"),
+                new AAReg("rcx"), new AAReg("rdx"), new AAReg("rsp"), new AAReg("rbp"),
+                new AAReg("rsi"), new AAReg("rdi"), new AAReg("r8"), new AAReg("r9"),
+                new AAReg("r10"), new AAReg("r11"), new AAReg("r12"), new AAReg("r13"),
+                new AAReg("r14"), new AAReg("r15")));
+        //initialize colors in HashMap color for registers, in case it was not seen in instructionList
+        for (AAReg reg : allRegisters){
+            if (!initializedOp.contains(reg)){
+                precolored.add(reg);
+                color.put(reg, NodeColor.valueOf(reg.toString()));
+            }
+        }
+    }
+
+
+    /**
+     * Helper method to get all AAReg or AATemp operands in an AAInstruction
+     * @param instr to get operands from
+     * @return a set of AAReg and AATemp used in given instr
+     * */
+    private Set<AAOperand> getAllRegsOrTemps(AAInstruction instr){
+        HashSet<AAOperand> allOps = new HashSet<>();
+
+        if (instr.operand1.isPresent() &&
+                (instr.operand1.get() instanceof AATemp || instr.operand1.get() instanceof AAReg)){
+            allOps.add(instr.operand1.get());
+        }
+        if (instr.operand2.isPresent() &&
+                (instr.operand2.get() instanceof AATemp || instr.operand2.get() instanceof AAReg)){
+            allOps.add(instr.operand2.get());
+        }
+
+        return allOps;
     }
 
 
