@@ -29,6 +29,13 @@ public class IRLower {
         public void printSExp(SExpPrinter p) {
             // nothing to print
         }
+
+        @Override
+        public HashSet<IRTemp> vars() {
+            // should not be called
+            System.out.println("SEPair in cfg");
+            return new HashSet<>();
+        }
     }
 
     /**
