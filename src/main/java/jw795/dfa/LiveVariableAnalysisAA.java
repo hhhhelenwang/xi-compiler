@@ -7,8 +7,8 @@ import jw795.cfg.CFGNode;
 import java.util.HashSet;
 import java.util.List;
 
-public class LiveVariableAnalysis extends DataFlowAnalysis<HashSet<AAOperand>, AAInstruction> {
-    public LiveVariableAnalysis(AsmCFG cfg) {
+public class LiveVariableAnalysisAA extends DataFlowAnalysis<HashSet<AAOperand>, AAInstruction> {
+    public LiveVariableAnalysisAA(AsmCFG cfg) {
         super(cfg);
         top = new HashSet<>();
     }

@@ -6,7 +6,7 @@ import jw795.assembly.AAOperand;
 import jw795.cfg.AsmCFG;
 import jw795.cfg.CFGGenerator;
 import jw795.cfg.CFGNode;
-import jw795.dfa.LiveVariableAnalysis;
+import jw795.dfa.LiveVariableAnalysisAA;
 
 import java.util.*;
 
@@ -83,7 +83,7 @@ public class RegisterAllocator {
     public void livenessAnalysis() {
         CFGGenerator cfgGenerator = new CFGGenerator();
         cfg = cfgGenerator.toAsmCFG(instructionList);
-        LiveVariableAnalysis liveVariableAnalysis = new LiveVariableAnalysis(cfg);
+        LiveVariableAnalysisAA liveVariableAnalysis = new LiveVariableAnalysisAA(cfg);
         HashMap<CFGNode<AAInstruction>, HashSet<AAOperand>> analysis = liveVariableAnalysis.backward();
         liveVar = new HashMap<>();
         for (Map.Entry<CFGNode<AAInstruction>, HashSet<AAOperand>> entry : analysis.entrySet()) {
