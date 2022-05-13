@@ -132,6 +132,7 @@ public class Compiler {
         }
     }
 
+
     /**
      * Produce lexical analysis on all input source files.
      */
@@ -139,7 +140,7 @@ public class Compiler {
         if (cmd.hasOption("lex")) {
             files = cmd.getArgList();
             for (String file : files) {
-                if (file.endsWith("xi")) {
+                if (file.endsWith("xi") || file.endsWith("rh")) {
                     lexFile(file);
                 }
             }
@@ -154,6 +155,9 @@ public class Compiler {
             files = cmd.getArgList();
             for (String file : files) {
                 if (file.endsWith("xi")) {
+                    parseFile(file);
+                }
+                if(file.endsWith("rh")){
                     parseFile(file);
                 }
             }
@@ -183,7 +187,10 @@ public class Compiler {
             files = cmd.getArgList();
             for (String file : files) {
                 if (file.endsWith(".xi")) {
-                    typeCheckFile(sourcePath + file);
+                    typeCheckFile(sourcePath + file, false);
+                }
+                if (file.endsWith(".rh")) {
+                    typeCheckFile(sourcePath + file, true);
                 }
             }
         }
@@ -193,11 +200,16 @@ public class Compiler {
      * Type check a single file
      * @param fileName input file
      */
-    public void typeCheckFile(String fileName) {
+    public void typeCheckFile(String fileName, Boolean rh) {
         try {
             // Generate token file
             Reader reader = new FileReader(fileName);
-            TypeCheckerAdapter typeAdapt = new TypeCheckerAdapter(reader, fileName, destPath, libPath, true);
+            TypeCheckerAdapter typeAdapt;
+            if(rh){
+                typeAdapt = new TypeCheckerAdapter(reader, fileName, destPath, libPath, true,".ri");
+            }else{
+                typeAdapt = new TypeCheckerAdapter(reader, fileName, destPath, libPath, true, ".ixi");
+            }
             typeAdapt.generateTypeCheck();
         } catch (FileNotFoundException e) {
             System.out.println(fileName + ": " + " " + "File not found.");

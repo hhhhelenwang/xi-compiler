@@ -26,8 +26,9 @@ public class TypeCheckerAdapter {
     String fileName; // already contains source dir + file name
     boolean genFile; // if a type check diagnostic file need to be generated
     TypeChecker visitor;
+    String ending;
 
-    public TypeCheckerAdapter(Reader reader, String name, String dest, String lib, boolean gen) {
+    public TypeCheckerAdapter(Reader reader, String name, String dest, String lib, boolean gen, String ending) {
         // paths and files
         this.destPath = dest;
         this.libPath = lib;
@@ -66,7 +67,7 @@ public class TypeCheckerAdapter {
                 for (Use use : node.uses) {
                     try {
                         if (!use.interfaceName.equals("io")) {
-                            String interfaceFileName = libPath + use.interfaceName + ".ixi";
+                            String interfaceFileName = libPath + use.interfaceName + ending;
                             curFile = interfaceFileName;
                             Reader interfaceReader = new FileReader(interfaceFileName);
                             Lexwrapper interfaceScanner = new Lexwrapper(interfaceReader, interfaceFileName);

@@ -22,6 +22,7 @@ public class IRGenerator extends Visitor {
     HashMap<String, String> funcNames;
     HashMap<String, Long> funcRetLengths;
     HashMap<String, ArrayList<String>> recordfields;
+    Stack<String> loopends;
 
     int stringCounter;
     int labelCounter;
@@ -36,6 +37,7 @@ public class IRGenerator extends Visitor {
         this.stringCounter = 1;
         this.labelCounter = 1;
         this.tempCounter = 1;
+        this.loopends = new Stack<>();
     }
 
     @Override
@@ -46,6 +48,16 @@ public class IRGenerator extends Visitor {
     @Override
     public void leaveScope() {
 
+    }
+
+    public void addlooplayer(){
+        this.loopends.add(nextLabel());
+    }
+    public String peeklooplayer(){
+        return this.loopends.peek();
+    }
+    public void minuslooplayer(){
+        this.loopends.pop();
     }
 
     @Override
@@ -417,12 +429,35 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitPrCall(ProcCallStmt node) {
-        String procName = funcNames.get(node.name);
-        ArrayList<IRExpr> argsIR = new ArrayList<>();
-        for (Expr arg: node.arguments){
-            argsIR.add(arg.ir);
+        if(recordfields.containsKey(node.name)){
+            ArrayList<IRStmt> l = new ArrayList<>();
+            long n = recordfields.get(node.name).size();
+            IRConst arg = irFactory.IRConst(n * 8);
+            IRTemp recordStart = irFactory.IRTemp(nextTemp());
+            l.add(irFactory.IRMove(
+                    recordStart,
+                    irFactory.IRCall(irFactory.IRName("_xi_alloc"), arg)
+            ));
+            IRConst defau = irFactory.IRConst(0);
+            for (int i = 0; i < n; i++) {
+                l.add(irFactory.IRMove(
+                        irFactory.IRMem(
+                                irFactory.IRBinOp(
+                                        ADD,
+                                        recordStart,
+                                        irFactory.IRConst((i) * 8L))),
+                        defau));
+            }
+            IRSeq s = irFactory.IRSeq(l);
+            node.ir = irFactory.IRESeq(s, recordStart);
+        }else{
+            String procName = funcNames.get(node.name);
+            ArrayList<IRExpr> argsIR = new ArrayList<>();
+            for (Expr arg: node.arguments){
+                argsIR.add(arg.ir);
+            }
+            node.ir = irFactory.IRCallStmt(irFactory.IRName(procName), 0L, argsIR);
         }
-        node.ir = irFactory.IRCallStmt(irFactory.IRName(procName), 0L, argsIR);
     }
 
     @Override
@@ -432,7 +467,40 @@ public class IRGenerator extends Visitor {
             IRMove stmt = irFactory.IRMove(len, irFactory.IRBinOp(SUB, node.arguments.get(0).ir,
                     irFactory.IRConst(8L)));
             node.ir = irFactory.IRESeq(stmt, irFactory.IRMem(len));
-        } else {
+        }else if (recordfields.containsKey(node.name)){
+            //implement just like initialize an array
+            ArrayList<IRStmt> l = new ArrayList<>();
+            long n = recordfields.get(node.name).size();
+            IRConst arg = irFactory.IRConst(n * 8);
+            IRTemp recordStart = irFactory.IRTemp(nextTemp());
+            l.add(irFactory.IRMove(
+                    recordStart,
+                    irFactory.IRCall(irFactory.IRName("_xi_alloc"), arg)
+            ));
+            IRConst defau = irFactory.IRConst(0);
+            long initialed = node.arguments.size();
+            for (int i = 0; i < initialed; i++) {
+                Expr e = node.arguments.get(i);
+                l.add(irFactory.IRMove(
+                        irFactory.IRMem(
+                                irFactory.IRBinOp(
+                                        ADD,
+                                        recordStart,
+                                        irFactory.IRConst((i) * 8L))),
+                        e.ir));
+            }
+            for (long i = initialed; i < n; i++) {
+                l.add(irFactory.IRMove(
+                        irFactory.IRMem(
+                                irFactory.IRBinOp(
+                                        ADD,
+                                        recordStart,
+                                        irFactory.IRConst((i) * 8L))),
+                        defau));
+            }
+            IRSeq s = irFactory.IRSeq(l);
+            node.ir = irFactory.IRESeq(s, recordStart);
+        }else {
             List<Expr> args = node.arguments;
             String funcName = funcNames.get(node.name);
             List<IRExpr> argsIR = new ArrayList<>();
@@ -586,12 +654,12 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitBreak(BreakStmt node) throws Exception {
-        node.type = new Void();
+        node.ir = irFactory.IRJump(irFactory.IRName(loopends.peek()));
     }
 
     @Override
     public void visitNull(Null node) {
-
+        node.ir = irFactory.IRMem(irFactory.IRConst(0));
     }
 
     @Override

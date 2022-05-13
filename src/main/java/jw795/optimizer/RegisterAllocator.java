@@ -345,6 +345,26 @@ public class RegisterAllocator {
     public void assignColors() {
         while(!selectStack.isEmpty()){
             AAOperand n = selectStack.pop();
+            //TODO: be careful of what colors are ok, now assuming no node was precolored
+            Set<NodeColor> okColors = new HashSet<>(EnumSet.allOf(NodeColor.class));
+
+            for (AAOperand w : adjList.get(n)){
+                if (union(coloredNodes, precolored).contains(getAlias(w))){
+                    okColors.remove(color.get(getAlias(w)));
+                }
+            }
+
+            if (okColors.isEmpty()){
+                spilledNodes.add(n);
+            } else {
+                coloredNodes.add(n);
+                NodeColor assignedColor = okColors.iterator().next();
+                color.put(n, assignedColor);
+            }
+
+            for(AAOperand coleasedNode : coalescedNodes){
+                color.put(coleasedNode, color.get(getAlias(coleasedNode)));
+            }
         }
     }
 
