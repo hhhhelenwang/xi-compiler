@@ -30,5 +30,25 @@ public class OptSettings {
         cf = ifOn;
     }
 
+    public boolean reg() {
+        return reg;
+    }
+
+    public boolean copy() {
+        return reg;
+    }
+
+    public boolean dce() {
+        return reg;
+    }
+
+    public boolean lu() {
+        return reg;
+    }
+
+    public boolean cf() {
+        return reg;
+    }
+
 
 }
