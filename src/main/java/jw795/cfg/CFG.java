@@ -38,7 +38,7 @@ public abstract class CFG<T> {
 
     /**
      * Flatten a CFG to a list of CFGNode
-     * @return list of IRStmt
+     * @return list of CFGNode
      */
     public List<CFGNode<T>> flatten(){
         List<CFGNode<T>> res = getAllSuccessors(this.start, new HashSet<>());

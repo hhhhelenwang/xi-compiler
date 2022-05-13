@@ -30,6 +30,10 @@ public class Compiler {
     List<String> files = new ArrayList<>();
     Options options;
 
+    OptSettings optSettings = new OptSettings(); // default is all opts are OFF
+
+
+
     HashMap<String, String> funcNames;
     HashMap<String, Long> funcRetLengths;
     HashMap<String, Long> funcArgLengths;
@@ -233,7 +237,8 @@ public class Compiler {
             phases = Arrays.asList(cmd.getOptionValues("optcfg"));
         }
 
-
+        // TODO: combine the boolean "optimize" and list "optType" into a record class that contains a bunch of flags.
+        //  See class OptSettings
         boolean optimize = !cmd.hasOption("O");
         List<String> optTypes = new ArrayList<>();
         // TODO: double check adding --o flag is optimizze or not optimize

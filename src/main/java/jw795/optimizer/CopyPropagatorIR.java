@@ -2,6 +2,7 @@ package jw795.optimizer;
 
 import edu.cornell.cs.cs4120.xic.ir.*;
 import jw795.cfg.CFG;
+import jw795.cfg.CFGGenerator;
 import jw795.cfg.CFGNode;
 import jw795.dfa.AvailableCopiesIR;
 import polyglot.util.Pair;
@@ -12,15 +13,17 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 /**
- * Carries out copy propagation on a cfg of lower IR
+ * Carries out copy propagation on a lower IR program
  */
 public class CopyPropagatorIR {
 
-    CFG<IRStmt> cfg;
+    IRCompUnit program;
+    CFGGenerator cfgGenerator;
     boolean noChange; // if there are changes during this run of copy propagation
 
-    public CopyPropagatorIR(CFG<IRStmt> cfg) {
-        this.cfg = cfg;
+    public CopyPropagatorIR(IRCompUnit program) {
+        this.program = program;
+        this.cfgGenerator = new CFGGenerator();
         this.noChange = true; // initialize to true, set to false when a variable is replaced
     }
 
@@ -29,22 +32,45 @@ public class CopyPropagatorIR {
     }
 
     /**
-     * Run copy propagation on cfg, return true if nothing is changed.
+     * Run copy propagation on the entire program.
+     * @return copy-propagated program
      */
-    public CFG<IRStmt> copyPropagate() {
-        // do an available copies analysis
+    public IRCompUnit run() {
+        HashMap<String, IRFuncDecl> newFunctions = new HashMap<>();
+        for (IRFuncDecl function : program.functions().values()) {
+            IRFuncDecl newFunction = copyPropagateFunction(function);
+            newFunctions.put(newFunction.name(), newFunction);
+        }
+
+        return new IRCompUnit(program.name(), newFunctions, program.ctors(), program.dataMap());
+    }
+
+    /**
+     * Run copy propagation on the given function, return the updated function
+     */
+    public IRFuncDecl copyPropagateFunction(IRFuncDecl function) throws RuntimeException{
+        // generate cfg for function
+        CFG<IRStmt> cfg = cfgGenerator.toIRCFG(function);
+        // do an available copies analysis on the cfg
         AvailableCopiesIR availableCopiesIR = new AvailableCopiesIR(cfg);
         HashMap<CFGNode<IRStmt>, LinkedHashSet<Pair<IRTemp, IRTemp>>> nodeToValueMap = availableCopiesIR.forward();
 
-        // find and replace variables for all nodes
-        for (CFGNode<IRStmt> node : cfg.flatten()) {
-            IRStmt stmt = node.getStmt();
-            LinkedHashSet<Pair<IRTemp, IRTemp>> outOfNode = nodeToValueMap.get(node);
-            IRStmt newStmt = findAndReplace(stmt, outOfNode);
-            node.setStmt(newStmt);
+        // copy propagate
+        List<IRStmt> newBody = new ArrayList<>();
+        IRStmt body = function.body();
+        if (body instanceof IRSeq) {
+            for (IRStmt stmt : ((IRSeq) body).stmts()) {
+                CFGNode<IRStmt> node = cfg.getNode(stmt);
+                LinkedHashSet<Pair<IRTemp, IRTemp>> outOfNode = nodeToValueMap.get(node);
+                IRStmt newStmt = findAndReplace(stmt, outOfNode);
+                newBody.add(newStmt);
+            }
+        } else {
+            throw new RuntimeException("Invalid function body.");
         }
 
-        return cfg;
+        // create the new function
+        return new IRFuncDecl(function.name(), new IRSeq(newBody));
     }
 
     /**
