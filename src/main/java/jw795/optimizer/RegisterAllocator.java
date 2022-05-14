@@ -106,7 +106,6 @@ public class RegisterAllocator {
         cfg = cfgGenerator.toAsmCFG(instructionList);
         LiveVariableAnalysis liveVariableAnalysis = new LiveVariableAnalysis(cfg);
         liveVar = liveVariableAnalysis.backward();
-        System.out.println(liveVar);
     }
 
     public void build() {
@@ -114,6 +113,7 @@ public class RegisterAllocator {
             CFGNode<AAInstruction> node = cfg.getNode(ins);
             HashSet<AAOperand> live = new HashSet<>();
             for (CFGNode<AAInstruction> suc : node.getSuccessors()) {
+                System.out.println(ins);
                 live.addAll(liveVar.get(suc));
             }
             if (ins instanceof AAMove) {
