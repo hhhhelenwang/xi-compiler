@@ -1,8 +1,6 @@
 package jw795.optimizer;
 
-import edu.cornell.cs.cs4120.xic.ir.IRNode;
 import jw795.asmgenerator.TempSpiller;
-import jw795.asmgenerator.Tile;
 import jw795.asmgenerator.Tiler;
 import jw795.assembly.*;
 import jw795.assembly.AAReg;
@@ -43,11 +41,9 @@ public class RegisterAllocator {
 
     HashMap<AAOperand, NodeColor> color;
 
-    long tempCounter;
-
     TempSpiller tmpsp;
 
-    int K = 16; //number of usable registers
+    int K = 14; //number of usable registers
 
     public RegisterAllocator(List<AAInstruction> instructionList, TempSpiller tempSpiller) {
         this.instructionList = instructionList;
@@ -72,12 +68,22 @@ public class RegisterAllocator {
         this.moveList = new HashMap<>();
         this.alias = new HashMap<>();
         this.color = new HashMap<>();
-        this.tempCounter = 0L;
         this.tmpsp = tempSpiller;
     }
 
-    public void registerAllocate() {
+    public List<AAInstruction> registerAllocate() {
         livenessAnalysis();
+        for (HashSet<AAOperand> in : liveVar.values()) {
+            for (AAOperand o : in) {
+                if (o instanceof AATemp) {
+                    initial.add(o);
+                }
+                if (o instanceof AAReg) {
+                    precolored.add(o);
+                    color.put(o, ((AAReg) o).toColor());
+                }
+            }
+        }
         build();
         makeWorklist();
         while (!(simplifyWorklist.isEmpty() && worklistMoves.isEmpty() && freezeWorklist.isEmpty() && spillWorklist.isEmpty())) {
@@ -91,6 +97,8 @@ public class RegisterAllocator {
             rewriteProgram();
             registerAllocate();
         }
+        allocateAndRemove();
+        return instructionList;
     }
 
     public void livenessAnalysis() {
@@ -98,32 +106,16 @@ public class RegisterAllocator {
         cfg = cfgGenerator.toAsmCFG(instructionList);
         LiveVariableAnalysis liveVariableAnalysis = new LiveVariableAnalysis(cfg);
         liveVar = liveVariableAnalysis.backward();
+        System.out.println(liveVar);
     }
 
     public void build() {
-        HashSet<AAOperand> initializedOp = new HashSet<>();
-
         for (AAInstruction ins : instructionList) {
             CFGNode<AAInstruction> node = cfg.getNode(ins);
             HashSet<AAOperand> live = new HashSet<>();
             for (CFGNode<AAInstruction> suc : node.getSuccessors()) {
                 live.addAll(liveVar.get(suc));
             }
-
-            //initialize correct starting set for each unique reg/temp operand
-            for (AAOperand op : getAllRegsOrTemps(ins)){
-                if (!initializedOp.contains(op)){
-                    if (op instanceof AAReg){
-                        precolored.add(op);
-                    } else {
-                        initial.add(op);
-                    }
-                    adjList.put(op, new HashSet<>());
-                    degree.put(op, 0L);
-                    initializedOp.add(op);
-                }
-            }
-
             if (ins instanceof AAMove) {
                 live.removeAll(ins.use());
                 HashSet<AAOperand> mentioned = new HashSet<>();
@@ -174,12 +166,20 @@ public class RegisterAllocator {
             adjSet.add(new GraphEdge(v, u));
 
             if (!precolored.contains(u)){
-                adjList.get(u).add(v);
-                degree.put(u, degree.get(u)+1);
+                if (adjList.containsKey(u)) {
+                    adjList.get(u).add(v);
+                } else {
+                    adjList.put(u, new HashSet<>(List.of(v)));
+                }
+                degree.put(u, degree.getOrDefault(u, 0L)+1);
             }
             if (!precolored.contains(v)){
-                adjList.get(v).add(u);
-                degree.put(v, degree.get(v)+1);
+                if (adjList.containsKey(v)) {
+                    adjList.get(v).add(u);
+                } else {
+                    adjList.put(v, new HashSet<>(List.of(u)));
+                }
+                degree.put(v, degree.getOrDefault(v, 0L)+1);
             }
         }
     }
@@ -262,7 +262,6 @@ public class RegisterAllocator {
     }
 
     private boolean ok(AAOperand t, AAOperand r){
-        // TODO: double check adjSet.contains(new GraphEdge) would work: compare by value
         return degree.get(t) < K || precolored.contains(t) || adjSet.contains(new GraphEdge(t, r));
     }
 
@@ -326,7 +325,7 @@ public class RegisterAllocator {
         coalescedNodes.add(v);
         alias.put(v, u);
         moveList.put(u, union(moveList.get(u), moveList.get(v)));
-        enableMoves(new HashSet<>(Arrays.asList(v)));
+        enableMoves(new HashSet<>(List.of(v)));
 
         for (AAOperand t : adjacent(v)){
             addEdge(t, u);
@@ -469,6 +468,33 @@ public class RegisterAllocator {
         coalescedNodes = new HashSet<>();
     }
 
+    private void allocateAndRemove() {
+        List<AAInstruction> remove = new ArrayList<>();
+        for (AAInstruction a : instructionList) {
+            AAOperand a1;
+            AAOperand a2;
+
+            if (a.operand1.isPresent()) {
+                a1 = a.operand1.get();
+                if (a1 instanceof AATemp) {
+                    NodeColor c = color.get(a1);
+                    a.reseta1(c.colorToReg());
+                }
+            }
+            if (a.operand2.isPresent()) {
+                a2 = a.operand2.get();
+                if (a2 instanceof AATemp) {
+                    NodeColor c = color.get(a2);
+                    a.reseta1(c.colorToReg());
+                }
+            }
+            if (a instanceof AAMove && a.operand1.get().equals(a.operand2.get())) {
+                remove.add(a);
+            }
+        }
+        instructionList.removeAll(remove);
+    }
+
     /**
      * Helper function to take the union of two sets
      * @param set1 first set
@@ -479,17 +505,5 @@ public class RegisterAllocator {
         HashSet<T> union = new HashSet<>(set1);
         union.addAll(set2);
         return union;
-    }
-
-    /**
-     * Helper function to take the intersection of two sets
-     * @param set1 first set
-     * @param set2 second set
-     * @return a hashset that is the intersection of two set
-     * */
-    private <T> HashSet<T> intersection(HashSet<T> set1, HashSet<T> set2){
-        HashSet<T> intersection = new HashSet<>(set1);
-        intersection.retainAll(set2);
-        return intersection;
     }
 }

@@ -44,13 +44,13 @@ public class CFGGenerator {
             CFGNode<AAInstruction> curNode = instrToCFG.get(curAsm);
 
             if (curAsm instanceof AAJmp){
-                String label = curAsm.operand1.toString();
+                String label = curAsm.operand1.get().toString();
                 CFGNode<AAInstruction> nextNode = instrToCFG.get(labels.get(label));
                 connectAAInstr(curNode, nextNode);
             } else if (curAsm instanceof AAJa || curAsm instanceof AAJae || curAsm instanceof AAJb
                     || curAsm instanceof AAJbe || curAsm instanceof AAJe || curAsm instanceof AAJg || curAsm instanceof AAJge
                     || curAsm instanceof AAJl || curAsm instanceof AAJle || curAsm instanceof AAJne){
-                String label = curAsm.operand1.toString();
+                String label = curAsm.operand1.get().toString();
                 CFGNode<AAInstruction> nextNode = instrToCFG.get(labels.get(label));
                 connectAAInstr(curNode, nextNode);
 

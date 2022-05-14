@@ -4,6 +4,7 @@ import edu.cornell.cs.cs4120.xic.ir.*;
 import edu.cornell.cs.cs4120.xic.ir.visit.IRVisitor;
 import jw795.assembly.*;
 import jw795.optimizer.RegisterAllocator;
+import jw795.typechecker.T;
 
 import java.util.*;
 
@@ -230,11 +231,13 @@ public class Tiler extends IRVisitor {
         asm.addAll(concatAsm(body));
 
         RegisterAllocator regAlloc = new RegisterAllocator(asm, tempSpiller);
-
+        List<AAInstruction> optAsm = regAlloc.registerAllocate();
+        node.setTile(new Tile(optAsm, new ArrayList<>()));
+        long val = tempSpiller.tempCounter * 8L;
 
         // set the final tile of funcdecl with no neighbor
-        node.setTile(new Tile(asm, new ArrayList<>()));
-        long val = spill(node, tempSpiller) * 8L;
+//        node.setTile(new Tile(asm, new ArrayList<>()));
+//        long val = spill(node, tempSpiller) * 8L;
         if (val % 16 == 0) {
             val += 8;
         }
