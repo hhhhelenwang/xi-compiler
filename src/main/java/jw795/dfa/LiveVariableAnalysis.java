@@ -1,10 +1,13 @@
 package jw795.dfa;
+import jw795.asmgenerator.Tiler;
 import jw795.assembly.AAInstruction;
 import jw795.assembly.AAOperand;
 import jw795.cfg.AsmCFG;
 import jw795.cfg.CFGNode;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -55,7 +58,15 @@ public class LiveVariableAnalysis extends DataFlowAnalysis<HashSet<AAOperand>, A
     @Override
     public HashSet<AAOperand> gen(CFGNode<AAInstruction> node, HashSet<AAOperand> l) {
         AAInstruction ins = node.getStmt();
-        return ins.use();
+        HashSet<AAOperand> result = ins.use();
+        result.remove(Tiler.rsp);
+        result.remove(Tiler.rbp);
+        result.remove(Tiler.rip);
+        if (result.contains(Tiler.sil)) {
+            result.remove(Tiler.sil);
+            result.add(Tiler.rsi);
+        }
+        return result;
     }
 
     /**
@@ -67,6 +78,14 @@ public class LiveVariableAnalysis extends DataFlowAnalysis<HashSet<AAOperand>, A
     @Override
     public HashSet<AAOperand> kill(CFGNode<AAInstruction> node, HashSet<AAOperand> l) {
         AAInstruction ins = node.getStmt();
-        return ins.def();
+        HashSet<AAOperand> result = ins.def();
+        result.remove(Tiler.rsp);
+        result.remove(Tiler.rbp);
+        result.remove(Tiler.rip);
+        if (result.contains(Tiler.sil)) {
+            result.remove(Tiler.sil);
+            result.add(Tiler.rsi);
+        }
+        return result;
     }
 }

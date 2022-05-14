@@ -64,7 +64,7 @@ public abstract class DataFlowAnalysis<V, R> {
      * @return hashmap of cfg node to value
      */
     public HashMap<CFGNode<R>, V> backward () {
-        Queue<CFGNode<R>> worklist = new LinkedList<>(cfg.getAllPredecessors(cfg.exit(), new HashSet<>()));
+        worklist = new LinkedList<>(cfg.getAllPredecessors(cfg.exit(), new HashSet<>()));
         initialize();
 
         while (!worklist.isEmpty()) {
