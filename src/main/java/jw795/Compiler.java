@@ -335,12 +335,17 @@ public class Compiler {
         if (cmd.hasOption("Odce")) { optSettings.setDce(true); }
         if (cmd.hasOption("Ocf")) { optSettings.setCf(true); }
         if (cmd.hasOption("Ocse")) { optSettings.setReg(true); }
-        if (!cmd.hasOption("O")) {
+        if (!cmd.hasOption("O") &&
+                !cmd.hasOption("Oreg") &&
+                !cmd.hasOption("Ocopy") &&
+                !cmd.hasOption("Odce") &&
+                !cmd.hasOption("Ocf") &&
+                !cmd.hasOption("Ocse")) {
             optSettings.setReg(true);
             optSettings.setCopy(true);
             optSettings.setDce(true);
             optSettings.setCf(true);
-            optSettings.setReg(true);
+            optSettings.setCse(true);
         }
 
         if (cmd.hasOption("optir")) {
@@ -378,6 +383,7 @@ public class Compiler {
         compiler.printAllOpt();
         compiler.setPaths();
         compiler.setOptimizationSettings();
+        System.out.println(compiler.optSettings);
         compiler.lex();
         compiler.parse();
         compiler.typeCheck();

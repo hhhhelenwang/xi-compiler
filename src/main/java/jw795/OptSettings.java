@@ -87,4 +87,19 @@ public class OptSettings {
         return optCFGFinal;
     }
 
+    @Override
+    public String toString() {
+        String str = "";
+        str += "reg " + reg + "\n";
+        str += "copy " + copy + "\n";
+        str += "dce " + dce + "\n";
+        str += "cse " + cse + "\n";
+        str += "cf " + cf + "\n";
+        str += "optir-init " + optIRInit + "\n";
+        str += "optir-final " + optIRFinal + "\n";
+        str += "optcfg-init " + optCFGInit + "\n";
+        str += "optcfg-final " + optCFGFinal + "\n";
+        return str;
+
+    }
 }
