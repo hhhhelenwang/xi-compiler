@@ -374,7 +374,6 @@ public class TypeChecker extends Visitor {
         if (node.name.equals("length"))  {
             checkLength(node);
         } else if(env.containsRecord(node.name)){
-            System.out.println("get a funcall");
             node.type = env.findTypeofRecord(node.name);
         }else {
             Sigma fnType = this.env.findTypeofFun(node.name);
@@ -573,7 +572,6 @@ public class TypeChecker extends Visitor {
         } else if (node.leftVal instanceof LeftValueList) {// d1..dn = e
             checkMultiAssign(node);
         } else if (node.leftVal instanceof VarExpr) {//x = e
-            System.out.println("get a var");
             Sigma t = this.env.findTypeofVar(((VarExpr) node.leftVal).identifier);
             if (t instanceof Var) {
                 if (node.expr.type instanceof Tau) {

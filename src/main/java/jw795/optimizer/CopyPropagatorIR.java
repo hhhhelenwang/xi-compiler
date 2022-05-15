@@ -49,6 +49,7 @@ public class CopyPropagatorIR {
      * Run copy propagation on the given function, return the updated function
      */
     public IRFuncDecl copyPropagateFunction(IRFuncDecl function) throws RuntimeException{
+//        System.out.println("before" + function);
         // generate cfg for function
         CFG<IRStmt> cfg = cfgGenerator.toIRCFG(function);
         // do an available copies analysis on the cfg
@@ -61,7 +62,13 @@ public class CopyPropagatorIR {
         if (body instanceof IRSeq) {
             for (IRStmt stmt : ((IRSeq) body).stmts()) {
                 CFGNode<IRStmt> node = cfg.getNode(stmt);
+//                System.out.println("==========");
+//                System.out.println("node" + node);
                 LinkedHashSet<Pair<IRTemp, IRTemp>> outOfNode = nodeToValueMap.get(node);
+//                for (Pair<IRTemp, IRTemp> pair : outOfNode) {
+//                    System.out.println("eq: " + pair.part1() + "=" + pair.part2());
+//                }
+
                 IRStmt newStmt = findAndReplace(stmt, outOfNode);
                 newBody.add(newStmt);
             }
@@ -70,7 +77,9 @@ public class CopyPropagatorIR {
         }
 
         // create the new function
-        return new IRFuncDecl(function.name(), new IRSeq(newBody));
+        IRFuncDecl newFunc = new IRFuncDecl(function.name(), new IRSeq(newBody));
+//        System.out.println("after" + newFunc);
+        return newFunc;
     }
 
     /**
@@ -138,7 +147,7 @@ public class CopyPropagatorIR {
 
         } else if (expr instanceof IRTemp) {
             for (Pair<IRTemp, IRTemp> pair : eqSet) {
-                if (pair.part1().equals(expr)) {
+                if (pair.part1().name().equals(((IRTemp) expr).name())) {
                     noChange = false; // temp is replaced so this run has not converged
                     return pair.part2();
                 }
@@ -154,6 +163,8 @@ public class CopyPropagatorIR {
 
         } else if (expr instanceof IRBinOp) {
             IRExpr newLeft = findAndReplaceExpr(((IRBinOp) expr).left(), eqSet);
+//            System.out.println("old left" + ((IRBinOp) expr).left());
+//            System.out.println("new left" + newLeft);
             IRExpr newRight = findAndReplaceExpr(((IRBinOp) expr).right(), eqSet);
             return new IRBinOp(((IRBinOp) expr).opType(), newLeft, newRight);
 

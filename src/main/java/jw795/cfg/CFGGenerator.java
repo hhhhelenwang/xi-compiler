@@ -3,9 +3,7 @@ package jw795.cfg;
 import edu.cornell.cs.cs4120.xic.ir.*;
 import jw795.assembly.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class CFGGenerator {
 
@@ -17,31 +15,33 @@ public class CFGGenerator {
      * @return CFG graph made up of list of CFGNode<AAInstruction>
      */
     public AsmCFG toAsmCFG(List<AAInstruction> asm){
-        AAEnd endInstr = new AAEnd();
-        List<AAInstruction> asmWithEnd = new ArrayList<>();
-        asmWithEnd.addAll(asm);
-        asmWithEnd.add(endInstr);
-
-        int size = asmWithEnd.size();
-
         HashMap<AAInstruction, CFGNode<AAInstruction>> instrToCFG = new HashMap<>();
         HashMap<String, AALabelInstr> labels = new HashMap<>();
 
-        CFGNode<AAInstruction> start = new CFGNode(new AAStart(), "start");
-        CFGNode<AAInstruction> end = new CFGNode(endInstr, "end");
+        Queue<AAInstruction> asmWithEnd = new LinkedList<>(asm);
+        AAEnd endInstr = new AAEnd();
+        asmWithEnd.add(endInstr);
 
-        for (AAInstruction instruct : asmWithEnd){
+        AAInstruction startInstr = new AAStart();
+        CFGNode<AAInstruction> start = new CFGNode<>(startInstr, "start");
+        CFGNode<AAInstruction> end = new CFGNode<>(endInstr, "end");
+
+        instrToCFG.put(startInstr, start);
+        instrToCFG.put(endInstr, end);
+
+        for (AAInstruction instruct : asm){
             instrToCFG.put(instruct, new CFGNode<>(instruct, instruct.toString()));
             if (instruct instanceof AALabelInstr){
                 labels.put(((AALabelInstr)instruct).getName(), (AALabelInstr) instruct);
             }
         }
 
-        connectAAInstr(start, instrToCFG.get(asmWithEnd.get(0)));
+        connectAAInstr(start, instrToCFG.get(asmWithEnd.peek()));
+        CFGNode<AAInstruction> curNode;
 
-        for (int i = 0; i < size; i++){
-            AAInstruction curAsm = asmWithEnd.get(i);
-            CFGNode<AAInstruction> curNode = instrToCFG.get(curAsm);
+        while(!asmWithEnd.isEmpty()){
+            AAInstruction curAsm = asmWithEnd.poll();
+            curNode = instrToCFG.get(curAsm);
 
             if (curAsm instanceof AAJmp){
                 String label = curAsm.operand1.get().toString();
@@ -55,18 +55,18 @@ public class CFGGenerator {
                 connectAAInstr(curNode, nextNode);
 
                 // connect to fallthrough instructions
-                AAInstruction nextAsm = asmWithEnd.get(i + 1);
+                AAInstruction nextAsm = asmWithEnd.peek();
                 nextNode = instrToCFG.get(nextAsm);
                 connectAAInstr(curNode, nextNode);
 
             } else if (curAsm instanceof AARet){
                 connectAAInstr(curNode, end);
+            } else if (curAsm instanceof AAEnd) {
+                // do nothing
             } else {
-                if (i < size - 1){
-                    AAInstruction nextAsm = asmWithEnd.get(i + 1);
-                    CFGNode<AAInstruction> nextNode = instrToCFG.get(nextAsm);
-                    connectAAInstr(curNode, nextNode);
-                }
+                AAInstruction nextAsm = asmWithEnd.peek();
+                CFGNode<AAInstruction> nextNode = instrToCFG.get(nextAsm);
+                connectAAInstr(curNode, nextNode);
             }
         }
 

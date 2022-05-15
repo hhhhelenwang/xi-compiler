@@ -113,7 +113,6 @@ public class RegisterAllocator {
             CFGNode<AAInstruction> node = cfg.getNode(ins);
             HashSet<AAOperand> live = new HashSet<>();
             for (CFGNode<AAInstruction> suc : node.getSuccessors()) {
-                System.out.println(ins);
                 live.addAll(liveVar.get(suc));
             }
             if (ins instanceof AAMove) {
@@ -218,14 +217,12 @@ public class RegisterAllocator {
     }
 
     private void simplify(){
-        HashSet<AAOperand> copySimplifyWorklist = new HashSet<>(simplifyWorklist);
-        for (AAOperand n : copySimplifyWorklist){
-            simplifyWorklist.remove(n);
-            selectStack.push(n);
+        AAOperand n = simplifyWorklist.iterator().next();
+        simplifyWorklist.remove(n);
+        selectStack.push(n);
 
-            for (AAOperand m : adjacent(n)){
-                decrementDegree(m);
-            }
+        for (AAOperand m : adjacent(n)){
+            decrementDegree(m);
         }
     }
 

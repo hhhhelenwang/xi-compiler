@@ -5,16 +5,19 @@ import edu.cornell.cs.cs4120.util.SExpPrinter;
 import edu.cornell.cs.cs4120.xic.ir.IRCompUnit;
 import edu.cornell.cs.cs4120.xic.ir.IRFuncDecl;
 import edu.cornell.cs.cs4120.xic.ir.IRStmt;
+import jw795.OptSettings;
 import jw795.Visitor;
 import jw795.ast.Program;
 import jw795.cfg.CFG;
 import jw795.cfg.CFGGenerator;
-import jw795.cfg.CFGNode;
-import jw795.cfg.IRCFG;
+import jw795.optimizer.IROptimizationRunner;
 import jw795.typechecker.*;
 
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 import static jw795.util.FileUtil.generateTargetFile;
 import static jw795.util.FileUtil.generateTargetFileWithFuncName;
@@ -31,24 +34,15 @@ public class IRGeneratorAdapter {
     HashMap<String, Long> funcRetLengths = new HashMap<>();
     HashMap<String, Long> funcArgLengths = new HashMap<>();
     HashMap<String, ArrayList<String>> recordfields;
-    boolean optimize;
     boolean genIRFile;
-    boolean genOptIRFile;
-    List<String> phases;
-    boolean genCFGFile;
-    List<String> optType;
+    OptSettings optSettings;
 
-    public IRGeneratorAdapter(String fileName, String dest, String lib, boolean opt,
-                              boolean generateIRFile, boolean generateOptFile,
-                              List<String> phases, boolean generateCFGFile, List<String> optType) {
+    public IRGeneratorAdapter(String fileName, String dest, String lib,
+                              boolean generateIRFile, OptSettings optSettings) {
         this.destPath = dest;
         this.libPath = lib;
         this.fileName = fileName;
-        this.optimize = opt;
-        this.phases = phases;
-        this.genCFGFile = generateCFGFile;
-        this.genOptIRFile = generateOptFile;
-        this.optType = optType;
+        this.optSettings = optSettings;
         String ends = fileName.endsWith("rh")? ".ri": ".ixi";
         try {
             FileReader fr = new FileReader(fileName);
@@ -68,7 +62,7 @@ public class IRGeneratorAdapter {
         // typeCheckAdapter.gentypecheck() will print Lexical, Syntax, or Semantic errors if those errors exist
         Program checkedProgram = (Program) typeCheckerAdapter.generateTypeCheck();
         if (checkedProgram != null) {
-            if(this.optimize){
+            if(optSettings.cf()){
                 ConstantFoldingAst confold = new ConstantFoldingAst(checkedProgram);
                 checkedProgram = confold.fold();
             }
@@ -81,6 +75,7 @@ public class IRGeneratorAdapter {
             Visitor irVisitor = new IRGenerator(finalName, funcNames, funcRetLengths, recordfields);
             IRCompUnit lowerIR = null;
             IRCompUnit reorderedIR = null;
+            IRCompUnit optimizedIR = null;
             // generate the target .ir file
             FileWriter targetWriter = null;
 
@@ -94,62 +89,77 @@ public class IRGeneratorAdapter {
                 IRCompUnit root = checkedProgram.ir;
                 IRLower lirTranslator = new IRLower();
                 lowerIR = lirTranslator.lower(root);
-                if(this.optimize){
+                if(optSettings.cf()){
                     ConstantFolding confold = new ConstantFolding(lowerIR);
                     lowerIR = confold.foldComp();
                 }
                 JumpReorder jumpReorder = new JumpReorder();
                 reorderedIR = jumpReorder.reorder(lowerIR);
 
+                // optimization!!
+                IROptimizationRunner irOptimizationRunner = new IROptimizationRunner(reorderedIR, optSettings);
+                optimizedIR = irOptimizationRunner.runOptimizations();
+                // here optimizedIR will be the same as unoptimizedIR if no optimization is done
+
                 if (genIRFile) {
                     // Writing to target file
-                    targetWriter.write(prettyPrint(reorderedIR));
+                    assert targetWriter != null;
+                    targetWriter.write(prettyPrint(optimizedIR));
                     targetWriter.close();
                 }
             } catch (Exception e) {
                 System.out.println("unknown error while generating IR: "+ e.getMessage());
+                e.printStackTrace();
             }
 
+            // output cfg files at different stages of optimization
             try {
-                if (genCFGFile){
-                    for (String phase : phases){
-                        Map<String, IRFuncDecl> funcs = new HashMap<>();
-                        if (phase.equals("initial")){
-                            funcs = reorderedIR.functions();
-                        } else if (phase.equals("final")){
-                            funcs = reorderedIR.functions(); //TODO: change this ir to the IR after all optimizations
-                        } else {
-                            System.out.println("The phase "+ phase +" is not supported");
-                        }
-
+                if (optSettings.optCFGInit() || optSettings.optCFGFinal()){
+                    Map<String, IRFuncDecl> funcs;
+                    if (optSettings.optCFGInit()) {
+                        assert reorderedIR != null;
+                        funcs = reorderedIR.functions();
                         CFGGenerator ircfg = new CFGGenerator();
-
                         for (IRFuncDecl func : funcs.values()){
-                            CFG cfg = ircfg.toIRCFG(func);
-                            cfg.toDotFormat(fileName, destPath, func.name(), phase);
+                            CFG<IRStmt> cfg = ircfg.toIRCFG(func);
+                            cfg.toDotFormat(fileName, destPath, func.name(), "initial");
                         }
                     }
+                    if (optSettings.optCFGFinal()) {
+                        assert optimizedIR != null;
+                        funcs = optimizedIR.functions();
+                        CFGGenerator ircfg = new CFGGenerator();
+                        for (IRFuncDecl func : funcs.values()){
+                            CFG<IRStmt> cfg = ircfg.toIRCFG(func);
+                            cfg.toDotFormat(fileName, destPath, func.name(), "final");
+                        }
+                    }
+
                 }
             } catch (Exception e) {
                 System.out.println("unknown error while generating IRCFG : "+ e.getMessage());
             }
 
-
+            // output IR or CFG files at different phases of optimization
             try{
-                if (genOptIRFile) {
-                    for (String phase : phases){
-                        File targetIrsol = generateTargetFileWithFuncName(fileName, destPath, "ir",
-                                Optional.empty(), Optional.of(phase));
-                        targetWriter = new FileWriter(targetIrsol);
+                if (optSettings.optIRInit() || optSettings.optIRFinal()) {
 
-                        if (phase.equals("initial")){
-                            targetWriter.write(prettyPrint(reorderedIR));
-                            targetWriter.close();
-                        } else if (phase.equals("final")){
-                            //TODO: change this ir to the IR after all optimizations
-                        } else {
-                            System.out.println("The phase "+ phase +" is not supported");
-                        }
+                    if (optSettings.optIRInit()) {
+                        File targetIrsol = generateTargetFileWithFuncName(fileName, destPath, "ir",
+                                Optional.empty(), Optional.of("initial"));
+                        targetWriter = new FileWriter(targetIrsol);
+                        assert reorderedIR != null;
+                        targetWriter.write(prettyPrint(reorderedIR));
+                        targetWriter.close();
+                    }
+
+                    if (optSettings.optIRFinal()) {
+                        File targetIrsol = generateTargetFileWithFuncName(fileName, destPath, "ir",
+                            Optional.empty(), Optional.of("initial"));
+                        targetWriter = new FileWriter(targetIrsol);
+                        assert optimizedIR != null;
+                        targetWriter.write(prettyPrint(optimizedIR));
+                        targetWriter.close();
 
                     }
                 }
@@ -157,7 +167,7 @@ public class IRGeneratorAdapter {
                 System.out.println("unknown error while generating OptIRFile : "+ e.getMessage());
             }
 
-            return reorderedIR;
+            return optimizedIR;
 
         } else {
             return null;
