@@ -49,4 +49,9 @@ public class IRTemp extends IRExpr_c {
         vars.add(this);
         return vars;
     }
+
+    @Override
+    public HashSet<IRExpr> getSubExprs() {
+        return new HashSet<>();
+    }
 }

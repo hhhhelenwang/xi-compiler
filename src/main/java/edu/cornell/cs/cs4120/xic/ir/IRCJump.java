@@ -4,6 +4,7 @@ import edu.cornell.cs.cs4120.util.SExpPrinter;
 import edu.cornell.cs.cs4120.xic.ir.visit.AggregateVisitor;
 import edu.cornell.cs.cs4120.xic.ir.visit.CheckCanonicalIRVisitor;
 import edu.cornell.cs.cs4120.xic.ir.visit.IRVisitor;
+import polyglot.util.Pair;
 
 import java.util.HashSet;
 
@@ -101,5 +102,12 @@ public class IRCJump extends IRStmt {
     @Override
     public HashSet<IRTemp> vars() {
         return cond.vars();
+    }
+
+    @Override
+    public HashSet<IRExpr> subExprs() {
+        HashSet<IRExpr> exprs = new HashSet<>();
+        exprs.addAll(cond().getSubExprs());
+        return exprs;
     }
 }

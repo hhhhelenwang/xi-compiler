@@ -36,6 +36,12 @@ public class IRLower {
             System.out.println("SEPair in cfg");
             return new HashSet<>();
         }
+
+        @Override
+        public HashSet<IRExpr> getSubExprs() {
+            System.out.println("SEPair in cfg: getSubExprs");
+            return new HashSet<>();
+        }
     }
 
     /**
@@ -213,7 +219,7 @@ public class IRLower {
      * @return lowered mem expression
      */
     public SEPair lowerMem(IRMem node) {
-        SEPair lowerE = lowerExpr(node.expr()); // returns an SEPair
+        SEPair lowerE = lowerExpr(node.getExpr()); // returns an SEPair
         List<IRStmt> sideEffects = lowerE.sideEffects;
 
         return new SEPair(sideEffects, irFactory.IRMem(lowerE.value));
@@ -341,7 +347,7 @@ public class IRLower {
                 seq.add(irFactory.IRMove(destPair.value, exprPair.value));
                 return irFactory.IRSeq(seq);
             } else {
-                SEPair e1 = lowerExpr(((IRMem) node.target()).expr());
+                SEPair e1 = lowerExpr(((IRMem) node.target()).getExpr());
                 SEPair e2 = lowerExpr(node.source());
                 List<IRStmt> seq = new ArrayList<>(e1.sideEffects);
                 // new temp to store e1'

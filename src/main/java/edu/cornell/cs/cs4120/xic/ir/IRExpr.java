@@ -11,4 +11,11 @@ public interface IRExpr extends IRNode {
      * @return set of variables in this expression
      */
     HashSet<IRTemp> vars();
+
+    /**
+     * @return set of subexpressions in this expression
+     */
+    HashSet<IRExpr> getSubExprs();
+
+
 }

@@ -151,6 +151,15 @@ public class IRBinOp extends IRExpr_c {
     }
 
     @Override
+    public HashSet<IRExpr> getSubExprs() {
+        HashSet<IRExpr> exprs = new HashSet<>(left().getSubExprs());
+        exprs.addAll(right().getSubExprs());
+        exprs.add(left());
+        exprs.add(right());
+        return exprs;
+    }
+
+    @Override
     public void printSExp(SExpPrinter p) {
         p.startList();
         p.printAtom(type.toString());

@@ -81,4 +81,12 @@ public class IRMem extends IRExpr_c {
     public HashSet<IRTemp> vars() {
         return expr().vars();
     }
+
+    @Override
+    public HashSet<IRExpr> getSubExprs() {
+        HashSet<IRExpr> subExprs = new HashSet<>();
+        subExprs.addAll(expr().getSubExprs());
+        subExprs.add(expr());
+        return subExprs;
+    }
 }

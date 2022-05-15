@@ -51,4 +51,7 @@ public class IRLabel extends IRStmt {
     public HashSet<IRTemp> vars() {
         return new HashSet<>();
     }
+
+    @Override
+    public HashSet<IRExpr> subExprs() { return new HashSet<>(); }
 }
