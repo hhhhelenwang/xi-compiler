@@ -47,10 +47,14 @@ public class AvailableCopiesIR extends DataFlowAnalysis<LinkedHashSet<Pair<IRTem
      */
     @Override
     public LinkedHashSet<Pair<IRTemp, IRTemp>> meet(List<LinkedHashSet<Pair<IRTemp, IRTemp>>> input) {
-        LinkedHashSet<Pair<IRTemp, IRTemp>> metSet = new LinkedHashSet<>(input.get(0));
-        for (LinkedHashSet<Pair<IRTemp, IRTemp>> in : input) {
-            // retainAll remove keeps elements in metSet that are also in the set in
-            metSet.retainAll(in);
+        LinkedHashSet<Pair<IRTemp, IRTemp>> metSet = new LinkedHashSet<>();
+        if (input.size() != 0) {
+            metSet.addAll(input.get(0));
+            for (LinkedHashSet<Pair<IRTemp, IRTemp>> in : input) {
+                // retainAll keeps elements in metSet that are also in the set in
+                metSet.retainAll(in);
+                return metSet;
+            }
         }
         return metSet;
     }
@@ -95,7 +99,9 @@ public class AvailableCopiesIR extends DataFlowAnalysis<LinkedHashSet<Pair<IRTem
         if (stmt instanceof IRMove) {
             IRExpr dest = ((IRMove) stmt).target();
             IRExpr src = ((IRMove) stmt).source();
-            if (dest instanceof IRTemp && src instanceof IRTemp) {
+            if (dest instanceof IRTemp && src instanceof IRTemp
+                    && !((IRTemp) src).name().startsWith("_")) {
+                // do not propagate special variables that represents registers
                 gen_n.add(new Pair<>((IRTemp) dest, (IRTemp) src));
             }
         }
