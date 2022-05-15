@@ -335,7 +335,7 @@ public class Compiler {
             System.out.println("dce set");
             optSettings.setDce(true); }
         if (cmd.hasOption("Ocf")) { optSettings.setCf(true); }
-        if (cmd.hasOption("Ocse")) { optSettings.setReg(true); }
+        if (cmd.hasOption("Ocse")) { optSettings.setCse(true); }
         if (!cmd.hasOption("O") &&
                 !cmd.hasOption("Oreg") &&
                 !cmd.hasOption("Ocopy") &&
