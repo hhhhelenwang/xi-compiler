@@ -235,7 +235,7 @@ public class AvailableExpressionIR extends DataFlowAnalysis<LinkedHashSet<Pair<I
         LinkedHashSet<Pair<IRExpr, IRStmt>> allExpr = new LinkedHashSet<>();
         for (CFGNode<IRStmt> node : cfg.flatten()) {
             IRStmt stmt = node.getStmt();
-//            allExpr.addAll(stmt.subExprs());
+//            stmt.subExprs().stream().forEach(expr -> allExpr.add(new Pair<>(expr, stmt)));
 
             if (stmt instanceof IRCallStmt){
                 for (IRExpr expr : ((IRCallStmt) stmt).args()){
@@ -258,6 +258,7 @@ public class AvailableExpressionIR extends DataFlowAnalysis<LinkedHashSet<Pair<I
                 }
             }
         }
+//        System.out.println(allExpr.size());
         return allExpr;
     }
 
