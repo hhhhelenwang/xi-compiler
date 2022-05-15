@@ -93,4 +93,18 @@ public class IRMove extends IRStmt {
         vars.addAll(source().vars());
         return vars;
     }
+
+    @Override
+    public HashSet<IRExpr> subExprs() {
+        HashSet<IRExpr> exprs = new HashSet<>();
+
+        if (target() instanceof IRMem){
+            exprs.addAll(target.getSubExprs());
+        }
+        if (source() instanceof IRBinOp || source() instanceof IRMem){
+            exprs.addAll(source().getSubExprs());
+        }
+
+        return exprs;
+    }
 }

@@ -20,4 +20,8 @@ public abstract class IRStmt extends IRNode_c {
      */
     public abstract HashSet<IRTemp> vars();
 
+    /**
+     * @return Set of subexpressions that occur in this statement
+     */
+    public abstract HashSet<IRExpr> subExprs();
 }

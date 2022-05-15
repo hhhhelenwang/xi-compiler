@@ -3,11 +3,9 @@ package edu.cornell.cs.cs4120.xic.ir;
 import edu.cornell.cs.cs4120.util.SExpPrinter;
 import edu.cornell.cs.cs4120.xic.ir.visit.AggregateVisitor;
 import edu.cornell.cs.cs4120.xic.ir.visit.IRVisitor;
+import polyglot.util.Pair;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 /** RETURN statement */
 public class IRReturn extends IRStmt {
@@ -89,5 +87,14 @@ public class IRReturn extends IRStmt {
             vars.addAll(expr.vars());
         }
         return vars;
+    }
+
+    @Override
+    public HashSet<IRExpr> subExprs() {
+        HashSet<IRExpr> exprs = new HashSet<>();
+        for (IRExpr ret : rets()){
+            exprs.addAll(ret.getSubExprs());
+        }
+        return exprs;
     }
 }

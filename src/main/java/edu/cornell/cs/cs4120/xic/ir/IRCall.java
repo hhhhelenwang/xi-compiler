@@ -91,4 +91,14 @@ public class IRCall extends IRExpr_c {
         System.out.println("IRCall expr in cfg");
         return new HashSet<>(); // this should not be called
     }
+
+    @Override
+    public HashSet<IRExpr> getSubExprs() {
+        HashSet<IRExpr> exprs = new HashSet<>();
+        for (IRExpr arg : args()){
+            exprs.addAll(arg.getSubExprs());
+            exprs.add(arg);
+        }
+        return exprs;
+    }
 }

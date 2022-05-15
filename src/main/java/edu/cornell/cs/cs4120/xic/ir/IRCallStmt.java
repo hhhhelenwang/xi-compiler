@@ -123,4 +123,11 @@ public class IRCallStmt extends IRStmt {
         }
         return vars;
     }
+
+    @Override
+    public HashSet<IRExpr> subExprs() {
+        HashSet<IRExpr> exprs = new HashSet<>();
+        args.stream().forEach(arg -> exprs.addAll(arg.getSubExprs()));
+        return exprs;
+    }
 }

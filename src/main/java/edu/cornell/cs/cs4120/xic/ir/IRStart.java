@@ -21,6 +21,12 @@ public class IRStart extends IRStmt{
     }
 
     @Override
+    public HashSet<IRExpr> subExprs() {
+        System.out.println("IRStart in CFG");
+        return new HashSet<>();
+    }
+
+    @Override
     public String label() {
         return "start";
     }

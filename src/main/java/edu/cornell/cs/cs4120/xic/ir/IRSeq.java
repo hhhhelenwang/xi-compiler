@@ -96,4 +96,10 @@ public class IRSeq extends IRStmt {
         System.out.println("IRSeq in cfg");
         return new HashSet<>();
     }
+
+    @Override
+    public HashSet<IRExpr> subExprs() {
+        System.out.println("IRSeq in cfg");
+        return new HashSet<>();
+    }
 }

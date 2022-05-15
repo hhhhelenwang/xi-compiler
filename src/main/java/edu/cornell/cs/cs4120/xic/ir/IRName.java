@@ -34,4 +34,9 @@ public class IRName extends IRExpr_c {
     public HashSet<IRTemp> vars() {
         return new HashSet<>();
     }
+
+    @Override
+    public HashSet<IRExpr> getSubExprs() {
+        return new HashSet<>();
+    }
 }

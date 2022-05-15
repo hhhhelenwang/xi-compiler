@@ -36,6 +36,12 @@ public class IRLower {
             System.out.println("SEPair in cfg");
             return new HashSet<>();
         }
+
+        @Override
+        public HashSet<IRExpr> getSubExprs() {
+            System.out.println("SEPair in cfg: getSubExprs");
+            return new HashSet<>();
+        }
     }
 
     /**

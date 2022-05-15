@@ -75,4 +75,11 @@ public class IRESeq extends IRExpr_c {
         return new HashSet<>();
 
     }
+
+    @Override
+    public HashSet<IRExpr> getSubExprs() {
+        //should not enter this function because perform CSE analysis on lowered IR
+        System.out.println("IRESeq in cfg");
+        return new HashSet<>();
+    }
 }
