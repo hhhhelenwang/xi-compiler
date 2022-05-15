@@ -218,7 +218,8 @@ public class RegisterAllocator {
     }
 
     private void simplify(){
-        for (AAOperand n : simplifyWorklist){
+        HashSet<AAOperand> copySimplifyWorklist = new HashSet<>(simplifyWorklist);
+        for (AAOperand n : copySimplifyWorklist){
             simplifyWorklist.remove(n);
             selectStack.push(n);
 
