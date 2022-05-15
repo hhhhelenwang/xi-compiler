@@ -573,7 +573,6 @@ public class TypeChecker extends Visitor {
         } else if (node.leftVal instanceof LeftValueList) {// d1..dn = e
             checkMultiAssign(node);
         } else if (node.leftVal instanceof VarExpr) {//x = e
-            System.out.println("get a var");
             Sigma t = this.env.findTypeofVar(((VarExpr) node.leftVal).identifier);
             if (t instanceof Var) {
                 if (node.expr.type instanceof Tau) {

@@ -238,14 +238,18 @@ public class Tiler extends IRVisitor {
         // add body's asm to fundecl's asm
         asm.addAll(concatAsm(body));
 
-        RegisterAllocator regAlloc = new RegisterAllocator(asm, tempSpiller);
-        List<AAInstruction> optAsm = regAlloc.registerAllocate();
-        node.setTile(new Tile(optAsm, new ArrayList<>()));
-        long val = tempSpiller.tempCounter * 8L;
+        long val;
 
-        // set the final tile of funcdecl with no neighbor
-//        node.setTile(new Tile(asm, new ArrayList<>()));
-//        long val = spill(node, tempSpiller) * 8L;
+        if (regAlloc) {
+            RegisterAllocator regAlloc = new RegisterAllocator(asm, tempSpiller);
+            List<AAInstruction> optAsm = regAlloc.registerAllocate();
+            node.setTile(new Tile(optAsm, new ArrayList<>()));
+            val = tempSpiller.tempCounter * 8L;
+        } else {
+            node.setTile(new Tile(asm, new ArrayList<>()));
+            val = spill(node, tempSpiller) * 8L;
+        }
+
         if (val % 16 == 0) {
             val += 8;
         }
