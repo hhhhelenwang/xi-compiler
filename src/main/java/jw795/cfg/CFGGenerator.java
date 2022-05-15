@@ -31,7 +31,7 @@ public class CFGGenerator {
         CFGNode<AAInstruction> end = new CFGNode(endInstr, "end");
 
         for (AAInstruction instruct : asmWithEnd){
-            instrToCFG.put(instruct, new CFGNode<>(instruct));
+            instrToCFG.put(instruct, new CFGNode<>(instruct, instruct.toString()));
             if (instruct instanceof AALabelInstr){
                 labels.put(((AALabelInstr)instruct).getName(), (AALabelInstr) instruct);
             }
@@ -70,7 +70,10 @@ public class CFGGenerator {
             }
         }
 
-        return new AsmCFG(start, end, instrToCFG);
+        AsmCFG cfg = new AsmCFG(start, end, instrToCFG);
+        //temporary dot format generation
+//        cfg.toDotFormat("./test/pa5/testbasicarray.xi", "./", "_Imain_paai", "asm");
+        return cfg;
     }
 
     /**

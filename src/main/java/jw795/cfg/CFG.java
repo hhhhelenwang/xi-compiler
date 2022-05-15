@@ -95,30 +95,36 @@ public abstract class CFG<T> {
           //generate the target .lexed file
           File targetDotFile = FileUtil.generateTargetFileWithFuncName(fileName, path,
                   "dot", Optional.of(graphID), Optional.of(phase));
-
+          String INDENT = "\t";
+          String NEWLINE = "\n";
           try{
               FileWriter writer = new FileWriter(targetDotFile, Charset.forName("UTF-8"));
+
               List<CFGNode<T>> nodes = flatten();
-              writer.write("digraph "+ graphID + " {");
+              writer.write("digraph "+ graphID + " {" + NEWLINE);
+              writer.write("node [shape=record];" + NEWLINE);
+
               //nodes
               for (CFGNode<T> node : nodes){
                   String nodeName = nodeName(node.getStmt().toString());
-                  writer.write(nodeName);
+                  String label = INDENT + "[label = "+ "\" "+ node.getName()  + "\"" + "]";
+                  writer.write(  INDENT + nodeName + label + NEWLINE);
               }
 
+              writer.write(NEWLINE);
               // relations
               for (CFGNode<T> node : nodes){
                   String curNodeName = nodeName(node.getStmt().toString());
                   for (CFGNode<T> successor : node.getSuccessors()){
                       String successorName = nodeName(successor.getStmt().toString());
-                      writer.write(curNodeName + " -> " + successorName + ";");
+                      writer.write(INDENT + curNodeName + " -> " + successorName + ";" + NEWLINE);
                   }
               }
               writer.write("}");
               writer.close();
           }
           catch (IOException ex){
-              System.out.println("IO Error when writing lexed file: " + ex.getMessage());
+              System.out.println("IO Error when writing file: " + ex.getMessage());
           }
     }
 
@@ -126,8 +132,17 @@ public abstract class CFG<T> {
      * Helper function to generate node name by simply removing (, ), and spaces
      * */
     private String nodeName(String stmt){
-        String name = stmt.replaceAll(" ", "_");
-        name = name.replaceAll("\\(","").replaceAll("\\)","");
+        String name = stmt.replaceAll(" ", "_")
+                .replaceAll("\\[", "")
+                .replaceAll("]", "")
+                .replaceAll("\\+", "_add_")
+                .replaceAll(",", "")
+                .replaceAll("\\.", "")
+                .replaceAll("\\(","")
+                .replaceAll("\\)","")
+                .replaceAll("\\)","")
+                .replaceAll(":","")
+                .replaceAll("\\*","_mul_");
         return name;
     }
 
