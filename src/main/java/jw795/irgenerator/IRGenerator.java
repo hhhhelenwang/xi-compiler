@@ -575,7 +575,7 @@ public class IRGenerator extends Visitor {
         LinkedList<IRStmt> lst = new LinkedList<>();
         String sL= nextLabel();
         String mL= nextLabel();
-        String eL= nextLabel();
+        String eL= loopends.peek();
         lst.add(irFactory.IRLabel(sL));
         lst.add(C(node.condition.ir, mL, eL));
         lst.add(irFactory.IRLabel(mL));
