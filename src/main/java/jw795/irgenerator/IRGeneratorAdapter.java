@@ -109,7 +109,6 @@ public class IRGeneratorAdapter {
                 }
             } catch (Exception e) {
                 System.out.println("unknown error while generating IR: "+ e.getMessage());
-                e.printStackTrace();
             }
 
             // output cfg files at different stages of optimization
@@ -127,7 +126,7 @@ public class IRGeneratorAdapter {
                     }
                     if (optSettings.optCFGFinal()) {
                         assert optimizedIR != null;
-                        funcs = optimizedIR.functions();//TODO: change this ir to the IR after all optimizations
+                        funcs = optimizedIR.functions();
                         CFGGenerator ircfg = new CFGGenerator();
                         for (IRFuncDecl func : funcs.values()){
                             CFG<IRStmt> cfg = ircfg.toIRCFG(func);
@@ -154,7 +153,6 @@ public class IRGeneratorAdapter {
                     }
 
                     if (optSettings.optIRFinal()) {
-                        //TODO: change to use optimized IR
                         File targetIrsol = generateTargetFileWithFuncName(fileName, destPath, "ir",
                             Optional.empty(), Optional.of("initial"));
                         targetWriter = new FileWriter(targetIrsol);

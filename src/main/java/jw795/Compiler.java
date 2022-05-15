@@ -32,8 +32,6 @@ public class Compiler {
 
     OptSettings optSettings = new OptSettings(); // default is all opts are OFF
 
-
-
     HashMap<String, String> funcNames;
     HashMap<String, Long> funcRetLengths;
     HashMap<String, Long> funcArgLengths;
@@ -110,7 +108,6 @@ public class Compiler {
      * Display the help page.
      */
     public void help(){
-        System.out.println(cmd);
         if (cmd.hasOption("h")){
             String syntax = "./xic [options] <source-files> ";
             String header = "Available options to use the compiler with:";

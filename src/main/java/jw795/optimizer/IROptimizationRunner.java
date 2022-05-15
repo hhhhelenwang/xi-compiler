@@ -24,8 +24,6 @@ public class IROptimizationRunner {
      * @return optimized IR program
      */
     public IRCompUnit runOptimizations() {
-        System.out.println(optSettings.copy());
-        System.out.println(optSettings.dce());
         boolean converged = false;
         while (!converged && (optSettings.copy() || optSettings.dce())) {
             boolean copyNoChange = true;
