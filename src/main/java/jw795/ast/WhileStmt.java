@@ -35,7 +35,7 @@ public class WhileStmt extends Statement {
         if(visitor instanceof IRGenerator){((IRGenerator) visitor).addlooplayer();}
         loopBody.accept(visitor);
         if(visitor instanceof TypeChecker){ ((TypeChecker) visitor).env.getoutloop();}
-        if(visitor instanceof IRGenerator){((IRGenerator) visitor).peeklooplayer();}
+        if(visitor instanceof IRGenerator){((IRGenerator) visitor).minuslooplayer();}
         visitor.leaveScope();
         visitor.visitWhileStmt(this);
 

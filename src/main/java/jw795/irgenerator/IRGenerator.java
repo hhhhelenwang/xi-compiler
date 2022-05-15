@@ -23,6 +23,7 @@ public class IRGenerator extends Visitor {
     HashMap<String, Long> funcRetLengths;
     HashMap<String, ArrayList<String>> recordfields;
     Stack<String> loopends;
+    HashMap<String,String> variables;
 
     int stringCounter;
     int labelCounter;
@@ -38,6 +39,7 @@ public class IRGenerator extends Visitor {
         this.labelCounter = 1;
         this.tempCounter = 1;
         this.loopends = new Stack<>();
+        this.variables = new HashMap<>();
     }
 
     @Override
@@ -52,9 +54,6 @@ public class IRGenerator extends Visitor {
 
     public void addlooplayer(){
         this.loopends.add(nextLabel());
-    }
-    public String peeklooplayer(){
-        return this.loopends.peek();
     }
     public void minuslooplayer(){
         this.loopends.pop();
@@ -408,7 +407,8 @@ public class IRGenerator extends Visitor {
      */
     @Override
     public void visitDot(Dot node) throws Exception {
-        ArrayList<String> theoffset = recordfields.get(node.recordname);
+        String typename = variables.get(node.recordname);
+        ArrayList<String> theoffset = recordfields.get(typename);
         int indx = theoffset.indexOf(node.fieldname);
         if(indx>0){
             node.ir = irFactory.IRMem(
@@ -698,7 +698,10 @@ public class IRGenerator extends Visitor {
                     irFactory.IRTemp(node.identifier)
             );
         } else {
-             node.ir = irFactory.IRTemp(node.identifier);
+            if(node.varType instanceof RecordType){
+                variables.put(node.identifier, ((RecordType) node.varType).name);
+            }
+            node.ir = irFactory.IRTemp(node.identifier);
         }
     }
 
@@ -839,6 +842,10 @@ public class IRGenerator extends Visitor {
     @Override
     public void visitFunProcArgs(FunProcArgs funProcArgs) {
         //do nothing, we only print function name, but not args
+        //since there is record, add variable and type
+        if(funProcArgs.argType instanceof RecordType){
+            variables.put(funProcArgs.identifier,((RecordType) funProcArgs.argType).name);
+        }
     }
 
     @Override

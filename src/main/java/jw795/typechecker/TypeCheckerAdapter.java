@@ -39,7 +39,6 @@ public class TypeCheckerAdapter {
         this.genFile = gen;
         this.visitor = new TypeChecker();
         this.ending = ending;
-        System.out.println("the ending is" + this.ending);
     }
 
     /**

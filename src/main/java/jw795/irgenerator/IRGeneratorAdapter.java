@@ -14,10 +14,7 @@ import jw795.optimizer.IROptimizationRunner;
 import jw795.typechecker.*;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static jw795.util.FileUtil.generateTargetFile;
 import static jw795.util.FileUtil.generateTargetFileWithFuncName;
@@ -109,6 +106,7 @@ public class IRGeneratorAdapter {
                 }
             } catch (Exception e) {
                 System.out.println("unknown error while generating IR: "+ e.getMessage());
+                System.out.println(Arrays.toString(e.getStackTrace()));
             }
 
             // output cfg files at different stages of optimization
@@ -164,6 +162,7 @@ public class IRGeneratorAdapter {
                 }
             }catch (Exception e) {
                 System.out.println("unknown error while generating OptIRFile : "+ e.getMessage());
+                System.out.println(e.getStackTrace());
             }
 
             return optimizedIR;
