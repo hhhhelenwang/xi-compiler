@@ -10,6 +10,8 @@ import jw795.cfg.CFGGenerator;
 import jw795.cfg.CFGNode;
 import jw795.dfa.LiveVariableAnalysis;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 
 public class RegisterAllocator {
@@ -39,11 +41,13 @@ public class RegisterAllocator {
     HashMap<AAOperand, HashSet<AAMove>> moveList;
     HashMap<AAOperand, AAOperand> alias;
 
-    HashMap<AAOperand, NodeColor> color;
+    public HashMap<AAOperand, NodeColor> color;
 
     TempSpiller tmpsp;
 
-    int K = 14; //number of usable registers
+    int iteration = 0;
+
+    int K = NodeColor.values().length; //number of usable registers
 
     public RegisterAllocator(List<AAInstruction> instructionList, TempSpiller tempSpiller) {
         this.instructionList = instructionList;
@@ -71,19 +75,25 @@ public class RegisterAllocator {
         this.tmpsp = tempSpiller;
     }
 
-    public List<AAInstruction> registerAllocate() {
+    public void registerAllocate() {
+        System.out.println("new iteration");
+//        System.out.println(instructionList);
         livenessAnalysis();
-        for (HashSet<AAOperand> in : liveVar.values()) {
-            for (AAOperand o : in) {
+//        System.out.println("live var values: " + liveVar.values());
+        for (AAInstruction ins : instructionList) {
+            for (AAOperand o : union(ins.use(), ins.def())) {
                 if (o instanceof AATemp) {
                     initial.add(o);
                 }
-                if (o instanceof AAReg) {
+                if (o instanceof AAReg && ((AAReg) o).toColor() != null) {
                     precolored.add(o);
                     color.put(o, ((AAReg) o).toColor());
                 }
+                degree.put(o, 0L);
+                adjList.put(o, new HashSet<>());
             }
         }
+//        System.out.println("initial: " + initial);
         build();
         makeWorklist();
         while (!(simplifyWorklist.isEmpty() && worklistMoves.isEmpty() && freezeWorklist.isEmpty() && spillWorklist.isEmpty())) {
@@ -94,11 +104,23 @@ public class RegisterAllocator {
         }
         assignColors();
         if (!spilledNodes.isEmpty()) {
+            System.out.println(spilledNodes);
             rewriteProgram();
+//            if (iteration < 3) {
+//                try {
+//                    FileWriter fw = new FileWriter("iteration" + iteration + ".txt");
+//                    for (AAInstruction ins : instructionList) {
+//                        fw.write(ins.toString() + '\n');
+//                    }
+//                    fw.flush();
+//                } catch (Exception e) {
+//                    System.out.println("fw failed");
+//                }
+//                iteration++;
+//                registerAllocate();
+//            }
             registerAllocate();
         }
-        allocateAndRemove();
-        return instructionList;
     }
 
     public void livenessAnalysis() {
@@ -106,6 +128,7 @@ public class RegisterAllocator {
         cfg = cfgGenerator.toAsmCFG(instructionList);
         LiveVariableAnalysis liveVariableAnalysis = new LiveVariableAnalysis(cfg);
         liveVar = liveVariableAnalysis.backward();
+
     }
 
     public void build() {
@@ -115,7 +138,7 @@ public class RegisterAllocator {
             for (CFGNode<AAInstruction> suc : node.getSuccessors()) {
                 live.addAll(liveVar.get(suc));
             }
-            if (ins instanceof AAMove) {
+            if (isMoveInstruction(ins)) {
                 live.removeAll(ins.use());
                 HashSet<AAOperand> mentioned = new HashSet<>();
                 mentioned.addAll(ins.def());
@@ -136,27 +159,16 @@ public class RegisterAllocator {
         }
     }
 
-
-    /**
-     * Helper method to get all AAReg or AATemp operands in an AAInstruction
-     * @param instr to get operands from
-     * @return a set of AAReg and AATemp used in given instr
-     * */
-    private Set<AAOperand> getAllRegsOrTemps(AAInstruction instr){
-        HashSet<AAOperand> allOps = new HashSet<>();
-
-        if (instr.operand1.isPresent() &&
-                (instr.operand1.get() instanceof AATemp || instr.operand1.get() instanceof AAReg)){
-            allOps.add(instr.operand1.get());
+    private boolean isMoveInstruction(AAInstruction ins) {
+        if (ins instanceof AAMove) {
+            AAOperand o1 = ins.operand1.get();
+            AAOperand o2 = ins.operand2.get();
+            return ((o1 instanceof AATemp) || ((o1 instanceof AAReg) && (((AAReg) o1).toColor() != null))) &&
+                    ((o2 instanceof AATemp) || ((o2 instanceof AAReg) && (((AAReg) o2).toColor() != null)));
+        } else {
+            return false;
         }
-        if (instr.operand2.isPresent() &&
-                (instr.operand2.get() instanceof AATemp || instr.operand2.get() instanceof AAReg)){
-            allOps.add(instr.operand2.get());
-        }
-
-        return allOps;
     }
-
 
     private void addEdge(AAOperand u, AAOperand v){
         GraphEdge uvEdge = new GraphEdge(u, v);
@@ -207,7 +219,7 @@ public class RegisterAllocator {
     private HashSet<AAMove> nodeMoves(AAOperand n) {
         HashSet<AAMove> activeM = new HashSet<>(activeMoves);
         activeM.addAll(worklistMoves);
-        HashSet<AAMove> moveLst = new HashSet<>(moveList.get(n));
+        HashSet<AAMove> moveLst = new HashSet<>(moveList.getOrDefault(n, new HashSet<>()));
         moveLst.removeAll(activeM);
         return moveLst;
     }
@@ -311,8 +323,6 @@ public class RegisterAllocator {
         } else {
             activeMoves.add(m);
         }
-
-
     }
 
     private void combine(AAOperand u, AAOperand v){
@@ -388,7 +398,6 @@ public class RegisterAllocator {
     public void assignColors() {
         while(!selectStack.isEmpty()){
             AAOperand n = selectStack.pop();
-            //TODO: be careful of what colors are ok, now assuming no node was precolored
             Set<NodeColor> okColors = new HashSet<>(EnumSet.allOf(NodeColor.class));
 
             for (AAOperand w : adjList.get(n)){
@@ -428,7 +437,6 @@ public class RegisterAllocator {
                     mem.setImmediate(offset);
                     AATemp newTemp = tmpsp.newTemp();
                     newTemps.add(newTemp);
-                    a.reseta1(newTemp);
                     if (a.use().contains(a1)) {
                         instructionList.add(i, new AAMove(newTemp, mem));
                         i++;
@@ -437,6 +445,7 @@ public class RegisterAllocator {
                         i++;
                         instructionList.add(i, new AAMove(mem, newTemp));
                     }
+                    a.reseta1(newTemp);
                 }
             }
             if (a.operand2.isPresent()) {
@@ -449,7 +458,6 @@ public class RegisterAllocator {
                     mem.setImmediate(offset);
                     AATemp newTemp = tmpsp.newTemp();
                     newTemps.add(newTemp);
-                    a.reseta1(newTemp);
                     if (a.use().contains(a2)) {
                         instructionList.add(i, new AAMove(newTemp, mem));
                         i++;
@@ -458,6 +466,7 @@ public class RegisterAllocator {
                         i++;
                         instructionList.add(i, new AAMove(mem, newTemp));
                     }
+                    a.reseta2(newTemp);
                 }
             }
         }
@@ -467,7 +476,13 @@ public class RegisterAllocator {
         coalescedNodes = new HashSet<>();
     }
 
-    private void allocateAndRemove() {
+    public List<AAInstruction> allocateAndRemove() {
+//        System.out.println(color);
+//        System.out.println("spilled: " + spilledNodes);
+//        System.out.println("colored: " + coloredNodes);
+//        System.out.println("coalesced: " + coalescedNodes);
+//        System.out.println("selectStack: " + selectStack);
+//        System.out.println("initial: " + initial);
         List<AAInstruction> remove = new ArrayList<>();
         for (AAInstruction a : instructionList) {
             AAOperand a1;
@@ -492,6 +507,7 @@ public class RegisterAllocator {
             }
         }
         instructionList.removeAll(remove);
+        return instructionList;
     }
 
     /**

@@ -33,8 +33,6 @@ public class AAReg extends AAOperand{
                 return NodeColor.rcx;
             case "rdx":
                 return NodeColor.rdx;
-            case "rsi":
-                return NodeColor.rsi;
             case "rdi":
                 return NodeColor.rdi;
             case "r8":

@@ -1,5 +1,7 @@
 package jw795.assembly;
 
+import jw795.asmgenerator.Tiler;
+
 import java.util.HashSet;
 import java.util.Optional;
 
@@ -50,6 +52,11 @@ public abstract class AAInstruction {
                 defSet.add(opr);
             }
         }
+        defSet.remove(Tiler.rsp);
+        defSet.remove(Tiler.rbp);
+        defSet.remove(Tiler.rip);
+        defSet.remove(Tiler.rsi);
+        defSet.remove(Tiler.sil);
         return defSet;
     }
 
@@ -67,6 +74,13 @@ public abstract class AAInstruction {
             ((AAMem) expr).base.ifPresent(result::add);
             ((AAMem) expr).base.ifPresent(result::add);
         }
+
+        result.remove(Tiler.rsp);
+        result.remove(Tiler.rbp);
+        result.remove(Tiler.rip);
+        result.remove(Tiler.rsi);
+        result.remove(Tiler.sil);
+
         return result;
     }
 

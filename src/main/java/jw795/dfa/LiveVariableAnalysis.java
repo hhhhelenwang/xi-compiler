@@ -58,15 +58,7 @@ public class LiveVariableAnalysis extends DataFlowAnalysis<HashSet<AAOperand>, A
     @Override
     public HashSet<AAOperand> gen(CFGNode<AAInstruction> node, HashSet<AAOperand> l) {
         AAInstruction ins = node.getStmt();
-        HashSet<AAOperand> result = ins.use();
-        result.remove(Tiler.rsp);
-        result.remove(Tiler.rbp);
-        result.remove(Tiler.rip);
-        if (result.contains(Tiler.sil)) {
-            result.remove(Tiler.sil);
-            result.add(Tiler.rsi);
-        }
-        return result;
+        return ins.use();
     }
 
     /**
@@ -78,14 +70,6 @@ public class LiveVariableAnalysis extends DataFlowAnalysis<HashSet<AAOperand>, A
     @Override
     public HashSet<AAOperand> kill(CFGNode<AAInstruction> node, HashSet<AAOperand> l) {
         AAInstruction ins = node.getStmt();
-        HashSet<AAOperand> result = ins.def();
-        result.remove(Tiler.rsp);
-        result.remove(Tiler.rbp);
-        result.remove(Tiler.rip);
-        if (result.contains(Tiler.sil)) {
-            result.remove(Tiler.sil);
-            result.add(Tiler.rsi);
-        }
-        return result;
+        return ins.def();
     }
 }

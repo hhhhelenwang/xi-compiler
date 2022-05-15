@@ -242,7 +242,8 @@ public class Tiler extends IRVisitor {
 
         if (regAlloc) {
             RegisterAllocator regAlloc = new RegisterAllocator(asm, tempSpiller);
-            List<AAInstruction> optAsm = regAlloc.registerAllocate();
+            regAlloc.registerAllocate();
+            List<AAInstruction> optAsm = regAlloc.allocateAndRemove();
             node.setTile(new Tile(optAsm, new ArrayList<>()));
             val = tempSpiller.tempCounter * 8L;
         } else {
