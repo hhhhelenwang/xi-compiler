@@ -90,6 +90,8 @@ public class Compiler {
                 "Turn on register allocation optimization");
         options.addOption("Ocopy", "Ocopyprop", false,
                 "Turn on copy propagation optimization");
+        options.addOption("Odce", "Odeadcode", false,
+                "Turn on dead code elimination optimization");
         options.addOption("Ocf", "Oconstfold", false,
                 "Turn on constant folding optimization");
         options.addOption("Ocse", "Ocommomsubexpr", false,
@@ -329,7 +331,9 @@ public class Compiler {
         // if nothing is specified then everything is on
         if (cmd.hasOption("Oreg")) { optSettings.setReg(true); }
         if (cmd.hasOption("Ocopy")) { optSettings.setCopy(true); }
-        if (cmd.hasOption("Odce")) { optSettings.setDce(true); }
+        if (cmd.hasOption("Odce")) {
+            System.out.println("dce set");
+            optSettings.setDce(true); }
         if (cmd.hasOption("Ocf")) { optSettings.setCf(true); }
         if (cmd.hasOption("Ocse")) { optSettings.setReg(true); }
         if (!cmd.hasOption("O") &&

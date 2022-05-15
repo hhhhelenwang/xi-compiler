@@ -109,6 +109,7 @@ public class IRGeneratorAdapter {
                 }
             } catch (Exception e) {
                 System.out.println("unknown error while generating IR: "+ e.getMessage());
+                e.printStackTrace();
             }
 
             // output cfg files at different stages of optimization
