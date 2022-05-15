@@ -86,7 +86,8 @@ public class CFGGenerator {
         HashMap<IRStmt, CFGNode<IRStmt>> irToNode = new HashMap<>();
 
         if (body instanceof IRSeq){
-            List<IRStmt> stmts = ((IRSeq) body).stmts();
+            List<IRStmt> stmts = new ArrayList<>();
+            stmts.addAll(((IRSeq)body).stmts());
             stmts.add(endStmt);
 
             // a map storing all IRStmt to CFGNode

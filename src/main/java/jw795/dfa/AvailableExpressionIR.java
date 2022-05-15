@@ -62,16 +62,16 @@ public class AvailableExpressionIR extends DataFlowAnalysis<LinkedHashSet<IRExpr
     public LinkedHashSet<IRExpr> gen(CFGNode<IRStmt> node, LinkedHashSet<IRExpr> l) {
         LinkedHashSet<IRExpr> genSet = new LinkedHashSet<>();
         IRStmt stmt = node.getStmt();
-
-        if (stmt instanceof IRMove){
-            IRExpr dest = ((IRMove) stmt).target();
-            IRExpr src = ((IRMove) stmt).source();
-
-            genSet.addAll(dest.getSubExprs());
-            genSet.addAll(src.getSubExprs());
-        } else if (stmt instanceof IRCJump){
-            genSet.addAll(((IRCJump) stmt).cond().getSubExprs());
-        }
+//
+//        if (stmt instanceof IRMove){
+//            IRExpr dest = ((IRMove) stmt).target();
+//            IRExpr src = ((IRMove) stmt).source();
+//
+//            genSet.addAll(dest.getSubExprs());
+//            genSet.addAll(src.getSubExprs());
+//        } else if (stmt instanceof IRCJump){
+//            genSet.addAll(((IRCJump) stmt).cond().getSubExprs());
+//        }
         return genSet;
     }
 
@@ -91,23 +91,23 @@ public class AvailableExpressionIR extends DataFlowAnalysis<LinkedHashSet<IRExpr
         LinkedHashSet<IRExpr> killSet = new LinkedHashSet<>();
         IRStmt stmt = node.getStmt();
 
-        if (stmt instanceof IRMove){
-            IRExpr dest = ((IRMove) stmt).target();
-            IRExpr src = ((IRMove) stmt).source();
-
-            killSet.addAll(dest.getSubExprs());
-
-            if (dest instanceof IRMem){
-                killSet.addAll(aliasExpr((IRMem) dest, l));
-            } else if (dest instanceof IRTemp){
-                killSet.addAll(exprsWithX((IRTemp) dest, l));
-            }
-
-            if (src instanceof IRCall){
-                killSet.addAll(dest.getSubExprs());
-                killSet.addAll(modifiedExpr(src, l));
-            }
-        }
+//        if (stmt instanceof IRMove){
+//            IRExpr dest = ((IRMove) stmt).target();
+//            IRExpr src = ((IRMove) stmt).source();
+//
+//            killSet.addAll(dest.getSubExprs());
+//
+//            if (dest instanceof IRMem){
+//                killSet.addAll(aliasExpr((IRMem) dest, l));
+//            } else if (dest instanceof IRTemp){
+//                killSet.addAll(exprsWithX((IRTemp) dest, l));
+//            }
+//
+//            if (src instanceof IRCall){
+//                killSet.addAll(dest.getSubExprs());
+//                killSet.addAll(modifiedExpr(src, l));
+//            }
+//        }
 
         return killSet;
     }
@@ -144,13 +144,13 @@ public class AvailableExpressionIR extends DataFlowAnalysis<LinkedHashSet<IRExpr
     private LinkedHashSet<IRExpr> aliasExpr(IRMem e, LinkedHashSet<IRExpr> l){
         LinkedHashSet<IRExpr> alias = new LinkedHashSet<>();
 
-        for (IRExpr expr : l){
-            for (IRExpr subExpr : expr.getSubExprs()){
-                if (subExpr instanceof IRMem){
-                    alias.add(subExpr);
-                }
-            }
-        }
+//        for (IRExpr expr : l){
+//            for (IRExpr subExpr : expr.getSubExprs()){
+//                if (subExpr instanceof IRMem){
+//                    alias.add(subExpr);
+//                }
+//            }
+//        }
 
         return alias;
     }
@@ -165,13 +165,13 @@ public class AvailableExpressionIR extends DataFlowAnalysis<LinkedHashSet<IRExpr
     private LinkedHashSet<IRExpr> modifiedExpr(IRExpr e, LinkedHashSet<IRExpr> l) {
         LinkedHashSet<IRExpr> modified = new LinkedHashSet<>();
 
-        for (IRExpr expr : l){
-            for (IRExpr subExpr : expr.getSubExprs()){
-                if (subExpr instanceof IRMem){
-                    modified.add(subExpr);
-                }
-            }
-        }
+//        for (IRExpr expr : l){
+//            for (IRExpr subExpr : expr.getSubExprs()){
+//                if (subExpr instanceof IRMem){
+//                    modified.add(subExpr);
+//                }
+//            }
+//        }
         return modified;
     }
 
@@ -182,21 +182,21 @@ public class AvailableExpressionIR extends DataFlowAnalysis<LinkedHashSet<IRExpr
          */
     private LinkedHashSet<IRExpr> computeTop() {
         LinkedHashSet<IRExpr> allExpr = new LinkedHashSet<>();
-        for (CFGNode<IRStmt> node : cfg.flatten()) {
-            IRStmt stmt = node.getStmt();
-
-            if (stmt instanceof IRCallStmt){
-                for (IRExpr expr : ((IRCallStmt) stmt).args()){
-                    allExpr.addAll(expr.getSubExprs());
-                }
-            } else if (stmt instanceof IRCJump){
-                allExpr.addAll(((IRCJump) stmt).cond().getSubExprs());
-            } else if (stmt instanceof IRReturn){
-                for (IRExpr ret : ((IRReturn) stmt).rets()){
-                    allExpr.addAll(ret.getSubExprs());
-                }
-            }
-        }
+//        for (CFGNode<IRStmt> node : cfg.flatten()) {
+//            IRStmt stmt = node.getStmt();
+//
+//            if (stmt instanceof IRCallStmt){
+//                for (IRExpr expr : ((IRCallStmt) stmt).args()){
+//                    allExpr.addAll(expr.getSubExprs());
+//                }
+//            } else if (stmt instanceof IRCJump){
+//                allExpr.addAll(((IRCJump) stmt).cond().getSubExprs());
+//            } else if (stmt instanceof IRReturn){
+//                for (IRExpr ret : ((IRReturn) stmt).rets()){
+//                    allExpr.addAll(ret.getSubExprs());
+//                }
+//            }
+//        }
         return allExpr;
     }
 

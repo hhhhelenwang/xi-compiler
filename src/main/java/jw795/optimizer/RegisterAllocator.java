@@ -185,7 +185,8 @@ public class RegisterAllocator {
     }
 
     private void makeWorklist() {
-        for (AAOperand n : initial){
+        HashSet<AAOperand> initialCopy = new HashSet<>(initial);
+        for (AAOperand n : initialCopy){
             initial.remove(n);
             if (degree.get(n) >= K){
                 spillWorklist.add(n);
