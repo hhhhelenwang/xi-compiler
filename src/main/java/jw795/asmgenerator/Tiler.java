@@ -4,7 +4,6 @@ import edu.cornell.cs.cs4120.xic.ir.*;
 import edu.cornell.cs.cs4120.xic.ir.visit.IRVisitor;
 import jw795.assembly.*;
 import jw795.optimizer.RegisterAllocator;
-import jw795.typechecker.T;
 
 import java.util.*;
 
@@ -43,7 +42,15 @@ public class Tiler extends IRVisitor {
 
     AADynamic spillAndAlign;
 
-    public Tiler(IRNodeFactory inf, TempSpiller tsp, HashMap<String, Long> funcArg, HashMap<String, Long> funcRet, HashMap<String, String> names) {
+    boolean regAlloc;
+
+    public Tiler(IRNodeFactory inf,
+                 TempSpiller tsp,
+                 HashMap<String, Long> funcArg,
+                 HashMap<String, Long> funcRet,
+                 HashMap<String, String> names,
+                 boolean regAlloc) {
+
         super(inf);
         tempSpiller = tsp;
         for (int i = 0; i < 6; i++) {
@@ -65,6 +72,7 @@ public class Tiler extends IRVisitor {
         funcRetLengths.put("_Iassert_pb", 0L);
 
         spillAndAlign = new AADynamic();
+        this.regAlloc = regAlloc;
     }
 
     /**

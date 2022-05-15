@@ -1,14 +1,19 @@
 package jw795;
 
 /**
- * A record class of the optimization settings.
+ * A record class of the optimization settings. Default is that everything is on.
  */
 public class OptSettings {
     boolean reg = false;
     boolean copy = false;
     boolean dce = false;
-    boolean lu = false;
+    boolean cse = false;
     boolean cf = false;
+
+    boolean optIRInit = false;
+    boolean optIRFinal = false;
+    boolean optCFGInit = false;
+    boolean optCFGFinal = false;
 
     public void setReg(boolean ifOn) {
         reg = ifOn;
@@ -22,8 +27,8 @@ public class OptSettings {
         dce = ifOn;
     }
 
-    public void setLu(boolean ifOn) {
-        lu = ifOn;
+    public void setCse(boolean ifOn) {
+        cse = ifOn;
     }
 
     public void setCf(boolean ifOn) {
@@ -35,20 +40,51 @@ public class OptSettings {
     }
 
     public boolean copy() {
-        return reg;
+        return copy;
     }
 
     public boolean dce() {
-        return reg;
+        return dce;
     }
 
-    public boolean lu() {
-        return reg;
+    public boolean cse() {
+        return cse;
     }
 
     public boolean cf() {
-        return reg;
+        return cf;
     }
 
+    public void setOptIRInit(boolean ifOn) {
+        optIRInit = ifOn;
+    }
+
+    public void setOptIRFinal(boolean optIRFinal) {
+        this.optIRFinal = optIRFinal;
+    }
+
+    public void setOptCFGInit(boolean optCFGInit) {
+        this.optCFGInit = optCFGInit;
+    }
+
+    public void setOptCFGFinal(boolean optCFGFinal) {
+        this.optCFGFinal = optCFGFinal;
+    }
+
+    public boolean optIRInit() {
+        return optIRInit;
+    }
+
+    public boolean optIRFinal() {
+        return optIRFinal;
+    }
+
+    public boolean optCFGInit() {
+        return optCFGInit;
+    }
+
+    public boolean optCFGFinal() {
+        return optCFGFinal;
+    }
 
 }

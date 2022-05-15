@@ -3,6 +3,7 @@ package jw795.asmgenerator;
 import edu.cornell.cs.cs4120.xic.ir.IRCompUnit;
 import edu.cornell.cs.cs4120.xic.ir.IRNode;
 import edu.cornell.cs.cs4120.xic.ir.IRNodeFactory_c;
+import jw795.OptSettings;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -17,21 +18,21 @@ public class AssemblyGeneratorAdapter {
     String fileName; // already contains source dir + file name
     IRCompUnit sourceIR; // ir of the source file
     String destPathAsm;
-    boolean optimize;
     FileWriter asmWriter;
+    OptSettings optSettings;
 
     HashMap<String, String> funcNames;
 
     HashMap<String, Long> funcArgLengths;
     HashMap<String, Long> funcRetLengths;
 
-    public AssemblyGeneratorAdapter(String file, IRCompUnit ir, String dest, boolean opt,
+    public AssemblyGeneratorAdapter(String file, IRCompUnit ir, String dest, OptSettings optSettings,
                                     HashMap<String, Long> funArg,
                                     HashMap<String, Long> funRet, HashMap<String, String> names) {
         fileName = file;
         sourceIR = ir;
         destPathAsm = dest;
-        optimize = opt;
+        this.optSettings = optSettings;
         try {
             File targetAsmSol = generateTargetFile(fileName, destPathAsm, "s");
             asmWriter = new FileWriter(targetAsmSol);
@@ -47,8 +48,12 @@ public class AssemblyGeneratorAdapter {
      * Generate assembly for file.
      */
     public void generateAssembly() {
-//        System.out.println("ASM generated");
-        Tiler asmvisit = new Tiler(new IRNodeFactory_c(),new TempSpiller(), funcArgLengths, funcRetLengths, funcNames);
+        Tiler asmvisit = new Tiler(new IRNodeFactory_c(),
+                new TempSpiller(),
+                funcArgLengths,
+                funcRetLengths,
+                funcNames,
+                optSettings.reg());
 
         //after visiting, it should be still IRCompunit
         IRCompUnit visited = (IRCompUnit) asmvisit.visit(sourceIR);

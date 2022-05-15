@@ -51,8 +51,11 @@ public class Compiler {
      */
     public void init_cli(String[] args) throws ParseException {
         options = new Options();
+
         options.addOption("h", "help", false,
                 "display the help page");
+
+        // compiler stages
         options.addOption("lex", "lex", false,
                 "perform lexical analysis on the input file");
         options.addOption("parse", "parse", false,
@@ -64,14 +67,7 @@ public class Compiler {
         options.addOption("irrun", "irrun", false,
                 "generate and interpret intermediate code");
 
-        options.addOption("optir", "optir", true,
-                        "Report the intermediate code at the specified phase of optimization");
-        options.addOption("optcfg", "optcfg", true,
-                "Report the control-flow graph at the specified phase of optimization");
-
-        options.addOption("reportopts", "report-opts", false,
-                "Output the optimizations supported by this compiler");
-
+        // path settings
         options.addOption("sourcepath", "sourcepath", true,
                 "specify where to find input source files");
         options.addOption("libpath", "libpath", true,
@@ -81,10 +77,27 @@ public class Compiler {
         options.addOption("d", "d", true,
                 "Specify where to place generated assembly output files");
 
+        // optimization - progress files
+        options.addOption("optir", "optir", true,
+                "Report the intermediate code at the specified phase of optimization");
+        options.addOption("optcfg", "optcfg", true,
+                "Report the control-flow graph at the specified phase of optimization");
+        options.addOption("reportopts", "report-opts", false,
+                "Output the optimizations supported by this compiler");
 
+        // optimization flags
         options.addOption("O", "O", false,
-                "Disable optimization for generating IR");
+                "Disable all optimization");
+        options.addOption("Oreg", "Oregalloc", false,
+                "Turn on register allocation optimization");
+        options.addOption("Ocopy", "Ocopyprop", false,
+                "Turn on copy propagation optimization");
+        options.addOption("Ocf", "Oconstfold", false,
+                "Turn on constant folding optimization");
+        options.addOption("Ocse", "Ocommomsubexpr", false,
+                "Turn on common subexpression elimination.");
 
+        // target OS
         options.addOption("target", "target", true,
                 "Specify the operating system for which to generate code");
 
@@ -97,6 +110,7 @@ public class Compiler {
      * Display the help page.
      */
     public void help(){
+        System.out.println(cmd);
         if (cmd.hasOption("h")){
             String syntax = "./xic [options] <source-files> ";
             String header = "Available options to use the compiler with:";
@@ -230,31 +244,8 @@ public class Compiler {
         boolean generateOptIRFile = cmd.hasOption("optir");
         boolean generateCFGFile = cmd.hasOption("optcfg");
 
-        List<String> phases = new ArrayList<>();
-        if (generateOptIRFile){
-            phases = Arrays.asList(cmd.getOptionValues("optir"));
-        } else if (generateCFGFile) {
-            phases = Arrays.asList(cmd.getOptionValues("optcfg"));
-        }
-
-        // TODO: combine the boolean "optimize" and list "optType" into a record class that contains a bunch of flags.
-        //  See class OptSettings
-        boolean optimize = !cmd.hasOption("O");
-        List<String> optTypes = new ArrayList<>();
-        // TODO: double check adding --o flag is optimizze or not optimize
-        if (cmd.hasOption("O") && cmd.getOptionValues("O").length != 0){
-            if ((cmd.getOptionValue("O").equals("reg")
-                    || cmd.getOptionValue("O").equals("copy")
-                    || cmd.getOptionValue("O").equals("dce")
-                    || cmd.getOptionValue("O").equals("lu"))){
-                optTypes = Arrays.asList(cmd.getOptionValues("O"));
-            } else {
-                System.out.println(cmd.getOptionValue("O") + " optimization is not supported");
-            }
-        }
         IRGeneratorAdapter irGeneratorAdapter = new IRGeneratorAdapter(
-                fileName, this.destPath, this.libPath, optimize, generateIRFile,
-            generateOptIRFile, phases, generateCFGFile, optTypes);
+                fileName, this.destPath, this.libPath, generateIRFile, optSettings);
 
         IRCompUnit sourceIR = irGeneratorAdapter.generateIR();
         funcNames = irGeneratorAdapter.getFuncNames();
@@ -301,7 +292,7 @@ public class Compiler {
         IRCompUnit ir = generateIRorCFGForFile(filename);
         if (ir != null) {
             AssemblyGeneratorAdapter asmAdapter = new AssemblyGeneratorAdapter(
-                    filename, ir, destPathAsm, !cmd.hasOption("O"), funcArgLengths, funcRetLengths, funcNames);
+                    filename, ir, destPathAsm, optSettings, funcArgLengths, funcRetLengths, funcNames);
             asmAdapter.generateAssembly();
         }
 
@@ -330,9 +321,50 @@ public class Compiler {
             System.out.println("-reg: Register Allocation");
             System.out.println("-copy: Copy Propagation");
             System.out.println("-dce: Dead Code Elimination");
-            System.out.println("-lu: Loop Unrolling");
+            System.out.println("-cse: Common Subexpression Elimination");
         }
     }
+
+    /**
+     * Set the optimization settings.
+     */
+    public void setOptimizationSettings() {
+        // if nothing is specified then everything is on
+        if (cmd.hasOption("Oreg")) { optSettings.setReg(true); }
+        if (cmd.hasOption("Ocopy")) { optSettings.setCopy(true); }
+        if (cmd.hasOption("Odce")) { optSettings.setDce(true); }
+        if (cmd.hasOption("Ocf")) { optSettings.setCf(true); }
+        if (cmd.hasOption("Ocse")) { optSettings.setReg(true); }
+        if (!cmd.hasOption("O")) {
+            optSettings.setReg(true);
+            optSettings.setCopy(true);
+            optSettings.setDce(true);
+            optSettings.setCf(true);
+            optSettings.setReg(true);
+        }
+
+        if (cmd.hasOption("optir")) {
+            List<String> irPhases = Arrays.asList(cmd.getOptionValues("optir"));
+            if (irPhases.contains("initial")) {
+                optSettings.setOptIRInit(true);
+            }
+            if (irPhases.contains("final")) {
+                optSettings.setOptIRFinal(true);
+            }
+        }
+
+        if (cmd.hasOption("optcfg")) {
+            List<String> cfgPhases = Arrays.asList(cmd.getOptionValues("optcfg"));
+            if (cfgPhases.contains("initial")) {
+                optSettings.setOptCFGInit(true);
+            }
+            if (cfgPhases.contains("final")) {
+                optSettings.setOptCFGFinal(true);
+            }
+        }
+
+    }
+
 
     public static void main(String[] args) {
         Compiler compiler = new Compiler();
@@ -341,9 +373,11 @@ public class Compiler {
         } catch (ParseException e){
             System.out.println(e.getMessage());
         }
+
         compiler.help();
         compiler.printAllOpt();
         compiler.setPaths();
+        compiler.setOptimizationSettings();
         compiler.lex();
         compiler.parse();
         compiler.typeCheck();
