@@ -374,7 +374,6 @@ public class TypeChecker extends Visitor {
         if (node.name.equals("length"))  {
             checkLength(node);
         } else if(env.containsRecord(node.name)){
-            System.out.println("get a funcall");
             node.type = env.findTypeofRecord(node.name);
         }else {
             Sigma fnType = this.env.findTypeofFun(node.name);

@@ -39,6 +39,7 @@ public class TypeCheckerAdapter {
         this.genFile = gen;
         this.visitor = new TypeChecker();
         this.ending = ending;
+        System.out.println("the ending is" + this.ending);
     }
 
     /**
@@ -68,7 +69,12 @@ public class TypeCheckerAdapter {
                 for (Use use : node.uses) {
                     try {
                         if (!use.interfaceName.equals("io")) {
-                            String interfaceFileName = libPath + use.interfaceName + ending;
+                            String interfaceFileName;
+                            if(use.interfaceName.equals("conv")){
+                                interfaceFileName = libPath + use.interfaceName + ".ixi";
+                            }else{
+                                interfaceFileName = libPath + use.interfaceName + ending;
+                            }
                             curFile = interfaceFileName;
                             Reader interfaceReader = new FileReader(interfaceFileName);
                             Lexwrapper interfaceScanner = new Lexwrapper(interfaceReader, interfaceFileName);
