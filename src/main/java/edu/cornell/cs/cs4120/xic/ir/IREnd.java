@@ -22,7 +22,6 @@ public class IREnd extends IRStmt{
 
     @Override
     public HashSet<IRExpr> subExprs() {
-        System.out.println("IREnd in CFG");
         return new HashSet<>();
     }
 

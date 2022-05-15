@@ -24,7 +24,7 @@ public class AvailableExpressionIR extends DataFlowAnalysis<LinkedHashSet<Pair<I
      */
     @Override
     public LinkedHashSet<Pair<IRExpr, IRStmt>> meet(List<LinkedHashSet<Pair<IRExpr, IRStmt>>> exprSets) {
-        if (exprSets.get(0).size() == 0){
+        if (exprSets.size() ==0 || exprSets.get(0).size() == 0){
             return new LinkedHashSet<>();
         }
 
@@ -235,28 +235,28 @@ public class AvailableExpressionIR extends DataFlowAnalysis<LinkedHashSet<Pair<I
         LinkedHashSet<Pair<IRExpr, IRStmt>> allExpr = new LinkedHashSet<>();
         for (CFGNode<IRStmt> node : cfg.flatten()) {
             IRStmt stmt = node.getStmt();
-//            stmt.subExprs().stream().forEach(expr -> allExpr.add(new Pair<>(expr, stmt)));
+            stmt.subExprs().stream().forEach(expr -> allExpr.add(new Pair<>(expr, stmt)));
 
-            if (stmt instanceof IRCallStmt){
-                for (IRExpr expr : ((IRCallStmt) stmt).args()){
-                    expr.getSubExprs().stream().forEach(e -> allExpr.add(new Pair<>(e, stmt)));
-                }
-            } else if (stmt instanceof IRCJump){
-                ((IRCJump) stmt).cond().getSubExprs().stream().forEach(e -> allExpr.add(new Pair<>(e, stmt)));
-
-            } else if (stmt instanceof IRReturn){
-                for (IRExpr ret : ((IRReturn) stmt).rets()){
-                    ret.getSubExprs().stream().forEach(e -> allExpr.add(new Pair<>(e, stmt)));
-                }
-            } else if (stmt instanceof IRMove){
-                if (((IRMove) stmt).target() instanceof IRMem){
-                    ((IRMove) stmt).target().getSubExprs().stream().forEach(e -> allExpr.add(new Pair<>(e, stmt)));
-                }
-
-                if (((IRMove) stmt).source() instanceof IRBinOp || ((IRMove) stmt).source() instanceof IRMem){
-                    ((IRMove) stmt).source().getSubExprs().stream().forEach(e -> allExpr.add(new Pair<>(e, stmt)));
-                }
-            }
+//            if (stmt instanceof IRCallStmt){
+//                for (IRExpr expr : ((IRCallStmt) stmt).args()){
+//                    expr.getSubExprs().stream().forEach(e -> allExpr.add(new Pair<>(e, stmt)));
+//                }
+//            } else if (stmt instanceof IRCJump){
+//                ((IRCJump) stmt).cond().getSubExprs().stream().forEach(e -> allExpr.add(new Pair<>(e, stmt)));
+//
+//            } else if (stmt instanceof IRReturn){
+//                for (IRExpr ret : ((IRReturn) stmt).rets()){
+//                    ret.getSubExprs().stream().forEach(e -> allExpr.add(new Pair<>(e, stmt)));
+//                }
+//            } else if (stmt instanceof IRMove){
+//                if (((IRMove) stmt).target() instanceof IRMem){
+//                    ((IRMove) stmt).target().getSubExprs().stream().forEach(e -> allExpr.add(new Pair<>(e, stmt)));
+//                }
+//
+//                if (((IRMove) stmt).source() instanceof IRBinOp || ((IRMove) stmt).source() instanceof IRMem){
+//                    ((IRMove) stmt).source().getSubExprs().stream().forEach(e -> allExpr.add(new Pair<>(e, stmt)));
+//                }
+//            }
         }
 //        System.out.println(allExpr.size());
         return allExpr;
