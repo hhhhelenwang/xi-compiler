@@ -46,7 +46,7 @@ public class IROptimizationRunner {
             }
 
             boolean cseNoChange = true;
-            if (optSettings.lu()) {
+            if (optSettings.cse()) {
                 CSEEliminator cseEliminator = new CSEEliminator(program);
                 program = cseEliminator.run();
             }

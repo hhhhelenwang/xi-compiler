@@ -219,7 +219,7 @@ public class IRLower {
      * @return lowered mem expression
      */
     public SEPair lowerMem(IRMem node) {
-        SEPair lowerE = lowerExpr(node.getExpr()); // returns an SEPair
+        SEPair lowerE = lowerExpr(node.expr()); // returns an SEPair
         List<IRStmt> sideEffects = lowerE.sideEffects;
 
         return new SEPair(sideEffects, irFactory.IRMem(lowerE.value));
@@ -347,7 +347,7 @@ public class IRLower {
                 seq.add(irFactory.IRMove(destPair.value, exprPair.value));
                 return irFactory.IRSeq(seq);
             } else {
-                SEPair e1 = lowerExpr(((IRMem) node.target()).getExpr());
+                SEPair e1 = lowerExpr(((IRMem) node.target()).expr());
                 SEPair e2 = lowerExpr(node.source());
                 List<IRStmt> seq = new ArrayList<>(e1.sideEffects);
                 // new temp to store e1'
