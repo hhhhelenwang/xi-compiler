@@ -383,7 +383,6 @@ public class Compiler {
         compiler.printAllOpt();
         compiler.setPaths();
         compiler.setOptimizationSettings();
-        System.out.println(compiler.optSettings);
         compiler.lex();
         compiler.parse();
         compiler.typeCheck();
