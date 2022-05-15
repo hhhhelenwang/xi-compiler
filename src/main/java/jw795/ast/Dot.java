@@ -28,7 +28,6 @@ public class Dot extends Expr implements LValue{
 
     @Override
     public IRExpr getir() {
-        System.out.println("Not yet implemented");
-        return null;
+        return this.ir;
     }
 }
