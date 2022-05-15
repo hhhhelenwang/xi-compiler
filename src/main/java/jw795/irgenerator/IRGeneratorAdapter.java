@@ -94,6 +94,7 @@ public class IRGeneratorAdapter {
                 reorderedIR = jumpReorder.reorder(lowerIR);
 
                 // optimization!!
+                System.out.println("start running optimization");
                 IROptimizationRunner irOptimizationRunner = new IROptimizationRunner(reorderedIR, optSettings);
                 optimizedIR = irOptimizationRunner.runOptimizations();
                 // here optimizedIR will be the same as unoptimizedIR if no optimization is done

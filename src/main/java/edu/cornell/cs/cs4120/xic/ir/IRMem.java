@@ -86,7 +86,9 @@ public class IRMem extends IRExpr_c {
     public HashSet<IRExpr> getSubExprs() {
         HashSet<IRExpr> subExprs = new HashSet<>();
         subExprs.addAll(expr().getSubExprs());
-        subExprs.add(expr());
+        if (expr() instanceof IRBinOp){
+            subExprs.add(expr());
+        }
         return subExprs;
     }
 }

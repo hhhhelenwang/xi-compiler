@@ -1,6 +1,6 @@
 use io
 use conv
-main (a : int[][]) {
+main (ini : int[][]) {
     g:int = 1;
     p:int = 2;
     l:int = 3;

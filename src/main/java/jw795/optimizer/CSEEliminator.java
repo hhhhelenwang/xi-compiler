@@ -41,36 +41,57 @@ public class CSEEliminator {
         AvailableExpressionIR availableExpreIR = new AvailableExpressionIR(cfg);
         HashMap<CFGNode<IRStmt>, LinkedHashSet<Pair<IRExpr, IRStmt>>> nodeToValueMap = availableExpreIR.forward();
 
-        List<IRStmt> newBody = new ArrayList<>();
+        List<IRStmt> newBody = new ArrayList<>(); //add temp <- cse
+        List<IRStmt> semiBody = new ArrayList<>(); //modified cse to temp
         IRStmt body = func.body();
 
-        HashMap<IRExpr, IRTemp> commonExprToTemps = new HashMap<>();
+        HashMap<IRExpr, IRTemp> ceToTemps = new HashMap<>();
+        HashMap<IRTemp, IRExpr> tempsToCE = new HashMap<>();
+        HashMap<IRStmt, IRTemp> stmtToNewTemp = new HashMap<>();
 
         if (body instanceof IRSeq){
             for (IRStmt stmt : ((IRSeq) body).stmts()){
                 CFGNode<IRStmt> node = cfg.getNode(stmt);
                 LinkedHashSet<Pair<IRExpr, IRStmt>> outOfNode = nodeToValueMap.get(node);
-                HashSet<IRExpr> availableExpr = new HashSet<>();
-                outOfNode.stream().forEach(pair -> availableExpr.add(pair.part1()));
+                HashMap<IRExpr, IRStmt> availableExpr = new HashMap<>();
+                outOfNode.stream().forEach(pair -> availableExpr.put(pair.part1(), pair.part2()));
 
                 HashSet<IRExpr> subExprOfCurStmt = stmt.subExprs();
+
+                IRStmt newStmt = stmt;
+                //populate commonExpr -> Temp map
                 for (IRExpr e : subExprOfCurStmt){
 
                     //check if there is a common subexpression
-                    if (availableExpr.contains(e)){ // if there is a available subexpression
+                    if (availableExpr.keySet().contains(e)){ // if there is a available subexpression
                         IRTemp newTemp;
 
                         //check which temp to use
-                        if (commonExprToTemps.containsKey(e)){
-                            newTemp = commonExprToTemps.get(e);
+                        if (ceToTemps.containsKey(e)){
+                            newTemp = ceToTemps.get(e);
                         } else {
                             newTemp = newCSETemp();
-                            commonExprToTemps.put(e, newTemp);
+                            ceToTemps.put(e, newTemp);
+                            tempsToCE.put(newTemp, e);
+                            stmtToNewTemp.put(stmt, newTemp);
                         }
 
-                        //generate new stmt, with common sub expression replaced by temp
-                        findAndReplace(stmt, e, newTemp);
+//                        //generate new stmt, with common sub expression replaced by temp
+                        newStmt = findAndReplace(stmt, e, newTemp);
+                        break;
                     }
+                }
+                semiBody.add(newStmt);
+            }
+
+
+            for (IRStmt curStmt : semiBody){
+                if (stmtToNewTemp.keySet().contains(curStmt)){
+                    //need to update, add cseTemp <- cse
+                    IRTemp newTemp = stmtToNewTemp.get(curStmt);
+                    newBody.add(new IRMove(newTemp, tempsToCE.get(newTemp)));
+                } else {
+                    newBody.add(curStmt);
                 }
             }
         } else {
