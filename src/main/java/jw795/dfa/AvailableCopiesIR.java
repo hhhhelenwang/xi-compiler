@@ -53,8 +53,8 @@ public class AvailableCopiesIR extends DataFlowAnalysis<LinkedHashSet<Pair<IRTem
             for (LinkedHashSet<Pair<IRTemp, IRTemp>> in : input) {
                 // retainAll keeps elements in metSet that are also in the set in
                 metSet.retainAll(in);
-                return metSet;
             }
+            return metSet;
         }
         return metSet;
     }
