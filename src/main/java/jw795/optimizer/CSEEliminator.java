@@ -53,7 +53,12 @@ public class CSEEliminator {
         HashMap<String, IRTemp> cseToTemps = new HashMap<>();
         HashMap<IRTemp, IRExpr> tempToCSE = new HashMap<>();
 
+//        System.out.println(((IRSeq) body).stmts().get((((IRSeq) body).stmts()).size()-1));
         if (body instanceof IRSeq){
+
+//            System.out.println("THIS IS ALL STMTS");
+//            ((IRSeq) body).stmts().stream().forEach(stmt -> System.out.println(stmt));
+//            System.out.println("*****************************************************");
             for (IRStmt stmt : ((IRSeq) body).stmts()) {
                 CFGNode<IRStmt> node = cfg.getNode(stmt);
                 List<CFGNode<IRStmt>> preds = node.getPredecessors();
@@ -61,7 +66,14 @@ public class CSEEliminator {
 
                 preds.stream().forEach(pred -> predsOut.add(nodeToValueMap.get(pred)));
 
+//                System.out.println("====================");
+//                System.out.println(predsOut.size());
+//                System.out.println(stmt);
+//                System.out.println(nodeToValueMap.keySet().contains(stmt));
+
+
                 LinkedHashSet<Pair<IRExpr, IRStmt>> outOfNode = intersect(predsOut);
+
                 HashMap<String, IRStmt> availableExpr = new HashMap<>(); //expr, stmt to update
                 outOfNode.stream().forEach(pair -> availableExpr.put(pair.part1().toString(), pair.part2()));
 //                System.out.println("++++++++++++++++ available expressions");
@@ -73,7 +85,7 @@ public class CSEEliminator {
 //                System.out.println("++++++++++++++++ sub expressions are");
 //                subExprOfCurStmt.stream().forEach(e -> System.out.println(e));
 
-                IRStmt newStmt = stmt;
+                IRStmt newStmt;
                 for (IRExpr e : subExprOfCurStmt) {
 //                    System.out.println("the subexpression is " + e);
                     if (availableExpr.keySet().contains(e.toString())) { // if there is a available subexpression
@@ -262,8 +274,9 @@ public class CSEEliminator {
             return new LinkedHashSet<>();
         }
 
-        System.out.println("==========================");
-        System.out.println(predsOuts.size());
+//        System.out.println("==========================");
+//        System.out.println(predsOuts.size());
+//        System.out.println(predsOuts.get(0) == null);
         if (predsOuts.get(0).size() == 0){
             return new LinkedHashSet<>();
         }

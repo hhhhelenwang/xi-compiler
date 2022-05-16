@@ -107,6 +107,7 @@ public class IRGeneratorAdapter {
                 }
             } catch (Exception e) {
                 System.out.println("unknown error while generating IR: "+ e.getMessage());
+                e.printStackTrace();
                 System.out.println(Arrays.toString(e.getStackTrace()));
             }
 

@@ -14,6 +14,9 @@ public class AvailableExpressionIR extends DataFlowAnalysis<LinkedHashSet<Pair<I
 
     public AvailableExpressionIR(CFG<IRStmt> cfg){
         super(cfg);
+//        System.out.println("+++++++++++++++++++++++++++++++");
+//        cfg.flatten().stream().forEach(node -> System.out.println(node.getStmt()));
+//        System.out.println("+++++++++++++++++++++++++++++++");
         top = computeTop();
     }
 

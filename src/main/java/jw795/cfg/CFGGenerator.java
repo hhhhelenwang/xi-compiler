@@ -82,19 +82,24 @@ public class CFGGenerator {
      * @return CFG graph for given IRFuncDecl
      */
     public IRCFG toIRCFG (IRFuncDecl funcDecl){
-        IRStmt body = funcDecl.body();
-        CFGNode<IRStmt> start = new CFGNode(new IRStart(), "start");
-        IRStmt endStmt = new IREnd();
-        CFGNode<IRStmt> end = new CFGNode(endStmt, "end");
         HashMap<IRStmt, CFGNode<IRStmt>> irToNode = new HashMap<>();
+        // a map storing all IRStmt to CFGNode
+        HashMap<String, IRLabel> labels = new HashMap<>();
 
+        IRStart startStmt = new IRStart();
+        IREnd endStmt = new IREnd();
+
+        CFGNode<IRStmt> start = new CFGNode(startStmt, "start");
+        CFGNode<IRStmt> end = new CFGNode(endStmt, "end");
+
+        irToNode.put(startStmt, start);
+        irToNode.put(endStmt, end);
+
+        IRStmt body = funcDecl.body();
         if (body instanceof IRSeq){
-            List<IRStmt> stmts = new ArrayList<>();
-            stmts.addAll(((IRSeq)body).stmts());
+            Queue<IRStmt> stmts = new LinkedList<>(((IRSeq)body).stmts());
             stmts.add(endStmt);
 
-            // a map storing all IRStmt to CFGNode
-            HashMap<String, IRLabel> labels = new HashMap<>();
             for (IRStmt stmt : stmts){
                 irToNode.put(stmt, new CFGNode<>(stmt));
                 if (stmt instanceof IRLabel){
@@ -102,12 +107,10 @@ public class CFGGenerator {
                 }
             }
 
-            connectIR(start, irToNode.get(stmts.get(0)));
-
-            int size = stmts.size();
+            connectIR(start, irToNode.get(stmts.peek()));
             IRStmt nextStmt;
-            for (int i = 0; i < size; i++) {
-                IRStmt curStmt = stmts.get(i);
+            while(!stmts.isEmpty()) {
+                IRStmt curStmt = stmts.poll();
                 CFGNode<IRStmt> curNode = irToNode.get(curStmt);
 
                 if (curStmt instanceof IRJump) {
@@ -121,15 +124,15 @@ public class CFGGenerator {
                     connectIR(curNode, irToNode.get(nextStmt));
 
                     //add fall through node
-                    nextStmt = stmts.get(i+1);
+                    nextStmt = stmts.peek();
                     connectIR(curNode, irToNode.get(nextStmt));
                 } else if (curStmt instanceof IRReturn){
                     connectIR(curNode, end);
+                } else if (curStmt instanceof IREnd){
+                    //DO NOTHING
                 } else {
                     // if cur is not the last stmt, connect with the next ir stmt
-                    if (i != size - 1){
-                        connectIR(curNode, irToNode.get(stmts.get(i+1)));
-                    }
+                    connectIR(curNode, irToNode.get(stmts.peek()));
                 }
             }
         } else {
