@@ -253,13 +253,29 @@ public class TypeCheckerAdapter {
         }
     }
 
+    /**
+     * First pass and the only pass for record declare
+     * add the record type to visitor's symboltable
+     * @param def the node for recorddeclare
+     * @param visitor the visitor, should be a typechecker
+     * @throws SemanticErrorException
+     */
     private void recordDeclFirstPass(RecordDeclare def, TypeChecker visitor) throws SemanticErrorException{
         visitor.env.addRecord(def.name, def.fieldtypelst);
     }
 
+    /**
+     * getter for hashmap of function
+     * @return
+     */
     public HashMap<String, Sigma> getFunctions() {
         return visitor.env.getFunctions();
     }
+
+    /**
+     * getter for hashmap of records
+     * @return
+     */
     public HashMap<String, Record> getRecords() {
         return visitor.env.records;
     }

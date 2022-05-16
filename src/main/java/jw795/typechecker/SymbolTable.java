@@ -200,6 +200,13 @@ public class SymbolTable {
 
     }
 
+    /**
+     * Since there is problem of recursive definition,
+     * this function get first level record type by the provided type name
+     * return null when there is no such record type
+     * @param id the name of type of record
+     * @return type record
+     */
     public Record findTypeofRecord(String id){
         if (records.containsKey(id)) {
             return records.get(id);

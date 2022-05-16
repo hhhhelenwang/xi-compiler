@@ -52,9 +52,16 @@ public class IRGenerator extends Visitor {
 
     }
 
+    /**
+     * be called when entering a new level of while loop
+     */
     public void addlooplayer(){
         this.loopends.add(nextLabel());
     }
+
+    /**
+     * be called when leaving current level of while loop
+     */
     public void minuslooplayer(){
         this.loopends.pop();
     }
