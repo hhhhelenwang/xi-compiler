@@ -18,7 +18,6 @@ public class IROptimizationRunner {
     public IROptimizationRunner(IRCompUnit program,OptSettings optSettings) {
         this.program = program;
         this.optSettings = optSettings;
-
     }
 
     /**
@@ -32,7 +31,10 @@ public class IROptimizationRunner {
             if (optSettings.copy()) {
                 CopyPropagatorIR copyPropagatorIR = new CopyPropagatorIR(program);
                 program = copyPropagatorIR.run();
+                System.out.println("running copy");
+
                 copyNoChange = copyPropagatorIR.ifNoChange();
+                System.out.println("after running copy");
             }
 
             boolean dceNoChange = true;
@@ -45,8 +47,13 @@ public class IROptimizationRunner {
             boolean cseNoChange = true;
             if (optSettings.cse()) {
                 CSEEliminator cseEliminator = new CSEEliminator(program);
+                System.out.println("running cse");
+
                 program = cseEliminator.run();
 //                System.out.println(program);
+                cseNoChange = cseEliminator.ifNoChange();
+                System.out.println("after running cse");
+
             }
             converged = copyNoChange && dceNoChange && cseNoChange;
 

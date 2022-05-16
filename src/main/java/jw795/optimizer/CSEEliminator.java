@@ -18,12 +18,17 @@ public class CSEEliminator {
     IRCompUnit program;
     CFGGenerator cfgGenerator;
     int cseTempCounter = 0;
+    boolean noChange;
 
     public CSEEliminator(IRCompUnit program){
         this.program = program;
         this.cfgGenerator = new CFGGenerator();
+        this.noChange = true;
     }
 
+    public boolean ifNoChange(){
+        return noChange;
+    }
 
     public IRCompUnit run(){
         HashMap<String, IRFuncDecl> newFunctions = new HashMap<>();
@@ -137,6 +142,7 @@ public class CSEEliminator {
                     for (IRTemp t : originalStmtToAssign.get(curStmt)){
                         IRExpr cse = tempToCSE.get(t);
                         newBody.add(new IRMove(t, cse));
+                        noChange = false;
                     }
 
 //                    System.out.println(newTemp);
@@ -146,9 +152,10 @@ public class CSEEliminator {
                 if (originalStmtToNewStmt.keySet().contains(curStmt)){
 //                    System.out.println("adding the new line");
 //                    System.out.println(originalStmtToNewStmt.get(curStmt));
-//
+                    noChange = false;
                     newBody.add(originalStmtToNewStmt.get(curStmt));
                 } else {
+                    noChange = false;
                     newBody.add(curStmt);
                 }
             }
