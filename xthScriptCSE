@@ -5,13 +5,13 @@ xic ("Test --help") "--help" {
     ;
 }
 
-xic ("Test --irgen") ["./test/pa6"]"-libpath $(testpath) --irgen -Ocopy -Odce -Ocf -Ocse" {
+xic ("Test --irgen") ["./test/pa6"]"-libpath $(testpath) --irgen -Ocse" {
     testCopyProp01.xi;
     testDce01.xi;
 }
 
 
-  xic ("Test -target linux") ["./test/pa5/pa5Failed"] "-libpath $(testpath) -target linux  -Ocopy -Ocf -Odce -Ocse" {
+  xic ("Test -target linux") ["./test/pa5/pa5Failed"] "-libpath $(testpath) -target linux -Ocse" {
         arracc01.xi;
         arracc02.xi;
         arracc03.xi;
