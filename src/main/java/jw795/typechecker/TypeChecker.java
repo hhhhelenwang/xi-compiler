@@ -949,6 +949,20 @@ public class TypeChecker extends Visitor {
     }
 
     @Override
+    public void visitVarDeclMul(VarDeclareMulStmt node) throws Exception {
+        if(env.containsRecord(node.typename)){
+            Var thevar = new Var(env.records.get(node.typename));
+            for(String x:node.names){
+                env.addVar(node.typename, thevar );
+            }
+            node.type = new Void();
+        }else{
+            String errorMsg = errorstart(node.getLine(), node.getCol()) + "this is not a record type: " +node.typename;
+            throw new SemanticErrorException(errorMsg);
+        }
+    }
+
+    @Override
     public void visitNull(Null node){
         //mannually checked by mother stmt so this function should not be called
         node.type = new Tau();

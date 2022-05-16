@@ -98,6 +98,7 @@ non terminal VarDeclareStmt varDeclInitiable;
 non terminal LValue lftValueMulti;
 non terminal ArrayList<LValue> lftValueMultiLst;
 non terminal ArrayList<HashMap<String,Type>> fieldList;
+non terminal VarDeclareMulStmt multiVar;
 
 
 // expressions
@@ -374,6 +375,12 @@ stmt ::= ifStmt:s
     {: RESULT = s; :}
     | BREAK:s
     {:RESULT = new BreakStmt(sleft, sright);:}
+    | multiVar:s
+    {: RESULT = s; :}
+    ;
+
+multiVar ::= ID:s COMMA idList:l ID:i
+    {: RESULT = new VarDeclareMulStmt(s, l ,i, ileft, iright);:}
     ;
 
 //if statement
@@ -575,7 +582,8 @@ varDecl ::= ID:i COLON type:t
 varDeclInitiable ::= ID:i COLON typeInitiable:t
      {: RESULT = new VarDeclareStmt(i, t, ileft, iright); :}
      | ID:i COLON ID:t
-     {: RESULT = new VarDeclareStmt(i, t, ileft, iright); :}
+     {: RecordType thetype = new RecordType(t, tleft, tright);
+     RESULT = new VarDeclareStmt(i, thetype, ileft, iright); :}
     ;
 
 // wildcard
