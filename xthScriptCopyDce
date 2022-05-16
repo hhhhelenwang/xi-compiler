@@ -1,0 +1,137 @@
+# build compiler first
+build
+
+xic ("Test --help") "--help" {
+    ;
+}
+
+xic ("Test --irgen") ["./test/pa6"]"-libpath $(testpath) --irgen -Ocopy -Odce -Ocf" {
+    testCopyProp01.xi;
+    testDce01.xi;
+}
+
+
+xic ("Test --irgen") ["./test/pa4"]"-libpath $(testpath) --irgen -Ocopy -Ocf -Odce" {
+    testiftrue.xi;
+    testiffalse.xi;
+    testwhilefalse.xi;
+    testifelse01.xi;
+    testifelse02.xi;
+    testbasictry.xi;
+    testfoldbinop.xi;
+    testbasicarray.xi;
+    testbasictry.xi;
+    testfoldbinop.xi;
+    testfuncallfold.xi;
+    test_commute.xi;
+    testarrayconcat.xi;
+    testarrayindexoutofbound.xi;
+    testbasic.xi
+    testbasictype.xi;
+    testbinops.xi;
+    testprocedure.xi;
+    testjumps.xi;
+    testLastBlockNotFallThrough.xi;
+    testCJumpFallThrough.xi;
+    testsideeffect.xi;
+    testlength.xi;
+  }
+
+xic ("Test --target linux") ["./test/pa5"]"-libpath $(testpath) --target linux -Ocopy -Ocf -Odce" {
+    testiftrue.xi;
+    testiffalse.xi;
+    testwhilefalse.xi;
+    testifelse01.xi;
+    testifelse02.xi;
+    testbasictry.xi;
+    testfoldbinop.xi;
+    testbasicarray.xi;
+    testbasictry.xi;
+    testfoldbinop.xi;
+    testfuncallfold.xi;
+    test_commute.xi;
+    testarrayconcat.xi;
+    testarrayindexoutofbound.xi;
+    testbasic.xi
+    testbasictype.xi;
+    testbinops.xi;
+    testprocedure.xi;
+    testjumps.xi;
+    testLastBlockNotFallThrough.xi;
+    testCJumpFallThrough.xi;
+    testsideeffect.xi;
+    testlength.xi;
+  }
+
+xic ("Test -target linux") ["./test/pa5/pa5Failed"] "-libpath $(testpath) -target linux  -Ocopy -Ocf -Odce" {
+      arracc01.xi;
+      arracc02.xi;
+      arracc03.xi;
+      arracc04.xi;
+      arracc07.xi;
+      arracc08.xi;
+      arrinit01.xi;
+      arrinit02.xi;
+      arrinit03.xi;
+      arrinit04.xi;
+      arrinit05.xi;
+      arrinit06.xi;
+      assign02.xi;
+      assign03.xi;
+      assign04.xi;
+      assign05.xi;
+      assign06.xi;
+      assign07.xi;
+      assign08.xi;
+      assign09.xi;
+      assign10.xi;
+      binary02.xi;
+      binary03.xi;
+      binary04.xi;
+      binary05.xi;
+      binary06.xi;
+      binary07.xi;
+      binary08.xi;
+      binary09.xi;
+      binary10.xi;
+      binary11.xi;
+      binary12.xi;
+      functioncall01.xi;
+      functioncall02.xi;
+      functioncall03.xi;
+      functioncall04.xi;
+      if05.xi;
+      if06.xi;
+      if07.xi;
+      if08.xi;
+      if09.xi;
+      if10.xi;
+      length01.xi;
+      length02.xi;
+      localdecl03.xi;
+      localdecl04.xi;
+      localdecl06.xi;
+      localdecl13.xi;
+      localdecl14.xi;
+      procedurecall02.xi;
+      procedurecall04.xi;
+      procedurecall05.xi;
+      procedurecall06.xi;
+      unary02.xi;
+      unary03.xi;
+      unary04.xi;
+      while02.xi;
+      while03.xi;
+      while04.xi;
+      fac01.xi;
+      fac02.xi;
+      fac03.xi;
+      fib01.xi;
+      fib02.xi;
+      medley01.xi;
+      arr2.xi;
+      array.xi;
+      concat.xi;
+      multifunc.xi;
+  }
+
