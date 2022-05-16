@@ -3,15 +3,11 @@ package jw795.optimizer;
 import jw795.asmgenerator.TempSpiller;
 import jw795.asmgenerator.Tiler;
 import jw795.assembly.*;
-import jw795.assembly.AAReg;
-import jw795.assembly.AATemp;
 import jw795.cfg.AsmCFG;
 import jw795.cfg.CFGGenerator;
 import jw795.cfg.CFGNode;
 import jw795.dfa.LiveVariableAnalysis;
 
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.*;
 
 public class RegisterAllocator {
@@ -76,7 +72,7 @@ public class RegisterAllocator {
     }
 
     public void registerAllocate() {
-        System.out.println("new iteration");
+//        System.out.println("new iteration");
 //        System.out.println(instructionList);
         livenessAnalysis();
 //        System.out.println("live var values: " + liveVar.values());
@@ -104,7 +100,7 @@ public class RegisterAllocator {
         }
         assignColors();
         if (!spilledNodes.isEmpty()) {
-            System.out.println(spilledNodes);
+//            System.out.println(spilledNodes);
             rewriteProgram();
 //            if (iteration < 3) {
 //                try {
@@ -499,7 +495,7 @@ public class RegisterAllocator {
                 a2 = a.operand2.get();
                 if (a2 instanceof AATemp) {
                     NodeColor c = color.get(a2);
-                    a.reseta1(c.colorToReg());
+                    a.reseta2(c.colorToReg());
                 }
             }
             if (a instanceof AAMove && a.operand1.get().equals(a.operand2.get())) {

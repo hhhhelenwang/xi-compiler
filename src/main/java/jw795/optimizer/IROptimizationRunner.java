@@ -27,18 +27,16 @@ public class IROptimizationRunner {
      */
     public IRCompUnit runOptimizations() {
         boolean converged = false;
-        while (!converged && (optSettings.copy() || optSettings.dce() || optSettings.cse())) {
+        while (!converged && (optSettings.copy() || optSettings.dce())) {
             boolean copyNoChange = true;
             if (optSettings.copy()) {
                 CopyPropagatorIR copyPropagatorIR = new CopyPropagatorIR(program);
                 program = copyPropagatorIR.run();
-//                System.out.println(program);
                 copyNoChange = copyPropagatorIR.ifNoChange();
             }
 
             boolean dceNoChange = true;
             if (optSettings.dce()) {
-                System.out.println("dce started");
                 DeadCodeEliminator deadCodeEliminator = new DeadCodeEliminator(program);
                 program = deadCodeEliminator.run();
                 dceNoChange = deadCodeEliminator.ifNoChange();

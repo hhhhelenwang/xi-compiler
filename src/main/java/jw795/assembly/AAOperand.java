@@ -1,7 +1,5 @@
 package jw795.assembly;
 
-import java.util.Objects;
-
 public abstract class AAOperand {
 
     @Override
