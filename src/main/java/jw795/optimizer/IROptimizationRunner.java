@@ -48,6 +48,7 @@ public class IROptimizationRunner {
             if (optSettings.cse()) {
                 CSEEliminator cseEliminator = new CSEEliminator(program);
                 program = cseEliminator.run();
+                System.out.println(program);
             }
             converged = copyNoChange && dceNoChange && cseNoChange;
 

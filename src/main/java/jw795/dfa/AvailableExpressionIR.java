@@ -24,7 +24,7 @@ public class AvailableExpressionIR extends DataFlowAnalysis<LinkedHashSet<Pair<I
      */
     @Override
     public LinkedHashSet<Pair<IRExpr, IRStmt>> meet(List<LinkedHashSet<Pair<IRExpr, IRStmt>>> exprSets) {
-        if (exprSets.size() ==0 || exprSets.get(0).size() == 0){
+        if (exprSets.size() == 0 || exprSets.get(0).size() == 0){
             return new LinkedHashSet<>();
         }
 
@@ -70,12 +70,17 @@ public class AvailableExpressionIR extends DataFlowAnalysis<LinkedHashSet<Pair<I
         IRStmt stmt = node.getStmt();
 
         if (stmt instanceof IRMove){
-            IRExpr dest = ((IRMove) stmt).target();
-            IRExpr src = ((IRMove) stmt).source();
-            genSet.addAll(newGen(l, dest.getSubExprs(), stmt));
-            genSet.addAll(newGen(l, src.getSubExprs(), stmt));
+//            System.out.println("THIS IS THE IRSTMT");
+//            System.out.println(stmt);
+//            IRExpr dest = ((IRMove) stmt).target();
+//            IRExpr src = ((IRMove) stmt).source();
+            genSet.addAll(newGen(l, stmt.subExprs(), stmt));
+//            genSet.addAll(newGen(l, src.getSubExprs(), stmt));
         } else if (stmt instanceof IRCJump){
-            genSet.addAll(newGen(l,((IRCJump) stmt).cond().getSubExprs(), stmt));
+//            System.out.println("THIS IS THE IRSTMT");
+//            System.out.println(stmt);
+            //TODO: check this
+            genSet.addAll(newGen(l,stmt.subExprs(), stmt));
         }
 
         return genSet;
@@ -93,10 +98,22 @@ public class AvailableExpressionIR extends DataFlowAnalysis<LinkedHashSet<Pair<I
                                                                 IRStmt stmt){
         LinkedHashSet<Pair<IRExpr, IRStmt>> genSet = new LinkedHashSet<>();
         boolean generatedInPred;
+//        System.out.println("THIS IS EXPRESSIONS seen @@@@@@@@@@@@@@@@@@@");
+
+//        for (Pair<IRExpr, IRStmt> pair : l){
+//            System.out.println(pair.part1());
+//            System.out.println("THIS IS THE ORIGINIAL GEN stmt " + pair.part2());
+
+//        }
+//        System.out.println("THIS IS EXPRESSION WE ARE CHECKING@@@@@@@@@@@@@@@@@@@");
 
         for (IRExpr e : exprs){
-            generatedInPred = l.stream().anyMatch(pair -> pair.part1().equals(e));
+//            System.out.println(e);
+
+            generatedInPred = l.stream().anyMatch(pair -> pair.part1().toString().equals(e.toString()));
+//            generatedInPred = l.stream().anyMatch(pair -> pair.part1().equals(e));
             if (!generatedInPred){
+//                System.out.println("not seen before");
                 genSet.add(new Pair<>(e, stmt));
             }
         }

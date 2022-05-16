@@ -94,6 +94,9 @@ public class IRReturn extends IRStmt {
         HashSet<IRExpr> exprs = new HashSet<>();
         for (IRExpr ret : rets()){
             exprs.addAll(ret.getSubExprs());
+            if (ret instanceof IRBinOp){
+                exprs.add(ret);
+            }
         }
         return exprs;
     }

@@ -36,64 +36,111 @@ public class CSEEliminator {
     }
 
     private IRFuncDecl cseEliminateFunction(IRFuncDecl func) {
+//        System.out.println("called cseEliminateFunction");
         CFG<IRStmt> cfg = cfgGenerator.toIRCFG(func);
 
         AvailableExpressionIR availableExpreIR = new AvailableExpressionIR(cfg);
         HashMap<CFGNode<IRStmt>, LinkedHashSet<Pair<IRExpr, IRStmt>>> nodeToValueMap = availableExpreIR.forward();
 
-        List<IRStmt> newBody = new ArrayList<>(); //add temp <- cse
-        List<IRStmt> semiBody = new ArrayList<>(); //modified cse to temp
+        List<IRStmt> newBody = new ArrayList<>();
+        List<IRStmt> semiBody = new ArrayList<>();
         IRStmt body = func.body();
 
-        HashMap<IRExpr, IRTemp> ceToTemps = new HashMap<>();
-        HashMap<IRTemp, IRExpr> tempsToCE = new HashMap<>();
-        HashMap<IRStmt, IRTemp> stmtToNewTemp = new HashMap<>();
+        HashMap<IRStmt, Pair<IRTemp, IRExpr>> stmtreplayedByNewTemp = new HashMap<>(); //stmt to be added with new temp
+
+        HashMap<IRStmt, IRStmt> originalStmtToNewStmt = new HashMap<>();
+        HashMap<IRStmt, IRTemp> originalStmtToAssign = new HashMap<>();
+        HashMap<String, IRTemp> cseToTemps = new HashMap<>();
+        HashMap<IRTemp, IRExpr> tempToCSE = new HashMap<>();
 
         if (body instanceof IRSeq){
-            for (IRStmt stmt : ((IRSeq) body).stmts()){
+            for (IRStmt stmt : ((IRSeq) body).stmts()) {
                 CFGNode<IRStmt> node = cfg.getNode(stmt);
-                LinkedHashSet<Pair<IRExpr, IRStmt>> outOfNode = nodeToValueMap.get(node);
-                HashMap<IRExpr, IRStmt> availableExpr = new HashMap<>();
-                outOfNode.stream().forEach(pair -> availableExpr.put(pair.part1(), pair.part2()));
+                List<CFGNode<IRStmt>> preds = node.getPredecessors();
+                List<LinkedHashSet<Pair<IRExpr, IRStmt>>> predsOut = new ArrayList<>();
+
+                preds.stream().forEach(pred -> predsOut.add(nodeToValueMap.get(pred)));
+
+                LinkedHashSet<Pair<IRExpr, IRStmt>> outOfNode = intersect(predsOut);
+                HashMap<String, IRStmt> availableExpr = new HashMap<>(); //expr, stmt to update
+                outOfNode.stream().forEach(pair -> availableExpr.put(pair.part1().toString(), pair.part2()));
+//                System.out.println("++++++++++++++++ available expressions");
+//                outOfNode.stream().forEach(pair -> System.out.println(pair.part1().toString() + " --- " + pair.part2().toString()));
 
                 HashSet<IRExpr> subExprOfCurStmt = stmt.subExprs();
+//                System.out.println("=========================== ");
+//                System.out.println("the current stmt is " + stmt);
+//                System.out.println("++++++++++++++++ sub expressions are");
+                subExprOfCurStmt.stream().forEach(e -> System.out.println(e));
 
                 IRStmt newStmt = stmt;
-                //populate commonExpr -> Temp map
-                for (IRExpr e : subExprOfCurStmt){
-
-                    //check if there is a common subexpression
-                    if (availableExpr.keySet().contains(e)){ // if there is a available subexpression
+                for (IRExpr e : subExprOfCurStmt) {
+//                    System.out.println("the subexpression is " + e);
+                    if (availableExpr.keySet().contains(e.toString())) { // if there is a available subexpression
+//                        System.out.println("enter contains e");
                         IRTemp newTemp;
-
                         //check which temp to use
-                        if (ceToTemps.containsKey(e)){
-                            newTemp = ceToTemps.get(e);
-                        } else {
-                            newTemp = newCSETemp();
-                            ceToTemps.put(e, newTemp);
-                            tempsToCE.put(newTemp, e);
-                            stmtToNewTemp.put(stmt, newTemp);
-                        }
+                        if (cseToTemps.containsKey(e.toString())) {
+//                            System.out.println("temp already exist");
 
-//                        //generate new stmt, with common sub expression replaced by temp
-                        newStmt = findAndReplace(stmt, e, newTemp);
+                            newTemp = cseToTemps.get(e.toString());
+
+                            newStmt = findAndReplace(stmt, e, newTemp);
+//                            System.out.println(newStmt);
+
+                            originalStmtToNewStmt.put(stmt, newStmt);
+//                            semiBody.add(newStmt);
+                        } else {
+//                            System.out.println("creating new temp");
+
+                            newTemp = newCSETemp();
+                            tempToCSE.put(newTemp, e);
+                            cseToTemps.put(e.toString(), newTemp);
+                            newStmt = findAndReplace(stmt, e, newTemp);
+                            originalStmtToNewStmt.put(stmt, newStmt);
+
+//                            semiBody.add(newStmt);
+
+                            IRStmt generatingStmt = availableExpr.get(e.toString()); // the stmt where the cse is defined
+                            originalStmtToAssign.put(generatingStmt, newTemp);
+                            newStmt = findAndReplace(generatingStmt, e, newTemp);
+                            originalStmtToNewStmt.put(generatingStmt, newStmt);
+                        }
                         break;
                     }
                 }
-                semiBody.add(newStmt);
+                semiBody.add(stmt);
             }
 
 
-            for (IRStmt curStmt : semiBody){
-                if (stmtToNewTemp.keySet().contains(curStmt)){
-                    //need to update, add cseTemp <- cse
-                    IRTemp newTemp = stmtToNewTemp.get(curStmt);
-                    newBody.add(new IRMove(newTemp, tempsToCE.get(newTemp)));
+            for (IRStmt curStmt: ((IRSeq) body).stmts()) {
+
+//                if (originalStmtToAssign.keySet())
+//                System.out.println("=================================gen funBody");
+//                System.out.println(curStmt);
+                if (originalStmtToAssign.keySet().contains(curStmt)) {
+//                    System.out.println("enter adding new MOVE");
+                    IRTemp newTemp = originalStmtToAssign.get(curStmt);
+                    IRExpr cse = tempToCSE.get(newTemp);
+
+//                    System.out.println(newTemp);
+//                    System.out.println(cse);
+
+                    newBody.add(new IRMove(newTemp, cse));
+
+                }
+
+                if (originalStmtToNewStmt.keySet().contains(curStmt)){
+//                    System.out.println("adding the new line");
+//                    System.out.println(originalStmtToNewStmt.get(curStmt));
+//
+                    newBody.add(originalStmtToNewStmt.get(curStmt));
                 } else {
                     newBody.add(curStmt);
                 }
             }
+
+
         } else {
             System.out.println("CSEEliminator: invalid function body.");
         }
@@ -118,13 +165,22 @@ public class CSEEliminator {
             return new IRCallStmt(((IRCallStmt) stmt).target(), ((IRCallStmt) stmt).n_returns(), newArgs);
 
         } else if (stmt instanceof IRCJump){
-            return new IRCJump(findAndReplaceExpr(((IRCJump) stmt).cond(), eTarget, newTemp),
-                    ((IRCJump) stmt).trueLabel());
+            IRExpr cond = ((IRCJump) stmt).cond();
+            if (exprEquals(cond, eTarget)){
+                cond = newTemp;
+            } else {
+                cond = findAndReplaceExpr(cond, eTarget, newTemp);
+            }
+            return new IRCJump(cond, ((IRCJump) stmt).trueLabel());
 
         } else if (stmt instanceof IRReturn){
             List<IRExpr> newRets = new ArrayList<>();
             for (IRExpr expr : ((IRReturn) stmt).rets()){
-                newRets.add(findAndReplaceExpr(expr, eTarget, newTemp));
+                if (exprEquals(expr, eTarget)){
+                    newRets.add(newTemp);
+                } else {
+                    newRets.add(findAndReplaceExpr(expr, eTarget, newTemp));
+                }
             }
             return new IRReturn(newRets);
 
@@ -132,14 +188,15 @@ public class CSEEliminator {
             IRExpr target = ((IRMove) stmt).target();
             IRExpr src = ((IRMove) stmt).source();
 
-            if (((IRMove) stmt).target() instanceof IRMem){
-                target = findAndReplaceExpr(target, eTarget, newTemp);
+            if (src instanceof IRBinOp || src instanceof IRMem){
+                if (exprEquals(src, eTarget)){
+                    src = newTemp;
+                } else {
+                    src = findAndReplaceExpr(src, eTarget, newTemp);
+                }
             }
-            if (((IRMove) stmt).source() instanceof IRBinOp || ((IRMove) stmt).source() instanceof IRMem){
-                src = findAndReplaceExpr(src, eTarget, newTemp);
-            }
-            return new IRMove(target, src);
 
+            return new IRMove(target, src);
         } else {
             //no expression in this stmt, thus, no modification
             return stmt;
@@ -155,7 +212,7 @@ public class CSEEliminator {
      */
     private IRExpr findAndReplaceExpr(IRExpr exprBefore, IRExpr eTarget, IRTemp newTemp) {
         if (exprBefore instanceof IRMem){
-            if (((IRMem) exprBefore).expr().equals(eTarget)){
+            if (exprEquals(exprBefore, eTarget)){
                 return new IRMem(newTemp);
             } else {
                 return new IRMem(findAndReplaceExpr(((IRMem) exprBefore).expr(), eTarget, newTemp));
@@ -163,28 +220,55 @@ public class CSEEliminator {
         } else if (exprBefore instanceof IRBinOp){
             IRExpr leftExpr = ((IRBinOp)exprBefore).left();
             IRExpr rightExpr = ((IRBinOp)exprBefore).right();
-            if (leftExpr.equals(eTarget)){
-                return new IRBinOp(((IRBinOp) exprBefore).opType(), newTemp, rightExpr);
-            } else if (rightExpr.equals(eTarget)){
-                return new IRBinOp(((IRBinOp) exprBefore).opType(), leftExpr, newTemp);
+            if (exprEquals(leftExpr, eTarget)){
+                leftExpr = newTemp;
+                rightExpr = findAndReplaceExpr(rightExpr, eTarget, newTemp);
+            } else if (exprEquals(rightExpr, eTarget)){
+                leftExpr = findAndReplaceExpr(leftExpr, eTarget, newTemp);
+                rightExpr = newTemp;
             } else {
-                return new IRBinOp(((IRBinOp) exprBefore).opType(),
-                        findAndReplaceExpr(leftExpr, eTarget, newTemp),
-                        findAndReplaceExpr(rightExpr, eTarget, newTemp));
+                leftExpr = findAndReplaceExpr(leftExpr, eTarget, newTemp);
+                rightExpr = findAndReplaceExpr(rightExpr, eTarget, newTemp);
+
             }
+            return new IRBinOp(((IRBinOp) exprBefore).opType(), leftExpr, rightExpr);
         } else {
             return exprBefore;
         }
+    }
+
+    private boolean exprEquals(IRExpr e1, IRExpr e2){
+        return e1.toString().equals(e2.toString());
     }
 
     /**
      * Generate a new temp to store the hoisted out cse
      * @return new temp
      */
-
     private IRTemp newCSETemp(){
         IRTemp cseTemp = new IRTemp("cse" + cseTempCounter);
         cseTempCounter++;
         return cseTemp;
     }
+
+    /**
+     * Get the intersection of a list of preds' out[n]
+     * @param predsOuts
+     * @return intersection of all sets in input
+     */
+    public LinkedHashSet<Pair<IRExpr, IRStmt>> intersect(List<LinkedHashSet<Pair<IRExpr, IRStmt>>> predsOuts) {
+        if (predsOuts.size() == 0){
+            return new LinkedHashSet<>();
+        }
+        if (predsOuts.get(0).size() == 0){
+            return new LinkedHashSet<>();
+        }
+
+        LinkedHashSet<Pair<IRExpr, IRStmt>> intersection = new LinkedHashSet<>(predsOuts.get(0));
+        for (LinkedHashSet<Pair<IRExpr, IRStmt>> exprSet : predsOuts){
+            intersection.retainAll(exprSet);
+        }
+        return intersection;
+    }
+
 }

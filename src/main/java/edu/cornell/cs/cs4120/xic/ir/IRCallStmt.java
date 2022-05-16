@@ -128,6 +128,11 @@ public class IRCallStmt extends IRStmt {
     public HashSet<IRExpr> subExprs() {
         HashSet<IRExpr> exprs = new HashSet<>();
         args.stream().forEach(arg -> exprs.addAll(arg.getSubExprs()));
+        for (IRExpr e : args()){
+            if (e instanceof IRBinOp){
+                exprs.add(e);
+            }
+        }
         return exprs;
     }
 }
