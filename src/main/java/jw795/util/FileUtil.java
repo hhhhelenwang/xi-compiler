@@ -47,12 +47,12 @@ public class FileUtil {
         String file = dirs[dirs.length - 1];
         String processedFile;
         String end = file.substring(file.length()-3);
-        String xiFileName = file.substring(0,file.length()-3);
-        String ixiFileName = file.substring(0,file.length()-4);
+        String xiFileName = file.substring(0,file.length()-3); // file name for all that has 2-letter ext.
+        String ixiFileName = file.substring(0,file.length()-4); // file name for all that has 3-letter ext.
         String phaseName = phase.isPresent() ? "_" + phase.get() : "";
         String funName = funcName.isPresent() ? funcName.get(): "";
 
-        if(end.equals(".xi")) {
+        if(end.equals(".xi") || (end.equals(".rh") || end.equals(".ri"))) {
             processedFile = xiFileName + funName + phaseName + "." + fileType;
         }else{
             processedFile = ixiFileName + funName + phaseName + "." + fileType;

@@ -8,7 +8,6 @@ public enum NodeColor {
     rbx(Tiler.rbx),
     rcx(Tiler.rcx),
     rdx(Tiler.rdx),
-    rsi(Tiler.rsi),
     rdi(Tiler.rdi),
     r8(Tiler.r8),
     r9(Tiler.r9),

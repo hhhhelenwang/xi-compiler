@@ -67,7 +67,8 @@ public abstract class Visitor {
     public abstract void visitAssign(AssignStmt node) throws Exception;
     //Break stmt
     public abstract void visitBreak(BreakStmt node) throws Exception;
-
+    //vardeclmul
+    public abstract void visitVarDeclMul(VarDeclareMulStmt node) throws Exception;
 
     public abstract void visitNull(Null node);
     // wildcard

@@ -252,7 +252,10 @@ public class IRGeneratorAdapter {
             return "a" + inputNameBuild(((TypedArray) outputType).elementType);
         } else if (outputType instanceof Unit) {
             return "p";
-        } else if (outputType instanceof Prod){
+        }else if(outputType instanceof Record){
+            return "r"+((Record) outputType).name.length() + ((Record) outputType).name;
+        }
+        else if (outputType instanceof Prod){
             String result = "t".concat(String.valueOf(((Prod) outputType).elementTypes.size()));
             for (Tau t : ((Prod) outputType).elementTypes) {
                 result = result.concat(outputNameBuild(t));
@@ -273,6 +276,8 @@ public class IRGeneratorAdapter {
         } else if (type instanceof Bool) {
             return 1L;
         } else if (type instanceof TypedArray) {
+            return 1L;
+        }else if (type instanceof Record) {
             return 1L;
         } else if (type instanceof Unit) {
             return 0L;

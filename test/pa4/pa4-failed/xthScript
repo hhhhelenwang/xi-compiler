@@ -35,7 +35,7 @@ xic ("Test --help") "--help" {
     ;
 }
 
-xic ("Test --irgen") "-libpath $(testpath) --irgen" {
+xic ("Test --irgen") "-libpath $(testpath) --irgen -Ocopy -Odce -Ocf" {
     binary06.xi;
     binary12.xi;
     if09.xi;

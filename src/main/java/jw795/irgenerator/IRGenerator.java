@@ -658,6 +658,14 @@ public class IRGenerator extends Visitor {
     }
 
     @Override
+    public void visitVarDeclMul(VarDeclareMulStmt node) throws Exception {
+        for(String s: node.names){
+            variables.put(s, node.typename);
+        }
+        //should not preform any instruction
+    }
+
+    @Override
     public void visitNull(Null node) {
         node.ir = irFactory.IRMem(irFactory.IRConst(0));
     }

@@ -5,6 +5,38 @@ xic ("Test --help") "--help" {
     ;
 }
 
+xic ("Test -target linux -[regAlloc]") ["./test/pa5"]"-libpath $(testpath) -target linux -O" {
+    testiftrue.xi;
+    testiffalse.xi;
+    testwhilefalse.xi;
+    testifelse01.xi;
+    testifelse02.xi;
+    testbasictry.xi;
+    testfoldbinop.xi;
+    testbasicarray.xi;
+    testbasictry.xi;
+    testfoldbinop.xi;
+    testfuncallfold.xi;
+    test_commute.xi;
+    testarrayconcat.xi;
+    testarrayindexoutofbound.xi;
+    testbasic.xi;
+    testbasictype.xi;
+    testbinops.xi;
+    testprocedure.xi;
+    testjumps.xi;
+    testLastBlockNotFallThrough.xi;
+    testCJumpFallThrough.xi;
+    testsideeffect.xi;
+     testlength.xi;
+     testaddrmode.xi;
+     testset.xi;
+     test5_5.xi;
+     test6_1.xi;
+     test10_1.xi;
+     test10_5.xi;
+ }
+
 xic ("Test -target linux") ["./test/pa6/pa6-release"]"-libpath $(testpath) -target linux" {
     ex01.xi;
     ack.xi;
@@ -54,4 +86,3 @@ xic ("Test -target linux [-Odce]") ["./test/pa6/pa6-release"]"-libpath $(testpat
     loop.rh;
     pointexample.rh;
 }
-

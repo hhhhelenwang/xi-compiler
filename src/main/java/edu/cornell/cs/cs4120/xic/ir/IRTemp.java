@@ -35,12 +35,13 @@ public class IRTemp extends IRExpr_c {
         if (!(t instanceof IRTemp)) {
             return false;
         } else {
-            if (this.name != ((IRTemp) t).name) {
-                return false;
-            } else{
-                return true;
-            }
+            return this.name.equals(((IRTemp) t).name());
         }
+    }
+
+    @Override
+    public int hashCode() {
+        return name.hashCode();
     }
 
     @Override
