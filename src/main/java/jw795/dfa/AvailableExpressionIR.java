@@ -172,7 +172,7 @@ public class AvailableExpressionIR extends DataFlowAnalysis<LinkedHashSet<Pair<I
         LinkedHashSet<Pair<IRExpr, IRStmt>> killSet = new LinkedHashSet<>();
 
         for (IRExpr e : exprs){
-            if (l.stream().anyMatch(pair -> pair.part1().equals(e))){
+            if (l.stream().anyMatch(pair -> pair.part1().toString().equals(e.toString()))){
                 killSet.add(new Pair<>(e, stmt));
             }
         }

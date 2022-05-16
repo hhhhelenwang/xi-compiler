@@ -48,10 +48,9 @@ public class IROptimizationRunner {
             if (optSettings.cse()) {
                 CSEEliminator cseEliminator = new CSEEliminator(program);
                 System.out.println("running cse");
-
+                cseNoChange = cseEliminator.ifNoChange();
                 program = cseEliminator.run();
 //                System.out.println(program);
-                cseNoChange = cseEliminator.ifNoChange();
                 System.out.println("after running cse");
 
             }
