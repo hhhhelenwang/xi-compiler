@@ -174,25 +174,28 @@ public class SymbolTable {
      * @param name id
      * @param fields map of field name with type
      */
-    public void addRecord(String name, Map<String, Type> fields){
-        HashMap<String, Tau> fty =new HashMap<>();
-        for(Map.Entry<String, Type> entry: fields.entrySet()){
+    public void addRecord(String name, LinkedHashMap<String, Type> fields){
+        LinkedHashMap<String, Tau> fty =new LinkedHashMap<>();
+        fields.forEach(
+            (k,v) -> {
 
-            if(entry.getValue() instanceof IntType){
-                fty.put(entry.getKey(),  new Int());
-            }else if(entry.getValue() instanceof BoolType){
-                fty.put(entry.getKey(),  new Bool());
-            }else if(entry.getValue() instanceof RecordType){
-                Record thetype = this.findTypeofRecord(((RecordType) entry.getValue()).name);
-                if(thetype != null){fty.put(entry.getKey(), thetype);}
-                else{
-                    fty.put(entry.getKey(), new Record(((RecordType) entry.getValue()).name,new HashMap<>()));
+            if (v instanceof IntType) {
+                fty.put(k, new Int());
+            } else if (v instanceof BoolType) {
+                fty.put(k, new Bool());
+            } else if (v instanceof RecordType) {
+                Record thetype = this.findTypeofRecord(((RecordType) v).name);
+                if (thetype != null) {
+                    fty.put(k, thetype);
+                } else {
+                    fty.put(k, new Record(((RecordType) v).name, new LinkedHashMap<>()));
                 }
-            }else{
+            } else {
                 System.out.println("got an unhandled case");
             }
-
         }
+
+        );
         Record stype = new Record(name, fty );
 
         records.put(name, stype);

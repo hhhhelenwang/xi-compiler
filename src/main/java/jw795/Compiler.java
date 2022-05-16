@@ -301,8 +301,12 @@ public class Compiler {
      * Compile the input files into assembly code.
      */
     public void compile() {
-        Option[] options = cmd.getOptions();
-        if (options.length == 0 || cmd.hasOption("target")) {
+        if (!cmd.hasOption("help")
+                || !cmd.hasOption("lex")
+                || !cmd.hasOption("parse")
+                || !cmd.hasOption("typecheck")
+                || !cmd.hasOption("irgen") ||
+                !cmd.hasOption("irrun")) {
             this.files = cmd.getArgList();
             for (String file : files) {
                 compileFile(file);

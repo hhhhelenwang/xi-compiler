@@ -953,9 +953,9 @@ public class TypeChecker extends Visitor {
         if(env.containsRecord(node.typename)){
             Var thevar = new Var(env.records.get(node.typename));
             for(String x:node.names){
-                env.addVar(node.typename, thevar );
+                env.addVar(x, thevar );
             }
-            node.type = new Void();
+            node.type = new Unit();
         }else{
             String errorMsg = errorstart(node.getLine(), node.getCol()) + "this is not a record type: " +node.typename;
             throw new SemanticErrorException(errorMsg);

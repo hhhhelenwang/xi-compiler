@@ -47,7 +47,7 @@ public class CopyPropagatorAA {
             for (Pair<AAOperand, AAOperand> pair : eqSet) {
                 if (pair.part1().equals(var)) {
                     // the current var in use set has an equality, replace it
-                    // TODO: does find and replace both operands work?
+
 
                 }
             }
