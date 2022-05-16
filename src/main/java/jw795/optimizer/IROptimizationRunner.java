@@ -27,7 +27,7 @@ public class IROptimizationRunner {
      */
     public IRCompUnit runOptimizations() {
         boolean converged = false;
-        while (!converged && (optSettings.copy() || optSettings.dce())) {
+        while (!converged && (optSettings.copy() || optSettings.dce() || optSettings.cse())) {
             boolean copyNoChange = true;
             if (optSettings.copy()) {
                 CopyPropagatorIR copyPropagatorIR = new CopyPropagatorIR(program);
