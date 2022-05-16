@@ -1,0 +1,26 @@
+# build compiler first
+build
+
+xic ("Test --help") "--help" {
+    ;
+}
+
+xic ("Test --irgen -O") ["./test/pa6/pa6-release"]"-libpath $(testpath) --irgen -O" {
+    point.rh;
+    node.rh;
+    loop.rh;
+    pointexample.rh;
+}
+
+
+
+xic ("Test -target linux -O") ["./test/pa6/pa6-release"]"-libpath $(testpath) -target linux -O" {
+    point.rh;
+    node.rh;
+    loop.rh;
+    pointexample.rh;
+}
+
+
+
+

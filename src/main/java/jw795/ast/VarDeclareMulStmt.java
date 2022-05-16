@@ -1,7 +1,6 @@
 package jw795.ast;
 
 import edu.cornell.cs.cs4120.util.CodeWriterSExpPrinter;
-import edu.cornell.cs.cs4120.xic.ir.IRExpr;
 import jw795.Visitor;
 
 import java.util.ArrayList;
@@ -12,7 +11,7 @@ public class VarDeclareMulStmt extends Statement{
 
     public VarDeclareMulStmt(String s, ArrayList<String> names,String typename, int li, int co) {
         super(li, co);
-        names.add(s);
+        names.add(0,s);
         this.names = names;
         this.typename = typename;
     }

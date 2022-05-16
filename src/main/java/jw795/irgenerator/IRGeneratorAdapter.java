@@ -94,7 +94,6 @@ public class IRGeneratorAdapter {
                 reorderedIR = jumpReorder.reorder(lowerIR);
 
                 // optimization!!
-                System.out.println("start running optimization");
                 IROptimizationRunner irOptimizationRunner = new IROptimizationRunner(reorderedIR, optSettings);
                 optimizedIR = irOptimizationRunner.runOptimizations();
                 // here optimizedIR will be the same as unoptimizedIR if no optimization is done
@@ -310,7 +309,8 @@ public class IRGeneratorAdapter {
         HashMap<String,Record> ori = typeCheckerAdapter.getRecords();
         HashMap<String, ArrayList<String>> result = new HashMap<>();
         for(Map.Entry<String,Record> mpe: ori.entrySet()){
-            ArrayList<String> temp = new ArrayList<String>(mpe.getValue().fields.keySet());
+            ArrayList<String> temp = new ArrayList<>();
+            mpe.getValue().fields.forEach((k,v)->temp.add(k));
             result.put(mpe.getKey(),temp );
         }
         return result;

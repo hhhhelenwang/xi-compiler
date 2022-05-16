@@ -3,8 +3,8 @@ package jw795.irgenerator;
 import edu.cornell.cs.cs4120.xic.ir.*;
 import jw795.Visitor;
 import jw795.ast.*;
-import jw795.typechecker.*;
-import jw795.typechecker.Void;
+import jw795.typechecker.EmptyArray;
+import jw795.typechecker.TypedArray;
 
 import java.util.*;
 
@@ -23,7 +23,7 @@ public class IRGenerator extends Visitor {
     HashMap<String, Long> funcRetLengths;
     HashMap<String, ArrayList<String>> recordfields;
     Stack<String> loopends;
-    HashMap<String,String> variables;
+    HashMap<String,String> variables; // map from variable name to its record id
 
     int stringCounter;
     int labelCounter;
@@ -380,12 +380,28 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitEqual(Equal node) {
-        node.ir = irFactory.IRBinOp(EQ, node.expr1.ir, node.expr2.ir);
+        IRExpr left = node.expr1.ir;
+        IRExpr right = node.expr2.ir;
+        if (node.expr1 instanceof Null) {
+            left = irFactory.IRConst(0L);
+        }
+        if (node.expr2 instanceof Null) {
+            right = irFactory.IRConst(0L);
+        }
+        node.ir = irFactory.IRBinOp(EQ, left, right);
     }
 
     @Override
     public void visitNotEqual(NotEqual node) {
-        node.ir = irFactory.IRBinOp(NEQ, node.expr1.ir, node.expr2.ir);
+        IRExpr left = node.expr1.ir;
+        IRExpr right = node.expr2.ir;
+        if (node.expr1 instanceof Null) {
+            left = irFactory.IRConst(0L);
+        }
+        if (node.expr2 instanceof Null) {
+            right = irFactory.IRConst(0L);
+        }
+        node.ir = irFactory.IRBinOp(NEQ, left, right);
 
     }
 
@@ -414,15 +430,16 @@ public class IRGenerator extends Visitor {
      */
     @Override
     public void visitDot(Dot node) throws Exception {
-        String typename = variables.get(node.recordname);
+        String typename = variables.get(node.recordname); // record instance name
         ArrayList<String> theoffset = recordfields.get(typename);
         int indx = theoffset.indexOf(node.fieldname);
         if(indx>0){
             node.ir = irFactory.IRMem(
                     irFactory.IRBinOp(
                             ADD,
-                            irFactory.IRConst(8*indx),
-                            irFactory.IRTemp(node.recordname)
+                            irFactory.IRTemp(node.recordname),
+                            irFactory.IRConst(8*indx)
+
                             ));
         }else{
             node.ir = irFactory.IRMem(irFactory.IRTemp(node.recordname));
@@ -488,6 +505,7 @@ public class IRGenerator extends Visitor {
             long initialed = node.arguments.size();
             for (int i = 0; i < initialed; i++) {
                 Expr e = node.arguments.get(i);
+
                 l.add(irFactory.IRMove(
                         irFactory.IRMem(
                                 irFactory.IRBinOp(
@@ -666,15 +684,18 @@ public class IRGenerator extends Visitor {
 
     @Override
     public void visitVarDeclMul(VarDeclareMulStmt node) throws Exception {
+        List<IRStmt> stmts = new ArrayList<>();
         for(String s: node.names){
             variables.put(s, node.typename);
+            stmts.add(irFactory.IRMove(irFactory.IRTemp(s), irFactory.IRConst(0L)));
         }
+        node.ir =  irFactory.IRSeq(stmts);
         //should not preform any instruction
     }
 
     @Override
     public void visitNull(Null node) {
-        node.ir = irFactory.IRMem(irFactory.IRConst(0));
+        node.ir = irFactory.IRConst(0);
     }
 
     @Override
@@ -697,8 +718,8 @@ public class IRGenerator extends Visitor {
                     stmts.add(irFactory.IRMove(tn, e.get().ir));
                     lengths.add(tn);
                 } else {
-                    stmts.add(irFactory.IRMove(tn, irFactory.IRConst(0L)));
-                    lengths.add(tn);
+//                    stmts.add(irFactory.IRMove(tn, irFactory.IRConst(0L)));
+//                    lengths.add(tn);
                     break;
                 }
                 t = ((ArrayType) t).elemType;
@@ -713,10 +734,15 @@ public class IRGenerator extends Visitor {
                     irFactory.IRTemp(node.identifier)
             );
         } else {
-            if(node.varType instanceof RecordType){
+            if (node.varType instanceof RecordType) {
                 variables.put(node.identifier, ((RecordType) node.varType).name);
             }
-            node.ir = irFactory.IRTemp(node.identifier);
+
+            // In case of node is a record or an array, the default initialization is to null which address 0
+            // In case of node is an int or a bool, the default value is the constant 0
+            IRExpr defaultVal = irFactory.IRConst(0);
+            IRTemp var = irFactory.IRTemp(node.identifier);
+            node.ir = irFactory.IRESeq(irFactory.IRMove(var, defaultVal), var);
         }
     }
 
@@ -730,7 +756,12 @@ public class IRGenerator extends Visitor {
     private List<IRStmt> arrayDeclAllocate(String id, ArrayType arrType, Queue<IRTemp> lengths) {
         IRTemp tm = irFactory.IRTemp(nextTemp());
         List<IRStmt> stmts = new ArrayList<>();
+        if(lengths.isEmpty()){
+            stmts.add(irFactory.IRMove(irFactory.IRTemp(id), irFactory.IRConst(0)));
+            return stmts;
+        }
         IRTemp curLayerLength = lengths.poll();
+        //alloc
         stmts.add(
                 irFactory.IRMove(
                         tm,
@@ -747,9 +778,11 @@ public class IRGenerator extends Visitor {
                         )
                 )
         );
+        //assign address and length
         IRTemp arrayStart = irFactory.IRTemp(nextTemp());
         stmts.add(irFactory.IRMove(arrayStart, irFactory.IRBinOp(ADD, tm, irFactory.IRConst(8L))));
         stmts.add(irFactory.IRMove(irFactory.IRMem(tm), curLayerLength));
+
         if (lengths.peek() != null) {
 //            String goToNextLayer = nextLabel();
 //            String stop = nextLabel();

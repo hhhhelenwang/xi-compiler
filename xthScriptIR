@@ -1,0 +1,29 @@
+build
+
+
+xic ("Test --irgen") ["./test/pa4"]"-libpath $(testpath) --irgen -O" {
+    testiftrue.xi;
+    testiffalse.xi;
+    testwhilefalse.xi;
+    testifelse01.xi;
+    testifelse02.xi;
+    testbasictry.xi;
+    testfoldbinop.xi;
+    testbasicarray.xi;
+    testbasictry.xi;
+    testfoldbinop.xi;
+    testfuncallfold.xi;
+    test_commute.xi;
+    testarrayconcat.xi;
+    testarrayindexoutofbound.xi;
+    testbasic.xi
+    testbasictype.xi;
+     testbinops.xi;
+     testprocedure.xi;
+     testjumps.xi;
+     testLastBlockNotFallThrough.xi;
+     testCJumpFallThrough.xi;
+     testsideeffect.xi;
+     testlength.xi;
+}
+
