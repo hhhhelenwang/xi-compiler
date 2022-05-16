@@ -498,11 +498,11 @@ public class RegisterAllocator {
                     a.reseta2(c.colorToReg());
                 }
             }
-            if (a instanceof AAMove && a.operand1.get().equals(a.operand2.get())) {
-                remove.add(a);
-            }
+//            if (a instanceof AAMove && a.operand1.get().equals(a.operand2.get())) {
+//                remove.add(a);
+//            }
         }
-        instructionList.removeAll(remove);
+//        instructionList.removeAll(remove);
         return instructionList;
     }
 
