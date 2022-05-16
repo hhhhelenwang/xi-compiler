@@ -42,7 +42,7 @@ public class LexerAdapter {
         boolean isEndofTokens = false;
 
         while (!isEndofTokens) {
-                try{
+            try{
                 Symbol token = lexer.next_token();
                 if (token == null){
                     isEndofTokens = true;
