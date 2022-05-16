@@ -4,7 +4,6 @@ import edu.cornell.cs.cs4120.xic.ir.*;
 import jw795.cfg.CFG;
 import jw795.cfg.CFGGenerator;
 import jw795.cfg.CFGNode;
-import jw795.dfa.AvailableCopiesIR;
 import jw795.dfa.AvailableExpressionIR;
 import polyglot.util.Pair;
 
@@ -93,7 +92,7 @@ public class CSEEliminator {
                 IRStmt newStmt;
                 for (IRExpr e : subExprOfCurStmt) {
 //                    System.out.println("the subexpression is " + e);
-                    if (availableExpr.keySet().contains(e.toString())) { // if there is a available subexpression
+                    if (availableExpr.containsKey(e.toString())) { // if there is a available subexpression
 //                        System.out.println("enter contains e");
                         IRTemp newTemp;
                         //check which temp to use

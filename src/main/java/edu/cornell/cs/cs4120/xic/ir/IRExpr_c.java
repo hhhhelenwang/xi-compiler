@@ -25,5 +25,13 @@ public abstract class IRExpr_c extends IRNode_c implements IRExpr {
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public int hashCode() {
+        return this.toString().hashCode();
+    }
 
+    @Override
+    public boolean equals(Object obj) {
+        return this.toString().equals(obj.toString());
+    }
 }

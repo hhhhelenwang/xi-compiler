@@ -1,7 +1,6 @@
 package jw795.dfa;
 
 import edu.cornell.cs.cs4120.xic.ir.*;
-import edu.cornell.cs.cs4120.xic.ir.interpret.IRSimulator;
 import jw795.cfg.CFG;
 import jw795.cfg.CFGNode;
 import polyglot.util.Pair;
@@ -136,7 +135,9 @@ public class AvailableExpressionIR extends DataFlowAnalysis<LinkedHashSet<Pair<I
      * @return kill[node]
      */
     @Override
-    public LinkedHashSet<Pair<IRExpr, IRStmt>> kill(CFGNode<IRStmt> node, LinkedHashSet<Pair<IRExpr, IRStmt>> l) {
+    public LinkedHashSet<Pair<IRExpr, IRStmt>> kill(CFGNode<IRStmt> node,
+                                                    LinkedHashSet<Pair<IRExpr, IRStmt>> l) {
+
         LinkedHashSet<Pair<IRExpr, IRStmt>> killSet = new LinkedHashSet<>();
         IRStmt stmt = node.getStmt();
 
@@ -172,8 +173,13 @@ public class AvailableExpressionIR extends DataFlowAnalysis<LinkedHashSet<Pair<I
         LinkedHashSet<Pair<IRExpr, IRStmt>> killSet = new LinkedHashSet<>();
 
         for (IRExpr e : exprs){
-            if (l.stream().anyMatch(pair -> pair.part1().toString().equals(e.toString()))){
-                killSet.add(new Pair<>(e, stmt));
+//            if (l.stream().anyMatch(pair -> pair.part1().equals(e))){
+//                killSet.add(new Pair<>(e, stmt));
+//            }
+            for (Pair<IRExpr, IRStmt> pair : l) {
+                if (pair.part1().equals(e)) {
+                    killSet.add(pair);
+                }
             }
         }
 

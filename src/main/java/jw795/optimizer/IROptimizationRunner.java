@@ -3,8 +3,6 @@ package jw795.optimizer;
 import edu.cornell.cs.cs4120.xic.ir.IRCompUnit;
 import jw795.OptSettings;
 
-import javax.print.attribute.standard.PrinterMessageFromOperator;
-
 /**
  * A runner that runs all optimizations on a program at IR level:
  * - copy propagation
@@ -37,13 +35,6 @@ public class IROptimizationRunner {
                 System.out.println("after running copy");
             }
 
-            boolean dceNoChange = true;
-            if (optSettings.dce()) {
-                DeadCodeEliminator deadCodeEliminator = new DeadCodeEliminator(program);
-                program = deadCodeEliminator.run();
-                dceNoChange = deadCodeEliminator.ifNoChange();
-            }
-
             boolean cseNoChange = true;
             if (optSettings.cse()) {
                 CSEEliminator cseEliminator = new CSEEliminator(program);
@@ -54,6 +45,15 @@ public class IROptimizationRunner {
                 System.out.println("after running cse");
 
             }
+
+            boolean dceNoChange = true;
+            if (optSettings.dce()) {
+                DeadCodeEliminator deadCodeEliminator = new DeadCodeEliminator(program);
+                program = deadCodeEliminator.run();
+                dceNoChange = deadCodeEliminator.ifNoChange();
+            }
+
+
             converged = copyNoChange && dceNoChange && cseNoChange;
 
         }

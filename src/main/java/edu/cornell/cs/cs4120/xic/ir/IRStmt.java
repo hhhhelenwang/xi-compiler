@@ -24,4 +24,14 @@ public abstract class IRStmt extends IRNode_c {
      * @return Set of subexpressions that occur in this statement
      */
     public abstract HashSet<IRExpr> subExprs();
+
+    @Override
+    public int hashCode() {
+        return this.toString().hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return this.toString().equals(obj.toString());
+    }
 }

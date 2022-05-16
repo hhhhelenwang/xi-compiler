@@ -7,7 +7,6 @@ import jw795.asmgenerator.Tile;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.Collection;
 
 /** A node in an intermediate-representation abstract syntax tree. */
 public abstract class IRNode_c implements IRNode {
@@ -74,5 +73,15 @@ public abstract class IRNode_c implements IRNode {
             printSExp(sp);
         }
         return sw.toString();
+    }
+
+    @Override
+    public int hashCode() {
+        return this.toString().hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return this.toString().equals(obj.toString());
     }
 }

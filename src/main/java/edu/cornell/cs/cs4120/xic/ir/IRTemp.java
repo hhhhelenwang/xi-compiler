@@ -30,19 +30,19 @@ public class IRTemp extends IRExpr_c {
         p.endList();
     }
 
-    @Override
-    public boolean equals(Object t) {
-        if (!(t instanceof IRTemp)) {
-            return false;
-        } else {
-            return this.name.equals(((IRTemp) t).name());
-        }
-    }
-
-    @Override
-    public int hashCode() {
-        return name.hashCode();
-    }
+//    @Override
+//    public boolean equals(Object t) {
+//        if (!(t instanceof IRTemp)) {
+//            return false;
+//        } else {
+//            return this.name.equals(((IRTemp) t).name());
+//        }
+//    }
+//
+//    @Override
+//    public int hashCode() {
+//        return name.hashCode();
+//    }
 
     @Override
     public HashSet<IRTemp> vars() {

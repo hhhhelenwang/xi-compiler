@@ -175,6 +175,7 @@ public class IRBinOp extends IRExpr_c {
         p.endList();
     }
 
+
     //    public IRExpr negate() {
     //        IRBinOp expr = (IRBinOp) copy();
     //        switch (type) {

@@ -11,7 +11,7 @@ xic ("Test --irgen") ["./test/pa6"]"-libpath $(testpath) --irgen -Ocse" {
 }
 
 
-  xic ("Test -target linux") ["./test/pa5/pa5Failed"] "-libpath $(testpath) -target linux -Ocse" {
+  xic ("Test -target linux") ["./test/pa5/pa5Failed"] "-libpath $(testpath) -target linux -Ocse -Ocop -Odce" {
         arracc01.xi;
         arracc02.xi;
         arracc03.xi;
