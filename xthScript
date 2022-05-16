@@ -5,7 +5,7 @@ xic ("Test --help") "--help" {
     ;
 }
 
-xic ("Test -target linux -[regAlloc]") ["./test/pa5"]"-libpath $(testpath) -target linux -O" {
+xic ("Test -target linux") ["./test/pa5"]"-libpath $(testpath) -target linux -O" {
     testiftrue.xi;
     testiffalse.xi;
     testwhilefalse.xi;

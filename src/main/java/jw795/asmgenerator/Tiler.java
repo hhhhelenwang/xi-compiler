@@ -449,6 +449,8 @@ public class Tiler extends IRVisitor {
             srcNaive = new AAImm(((IRConst) source).value());
             asmNaive.add(new AAMove(destNaive, srcNaive));
         } else {
+//            System.out.println(node);
+//            System.out.println("here");
             srcNaive = source.getTile().getReturnTemp();
             asmNaive.add(new AAMove(rsi, srcNaive));
             asmNaive.add(new AAMove(destNaive, rsi));
@@ -517,13 +519,13 @@ public class Tiler extends IRVisitor {
             // target is a temp, use it directly
             destOpt = tempSpiller.newTemp(((IRTemp) target).name());
             // check on source
-            srcOpt = getOptMem((IRMem) source, asmOpt, neighborsOpt, true);
+            srcOpt = getOptMem((IRMem) source, asmOpt, neighborsOpt, false);
             asmOpt.add(new AAMove(rdi, srcOpt)); // optimized binop uses rcx and rsi so use rdi to avoid conflict
             asmOpt.add(new AAMove(destOpt, rdi));
             tileOpt = new Tile(asmOpt, neighborsOpt);
         } else if (target instanceof IRMem && source instanceof IRTemp) {
             // check on target
-            destOpt = getOptMem((IRMem) target, asmOpt, neighborsOpt, false);
+            destOpt = getOptMem((IRMem) target, asmOpt, neighborsOpt, true);
             // source is a temp, use it directly
             srcOpt = tempSpiller.newTemp(((IRTemp) source).name());
             asmOpt.add(new AAMove(rdi, srcOpt)); // optimized binop uses rax and rbx so use rdx to avoid conflict
@@ -553,6 +555,8 @@ public class Tiler extends IRVisitor {
             }
         }
         node.setTile(best);
+
+//        System.out.println(best);
 
         return node;
     }
