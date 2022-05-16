@@ -49,7 +49,7 @@ public class CSEEliminator {
         HashMap<IRStmt, Pair<IRTemp, IRExpr>> stmtreplayedByNewTemp = new HashMap<>(); //stmt to be added with new temp
 
         HashMap<IRStmt, IRStmt> originalStmtToNewStmt = new HashMap<>();
-        HashMap<IRStmt, IRTemp> originalStmtToAssign = new HashMap<>();
+        HashMap<IRStmt, HashSet<IRTemp>> originalStmtToAssign = new HashMap<>();
         HashMap<String, IRTemp> cseToTemps = new HashMap<>();
         HashMap<IRTemp, IRExpr> tempToCSE = new HashMap<>();
 
@@ -71,7 +71,7 @@ public class CSEEliminator {
 //                System.out.println("=========================== ");
 //                System.out.println("the current stmt is " + stmt);
 //                System.out.println("++++++++++++++++ sub expressions are");
-                subExprOfCurStmt.stream().forEach(e -> System.out.println(e));
+//                subExprOfCurStmt.stream().forEach(e -> System.out.println(e));
 
                 IRStmt newStmt = stmt;
                 for (IRExpr e : subExprOfCurStmt) {
@@ -102,7 +102,9 @@ public class CSEEliminator {
 //                            semiBody.add(newStmt);
 
                             IRStmt generatingStmt = availableExpr.get(e.toString()); // the stmt where the cse is defined
-                            originalStmtToAssign.put(generatingStmt, newTemp);
+                            HashSet<IRTemp> temps = originalStmtToAssign.getOrDefault(generatingStmt, new HashSet<>());
+                            temps.add(newTemp);
+                            originalStmtToAssign.put(generatingStmt, temps);
                             newStmt = findAndReplace(generatingStmt, e, newTemp);
                             originalStmtToNewStmt.put(generatingStmt, newStmt);
                         }
@@ -120,14 +122,13 @@ public class CSEEliminator {
 //                System.out.println(curStmt);
                 if (originalStmtToAssign.keySet().contains(curStmt)) {
 //                    System.out.println("enter adding new MOVE");
-                    IRTemp newTemp = originalStmtToAssign.get(curStmt);
-                    IRExpr cse = tempToCSE.get(newTemp);
+                    for (IRTemp t : originalStmtToAssign.get(curStmt)){
+                        IRExpr cse = tempToCSE.get(t);
+                        newBody.add(new IRMove(t, cse));
+                    }
 
 //                    System.out.println(newTemp);
 //                    System.out.println(cse);
-
-                    newBody.add(new IRMove(newTemp, cse));
-
                 }
 
                 if (originalStmtToNewStmt.keySet().contains(curStmt)){
@@ -260,6 +261,9 @@ public class CSEEliminator {
         if (predsOuts.size() == 0){
             return new LinkedHashSet<>();
         }
+
+        System.out.println("==========================");
+        System.out.println(predsOuts.size());
         if (predsOuts.get(0).size() == 0){
             return new LinkedHashSet<>();
         }
